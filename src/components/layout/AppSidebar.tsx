@@ -48,6 +48,7 @@ const dataNav = [
 
 const settingsNav = [
   { title: "Langganan", url: "/subscription", icon: CreditCard },
+  { title: "Bantuan", url: "/support", icon: LifeBuoy },
 ];
 
 export function AppSidebar() {
