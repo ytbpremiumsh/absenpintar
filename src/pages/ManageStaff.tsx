@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { PremiumGate } from "@/components/PremiumGate";
 
 interface StaffMember {
   user_id: string;
@@ -135,6 +136,7 @@ const ManageStaff = () => {
   };
 
   return (
+    <PremiumGate featureLabel="Kelola Staff / Operator" featureKey="canMultiStaff" requiredPlan="School">
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -229,6 +231,7 @@ const ManageStaff = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </PremiumGate>
   );
 };
 
