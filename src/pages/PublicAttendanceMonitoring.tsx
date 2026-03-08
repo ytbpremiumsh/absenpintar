@@ -18,7 +18,8 @@ const STATUS_BG: Record<string, string> = {
   alfa: "bg-destructive/10 text-destructive border-destructive/20",
   belum: "bg-muted text-muted-foreground border-border",
 };
-const METHOD_LABELS: Record<string, string> = { barcode: "Barcode", face_recognition: "Face Recognition", manual: "Manual" };
+const METHOD_LABELS: Record<string, string> = { barcode: "Barcode", face_recognition: "Face Recognition", rfid: "Kartu RFID", manual: "Manual" };
+const TYPE_LABELS: Record<string, string> = { datang: "Datang", pulang: "Pulang" };
 
 interface LiveEntry {
   id: string; student_name: string; student_class: string; student_id: string;
@@ -28,9 +29,12 @@ interface LiveEntry {
 interface AttendanceData {
   school: { name: string; logo: string | null };
   classes: Record<string, { id: string; name: string; student_id: string; photo_url: string | null; status: string; time: string | null; method: string | null }[]>;
-  liveFeed: LiveEntry[];
+  liveFeed: (LiveEntry & { attendance_type?: string })[];
   stats: { total: number; hadir: number; izin: number; sakit: number; alfa: number; belum: number };
   date: string;
+  currentMode?: string;
+  pulangStats?: { total: number; recorded: number };
+  timeSettings?: { attStart: string; attEnd: string; depStart: string; depEnd: string };
 }
 
 const LiveDot = () => (
