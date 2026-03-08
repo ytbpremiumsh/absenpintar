@@ -317,7 +317,7 @@ const Monitoring = () => {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-xs sm:text-sm text-foreground truncate">{s.name}</p>
-                                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">NIS: {s.student_id} • {s.parent_name}</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">NIS: {s.student_id}</p>
                                   </div>
                                   {s.status === "picked_up" ? (
                                     <div className="flex items-center gap-1.5 shrink-0">
