@@ -17,6 +17,8 @@ import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import PublicMonitoring from "./pages/PublicMonitoring";
 import PublicClassMonitoring from "./pages/PublicClassMonitoring";
+import SchoolSettings from "./pages/SchoolSettings";
+import AccountSettings from "./pages/AccountSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +45,8 @@ const App = () => (
               <Route path="/teachers" element={<Teachers />} />
               <Route path="/history" element={<History />} />
               <Route path="/subscription" element={<Subscription />} />
+              <Route path="/school-settings" element={<SchoolSettings />} />
+              <Route path="/account-settings" element={<AccountSettings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

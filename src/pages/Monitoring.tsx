@@ -371,7 +371,7 @@ const Monitoring = () => {
           <AlertDialogFooter>
             <AlertDialogCancel className="text-xs sm:text-sm">Batal</AlertDialogCancel>
             <AlertDialogAction onClick={() => confirmStudent && handleManualPickup(confirmStudent)} className="text-xs sm:text-sm">
-              <Volume2 className="h-3.5 w-3.5 mr-1" /> Ya, Approve
+              <Volume2 className="h-3.5 w-3.5 mr-1" /> Ya, Pulangkan
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
