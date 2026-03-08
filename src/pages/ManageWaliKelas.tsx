@@ -129,6 +129,7 @@ const ManageWaliKelas = () => {
       setFormEmail("");
       setFormPassword("");
       setFormClass("");
+      setFormPhone("");
       fetchData();
     } catch (err: any) {
       toast.error(err.message || "Gagal membuat wali kelas");
