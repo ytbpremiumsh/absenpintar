@@ -43,7 +43,7 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="h-screen flex w-full overflow-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center justify-between border-b bg-card px-4 sticky top-0 z-30">
