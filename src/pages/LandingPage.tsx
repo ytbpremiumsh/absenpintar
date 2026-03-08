@@ -101,7 +101,7 @@ const LandingPage = () => {
             initial={{ opacity: 0, y: 40, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-14 max-w-5xl mx-auto"
+            className="mt-14 max-w-4xl mx-auto px-2"
           >
             {get("hero_image") ? (
               <div className="relative group">
