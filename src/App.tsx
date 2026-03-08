@@ -58,6 +58,8 @@ const App = () => (
               <Route path="/super-admin/payments" element={<SuperAdminPayments />} />
               <Route path="/super-admin/whatsapp" element={<SuperAdminWhatsApp />} />
               <Route path="/super-admin/branches" element={<SuperAdminBranches />} />
+              <Route path="/super-admin/announcements" element={<SuperAdminAnnouncements />} />
+              <Route path="/super-admin/tickets" element={<SuperAdminTickets />} />
             </Route>
             {/* School Admin / Staff */}
             <Route element={<AppLayout />}>
