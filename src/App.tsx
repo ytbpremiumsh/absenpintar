@@ -17,6 +17,7 @@ import Classes from "./pages/Classes";
 import Teachers from "./pages/Teachers";
 import ManageWaliKelas from "./pages/ManageWaliKelas";
 import WaliKelasDashboard from "./pages/WaliKelasDashboard";
+import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import PublicMonitoring from "./pages/PublicMonitoring";
 import PublicClassMonitoring from "./pages/PublicClassMonitoring";
