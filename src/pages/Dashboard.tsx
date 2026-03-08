@@ -199,7 +199,7 @@ const Dashboard = () => {
                   <p className="text-sm font-semibold truncate">{studentName}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {studentClass && `Kelas ${studentClass} • `}
-                    Dijemput oleh: {log.pickup_by}
+                    Di verifikasi oleh : {log.pickup_by}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
