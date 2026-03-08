@@ -50,11 +50,12 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
   const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-  // Lookup student via public edge function
+  // Lookup student via public edge function - directly records attendance
   const lookupAndRecord = useCallback(async (code: string, method: string = "barcode", studentId?: string) => {
-    if (isLookingUp.current || scanPaused.current) return;
+    if (isLookingUp.current) return;
     if (!code && !studentId) return;
     isLookingUp.current = true;
+    scanPaused.current = true;
 
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/public-scan-attendance`, {
@@ -70,34 +71,35 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
       const data = await res.json();
 
       if (res.status === 409) {
-        // Already recorded
+        // Already recorded - show briefly then auto-dismiss
         setAlreadyRecorded(true);
         setScannedStudent(data.student);
         setScanMethod(method as "barcode" | "face" | "face_recognition");
         setConfirmed(false);
-        scanPaused.current = true;
+        toast.info(`${data.student.name} sudah tercatat hadir hari ini`);
+        setTimeout(() => resetState(), 3000);
         return;
       }
 
       if (!res.ok) {
         toast.error(data.error || "Siswa tidak ditemukan");
+        scanPaused.current = false;
         return;
       }
 
-      // Success - attendance recorded
+      // Success - attendance auto-verified as hadir
       setAlreadyRecorded(false);
       setScannedStudent(data.student);
       setScanMethod(method as "barcode" | "face" | "face_recognition");
       setConfirmed(true);
-      scanPaused.current = true;
-      toast.success(`Absensi ${data.student.name} berhasil dicatat!`);
+      toast.success(`✅ ${data.student.name} - Hadir!`);
       onAttendanceRecorded?.();
 
-      setTimeout(() => {
-        resetState();
-      }, 3000);
+      // Auto-dismiss after 3 seconds and resume scanning
+      setTimeout(() => resetState(), 3000);
     } catch (err: any) {
       toast.error("Gagal menghubungi server");
+      scanPaused.current = false;
     } finally {
       isLookingUp.current = false;
     }
