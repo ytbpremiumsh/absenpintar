@@ -22,6 +22,7 @@ const navItems = [
   { title: "Notif Registrasi", url: "/super-admin/registration-wa", icon: MessageSquare, group: "integration" },
   { title: "Multi Cabang", url: "/super-admin/branches", icon: Building2, group: "integration" },
   { title: "Landing Page", url: "/super-admin/landing", icon: Globe, group: "content" },
+  { title: "Presentasi", url: "/super-admin/presentation", icon: Presentation, group: "content" },
 ];
 
 const groups = [
