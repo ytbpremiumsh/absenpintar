@@ -1,23 +1,54 @@
 /**
  * Announces a student pickup using the Web Speech API.
+ * Uses a short delay and resume workaround to prevent
+ * the speech from being cut off by DOM changes (popups, re-renders).
  */
+let announceTimeout: ReturnType<typeof setTimeout> | null = null;
+let resumeInterval: ReturnType<typeof setInterval> | null = null;
+
 export function announcePickup(studentName: string, className: string) {
   if (!("speechSynthesis" in window)) return;
 
-  // Cancel any ongoing speech
-  window.speechSynthesis.cancel();
+  // Clear any pending announcement
+  if (announceTimeout) clearTimeout(announceTimeout);
+  if (resumeInterval) clearInterval(resumeInterval);
 
-  const text = `Perhatian. ${studentName}, kelas ${className}, sudah pulang. Terima kasih.`;
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "id-ID";
-  utterance.rate = 0.9;
-  utterance.pitch = 1;
-  utterance.volume = 1;
+  // Small delay to let DOM settle (popup rendering)
+  announceTimeout = setTimeout(() => {
+    window.speechSynthesis.cancel();
 
-  // Try to find Indonesian voice
-  const voices = window.speechSynthesis.getVoices();
-  const idVoice = voices.find(v => v.lang.startsWith("id"));
-  if (idVoice) utterance.voice = idVoice;
+    const text = `Perhatian. ${studentName}, kelas ${className}, sudah pulang. Terima kasih.`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "id-ID";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
 
-  window.speechSynthesis.speak(utterance);
+    // Try to find Indonesian voice
+    const voices = window.speechSynthesis.getVoices();
+    const idVoice = voices.find(v => v.lang.startsWith("id"));
+    if (idVoice) utterance.voice = idVoice;
+
+    // Chrome bug workaround: periodically call resume() to prevent
+    // the browser from pausing/stopping the speech mid-sentence.
+    utterance.onstart = () => {
+      resumeInterval = setInterval(() => {
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.resume();
+        } else {
+          if (resumeInterval) clearInterval(resumeInterval);
+        }
+      }, 3000);
+    };
+
+    utterance.onend = () => {
+      if (resumeInterval) clearInterval(resumeInterval);
+    };
+
+    utterance.onerror = () => {
+      if (resumeInterval) clearInterval(resumeInterval);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }, 300);
 }
