@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Camera, X, Search, ScanLine, UserCheck, CheckCircle2,
-  ShieldCheck, Loader2, AlertTriangle, CreditCard, LogIn, LogOut,
+  ShieldCheck, Loader2, AlertTriangle, CreditCard, LogIn, LogOut, Lock, Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import jsQR from "jsqr";
@@ -25,9 +25,10 @@ interface PublicAttendanceScannerProps {
   schoolId: string;
   onAttendanceRecorded?: () => void;
   currentMode?: string;
+  canFaceRecognition?: boolean;
 }
 
-const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode = "datang" }: PublicAttendanceScannerProps) => {
+const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode = "datang", canFaceRecognition = false }: PublicAttendanceScannerProps) => {
   const [manualCode, setManualCode] = useState("");
   const [scannedStudent, setScannedStudent] = useState<ScannedStudent | null>(null);
   const [confirmed, setConfirmed] = useState(false);

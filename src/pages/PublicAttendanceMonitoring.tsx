@@ -35,6 +35,7 @@ interface AttendanceData {
   currentMode?: string;
   pulangStats?: { total: number; recorded: number };
   timeSettings?: { attStart: string; attEnd: string; depStart: string; depEnd: string };
+  canFaceRecognition?: boolean;
 }
 
 const LiveDot = () => (
@@ -286,7 +287,7 @@ const PublicAttendanceMonitoring = () => {
           {/* Right: Scanner */}
           <div className="lg:col-span-2">
             {schoolId && (
-              <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} currentMode={data?.currentMode || "datang"} />
+              <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} currentMode={data?.currentMode || "datang"} canFaceRecognition={data?.canFaceRecognition ?? false} />
             )}
           </div>
         </div>
