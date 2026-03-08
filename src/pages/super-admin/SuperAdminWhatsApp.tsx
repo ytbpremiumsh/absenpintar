@@ -236,6 +236,28 @@ const SuperAdminWhatsApp = () => {
               <Label>API Key / Token</Label>
               <Input type="password" value={form.api_key} onChange={(e) => setForm({ ...form, api_key: e.target.value })} placeholder="Token OneSender" />
             </div>
+            <div>
+              <Label>Template Pesan WhatsApp</Label>
+              <Textarea
+                value={form.message_template}
+                onChange={(e) => setForm({ ...form, message_template: e.target.value })}
+                rows={6}
+                className="font-mono text-xs"
+                placeholder="Template pesan notifikasi..."
+              />
+              <div className="flex flex-wrap gap-1 mt-2">
+                {TEMPLATE_PLACEHOLDERS.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                    onClick={() => setForm({ ...form, message_template: form.message_template + p.key })}
+                  >
+                    {p.key} <span className="text-muted-foreground">({p.label})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
               <Label>Aktifkan</Label>
