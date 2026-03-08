@@ -40,6 +40,7 @@ const LiveDot = () => (
 
 const Monitoring = () => {
   const { profile } = useAuth();
+  const features = useSubscriptionFeatures();
   const [students, setStudents] = useState<StudentWithStatus[]>([]);
   const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
   const [isPickupActive, setIsPickupActive] = useState(false);
