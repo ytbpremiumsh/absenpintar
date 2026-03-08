@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import jsQR from "jsqr";
-import { announcePickup } from "@/lib/announcePickup";
+
 
 interface FoundStudent {
   id: string;
