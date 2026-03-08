@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Camera, X, Search, ScanLine, UserCheck, CheckCircle2,
-  ShieldCheck, Loader2, AlertTriangle,
+  ShieldCheck, Loader2, AlertTriangle, CreditCard, LogIn, LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
 import jsQR from "jsqr";
@@ -24,9 +24,10 @@ interface ScannedStudent {
 interface PublicAttendanceScannerProps {
   schoolId: string;
   onAttendanceRecorded?: () => void;
+  currentMode?: string;
 }
 
-const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAttendanceScannerProps) => {
+const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode = "datang" }: PublicAttendanceScannerProps) => {
   const [manualCode, setManualCode] = useState("");
   const [scannedStudent, setScannedStudent] = useState<ScannedStudent | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -34,9 +35,9 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [alreadyRecorded, setAlreadyRecorded] = useState(false);
-  const [scanMethod, setScanMethod] = useState<"barcode" | "face" | "face_recognition">("barcode");
+  const [scanMethod, setScanMethod] = useState<string>("barcode");
   const [faceScanning, setFaceScanning] = useState(false);
-  
+  const [attendanceType, setAttendanceType] = useState<string>("datang");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,8 +48,42 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
   const isLookingUp = useRef(false);
   const scanPaused = useRef(false);
 
+  // RFID keyboard emulation buffer
+  const rfidBuffer = useRef("");
+  const rfidTimeout = useRef<number | null>(null);
+
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
   const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  // RFID listener: most RFID readers emulate keyboard and type card number + Enter rapidly
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in input fields
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      if (e.key === "Enter" && rfidBuffer.current.length >= 4) {
+        const code = rfidBuffer.current.trim();
+        rfidBuffer.current = "";
+        if (rfidTimeout.current) clearTimeout(rfidTimeout.current);
+        lookupAndRecord(code, "rfid");
+        return;
+      }
+
+      // Accumulate characters (alphanumeric)
+      if (e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
+        rfidBuffer.current += e.key;
+        // Reset buffer after 100ms of no input (not rapid typing = not RFID)
+        if (rfidTimeout.current) clearTimeout(rfidTimeout.current);
+        rfidTimeout.current = window.setTimeout(() => {
+          rfidBuffer.current = "";
+        }, 100);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Lookup student via public edge function - directly records attendance
   const lookupAndRecord = useCallback(async (code: string, method: string = "barcode", studentId?: string) => {
@@ -71,12 +106,13 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
       const data = await res.json();
 
       if (res.status === 409) {
-        // Already recorded - show briefly then auto-dismiss
         setAlreadyRecorded(true);
         setScannedStudent(data.student);
-        setScanMethod(method as "barcode" | "face" | "face_recognition");
+        setScanMethod(method);
+        setAttendanceType(data.attendance_type || "datang");
         setConfirmed(false);
-        toast.info(`${data.student.name} sudah tercatat hadir hari ini`);
+        const typeLabel = (data.attendance_type || "datang") === "datang" ? "Datang" : "Pulang";
+        toast.info(`${data.student.name} sudah tercatat absensi ${typeLabel} hari ini`);
         setTimeout(() => resetState(), 3000);
         return;
       }
@@ -87,15 +123,15 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
         return;
       }
 
-      // Success - attendance auto-verified as hadir
+      // Success
       setAlreadyRecorded(false);
       setScannedStudent(data.student);
-      setScanMethod(method as "barcode" | "face" | "face_recognition");
+      setScanMethod(method);
+      setAttendanceType(data.attendance_type || "datang");
       setConfirmed(true);
-      toast.success(`✅ ${data.student.name} - Hadir!`);
+      const typeLabel = (data.attendance_type || "datang") === "datang" ? "Datang" : "Pulang";
+      toast.success(`✅ ${data.student.name} - ${typeLabel}!`);
       onAttendanceRecorded?.();
-
-      // Auto-dismiss after 3 seconds and resume scanning
       setTimeout(() => resetState(), 3000);
     } catch (err: any) {
       toast.error("Gagal menghubungi server");
@@ -150,7 +186,6 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
 
       if (data.match && data.student) {
         toast.success(`Wajah dikenali: ${data.student.name}`);
-        // Record attendance - lookupAndRecord handles scanPaused
         await lookupAndRecord("", "face_recognition", data.student.id);
       }
     } catch (err: any) {
@@ -233,6 +268,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
     setAlreadyRecorded(false);
     scanPaused.current = false;
     setScanMethod("barcode");
+    setAttendanceType("datang");
   };
 
   const handleSearch = () => {
@@ -241,16 +277,45 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
     lookupAndRecord(manualCode.trim(), "barcode");
   };
 
+  const modeLabel = currentMode === "pulang" ? "Pulang" : "Datang";
+  const ModeIcon = currentMode === "pulang" ? LogOut : LogIn;
+
+  const getMethodLabel = (m: string) => {
+    if (m === "face_recognition") return "Face Recognition";
+    if (m === "rfid") return "Kartu RFID";
+    return "Barcode Scan";
+  };
 
   return (
     <>
       <canvas ref={canvasRef} className="hidden" />
 
       <Card className="border-0 shadow-card overflow-hidden sticky top-24">
+        {/* Mode indicator */}
+        <div className={`px-3 py-2 flex items-center justify-center gap-2 text-sm font-bold ${
+          currentMode === "pulang" 
+            ? "bg-warning/15 text-warning" 
+            : "bg-success/15 text-success"
+        }`}>
+          <ModeIcon className="h-4 w-4" />
+          <span>Mode Absensi: {modeLabel}</span>
+        </div>
+
         <div className="p-3 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ScanLine className="h-4 w-4 text-primary" />
             <h3 className="font-bold text-sm text-foreground">Scan Absensi</h3>
+          </div>
+          <div className="flex items-center gap-1">
+            <Badge variant="outline" className="text-[8px] px-1.5 py-0">
+              <ScanLine className="h-2.5 w-2.5 mr-0.5" />QR
+            </Badge>
+            <Badge variant="outline" className="text-[8px] px-1.5 py-0">
+              <UserCheck className="h-2.5 w-2.5 mr-0.5" />Face
+            </Badge>
+            <Badge variant="outline" className="text-[8px] px-1.5 py-0">
+              <CreditCard className="h-2.5 w-2.5 mr-0.5" />RFID
+            </Badge>
           </div>
         </div>
 
@@ -276,7 +341,11 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
                   ) : (
                     <>
                       <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                      <span className="text-[10px]"><ScanLine className="h-2.5 w-2.5 inline mr-0.5" />Barcode + <UserCheck className="h-2.5 w-2.5 inline mx-0.5" />Face</span>
+                      <span className="text-[10px]">
+                        <ScanLine className="h-2.5 w-2.5 inline mr-0.5" />QR + 
+                        <UserCheck className="h-2.5 w-2.5 inline mx-0.5" />Face + 
+                        <CreditCard className="h-2.5 w-2.5 inline mx-0.5" />RFID
+                      </span>
                     </>
                   )}
                 </div>
@@ -294,15 +363,23 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
               <Button onClick={startCamera} size="sm" className="gradient-primary hover:opacity-90">
                 <Camera className="h-4 w-4 mr-2" /> Aktifkan Kamera
               </Button>
-              <p className="text-[10px] text-muted-foreground">Barcode + Face Recognition</p>
+              <p className="text-[10px] text-muted-foreground">Barcode + Face Recognition + RFID</p>
             </div>
           )}
+
+          {/* RFID hint - always visible */}
+          <div className="px-3 py-2 bg-muted/50 border-t border-border flex items-center gap-2">
+            <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
+            <p className="text-[10px] text-muted-foreground">
+              <strong className="text-foreground">Kartu RFID:</strong> Tap kartu siswa ke reader kapan saja (tanpa kamera)
+            </p>
+          </div>
         </CardContent>
 
         {/* Manual input */}
         <div className="p-3 border-t border-border">
           <div className="flex gap-2">
-            <Input placeholder="NIS manual" value={manualCode}
+            <Input placeholder="NIS / Kode Kartu manual" value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()} className="h-8 text-xs" />
             <Button onClick={handleSearch} className="h-8 gradient-primary hover:opacity-90 px-3">
@@ -311,7 +388,8 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
           </div>
         </div>
       </Card>
-      {/* Already recorded popup - auto-dismisses */}
+
+      {/* Already recorded popup */}
       <Dialog open={alreadyRecorded && !!scannedStudent} onOpenChange={(open) => { if (!open) resetState(); }}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm p-0 overflow-hidden">
           <div className="bg-warning/10 p-4 text-center">
@@ -320,7 +398,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
               <DialogTitle className="text-base font-bold text-warning">Sudah Tercatat</DialogTitle>
             </div>
             <DialogDescription className="text-warning/70 text-xs mt-1">
-              Siswa ini sudah tercatat absensi hari ini
+              Absensi {attendanceType === "pulang" ? "Pulang" : "Datang"} sudah tercatat hari ini
             </DialogDescription>
           </div>
           {scannedStudent && (
@@ -340,18 +418,18 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded }: PublicAtten
         </DialogContent>
       </Dialog>
 
-      {/* Success popup - auto-dismisses after 3s */}
+      {/* Success popup */}
       <Dialog open={confirmed && !!scannedStudent} onOpenChange={(open) => { if (!open) resetState(); }}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm border-0 bg-success p-0">
           <div className="p-6 text-center space-y-3">
             <CheckCircle2 className="h-14 w-14 text-success-foreground mx-auto" />
-            <DialogTitle className="text-lg font-bold text-success-foreground">✅ Absensi Berhasil</DialogTitle>
+            <DialogTitle className="text-lg font-bold text-success-foreground">
+              ✅ Absensi {attendanceType === "pulang" ? "Pulang" : "Datang"} Berhasil
+            </DialogTitle>
             <DialogDescription className="text-success-foreground/90 text-sm">
               <p><strong>{scannedStudent?.name}</strong></p>
-              <p>Kelas: {scannedStudent?.class} • Status: Hadir</p>
-              <p className="text-xs mt-1">
-                {scanMethod === "face_recognition" ? "via Face Recognition" : "via Barcode Scan"}
-              </p>
+              <p>Kelas: {scannedStudent?.class} • Status: {attendanceType === "pulang" ? "Pulang" : "Hadir"}</p>
+              <p className="text-xs mt-1">via {getMethodLabel(scanMethod)}</p>
             </DialogDescription>
           </div>
         </DialogContent>
