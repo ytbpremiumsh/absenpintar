@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ArrowDown, Shield, QrCode, Monitor, Users, GraduationCap, BarChart3, Clock, Bell, Globe, FileText, Settings, ChevronRight, CheckCircle2, Zap, Lock, Smartphone, Star, TrendingUp, Sparkles } from "lucide-react";
+import { Loader2, ArrowDown, Shield, QrCode, Monitor, Users, GraduationCap, BarChart3, Clock, Bell, Globe, FileText, Settings, ChevronRight, CheckCircle2, Zap, Lock, Smartphone, Star, TrendingUp, Sparkles, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Navigate } from "react-router-dom";
 
@@ -171,12 +171,12 @@ const SECTIONS = [
 ];
 
 const EXTRA_FEATURES = [
-  { icon: Globe, title: "Live Monitor Publik", desc: "Halaman publik tanpa login — wali murid bisa memantau status penjemputan anak mereka secara real-time dari mana saja melalui link khusus sekolah.", color: "text-emerald-400" },
-  { icon: Clock, title: "Riwayat Penjemputan", desc: "Rekam jejak lengkap seluruh aktivitas penjemputan yang bisa difilter berdasarkan tanggal, kelas, siswa, dan metode scan. Tidak ada data yang hilang.", color: "text-blue-400" },
-  { icon: FileText, title: "Export Laporan Harian", desc: "Unduh laporan penjemputan harian dalam format Excel siap cetak. Cocok untuk dokumentasi internal dan pelaporan ke manajemen sekolah.", color: "text-amber-400" },
-  { icon: Bell, title: "Notifikasi WhatsApp Otomatis", desc: "Setiap kali siswa di-scan, wali murid menerima pesan WhatsApp otomatis berisi konfirmasi bahwa anak mereka sudah dijemput. Aman dan terpercaya.", color: "text-green-400" },
-  { icon: Shield, title: "Sistem Langganan Fleksibel", desc: "Pilih paket yang sesuai dengan kebutuhan sekolah Anda. Dari paket gratis untuk sekolah kecil hingga premium untuk institusi besar dengan fitur lengkap.", color: "text-violet-400" },
-  { icon: Settings, title: "Pengaturan Komprehensif", desc: "Konfigurasi jam operasional, logo sekolah, instruksi pada kartu QR, integrasi WhatsApp Gateway, dan pengaturan lainnya sesuai kebutuhan.", color: "text-rose-400" },
+  { icon: Clock, title: "Riwayat Penjemputan", desc: "Rekam jejak lengkap seluruh aktivitas penjemputan yang bisa difilter berdasarkan tanggal, kelas, siswa, dan metode scan. Tidak ada data yang hilang.", color: "text-blue-500 dark:text-blue-400" },
+  { icon: FileText, title: "Export Laporan Harian", desc: "Unduh laporan penjemputan harian dalam format Excel siap cetak. Cocok untuk dokumentasi internal dan pelaporan ke manajemen sekolah.", color: "text-amber-500 dark:text-amber-400" },
+  { icon: Bell, title: "Notifikasi WhatsApp Otomatis", desc: "Setiap kali siswa di-scan, wali murid menerima pesan WhatsApp otomatis berisi konfirmasi bahwa anak mereka sudah dijemput. Aman dan terpercaya.", color: "text-green-500 dark:text-green-400" },
+  { icon: Shield, title: "Sistem Langganan Fleksibel", desc: "Pilih paket yang sesuai dengan kebutuhan sekolah Anda. Dari paket gratis untuk sekolah kecil hingga premium untuk institusi besar dengan fitur lengkap.", color: "text-violet-500 dark:text-violet-400" },
+  { icon: Settings, title: "Pengaturan Komprehensif", desc: "Konfigurasi jam operasional, logo sekolah, instruksi pada kartu QR, integrasi WhatsApp Gateway, dan pengaturan lainnya sesuai kebutuhan.", color: "text-rose-500 dark:text-rose-400" },
+  { icon: Smartphone, title: "Responsif Multi-Perangkat", desc: "Akses dari smartphone, tablet, atau desktop. Tampilan optimal di semua ukuran layar tanpa perlu install aplikasi.", color: "text-cyan-500 dark:text-cyan-400" },
 ];
 
 const STATS = [
@@ -191,6 +191,7 @@ const Presentation = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState("Smart Pickup School System");
   const [subtitle, setSubtitle] = useState("");
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -209,53 +210,91 @@ const Presentation = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="h-8 w-8 animate-spin text-indigo-500" /></div>;
   if (!isPublic) return <Navigate to="/" replace />;
 
+  // Theme classes
+  const bg = dark ? "bg-slate-950 text-white" : "bg-white text-slate-900";
+  const navBg = dark ? "bg-slate-950/80 border-white/5" : "bg-white/80 border-slate-200";
+  const navText = dark ? "text-white" : "text-slate-900";
+  const mutedText = dark ? "text-slate-400" : "text-slate-500";
+  const subtleText = dark ? "text-slate-500" : "text-slate-400";
+  const sectionAlt = dark ? "bg-white/[0.01]" : "bg-slate-50/80";
+  const cardBg = dark ? "bg-white/[0.03] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.06]" : "bg-white border-slate-200/80 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5";
+  const imgBorder = dark ? "border-white/10" : "border-slate-200";
+  const checkColor = dark ? "text-emerald-400" : "text-emerald-500";
+  const sectionDesc = dark ? "text-slate-300" : "text-slate-600";
+  const detailText = dark ? "text-slate-400" : "text-slate-500";
+  const dividerColor = dark ? "bg-slate-700" : "bg-slate-300";
+  const badgeLabel = dark ? "text-slate-500" : "text-slate-400";
+  const footerBg = dark ? "border-white/5" : "border-slate-200";
+  const footerText = dark ? "text-slate-600" : "text-slate-400";
+  const ambientGlow1 = dark ? "bg-violet-600/8" : "bg-indigo-200/40";
+  const ambientGlow2 = dark ? "bg-blue-600/6" : "bg-violet-200/30";
+  const whyCardBg = dark ? "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]" : "bg-white border-slate-200/80 hover:border-indigo-200 hover:shadow-lg";
+  const whyIconBg = dark ? "bg-gradient-to-br from-violet-600 to-indigo-600 shadow-violet-500/20" : "bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/20";
+  const statGradient = dark ? "from-violet-400 to-indigo-300" : "from-indigo-600 to-violet-500";
+  const heroBadgeBg = dark ? "bg-white/5 border-white/10 text-violet-300" : "bg-indigo-50 border-indigo-100 text-indigo-600";
+  const heroTitle = dark ? "from-white via-white to-white/60" : "from-slate-900 via-slate-800 to-indigo-700";
+  const ctaBg = dark ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-violet-600/30 hover:shadow-violet-500/50" : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-600/20 hover:shadow-indigo-500/40";
+  const secondaryBtn = dark ? "bg-white/5 hover:bg-white/10 border-white/10 text-white" : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700";
+  const ambientSection = dark ? "via-violet-950/10" : "via-indigo-50/50";
+  const ctaSectionBg = dark ? "from-violet-950/20" : "from-indigo-50/60";
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden font-['Inter',sans-serif]">
+    <div className={`min-h-screen ${bg} overflow-x-hidden transition-colors duration-300`} style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
       {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-violet-600/8 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-600/6 rounded-full blur-[150px]" />
+        <div className={`absolute top-0 left-1/4 w-[600px] h-[600px] ${ambientGlow1} rounded-full blur-[150px]`} />
+        <div className={`absolute bottom-1/4 right-1/4 w-[500px] h-[500px] ${ambientGlow2} rounded-full blur-[150px]`} />
       </div>
 
       {/* Sticky Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
+      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b ${navBg} transition-colors duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-              <Shield className="h-4.5 w-4.5 text-white" />
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <Shield className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-sm tracking-tight hidden sm:block">Smart Pickup</span>
+            <span className={`font-bold text-sm tracking-tight hidden sm:block ${navText}`}>Smart Pickup</span>
           </div>
-          <a href="/register" className="inline-flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40">
-            Mulai Sekarang <ChevronRight className="h-3.5 w-3.5" />
-          </a>
+          <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <button
+              onClick={() => setDark(!dark)}
+              className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-300 ${dark ? "bg-white/10 hover:bg-white/15 text-yellow-300" : "bg-slate-100 hover:bg-slate-200 text-slate-600"}`}
+              title={dark ? "Mode Terang" : "Mode Gelap"}
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <a href="/register" className={`inline-flex items-center gap-1.5 ${ctaBg} text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-lg`}>
+              Mulai Sekarang <ChevronRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
         </div>
       </nav>
 
       {/* Hero */}
       <section className="min-h-screen flex flex-col items-center justify-center relative px-4 text-center pt-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-6">
-          <span className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs font-medium text-violet-300">
+          <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium border ${heroBadgeBg}`}>
             <Sparkles className="h-3.5 w-3.5" /> Solusi Penjemputan Siswa #1 di Indonesia
           </span>
         </motion.div>
 
-        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter leading-[0.9]">
-          <span className="bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent">{title}</span>
+        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.8 }} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter leading-[0.9]">
+          <span className={`bg-gradient-to-b ${heroTitle} bg-clip-text text-transparent`}>{title}</span>
         </motion.h1>
 
-        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.7 }} className="mt-6 text-base sm:text-lg md:text-xl text-slate-400 max-w-2xl leading-relaxed">
+        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.7 }} className={`mt-6 text-base sm:text-lg md:text-xl ${mutedText} max-w-2xl leading-relaxed`}>
           {subtitle || "Sistem penjemputan siswa modern yang mengutamakan keamanan, efisiensi, dan transparansi. Dirancang khusus untuk sekolah Indonesia."}
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-10 flex flex-col sm:flex-row gap-3">
-          <a href="/register" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-8 py-3.5 rounded-2xl font-semibold transition-all shadow-2xl shadow-violet-600/30 hover:shadow-violet-500/50 text-sm">
+          <a href="/register" className={`inline-flex items-center justify-center gap-2 ${ctaBg} text-white px-8 py-3.5 rounded-2xl font-semibold transition-all shadow-2xl text-sm`}>
             <Zap className="h-4 w-4" /> Daftar Gratis Sekarang
           </a>
-          <a href="#features" className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm">
+          <a href="#features" className={`inline-flex items-center justify-center gap-2 ${secondaryBtn} px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border`}>
             Lihat Fitur <ArrowDown className="h-4 w-4" />
           </a>
         </motion.div>
@@ -264,37 +303,37 @@ const Presentation = () => {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 w-full max-w-3xl">
           {STATS.map((s) => (
             <div key={s.label} className="text-center">
-              <div className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-violet-400 to-indigo-300 bg-clip-text text-transparent">{s.value}</div>
-              <div className="text-xs text-slate-500 mt-1 font-medium">{s.label}</div>
+              <div className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-r ${statGradient} bg-clip-text text-transparent`}>{s.value}</div>
+              <div className={`text-xs ${subtleText} mt-1 font-medium`}>{s.label}</div>
             </div>
           ))}
         </motion.div>
 
         <div className="absolute bottom-8 animate-bounce">
-          <ArrowDown className="h-5 w-5 text-slate-600" />
+          <ArrowDown className={`h-5 w-5 ${subtleText}`} />
         </div>
       </section>
 
       {/* Feature Sections */}
       <div id="features">
         {SECTIONS.map((section, idx) => (
-          <section key={section.id} className={`py-20 sm:py-32 px-4 relative ${idx % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
+          <section key={section.id} className={`py-20 sm:py-32 px-4 relative ${idx % 2 === 0 ? "" : sectionAlt}`}>
             <div className="max-w-7xl mx-auto">
               {/* Section header */}
               <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} className="mb-12 sm:mb-16">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">0{idx + 1}</span>
-                  <div className="h-px w-8 bg-slate-700" />
+                  <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${badgeLabel}`}>0{idx + 1}</span>
+                  <div className={`h-px w-8 ${dividerColor}`} />
                   <span className={`text-[11px] font-bold uppercase tracking-[0.15em] bg-gradient-to-r ${section.gradient} bg-clip-text text-transparent`}>{section.badge}</span>
                 </div>
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">{section.title}</h2>
-                <p className="text-slate-400 mt-2 text-base sm:text-lg">{section.subtitle}</p>
+                <p className={`${mutedText} mt-2 text-base sm:text-lg`}>{section.subtitle}</p>
               </motion.div>
 
               <div className={`grid lg:grid-cols-2 gap-10 lg:gap-16 items-center ${idx % 2 === 1 ? "lg:[direction:rtl]" : ""}`}>
                 {/* Image */}
                 <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={scaleIn} className={`${idx % 2 === 1 ? "lg:[direction:ltr]" : ""}`}>
-                  <div className={`relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl ${section.glow}`}>
+                  <div className={`relative rounded-2xl overflow-hidden border shadow-2xl ${imgBorder} ${section.glow}`}>
                     <div className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-5`} />
                     <img src={section.image} alt={section.title} className="w-full h-auto relative z-10" loading="lazy" />
                   </div>
@@ -302,12 +341,12 @@ const Presentation = () => {
 
                 {/* Content */}
                 <motion.div custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className={`space-y-6 ${idx % 2 === 1 ? "lg:[direction:ltr]" : ""}`}>
-                  <p className="text-slate-300 text-base sm:text-lg leading-relaxed">{section.desc}</p>
+                  <p className={`${sectionDesc} text-base sm:text-lg leading-relaxed`}>{section.desc}</p>
                   <div className="space-y-3">
                     {section.details.map((detail, i) => (
                       <motion.div key={i} custom={i + 2} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex gap-3 items-start">
-                        <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5 text-emerald-400" />
-                        <span className="text-slate-400 text-sm leading-relaxed">{detail}</span>
+                        <CheckCircle2 className={`h-5 w-5 shrink-0 mt-0.5 ${checkColor}`} />
+                        <span className={`${detailText} text-sm leading-relaxed`}>{detail}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -320,22 +359,21 @@ const Presentation = () => {
 
       {/* Extra Features Grid */}
       <section className="py-20 sm:py-32 px-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-950/10 to-transparent pointer-events-none" />
+        <div className={`absolute inset-0 bg-gradient-to-b from-transparent ${ambientSection} to-transparent pointer-events-none`} />
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet-400 mb-4 block">Dan masih banyak lagi</span>
+            <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-violet-400" : "text-indigo-500"} mb-4 block`}>Dan masih banyak lagi</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Fitur Pendukung Premium</h2>
-            <p className="mt-4 text-slate-400 max-w-xl mx-auto">Setiap fitur dirancang untuk menyempurnakan ekosistem penjemputan di sekolah Anda.</p>
+            <p className={`mt-4 ${mutedText} max-w-xl mx-auto`}>Setiap fitur dirancang untuk menyempurnakan ekosistem penjemputan di sekolah Anda.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {EXTRA_FEATURES.map((f, i) => (
               <motion.div key={f.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="group relative bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.12] rounded-2xl p-6 sm:p-8 transition-all duration-300">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                className={`group relative rounded-2xl p-6 sm:p-8 transition-all duration-300 border ${cardBg}`}>
                 <f.icon className={`h-8 w-8 ${f.color} mb-5 relative z-10`} />
                 <h3 className="font-bold text-lg mb-2 relative z-10">{f.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed relative z-10">{f.desc}</p>
+                <p className={`${detailText} text-sm leading-relaxed relative z-10`}>{f.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -343,13 +381,13 @@ const Presentation = () => {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-20 sm:py-32 px-4">
+      <section className={`py-20 sm:py-32 px-4 ${dark ? "" : "bg-slate-50/80"}`}>
         <div className="max-w-4xl mx-auto">
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Mengapa Smart Pickup?</h2>
           </motion.div>
 
-          <div className="space-y-6">
+          <div className="space-y-5">
             {[
               { icon: Lock, title: "Keamanan Terjamin", desc: "Setiap penjemputan harus melalui verifikasi QR Code atau input NIS. Tidak ada siswa yang bisa dijemput tanpa proses verifikasi. Data terenkripsi dan tersimpan aman di cloud." },
               { icon: Smartphone, title: "Multi-Platform", desc: "Akses dari perangkat apa saja — smartphone, tablet, laptop, atau desktop. Tampilan responsif yang optimal di semua ukuran layar. Tidak perlu install aplikasi." },
@@ -357,13 +395,13 @@ const Presentation = () => {
               { icon: Star, title: "Mudah Digunakan", desc: "Antarmuka intuitif yang bisa digunakan oleh siapa saja tanpa pelatihan khusus. Setup awal hanya membutuhkan beberapa menit — import data siswa, cetak kartu QR, dan sistem siap digunakan." },
             ].map((item, i) => (
               <motion.div key={item.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="flex gap-5 sm:gap-6 items-start bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 sm:p-8 hover:border-white/[0.12] transition-colors">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20">
+                className={`flex gap-5 sm:gap-6 items-start rounded-2xl p-6 sm:p-8 transition-all duration-300 border ${whyCardBg}`}>
+                <div className={`h-12 w-12 rounded-xl ${whyIconBg} flex items-center justify-center shrink-0 shadow-lg`}>
                   <item.icon className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-lg mb-1">{item.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
+                  <p className={`${detailText} text-sm leading-relaxed`}>{item.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -373,25 +411,25 @@ const Presentation = () => {
 
       {/* Final CTA */}
       <section className="py-20 sm:py-32 px-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-t from-violet-950/20 to-transparent pointer-events-none" />
+        <div className={`absolute inset-0 bg-gradient-to-t ${ctaSectionBg} to-transparent pointer-events-none`} />
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto text-center relative z-10">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-violet-500/30">
+          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-500/30">
             <Shield className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
             Siap Tingkatkan Keamanan <br className="hidden sm:block" />Penjemputan Sekolah Anda?
           </h2>
-          <p className="text-slate-400 text-base sm:text-lg mb-10 max-w-xl mx-auto">Bergabung sekarang dan rasakan kemudahan sistem penjemputan modern. Setup hanya 5 menit.</p>
-          <a href="/register" className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-10 py-4 rounded-2xl font-bold transition-all shadow-2xl shadow-violet-600/30 hover:shadow-violet-500/50 text-base">
+          <p className={`${mutedText} text-base sm:text-lg mb-10 max-w-xl mx-auto`}>Bergabung sekarang dan rasakan kemudahan sistem penjemputan modern. Setup hanya 5 menit.</p>
+          <a href="/register" className={`inline-flex items-center gap-2 ${ctaBg} text-white px-10 py-4 rounded-2xl font-bold transition-all shadow-2xl text-base`}>
             <Zap className="h-5 w-5" /> Daftar Gratis Sekarang
           </a>
-          <p className="text-slate-600 text-xs mt-4">Tidak perlu kartu kredit • Setup instan • Batalkan kapan saja</p>
+          <p className={`${subtleText} text-xs mt-4`}>Tidak perlu kartu kredit • Setup instan • Batalkan kapan saja</p>
         </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-8 px-4 text-center">
-        <p className="text-slate-600 text-xs">© {new Date().getFullYear()} Smart Pickup School System. All rights reserved.</p>
+      <footer className={`border-t ${footerBg} py-8 px-4 text-center transition-colors duration-300`}>
+        <p className={`${footerText} text-xs`}>© {new Date().getFullYear()} Smart Pickup School System. All rights reserved.</p>
       </footer>
     </div>
   );
