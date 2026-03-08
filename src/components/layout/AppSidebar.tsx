@@ -12,6 +12,7 @@ import {
   Lock,
   LifeBuoy,
   ClipboardCheck,
+  Users2,
 } from "lucide-react";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
@@ -43,6 +44,7 @@ const dataNav = [
   { title: "Siswa", url: "/students", icon: Users },
   { title: "Wali Murid", url: "/teachers", icon: UserCheck },
   { title: "Wali Kelas", url: "/wali-kelas", icon: ClipboardCheck },
+  { title: "Staff / Operator", url: "/staff", icon: Users2 },
 ];
 
 const settingsNav = [
