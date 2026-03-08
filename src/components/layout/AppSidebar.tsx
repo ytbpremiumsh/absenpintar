@@ -12,6 +12,7 @@ import {
   GraduationCap,
   UserCheck,
   FileBarChart,
+  Lock,
 } from "lucide-react";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
