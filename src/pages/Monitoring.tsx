@@ -313,11 +313,17 @@ const Monitoring = () => {
                                 <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2 sm:p-3 transition-all ${
                                   s.status === "picked_up" ? "bg-success/5 border border-success/20" : "bg-destructive/5 border border-destructive/20"
                                 }`}>
-                                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${
-                                    s.status === "picked_up" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
-                                  }`}>
-                                    {s.name.charAt(0)}
-                                  </div>
+                                  {features.canUploadPhoto && s.photo_url ? (
+                                    <img src={s.photo_url} alt={s.name} className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover shrink-0 border-2 ${
+                                      s.status === "picked_up" ? "border-success/30" : "border-destructive/30"
+                                    }`} />
+                                  ) : (
+                                    <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${
+                                      s.status === "picked_up" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
+                                    }`}>
+                                      {s.name.charAt(0)}
+                                    </div>
+                                  )}
                                   <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-xs sm:text-sm text-foreground truncate">{s.name}</p>
                                     <p className="text-[10px] sm:text-xs text-muted-foreground truncate">NIS: {s.student_id}</p>
