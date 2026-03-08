@@ -90,31 +90,22 @@ export type Database = {
       }
       pickup_settings: {
         Row: {
-          auto_activate_time: string | null
-          auto_deactivate_time: string | null
           created_at: string
           id: string
           is_active: boolean
           school_id: string
-          updated_at: string
         }
         Insert: {
-          auto_activate_time?: string | null
-          auto_deactivate_time?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           school_id: string
-          updated_at?: string
         }
         Update: {
-          auto_activate_time?: string | null
-          auto_deactivate_time?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           school_id?: string
-          updated_at?: string
         }
         Relationships: [
           {
