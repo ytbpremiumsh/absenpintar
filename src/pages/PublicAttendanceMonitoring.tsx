@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   UserCheck, Clock, Users, GraduationCap, Activity, AlertTriangle,
-  Thermometer, FileText, Scan, RefreshCw, School,
+  Thermometer, FileText, Scan, RefreshCw, School, LogIn, LogOut, CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -140,6 +140,11 @@ const PublicAttendanceMonitoring = () => {
                   <span>Live Monitoring Absensi</span>
                   <span>•</span>
                   <span>{currentDate}</span>
+                  <span>•</span>
+                  <Badge className={`text-xs ${data.currentMode === "pulang" ? "bg-warning/20 text-warning border-warning/30" : "bg-success/20 text-success border-success/30"}`}>
+                    {data.currentMode === "pulang" ? <LogOut className="h-3 w-3 mr-1" /> : <LogIn className="h-3 w-3 mr-1" />}
+                    Mode: {data.currentMode === "pulang" ? "Pulang" : "Datang"}
+                  </Badge>
                 </div>
               </div>
             </div>
