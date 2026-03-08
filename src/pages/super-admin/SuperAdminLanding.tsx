@@ -31,6 +31,12 @@ const LABELS: Record<string, string> = {
   feature_4_title: "Fitur 4 - Judul",
   feature_4_desc: "Fitur 4 - Deskripsi",
   feature_4_icon: "Fitur 4 - Ikon",
+  feature_5_title: "Fitur 5 - Judul",
+  feature_5_desc: "Fitur 5 - Deskripsi",
+  feature_5_icon: "Fitur 5 - Ikon",
+  feature_6_title: "Fitur 6 - Judul",
+  feature_6_desc: "Fitur 6 - Deskripsi",
+  feature_6_icon: "Fitur 6 - Ikon",
   footer_logo: "Logo Footer",
   footer_address: "Alamat",
   footer_email: "Email",
@@ -44,6 +50,8 @@ const SECTIONS = [
   { title: "Fitur 2", keys: ["feature_2_title", "feature_2_desc", "feature_2_icon"] },
   { title: "Fitur 3", keys: ["feature_3_title", "feature_3_desc", "feature_3_icon"] },
   { title: "Fitur 4", keys: ["feature_4_title", "feature_4_desc", "feature_4_icon"] },
+  { title: "Fitur 5", keys: ["feature_5_title", "feature_5_desc", "feature_5_icon"] },
+  { title: "Fitur 6", keys: ["feature_6_title", "feature_6_desc", "feature_6_icon"] },
   { title: "Footer", keys: ["footer_logo", "footer_address", "footer_email", "footer_phone"] },
 ];
 
