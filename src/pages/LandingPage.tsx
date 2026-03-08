@@ -36,14 +36,6 @@ const WHY_ITEMS_FALLBACK = [
   { icon: Star, title: "Mudah Digunakan", desc: "Setup hanya beberapa menit — import data, cetak QR, langsung pakai." },
 ];
 
-const EXTRA_FEATURES = [
-  { icon: Globe, title: "Live Monitor Publik", desc: "Wali murid bisa pantau status penjemputan real-time tanpa login." },
-  { icon: Clock, title: "Riwayat Lengkap", desc: "Log penjemputan bisa difilter berdasarkan tanggal, kelas, dan siswa." },
-  { icon: FileText, title: "Export Harian", desc: "Download laporan Excel siap cetak untuk dokumentasi." },
-  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Wali murid menerima pesan otomatis saat anak dijemput." },
-  { icon: Shield, title: "Langganan Fleksibel", desc: "Paket gratis hingga premium sesuai kebutuhan sekolah." },
-  { icon: Settings, title: "Pengaturan Lengkap", desc: "Jam operasional, logo, QR, dan integrasi WhatsApp." },
-];
 
 const PROBLEMS = [
   { icon: AlertTriangle, title: "Keamanan Rentan", desc: "Tidak ada verifikasi identitas penjemput. Siapa saja bisa mengaku sebagai wali murid.", color: "text-destructive" },
@@ -269,17 +261,6 @@ const LandingPage = () => {
             })}
           </div>
 
-          {/* Extra features */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
-            {EXTRA_FEATURES.map((f, i) => (
-              <motion.div key={f.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="bg-card border border-border/50 rounded-2xl p-6 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-                <f.icon className="h-7 w-7 text-primary mb-4" />
-                <h3 className="font-bold text-foreground text-sm mb-1.5">{f.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
 
           {/* Why Choose Us */}
           <div className="max-w-5xl mx-auto">
