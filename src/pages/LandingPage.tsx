@@ -261,17 +261,6 @@ const LandingPage = () => {
             })}
           </div>
 
-          {/* Extra features */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
-            {EXTRA_FEATURES.map((f, i) => (
-              <motion.div key={f.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="bg-card border border-border/50 rounded-2xl p-6 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-                <f.icon className="h-7 w-7 text-primary mb-4" />
-                <h3 className="font-bold text-foreground text-sm mb-1.5">{f.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
 
           {/* Why Choose Us */}
           <div className="max-w-5xl mx-auto">
