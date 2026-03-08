@@ -33,7 +33,7 @@ const Dashboard = () => {
     today.setHours(0, 0, 0, 0);
 
     const [studentsRes, logsRes] = await Promise.all([
-      supabase.from("students").select("id, name, class, parent_name").eq("school_id", schoolId),
+      supabase.from("students").select("id, name, class, parent_name, photo_url").eq("school_id", schoolId),
       supabase.from("pickup_logs").select("*").eq("school_id", schoolId).gte("pickup_time", today.toISOString()).order("pickup_time", { ascending: false }),
     ]);
 
