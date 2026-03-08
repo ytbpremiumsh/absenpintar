@@ -14,6 +14,7 @@ import {
 export function AppLayout() {
   const { user, profile, roles, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (loading) {
     return (
