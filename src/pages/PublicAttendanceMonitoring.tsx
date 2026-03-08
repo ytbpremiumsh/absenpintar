@@ -197,15 +197,10 @@ const PublicAttendanceMonitoring = () => {
           </CardContent>
         </Card>
 
-        {/* Scan Absensi */}
-        {schoolId && (
-          <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} />
-        )}
-
-        {/* Two-column: Live Feed + Class Summary */}
+        {/* Two-column: Live Feed + Scanner | Class Summary */}
         <div className="grid lg:grid-cols-5 gap-5">
-          {/* Live Feed */}
-          <div className="lg:col-span-2">
+          {/* Left: Live Feed */}
+          <div className="lg:col-span-3">
             <Card className="border-0 shadow-card overflow-hidden h-full">
               <div className="p-4 border-b border-border flex items-center gap-2">
                 <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center">
@@ -272,8 +267,16 @@ const PublicAttendanceMonitoring = () => {
             </Card>
           </div>
 
-          {/* Per Class Summary */}
-          <div className="lg:col-span-3">
+          {/* Right: Scanner */}
+          <div className="lg:col-span-2">
+            {schoolId && (
+              <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} />
+            )}
+          </div>
+        </div>
+
+        {/* Per Class Summary */}
+        <div>
             <div className="flex items-center gap-2 mb-3">
               <GraduationCap className="h-5 w-5 text-primary" />
               <h2 className="text-base lg:text-lg font-bold text-foreground">Ringkasan Per Kelas</h2>
@@ -321,7 +324,6 @@ const PublicAttendanceMonitoring = () => {
                 );
               })}
             </div>
-          </div>
         </div>
 
         {/* Footer */}
