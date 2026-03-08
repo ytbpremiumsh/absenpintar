@@ -28,6 +28,7 @@ const groups = [
   { key: "billing", label: "Billing & Langganan" },
   { key: "communication", label: "Komunikasi" },
   { key: "integration", label: "Integrasi" },
+  { key: "content", label: "Konten" },
 ];
 
 function SuperAdminSidebar() {
