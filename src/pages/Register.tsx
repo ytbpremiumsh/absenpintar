@@ -45,10 +45,6 @@ const Register = () => {
     setLookingUp(true);
     setSchoolData(null);
     try {
-      const res = await supabase.functions.invoke("lookup-npsn", {
-        body: null,
-        headers: {},
-      });
 
       // Use fetch directly since we need query params
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/lookup-npsn?npsn=${npsn}`;
