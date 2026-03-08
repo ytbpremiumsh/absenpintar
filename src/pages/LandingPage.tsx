@@ -43,7 +43,7 @@ const LandingPage = () => {
     );
   }
 
-  const features = [1, 2, 3, 4].map((i) => ({
+  const features = [1, 2, 3, 4, 5, 6].map((i) => ({
     title: get(`feature_${i}_title`),
     desc: get(`feature_${i}_desc`),
     icon: iconMap[get(`feature_${i}_icon`, "scan")] || CheckCircle2,
