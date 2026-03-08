@@ -48,6 +48,8 @@ const ScanQR = () => {
   const [faceCamera, setFaceCamera] = useState(false);
   const [faceScanning, setFaceScanning] = useState(false);
   const [faceCameraError, setFaceCameraError] = useState("");
+  const faceIntervalRef = useRef<number | null>(null);
+  const facePaused = useRef(false);
 
   const lookupStudent = useCallback(async (code: string) => {
     if (!code.trim() || !profile?.school_id || isLookingUp.current || scanPaused.current) return;
