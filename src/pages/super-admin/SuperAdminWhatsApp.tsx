@@ -92,6 +92,7 @@ const SuperAdminWhatsApp = () => {
       api_url: form.api_url,
       api_key: form.api_key,
       is_active: form.is_active,
+      message_template: form.message_template,
     };
 
     let error;
