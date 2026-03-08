@@ -197,13 +197,16 @@ const ScanQR = () => {
           {cameraActive ? (
             <>
               <div className="relative bg-black" style={{ minHeight: 260 }}>
+                {/* @ts-ignore webkit attribute for iOS */}
                 <video
                   ref={videoRef}
                   className="w-full h-full object-cover"
                   autoPlay
                   playsInline
                   muted
-                  style={{ minHeight: 260 }}
+                  // @ts-ignore
+                  webkit-playsinline="true"
+                  style={{ minHeight: 260, WebkitTransform: "scaleX(1)" }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className={`w-44 h-44 border-2 rounded-lg transition-colors ${scanPaused.current ? "border-success opacity-100" : "border-primary opacity-70"}`} />
