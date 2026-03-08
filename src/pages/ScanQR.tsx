@@ -302,7 +302,11 @@ const ScanQR = () => {
                       <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
                       <span>
                         <ScanLine className="h-3 w-3 inline mr-0.5" />Barcode
-                        {canFace && <> + <UserCheck className="h-3 w-3 inline mx-0.5" />Face</>}
+                        {canFace ? (
+                          <> + <UserCheck className="h-3 w-3 inline mx-0.5" />Face</>
+                        ) : (
+                          <> + <Lock className="h-3 w-3 inline mx-0.5 opacity-50" /><span className="opacity-50">Face</span> <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">(Premium)</span></>
+                        )}
                       </span>
                     </>
                   )}
