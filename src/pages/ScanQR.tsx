@@ -168,6 +168,24 @@ const ScanQR = () => {
     setConfirmed(true);
     toast.success(`${scannedStudent.name} berhasil ditandai pulang!`);
 
+    // Send WhatsApp notification (non-blocking)
+    if (scannedStudent.parent_phone) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+      const msg = `📢 *Notifikasi Penjemputan*\n\nAnanda *${scannedStudent.name}* (Kelas ${scannedStudent.class}) telah dijemput pada pukul ${timeStr}.\n\nDijemput oleh: ${profile.full_name || "Petugas"}\n\n_Pesan otomatis dari Smart School Pickup System_`;
+      supabase.functions.invoke("send-whatsapp", {
+        body: {
+          phone: scannedStudent.parent_phone,
+          message: msg,
+          school_id: profile.school_id,
+        },
+      }).then((res) => {
+        if (res.data && (res.data as any).success) {
+          toast.success("Notifikasi WhatsApp terkirim ke orang tua");
+        }
+      }).catch(() => {});
+    }
+
     setTimeout(() => {
       setScannedStudent(null);
       setConfirmed(false);

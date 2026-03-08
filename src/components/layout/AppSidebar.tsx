@@ -11,6 +11,7 @@ import {
   Copy,
   GraduationCap,
   UserCheck,
+  MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -45,6 +46,7 @@ const dataNav = [
 
 const settingsNav = [
   { title: "Langganan", url: "/subscription", icon: CreditCard },
+  { title: "WhatsApp", url: "/whatsapp-settings", icon: MessageSquare },
 ];
 
 export function AppSidebar() {
