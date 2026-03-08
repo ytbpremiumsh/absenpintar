@@ -199,28 +199,30 @@ const LandingPage = () => {
               </p>
 
               <div className="mt-8 space-y-6">
-                {[
-                  {
-                    icon: Layout,
-                    title: "Fitur Lengkap dan Terintegrasi",
-                    desc: "Semua kebutuhan penjemputan tersedia dalam satu platform, mulai dari scan QR hingga notifikasi otomatis.",
-                  },
-                  {
-                    icon: Smartphone,
-                    title: "Antarmuka Ramah Pengguna",
-                    desc: "Desain yang intuitif dan mudah digunakan, memungkinkan siapa pun mengelola penjemputan tanpa perlu keahlian teknis khusus.",
-                  },
-                  {
-                    icon: BarChart3,
-                    title: "Analisa Data Cerdas",
-                    desc: "Dapatkan insight berbasis data real-time untuk mendukung pengambilan keputusan yang tepat dan strategis.",
-                  },
-                  {
-                    icon: HeadphonesIcon,
-                    title: "Dukungan Pelanggan Premium 24/7",
-                    desc: "Tim support kami siap membantu Anda kapan saja dengan cepat, profesional, dan ramah.",
-                  },
-                ].map((item, i) => (
+                {[1, 2, 3, 4].map((i) => {
+                  const icons = [Layout, Smartphone, BarChart3, HeadphonesIcon];
+                  const IconComp = icons[i - 1];
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: (i - 1) * 0.1, duration: 0.4 }}
+                      className="flex gap-4"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <IconComp className="h-5 w-5 text-primary" />
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-foreground">{get(`why_item_${i}_title`)}</h4>
+                        <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{get(`why_item_${i}_desc`)}</p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, y: 20 }}
