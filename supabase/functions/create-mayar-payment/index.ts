@@ -57,11 +57,6 @@ serve(async (req) => {
       .eq('id', profile.school_id)
       .maybeSingle();
 
-    // Create admin client for DB operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
 
     // For free plans (price = 0), auto-approve immediately
     if (plan.price === 0) {
