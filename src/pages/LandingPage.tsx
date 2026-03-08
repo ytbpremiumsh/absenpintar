@@ -36,14 +36,6 @@ const WHY_ITEMS_FALLBACK = [
   { icon: Star, title: "Mudah Digunakan", desc: "Setup hanya beberapa menit — import data, cetak QR, langsung pakai." },
 ];
 
-const EXTRA_FEATURES = [
-  { icon: Globe, title: "Live Monitor Publik", desc: "Wali murid bisa pantau status penjemputan real-time tanpa login." },
-  { icon: Clock, title: "Riwayat Lengkap", desc: "Log penjemputan bisa difilter berdasarkan tanggal, kelas, dan siswa." },
-  { icon: FileText, title: "Export Harian", desc: "Download laporan Excel siap cetak untuk dokumentasi." },
-  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Wali murid menerima pesan otomatis saat anak dijemput." },
-  { icon: Shield, title: "Langganan Fleksibel", desc: "Paket gratis hingga premium sesuai kebutuhan sekolah." },
-  { icon: Settings, title: "Pengaturan Lengkap", desc: "Jam operasional, logo, QR, dan integrasi WhatsApp." },
-];
 
 const PROBLEMS = [
   { icon: AlertTriangle, title: "Keamanan Rentan", desc: "Tidak ada verifikasi identitas penjemput. Siapa saja bisa mengaku sebagai wali murid.", color: "text-destructive" },
