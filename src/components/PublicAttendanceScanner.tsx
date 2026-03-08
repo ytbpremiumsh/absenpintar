@@ -231,7 +231,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
       video.onloadedmetadata = null;
       stopFaceScanning();
     };
-  }, [cameraActive, startBarcodeScanning, startFaceScanning, stopFaceScanning]);
+  }, [cameraActive, startBarcodeScanning, startFaceScanning, stopFaceScanning, canFaceRecognition]);
 
   const startCamera = async () => {
     setCameraError("");
