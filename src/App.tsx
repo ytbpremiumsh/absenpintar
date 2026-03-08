@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Monitoring from "./pages/Monitoring";
 import ScanQR from "./pages/ScanQR";
@@ -38,6 +39,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/live/:schoolId" element={<PublicMonitoring />} />
             <Route path="/live/:schoolId/:className" element={<PublicClassMonitoring />} />
             {/* Super Admin */}
