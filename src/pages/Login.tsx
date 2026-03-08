@@ -95,7 +95,13 @@ const Login = () => {
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Masuk"}
               </Button>
             </form>
-            <div className="mt-4 p-3 rounded-lg bg-secondary text-xs text-muted-foreground">
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Belum punya akun?{" "}
+                <Link to="/register" className="text-primary font-semibold hover:underline">Daftar Sekolah</Link>
+              </p>
+            </div>
+            <div className="mt-3 p-3 rounded-lg bg-secondary text-xs text-muted-foreground">
               <p className="font-medium mb-1">Demo Login:</p>
               <p>Email: admin@admin.com</p>
               <p>Password: admin123</p>
