@@ -19,7 +19,18 @@ interface IntegrationData {
   api_url: string;
   api_key: string;
   is_active: boolean;
+  message_template: string;
 }
+
+const DEFAULT_TEMPLATE = `📢 *Notifikasi Penjemputan*\n\nAnanda *{student_name}* (Kelas {class}) telah dijemput pada pukul {time}.\n\nDijemput oleh: {pickup_by}\n\n_Pesan otomatis dari Smart School Pickup System_`;
+const TEMPLATE_PLACEHOLDERS = [
+  { key: "{student_name}", label: "Nama Siswa" },
+  { key: "{class}", label: "Kelas" },
+  { key: "{time}", label: "Waktu Jemput" },
+  { key: "{pickup_by}", label: "Dijemput Oleh" },
+  { key: "{parent_name}", label: "Nama Wali" },
+  { key: "{student_id}", label: "NIS" },
+];
 
 const SuperAdminWhatsApp = () => {
   const [integrations, setIntegrations] = useState<IntegrationData[]>([]);
