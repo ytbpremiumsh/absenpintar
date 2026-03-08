@@ -209,6 +209,47 @@ export type Database = {
           },
         ]
       }
+      school_integrations: {
+        Row: {
+          api_key: string | null
+          api_url: string | null
+          created_at: string
+          id: string
+          integration_type: string
+          is_active: boolean
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          api_url?: string | null
+          created_at?: string
+          id?: string
+          integration_type?: string
+          is_active?: boolean
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          api_url?: string | null
+          created_at?: string
+          id?: string
+          integration_type?: string
+          is_active?: boolean
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_integrations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_subscriptions: {
         Row: {
           created_at: string
