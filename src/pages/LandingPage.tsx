@@ -127,9 +127,9 @@ const LandingPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="mt-8 text-center text-xs sm:text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            className="mt-8 text-center text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2"
           >
-            Sistem ini mampu mengelola penjemputan siswa secara otomatis, memantau status real-time, dan mengirim notifikasi WhatsApp ke orang tua. Dengan begitu, sekolah bisa mengelola kepulangan siswa lebih mudah dan aman.
+            {get("hero_caption", "Sistem ini mampu mengelola penjemputan siswa secara otomatis, memantau status real-time, dan mengirim notifikasi WhatsApp ke orang tua. Dengan begitu, sekolah bisa mengelola kepulangan siswa lebih mudah dan aman.")}
           </motion.p>
         </div>
       </section>
