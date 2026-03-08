@@ -28,6 +28,7 @@ import SuperAdminPayments from "./pages/super-admin/SuperAdminPayments";
 import SuperAdminSubscriptions from "./pages/super-admin/SuperAdminSubscriptions";
 import SuperAdminWhatsApp from "./pages/super-admin/SuperAdminWhatsApp";
 import SuperAdminBranches from "./pages/super-admin/SuperAdminBranches";
+import ExportHistory from "./pages/ExportHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/students/:id" element={<StudentDetail />} />
               <Route path="/teachers" element={<Teachers />} />
               <Route path="/history" element={<History />} />
+              <Route path="/export-history" element={<ExportHistory />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/school-settings" element={<SchoolSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />

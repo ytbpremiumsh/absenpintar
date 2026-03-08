@@ -11,7 +11,9 @@ import {
   Copy,
   GraduationCap,
   UserCheck,
+  FileBarChart,
 } from "lucide-react";
+import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,6 +55,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
+  const features = useSubscriptionFeatures();
   const isActive = (path: string) => location.pathname.startsWith(path);
 
   const handleLogout = async () => {
@@ -144,6 +147,20 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Export History - School/Premium only */}
+        {features.canExportReport && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-foreground/40 text-[11px] uppercase tracking-widest font-semibold px-3 mb-1">
+              Laporan
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-0.5">
+                {renderNavItems([{ title: "Export Harian", url: "/export-history", icon: FileBarChart }])}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/40 text-[11px] uppercase tracking-widest font-semibold px-3 mb-1">

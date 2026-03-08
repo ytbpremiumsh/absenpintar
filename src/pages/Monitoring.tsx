@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { announcePickup } from "@/lib/announcePickup";
+import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -23,6 +24,7 @@ interface StudentWithStatus {
   class: string;
   parent_name: string;
   student_id: string;
+  photo_url: string | null;
   status: "waiting" | "picked_up";
   pickup_time?: string;
   pickup_by?: string;
@@ -38,6 +40,7 @@ const LiveDot = () => (
 
 const Monitoring = () => {
   const { profile } = useAuth();
+  const features = useSubscriptionFeatures();
   const [students, setStudents] = useState<StudentWithStatus[]>([]);
   const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
   const [isPickupActive, setIsPickupActive] = useState(false);
@@ -53,7 +56,7 @@ const Monitoring = () => {
     today.setHours(0, 0, 0, 0);
 
     const [studentsRes, logsRes, settingsRes] = await Promise.all([
-      supabase.from("students").select("id, name, class, parent_name, student_id").eq("school_id", schoolId),
+      supabase.from("students").select("id, name, class, parent_name, student_id, photo_url").eq("school_id", schoolId),
       supabase.from("pickup_logs").select("id, student_id, pickup_time, pickup_by").eq("school_id", schoolId).gte("pickup_time", today.toISOString()),
       supabase.from("pickup_settings").select("is_active").eq("school_id", schoolId).maybeSingle(),
     ]);
@@ -67,7 +70,7 @@ const Monitoring = () => {
       const log = logs.find((l: any) => l.student_id === s.id);
       return {
         id: s.id, name: s.name, class: s.class,
-        parent_name: s.parent_name, student_id: s.student_id,
+        parent_name: s.parent_name, student_id: s.student_id, photo_url: s.photo_url,
         status: log ? "picked_up" : "waiting",
         pickup_time: log?.pickup_time, pickup_by: log?.pickup_by,
         log_id: log?.id,
@@ -310,11 +313,17 @@ const Monitoring = () => {
                                 <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2 sm:p-3 transition-all ${
                                   s.status === "picked_up" ? "bg-success/5 border border-success/20" : "bg-destructive/5 border border-destructive/20"
                                 }`}>
-                                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${
-                                    s.status === "picked_up" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
-                                  }`}>
-                                    {s.name.charAt(0)}
-                                  </div>
+                                  {features.canUploadPhoto && s.photo_url ? (
+                                    <img src={s.photo_url} alt={s.name} className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover shrink-0 border-2 ${
+                                      s.status === "picked_up" ? "border-success/30" : "border-destructive/30"
+                                    }`} />
+                                  ) : (
+                                    <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${
+                                      s.status === "picked_up" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
+                                    }`}>
+                                      {s.name.charAt(0)}
+                                    </div>
+                                  )}
                                   <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-xs sm:text-sm text-foreground truncate">{s.name}</p>
                                     <p className="text-[10px] sm:text-xs text-muted-foreground truncate">NIS: {s.student_id}</p>
