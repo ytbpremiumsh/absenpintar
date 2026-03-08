@@ -24,6 +24,7 @@ interface StudentWithStatus {
   class: string;
   parent_name: string;
   student_id: string;
+  photo_url: string | null;
   status: "waiting" | "picked_up";
   pickup_time?: string;
   pickup_by?: string;
