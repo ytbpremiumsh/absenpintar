@@ -48,6 +48,8 @@ const ScanQR = () => {
   const [faceCamera, setFaceCamera] = useState(false);
   const [faceScanning, setFaceScanning] = useState(false);
   const [faceCameraError, setFaceCameraError] = useState("");
+  const faceIntervalRef = useRef<number | null>(null);
+  const facePaused = useRef(false);
 
   const lookupStudent = useCallback(async (code: string) => {
     if (!code.trim() || !profile?.school_id || isLookingUp.current || scanPaused.current) return;
@@ -126,6 +128,7 @@ const ScanQR = () => {
   // Face camera
   const startFaceCamera = async () => {
     setFaceCameraError("");
+    facePaused.current = false;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
       faceStreamRef.current = stream;
@@ -142,13 +145,15 @@ const ScanQR = () => {
   };
 
   const stopFaceCamera = () => {
+    if (faceIntervalRef.current) { clearInterval(faceIntervalRef.current); faceIntervalRef.current = null; }
     if (faceStreamRef.current) { faceStreamRef.current.getTracks().forEach(t => t.stop()); faceStreamRef.current = null; }
     if (faceVideoRef.current) faceVideoRef.current.srcObject = null;
     setFaceCamera(false);
+    facePaused.current = false;
   };
 
   const captureAndRecognize = async () => {
-    if (!faceVideoRef.current || !profile?.school_id) return;
+    if (!faceVideoRef.current || !profile?.school_id || facePaused.current) return;
     setFaceScanning(true);
 
     try {
@@ -172,12 +177,14 @@ const ScanQR = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error || "Face recognition gagal");
+        // Don't show toast for every auto-scan failure, just log
+        console.log("Face scan:", data.error);
         setFaceScanning(false);
         return;
       }
 
       if (data.match && data.student) {
+        facePaused.current = true; // Pause auto-scan when found
         const today = new Date().toISOString().slice(0, 10);
         const { data: existing } = await supabase.from("attendance_logs")
           .select("id").eq("student_id", data.student.id).eq("date", today).maybeSingle();
@@ -187,14 +194,29 @@ const ScanQR = () => {
         setConfirmed(false);
         setScanMethod("face");
         toast.success(`Wajah dikenali: ${data.student.name}`);
-      } else {
-        toast.error("Wajah tidak dikenali. Pastikan siswa sudah memiliki foto di sistem.");
       }
+      // No toast for unrecognized - auto mode will keep trying
     } catch (err: any) {
-      toast.error("Gagal melakukan face recognition: " + (err.message || "Unknown"));
+      console.log("Face recognition error:", err.message);
     }
     setFaceScanning(false);
   };
+
+  // Auto face recognition interval
+  useEffect(() => {
+    if (faceCamera && !scannedStudent) {
+      // Initial scan after 1.5s
+      const initialTimeout = setTimeout(() => captureAndRecognize(), 1500);
+      // Then every 4 seconds
+      faceIntervalRef.current = window.setInterval(() => {
+        if (!facePaused.current) captureAndRecognize();
+      }, 4000);
+      return () => {
+        clearTimeout(initialTimeout);
+        if (faceIntervalRef.current) { clearInterval(faceIntervalRef.current); faceIntervalRef.current = null; }
+      };
+    }
+  }, [faceCamera, scannedStudent]);
 
   useEffect(() => { return () => { stopCamera(); stopFaceCamera(); }; }, []);
 
@@ -242,6 +264,7 @@ const ScanQR = () => {
       setManualCode("");
       setAlreadyRecorded(false);
       scanPaused.current = false;
+      facePaused.current = false;
       setScanMethod("barcode");
     }, 2000);
   };
@@ -252,6 +275,7 @@ const ScanQR = () => {
     setManualCode("");
     setAlreadyRecorded(false);
     scanPaused.current = false;
+    facePaused.current = false;
   };
 
   return (
@@ -357,21 +381,17 @@ const ScanQR = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="p-3 flex gap-2 justify-center">
+                  <div className="p-3 flex gap-2 justify-center items-center">
                     <Button variant="outline" size="sm" onClick={stopFaceCamera}>
                       <X className="h-4 w-4 mr-1" /> Tutup
                     </Button>
-                    <Button 
-                      onClick={captureAndRecognize} 
-                      disabled={faceScanning}
-                      className="gradient-primary hover:opacity-90"
-                    >
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       {faceScanning ? (
-                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Mengenali...</>
+                        <><Loader2 className="h-4 w-4 animate-spin text-primary" /> <span className="text-primary font-medium">Mengenali wajah...</span></>
                       ) : (
-                        <><UserCheck className="h-4 w-4 mr-1" /> Kenali Wajah</>
+                        <><div className="h-2 w-2 rounded-full bg-success animate-pulse" /> <span>Pemindaian otomatis aktif</span></>
                       )}
-                    </Button>
+                    </div>
                   </div>
                 </>
               ) : (
