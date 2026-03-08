@@ -73,14 +73,15 @@ const Classes = () => {
 
     setRenaming(true);
 
-    // Update class name in classes table
-    const { error: classError } = await supabase
-      .from("classes").update({ name: newName }).eq("id", renameTarget.id);
-
-    if (classError) {
-      toast.error("Gagal mengubah nama kelas: " + classError.message);
-      setRenaming(false);
-      return;
+    // Update class name in classes table (if it exists there)
+    if (renameTarget.id) {
+      const { error: classError } = await supabase
+        .from("classes").update({ name: newName }).eq("id", renameTarget.id);
+      if (classError) {
+        toast.error("Gagal mengubah nama kelas: " + classError.message);
+        setRenaming(false);
+        return;
+      }
     }
 
     // Update all students with old class name
@@ -227,27 +228,25 @@ const Classes = () => {
                           <GraduationCap className="h-6 w-6 text-primary-foreground" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg">Kelas {cls}</h3>
+                          <h3 className="font-bold text-lg">{cls}</h3>
                           <p className="text-xs text-muted-foreground">{info.students.length} siswa</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenameTarget({ id: info.id || "", oldName: cls });
+                            setRenameValue(cls);
+                            setRenameDialogOpen(true);
+                          }}>
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                         {info.id && (
-                          <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setRenameTarget({ id: info.id!, oldName: cls });
-                                setRenameValue(cls);
-                                setRenameDialogOpen(true);
-                              }}>
-                              <Pencil className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8"
-                              onClick={(e) => { e.stopPropagation(); handleDeleteClass(info.id!, cls); }}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteClass(info.id!, cls); }}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         )}
                         <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors cursor-pointer"
                           onClick={() => navigate(`/students?class=${encodeURIComponent(cls)}`)} />
