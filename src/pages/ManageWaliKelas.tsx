@@ -107,6 +107,7 @@ const ManageWaliKelas = () => {
           full_name: formName,
           role: "teacher",
           school_id: schoolId,
+          phone: formPhone,
         },
       });
 
