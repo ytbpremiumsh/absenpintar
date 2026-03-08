@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Outlet, Navigate, useNavigate } from "react-router-dom";
+import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Settings, LogOut, School, KeyRound } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -14,6 +14,7 @@ import {
 export function AppLayout() {
   const { user, profile, roles, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -30,6 +31,12 @@ export function AppLayout() {
   // Super admins should use their own dashboard
   if (roles.includes("super_admin")) {
     return <Navigate to="/super-admin" replace />;
+  }
+
+  // Teachers (wali kelas) redirect to their dashboard
+  const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
+  if (isTeacherOnly && location.pathname === "/dashboard") {
+    return <Navigate to="/wali-kelas-dashboard" replace />;
   }
 
   const initials = profile?.full_name

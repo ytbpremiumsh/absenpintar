@@ -15,6 +15,8 @@ import Students from "./pages/Students";
 import StudentDetail from "./pages/StudentDetail";
 import Classes from "./pages/Classes";
 import Teachers from "./pages/Teachers";
+import ManageWaliKelas from "./pages/ManageWaliKelas";
+import WaliKelasDashboard from "./pages/WaliKelasDashboard";
 import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import PublicMonitoring from "./pages/PublicMonitoring";
@@ -85,6 +87,8 @@ const App = () => (
               <Route path="/students" element={<Students />} />
               <Route path="/students/:id" element={<StudentDetail />} />
               <Route path="/teachers" element={<Teachers />} />
+              <Route path="/wali-kelas" element={<ManageWaliKelas />} />
+              <Route path="/wali-kelas-dashboard" element={<WaliKelasDashboard />} />
               <Route path="/history" element={<History />} />
               <Route path="/export-history" element={<ExportHistory />} />
               <Route path="/subscription" element={<Subscription />} />
