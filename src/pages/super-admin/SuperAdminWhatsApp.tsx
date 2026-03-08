@@ -77,7 +77,7 @@ const SuperAdminWhatsApp = () => {
 
   const openEdit = (int: IntegrationData) => {
     setEditing(int);
-    setForm({ school_id: int.school_id, api_url: int.api_url, api_key: int.api_key, is_active: int.is_active });
+    setForm({ school_id: int.school_id, api_url: int.api_url, api_key: int.api_key, is_active: int.is_active, message_template: int.message_template || DEFAULT_TEMPLATE });
     setDialogOpen(true);
   };
 
