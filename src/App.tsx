@@ -27,6 +27,7 @@ import SuperAdminPlans from "./pages/super-admin/SuperAdminPlans";
 import SuperAdminPayments from "./pages/super-admin/SuperAdminPayments";
 import SuperAdminSubscriptions from "./pages/super-admin/SuperAdminSubscriptions";
 import SuperAdminWhatsApp from "./pages/super-admin/SuperAdminWhatsApp";
+import SuperAdminBranches from "./pages/super-admin/SuperAdminBranches";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
