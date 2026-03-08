@@ -180,7 +180,7 @@ const LandingPage = () => {
 
       {/* Why Choose Us */}
       <section className="py-16 sm:py-24 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left: Text Content */}
@@ -192,10 +192,10 @@ const LandingPage = () => {
             >
               <span className="text-primary font-semibold text-sm">Kenapa Harus {get("hero_title", "Smart Pickup")} ?</span>
               <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground leading-tight">
-                Solusi Lengkap untuk Keamanan Penjemputan Siswa.
+                {get("why_title", "Solusi Lengkap untuk Keamanan Penjemputan Siswa.")}
               </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                Kami tidak hanya menyediakan alat, tapi juga solusi menyeluruh untuk membantu sekolah Anda mengelola penjemputan siswa dengan aman, cepat, dan terstruktur.
+                {get("why_desc", "Kami tidak hanya menyediakan alat, tapi juga solusi menyeluruh untuk membantu sekolah Anda mengelola penjemputan siswa dengan aman, cepat, dan terstruktur.")}
               </p>
 
               <div className="mt-8 space-y-6">
