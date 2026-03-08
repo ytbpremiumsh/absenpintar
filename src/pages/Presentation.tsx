@@ -6,12 +6,12 @@ import { Navigate } from "react-router-dom";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 50 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] } }),
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.12, duration: 0.7 } }),
 };
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.85 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.8 } },
 };
 
 const SECTIONS = [
