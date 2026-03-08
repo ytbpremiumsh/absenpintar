@@ -128,7 +128,7 @@ const PublicClassMonitoring = () => {
         toast.error(json.error || "Gagal memproses kepulangan");
       } else {
         toast.success(`${student.name} berhasil ditandai pulang!`);
-        announcePickup(student.name, student.class);
+        announcePickup(student.name, student.class, "dismissed");
         setSuccessPopup(student);
         setTimeout(() => setSuccessPopup(null), 5000);
         fetchData(true);

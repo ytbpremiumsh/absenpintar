@@ -6,7 +6,7 @@
 let announceTimeout: ReturnType<typeof setTimeout> | null = null;
 let resumeInterval: ReturnType<typeof setInterval> | null = null;
 
-export function announcePickup(studentName: string, className: string) {
+export function announcePickup(studentName: string, className: string, type: "picked_up" | "dismissed" = "picked_up") {
   if (!("speechSynthesis" in window)) return;
 
   // Clear any pending announcement
@@ -17,7 +17,10 @@ export function announcePickup(studentName: string, className: string) {
   announceTimeout = setTimeout(() => {
     window.speechSynthesis.cancel();
 
-    const text = `Perhatian. ${studentName}, kelas ${className}, sudah pulang. Terima kasih.`;
+    const actionText = type === "dismissed"
+      ? "sudah pulang"
+      : "telah dijemput";
+    const text = `Perhatian. ${studentName}, kelas ${className}, ${actionText}. Terima kasih.`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
     utterance.rate = 0.9;
