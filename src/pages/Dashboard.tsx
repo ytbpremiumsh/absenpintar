@@ -1,12 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, Clock, Calendar, GraduationCap, TrendingUp, AlertTriangle, Thermometer, FileText } from "lucide-react";
+import { Users, UserCheck, Clock, Calendar, GraduationCap, TrendingUp, AlertTriangle, Thermometer, FileText, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { motion } from "framer-motion";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { motion, AnimatePresence } from "framer-motion";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog, DialogContent, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "hsl(152, 69%, 40%)",
@@ -40,6 +44,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [chartPeriod, setChartPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
   const [periodLogs, setPeriodLogs] = useState<any[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!profile?.school_id) return;
@@ -113,16 +118,21 @@ const Dashboard = () => {
     { label: "Belum Absen", value: belumAbsen, icon: Clock, color: "bg-muted text-muted-foreground" },
   ];
 
-  // Build chart data based on period
+  // Build LINE chart data based on period
   const chartData = (() => {
     if (chartPeriod === "daily") {
-      // Group by status for today - single bar per status
-      return [
-        { name: "Hadir", hadir: statusCounts.hadir, izin: 0, sakit: 0, alfa: 0 },
-        { name: "Izin", hadir: 0, izin: statusCounts.izin, sakit: 0, alfa: 0 },
-        { name: "Sakit", hadir: 0, izin: 0, sakit: statusCounts.sakit, alfa: 0 },
-        { name: "Alfa", hadir: 0, izin: 0, sakit: 0, alfa: statusCounts.alfa },
-      ];
+      // For daily, show hourly breakdown
+      const hourly: Record<string, { hadir: number; izin: number; sakit: number; alfa: number }> = {};
+      todayLogs.forEach((log) => {
+        const hour = log.time?.slice(0, 2) || "00";
+        const label = `${hour}:00`;
+        if (!hourly[label]) hourly[label] = { hadir: 0, izin: 0, sakit: 0, alfa: 0 };
+        const s = log.status as keyof typeof statusCounts;
+        if (hourly[label][s] !== undefined) hourly[label][s]++;
+      });
+      return Object.entries(hourly)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([name, counts]) => ({ name, ...counts }));
     }
 
     // Group logs by date
@@ -148,12 +158,11 @@ const Dashboard = () => {
       });
     }
 
-    // Monthly - group by week or show each day
+    // Monthly - group by week
     const now = new Date();
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const result: { name: string; hadir: number; izin: number; sakit: number; alfa: number }[] = [];
 
-    // Group by week of month
     for (let week = 0; week < Math.ceil(daysInMonth / 7); week++) {
       const weekData = { name: `Mg ${week + 1}`, hadir: 0, izin: 0, sakit: 0, alfa: 0 };
       for (let d = week * 7 + 1; d <= Math.min((week + 1) * 7, daysInMonth); d++) {
@@ -173,20 +182,39 @@ const Dashboard = () => {
 
   // Pie chart data
   const pieData = [
-    { name: "Hadir", value: statusCounts.hadir },
-    { name: "Izin", value: statusCounts.izin },
-    { name: "Sakit", value: statusCounts.sakit },
-    { name: "Alfa", value: statusCounts.alfa },
-    { name: "Belum", value: belumAbsen },
+    { name: "Hadir", value: statusCounts.hadir, key: "hadir" },
+    { name: "Izin", value: statusCounts.izin, key: "izin" },
+    { name: "Sakit", value: statusCounts.sakit, key: "sakit" },
+    { name: "Alfa", value: statusCounts.alfa, key: "alfa" },
+    { name: "Belum", value: belumAbsen, key: "belum" },
   ].filter(d => d.value > 0);
 
   const PIE_COLORS = [STATUS_COLORS.hadir, STATUS_COLORS.izin, STATUS_COLORS.sakit, STATUS_COLORS.alfa, "hsl(220, 10%, 75%)"];
+
+  // Get students for selected status
+  const getStudentsForStatus = (status: string) => {
+    if (status === "belum") {
+      const loggedStudentIds = new Set(todayLogs.map(l => l.student_id));
+      return students.filter(s => !loggedStudentIds.has(s.id));
+    }
+    const studentIds = todayLogs.filter(l => l.status === status).map(l => l.student_id);
+    return students.filter(s => studentIds.includes(s.id));
+  };
+
+  const handlePieClick = (_: any, index: number) => {
+    const item = pieData[index];
+    if (item) setSelectedStatus(item.key);
+  };
 
   const getStudentName = (log: any) => students.find(s => s.id === log.student_id)?.name || "Siswa";
   const getStudentClass = (log: any) => students.find(s => s.id === log.student_id)?.class || "";
 
   const now = new Date();
   const periodTitle = chartPeriod === "daily" ? "Hari Ini" : chartPeriod === "weekly" ? "Minggu Ini" : "Bulan Ini";
+
+  const selectedStudents = selectedStatus ? getStudentsForStatus(selectedStatus) : [];
+  const selectedLabel = selectedStatus ? (selectedStatus === "belum" ? "Belum Absen" : STATUS_LABELS[selectedStatus] || selectedStatus) : "";
+  const selectedColor = selectedStatus ? (selectedStatus === "belum" ? "hsl(220, 10%, 75%)" : STATUS_COLORS[selectedStatus]) : "";
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -242,7 +270,7 @@ const Dashboard = () => {
           <CardContent className="px-2 sm:px-6">
             <div className="h-48 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
+                <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" fontSize={10} stroke="hsl(var(--muted-foreground))" />
                   <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" />
@@ -250,11 +278,11 @@ const Dashboard = () => {
                     contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }}
                     formatter={(value: number, name: string) => [`${value} siswa`, STATUS_LABELS[name] || name]}
                   />
-                  <Bar dataKey="hadir" stackId="a" fill={STATUS_COLORS.hadir} radius={[0, 0, 0, 0]} name="hadir" />
-                  <Bar dataKey="izin" stackId="a" fill={STATUS_COLORS.izin} name="izin" />
-                  <Bar dataKey="sakit" stackId="a" fill={STATUS_COLORS.sakit} name="sakit" />
-                  <Bar dataKey="alfa" stackId="a" fill={STATUS_COLORS.alfa} radius={[4, 4, 0, 0]} name="alfa" />
-                </BarChart>
+                  <Line type="monotone" dataKey="hadir" stroke={STATUS_COLORS.hadir} strokeWidth={2} dot={{ r: 3 }} name="hadir" />
+                  <Line type="monotone" dataKey="izin" stroke={STATUS_COLORS.izin} strokeWidth={2} dot={{ r: 3 }} name="izin" />
+                  <Line type="monotone" dataKey="sakit" stroke={STATUS_COLORS.sakit} strokeWidth={2} dot={{ r: 3 }} name="sakit" />
+                  <Line type="monotone" dataKey="alfa" stroke={STATUS_COLORS.alfa} strokeWidth={2} dot={{ r: 3 }} name="alfa" />
+                </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="flex flex-wrap justify-center gap-3 mt-2">
@@ -274,12 +302,20 @@ const Dashboard = () => {
               <GraduationCap className="h-4 w-4 text-primary" />
               Status Kehadiran
             </CardTitle>
+            <p className="text-[10px] text-muted-foreground">Klik bagian pie untuk melihat daftar siswa</p>
           </CardHeader>
           <CardContent className="px-2 sm:px-6">
             <div className="h-40 sm:h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
+                  <Pie
+                    data={pieData}
+                    cx="50%" cy="50%"
+                    innerRadius={40} outerRadius={65}
+                    paddingAngle={3} dataKey="value"
+                    onClick={handlePieClick}
+                    cursor="pointer"
+                  >
                     {pieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index]} />
                     ))}
@@ -290,15 +326,62 @@ const Dashboard = () => {
             </div>
             <div className="flex flex-wrap justify-center gap-3 mt-2">
               {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                <div key={key} className="flex items-center gap-1.5 text-xs">
+                <button
+                  key={key}
+                  onClick={() => setSelectedStatus(key)}
+                  className="flex items-center gap-1.5 text-xs hover:opacity-70 transition-opacity cursor-pointer"
+                >
                   <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[key] }} />
                   <span>{label} ({statusCounts[key as keyof typeof statusCounts]})</span>
-                </div>
+                </button>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Student List Dialog */}
+      <Dialog open={!!selectedStatus} onOpenChange={(open) => { if (!open) setSelectedStatus(null); }}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md p-0 overflow-hidden">
+          <div className="p-4 border-b border-border" style={{ backgroundColor: `${selectedColor}15` }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-base font-bold" style={{ color: selectedColor }}>
+                  {selectedLabel}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground">
+                  {selectedStudents.length} siswa • Hari ini
+                </DialogDescription>
+              </div>
+              <Badge className="text-sm font-bold" style={{ backgroundColor: `${selectedColor}20`, color: selectedColor }}>
+                {selectedStudents.length}
+              </Badge>
+            </div>
+          </div>
+          <ScrollArea className="max-h-[60vh]">
+            {selectedStudents.length === 0 ? (
+              <div className="p-8 text-center text-sm text-muted-foreground">Tidak ada siswa</div>
+            ) : (
+              <div className="divide-y divide-border">
+                {selectedStudents.map((s) => (
+                  <div key={s.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden"
+                      style={{ backgroundColor: `${selectedColor}15`, color: selectedColor }}>
+                      {s.photo_url ? (
+                        <img src={s.photo_url} alt="" className="h-full w-full rounded-full object-cover" />
+                      ) : s.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{s.name}</p>
+                      <p className="text-[10px] text-muted-foreground">Kelas {s.class}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
 
       {/* Recent Attendance */}
       <Card className="shadow-card border-0">
@@ -323,7 +406,7 @@ const Dashboard = () => {
                   <p className="text-sm font-semibold truncate">{studentName}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {studentClass && `Kelas ${studentClass} • `}
-                    {log.method === "face" ? "Face Recognition" : "Barcode"} • {log.recorded_by || "System"}
+                    {log.method === "face_recognition" ? "Face Recognition" : log.method === "rfid" ? "Kartu RFID" : "Barcode"} • {log.recorded_by || "System"}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
