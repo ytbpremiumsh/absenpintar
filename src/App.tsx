@@ -19,6 +19,7 @@ import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import PublicMonitoring from "./pages/PublicMonitoring";
 import PublicClassMonitoring from "./pages/PublicClassMonitoring";
+import PublicAttendanceMonitoring from "./pages/PublicAttendanceMonitoring";
 import SchoolSettings from "./pages/SchoolSettings";
 import AccountSettings from "./pages/AccountSettings";
 import SuperAdminDashboard from "./pages/super-admin/SuperAdminDashboard";
