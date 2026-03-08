@@ -95,6 +95,25 @@ serve(async (req) => {
       });
     }
 
+    // Check for existing pending payment for the same plan within the last 2 minutes
+    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { data: existingPending } = await supabaseAdmin
+      .from('payment_transactions')
+      .select('id, mayar_payment_url')
+      .eq('school_id', profile.school_id)
+      .eq('plan_id', plan.id)
+      .eq('status', 'pending')
+      .gte('created_at', twoMinAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingPending?.mayar_payment_url) {
+      return new Response(JSON.stringify({ success: true, payment_url: existingPending.mayar_payment_url }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // For paid plans, create Mayar payment link — DO NOT auto-approve
     const siteUrl = Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || '';
     const mayarRes = await fetch('https://api.mayar.id/hl/v1/payment/create', {
