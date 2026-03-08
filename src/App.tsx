@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Monitoring from "./pages/Monitoring";
@@ -19,6 +20,10 @@ import PublicMonitoring from "./pages/PublicMonitoring";
 import PublicClassMonitoring from "./pages/PublicClassMonitoring";
 import SchoolSettings from "./pages/SchoolSettings";
 import AccountSettings from "./pages/AccountSettings";
+import SuperAdminDashboard from "./pages/super-admin/SuperAdminDashboard";
+import SuperAdminSchools from "./pages/super-admin/SuperAdminSchools";
+import SuperAdminPlans from "./pages/super-admin/SuperAdminPlans";
+import SuperAdminPayments from "./pages/super-admin/SuperAdminPayments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +40,14 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/live/:schoolId" element={<PublicMonitoring />} />
             <Route path="/live/:schoolId/:className" element={<PublicClassMonitoring />} />
+            {/* Super Admin */}
+            <Route element={<SuperAdminLayout />}>
+              <Route path="/super-admin" element={<SuperAdminDashboard />} />
+              <Route path="/super-admin/schools" element={<SuperAdminSchools />} />
+              <Route path="/super-admin/plans" element={<SuperAdminPlans />} />
+              <Route path="/super-admin/payments" element={<SuperAdminPayments />} />
+            </Route>
+            {/* School Admin / Staff */}
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/monitoring" element={<Monitoring />} />
