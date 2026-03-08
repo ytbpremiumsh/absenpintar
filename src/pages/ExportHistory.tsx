@@ -117,16 +117,7 @@ const ExportHistory = () => {
   const daysWithActivity = Object.keys(dailyStats).length;
   const avgPerDay = daysWithActivity ? Math.round(totalThisMonth / daysWithActivity) : 0;
 
-  if (!features.canExportReport) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <FileSpreadsheet className="h-16 w-16 text-muted-foreground/20 mb-4" />
-        <h2 className="text-lg font-bold text-foreground mb-1">Fitur Rekap & Export</h2>
-        <p className="text-sm text-muted-foreground mb-4">Fitur ini tersedia untuk paket School dan Premium</p>
-        <Badge variant="secondary">🔒 Upgrade untuk mengakses</Badge>
-      </div>
-    );
-  }
+  const isPremiumFeature = !features.canExportReport;
 
   return (
     <div className="space-y-5">
