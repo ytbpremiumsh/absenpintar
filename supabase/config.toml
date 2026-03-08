@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.public-pickup]
 verify_jwt = false
+
+[functions.create-mayar-payment]
+verify_jwt = false
+
+[functions.mayar-webhook]
+verify_jwt = false
