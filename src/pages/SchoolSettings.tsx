@@ -35,7 +35,7 @@ const SchoolSettings = () => {
     if (!profile?.school_id) return;
     Promise.all([
       supabase.from("schools").select("name, address, logo").eq("id", profile.school_id).single(),
-      supabase.from("pickup_settings").select("school_start_time, school_end_time").eq("school_id", profile.school_id).maybeSingle(),
+      supabase.from("pickup_settings").select("school_start_time, school_end_time, attendance_start_time, attendance_end_time, departure_start_time, departure_end_time").eq("school_id", profile.school_id).maybeSingle(),
       supabase.from("qr_instructions").select("id, instruction_text, sort_order").eq("school_id", profile.school_id).order("sort_order"),
     ]).then(([schoolRes, settingsRes, instrRes]) => {
       if (schoolRes.data) {
@@ -46,6 +46,10 @@ const SchoolSettings = () => {
       if (settingsRes.data) {
         setStartTime(settingsRes.data.school_start_time?.slice(0, 5) || "07:00");
         setEndTime(settingsRes.data.school_end_time?.slice(0, 5) || "14:00");
+        setAttStartTime((settingsRes.data as any).attendance_start_time?.slice(0, 5) || "06:00");
+        setAttEndTime((settingsRes.data as any).attendance_end_time?.slice(0, 5) || "12:00");
+        setDepStartTime((settingsRes.data as any).departure_start_time?.slice(0, 5) || "12:00");
+        setDepEndTime((settingsRes.data as any).departure_end_time?.slice(0, 5) || "17:00");
       }
       if (instrRes.data && instrRes.data.length > 0) {
         setQrInstructions(instrRes.data.map((r: any) => ({ id: r.id, text: r.instruction_text })));
