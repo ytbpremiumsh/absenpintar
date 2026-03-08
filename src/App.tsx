@@ -54,6 +54,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/live/:schoolId" element={<PublicMonitoring />} />
             <Route path="/live/:schoolId/:className" element={<PublicClassMonitoring />} />
+            <Route path="/presentation" element={<Presentation />} />
             {/* Super Admin */}
             <Route element={<SuperAdminLayout />}>
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
