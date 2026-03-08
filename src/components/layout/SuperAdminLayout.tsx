@@ -59,7 +59,7 @@ function SuperAdminSidebar() {
           if (items.length === 0) return null;
           return (
             <SidebarGroup key={group.key}>
-              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[11px] uppercase tracking-widest font-semibold px-3 mb-1">
+              <SidebarGroupLabel className="text-sidebar-foreground/40 text-xs uppercase tracking-widest font-semibold px-4 mb-1.5">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>
