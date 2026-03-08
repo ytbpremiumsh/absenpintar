@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import PublicAttendanceScanner from "@/components/PublicAttendanceScanner";
 
 const STATUS_LABELS: Record<string, string> = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa", belum: "Belum" };
 const STATUS_BG: Record<string, string> = {
@@ -195,6 +196,11 @@ const PublicAttendanceMonitoring = () => {
             <p className="text-xs lg:text-sm text-muted-foreground mt-2">{stats.total - stats.belum} dari {stats.total} siswa sudah diabsen</p>
           </CardContent>
         </Card>
+
+        {/* Scan Absensi */}
+        {schoolId && (
+          <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} />
+        )}
 
         {/* Two-column: Live Feed + Class Summary */}
         <div className="grid lg:grid-cols-5 gap-5">
