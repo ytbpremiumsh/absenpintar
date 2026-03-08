@@ -379,21 +379,17 @@ const ScanQR = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="p-3 flex gap-2 justify-center">
+                  <div className="p-3 flex gap-2 justify-center items-center">
                     <Button variant="outline" size="sm" onClick={stopFaceCamera}>
                       <X className="h-4 w-4 mr-1" /> Tutup
                     </Button>
-                    <Button 
-                      onClick={captureAndRecognize} 
-                      disabled={faceScanning}
-                      className="gradient-primary hover:opacity-90"
-                    >
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       {faceScanning ? (
-                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Mengenali...</>
+                        <><Loader2 className="h-4 w-4 animate-spin text-primary" /> <span className="text-primary font-medium">Mengenali wajah...</span></>
                       ) : (
-                        <><UserCheck className="h-4 w-4 mr-1" /> Kenali Wajah</>
+                        <><div className="h-2 w-2 rounded-full bg-success animate-pulse" /> <span>Pemindaian otomatis aktif</span></>
                       )}
-                    </Button>
+                    </div>
                   </div>
                 </>
               ) : (
