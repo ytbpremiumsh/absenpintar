@@ -122,13 +122,25 @@ const History = () => {
           <Button variant="outline" size="sm" onClick={exportCSV}>
             <Download className="h-4 w-4 mr-1" /> CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={exportDailyExcel} disabled={!features.canExportReport} className={!features.canExportReport ? "opacity-50" : ""}>
+          <Button variant="outline" size="sm" onClick={() => {
+            if (!features.canExportReport) {
+              toast.error("Fitur Laporan Excel tersedia di paket Basic ke atas. Silakan upgrade langganan Anda.");
+              return;
+            }
+            exportDailyExcel();
+          }} className={!features.canExportReport ? "opacity-60 cursor-not-allowed" : ""}>
             <FileSpreadsheet className="h-4 w-4 mr-1" /> Laporan Excel
-            {!features.canExportReport && <Lock className="h-3 w-3 ml-1" />}
+            {!features.canExportReport && <Lock className="h-3 w-3 ml-1 text-warning" />}
           </Button>
-          <Button variant="outline" size="sm" onClick={exportDailyPDF} disabled={!features.canExportReport} className={!features.canExportReport ? "opacity-50" : ""}>
+          <Button variant="outline" size="sm" onClick={() => {
+            if (!features.canExportReport) {
+              toast.error("Fitur Laporan PDF tersedia di paket Basic ke atas. Silakan upgrade langganan Anda.");
+              return;
+            }
+            exportDailyPDF();
+          }} className={!features.canExportReport ? "opacity-60 cursor-not-allowed" : ""}>
             <FileText className="h-4 w-4 mr-1" /> Laporan PDF
-            {!features.canExportReport && <Lock className="h-3 w-3 ml-1" />}
+            {!features.canExportReport && <Lock className="h-3 w-3 ml-1 text-warning" />}
           </Button>
         </div>
       </div>
