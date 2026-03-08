@@ -90,7 +90,7 @@ export function AppSidebar() {
     ));
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border font-['Nunito',sans-serif]">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border font-['Nunito',sans-serif]">
       <SidebarHeader className="p-4 pb-3">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary shrink-0 shadow-md">
