@@ -56,7 +56,7 @@ const Monitoring = () => {
     today.setHours(0, 0, 0, 0);
 
     const [studentsRes, logsRes, settingsRes] = await Promise.all([
-      supabase.from("students").select("id, name, class, parent_name, student_id").eq("school_id", schoolId),
+      supabase.from("students").select("id, name, class, parent_name, student_id, photo_url").eq("school_id", schoolId),
       supabase.from("pickup_logs").select("id, student_id, pickup_time, pickup_by").eq("school_id", schoolId).gte("pickup_time", today.toISOString()),
       supabase.from("pickup_settings").select("is_active").eq("school_id", schoolId).maybeSingle(),
     ]);
