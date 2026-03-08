@@ -289,7 +289,6 @@ const Presentation = () => {
                         <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5 text-emerald-400" />
                         <span className="text-slate-400 text-sm leading-relaxed">{detail}</span>
                       </motion.div>
-                      </motion.div>
                     ))}
                   </div>
                 </motion.div>
