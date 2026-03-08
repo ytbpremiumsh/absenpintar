@@ -344,9 +344,9 @@ const LandingPage = () => {
 
           <div className="space-y-8">
             {[
-              { title: "E-Wallet", desc: "Pembayaran melalui e-wallet", img: "/images/payments/ewallet.webp" },
-              { title: "Transfer Bank", desc: "Pembayaran melalui transfer antar bank", img: "/images/payments/transfer-bank.webp" },
-              { title: "Gerai / Outlet", desc: "Pembayaran melalui gerai Alfamart atau Indomaret", img: "/images/payments/gerai.webp" },
+              { title: "E-Wallet", desc: "Pembayaran melalui e-wallet", img: "/images/payments/ewallet.webp", small: false },
+              { title: "Transfer Bank", desc: "Pembayaran melalui transfer antar bank", img: "/images/payments/transfer-bank.webp", small: false },
+              { title: "Gerai / Outlet", desc: "Pembayaran melalui gerai Alfamart atau Indomaret", img: "/images/payments/gerai.webp", small: true },
             ].map((category, ci) => (
               <motion.div
                 key={ci}
@@ -358,7 +358,7 @@ const LandingPage = () => {
               >
                 <h4 className="font-bold text-foreground text-sm">{category.title}</h4>
                 <p className="text-xs text-muted-foreground mb-3">{category.desc}</p>
-                <img src={category.img} alt={category.title} className="max-w-full sm:max-w-2xl h-auto object-contain" />
+                <img src={category.img} alt={category.title} className={category.small ? "h-8 sm:h-10 w-auto object-contain" : "max-w-full sm:max-w-2xl h-auto object-contain"} />
               </motion.div>
             ))}
           </div>
