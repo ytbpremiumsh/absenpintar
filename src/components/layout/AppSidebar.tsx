@@ -56,9 +56,11 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, roles } = useAuth();
   const features = useSubscriptionFeatures();
   const isActive = (path: string) => location.pathname.startsWith(path);
+
+  const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
 
   const handleLogout = async () => {
     await signOut();
