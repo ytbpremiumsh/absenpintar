@@ -69,16 +69,6 @@ const SECTIONS = [
   { title: "Footer", keys: ["footer_logo", "footer_address", "footer_email", "footer_phone"] },
 ];
 
-const SECTIONS = [
-  { title: "Hero Section", keys: ["hero_title", "hero_subtitle", "hero_image", "cta_text"] },
-  { title: "Fitur 1", keys: ["feature_1_title", "feature_1_desc", "feature_1_icon"] },
-  { title: "Fitur 2", keys: ["feature_2_title", "feature_2_desc", "feature_2_icon"] },
-  { title: "Fitur 3", keys: ["feature_3_title", "feature_3_desc", "feature_3_icon"] },
-  { title: "Fitur 4", keys: ["feature_4_title", "feature_4_desc", "feature_4_icon"] },
-  { title: "Fitur 5", keys: ["feature_5_title", "feature_5_desc", "feature_5_icon"] },
-  { title: "Fitur 6", keys: ["feature_6_title", "feature_6_desc", "feature_6_icon"] },
-  { title: "Footer", keys: ["footer_logo", "footer_address", "footer_email", "footer_phone"] },
-];
 
 const SuperAdminLanding = () => {
   const [items, setItems] = useState<ContentItem[]>([]);
