@@ -376,7 +376,7 @@ const LandingPage = () => {
                   Daftar Sekarang
                 </Button>
                 <h2 className="mt-6 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-primary-foreground leading-tight">
-                  Kelola Penjemputan Lebih Mudah Bersama {get("hero_title", "Smart Pickup")}
+                  {get("cta_banner_text", "Kelola Penjemputan Lebih Mudah Bersama Smart Pickup")}
                 </h2>
               </motion.div>
 
