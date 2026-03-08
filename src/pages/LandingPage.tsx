@@ -329,7 +329,90 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Download / CTA Banner */}
+      {/* Payment Methods */}
+      <section className="py-16 sm:py-24 bg-muted/30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground">Kanal Pembayaran</h2>
+            <p className="mt-3 text-muted-foreground">Bebas pilih cara bayar! Semua metode populer tersedia dan tanpa ribet.</p>
+          </motion.div>
+
+          <div className="space-y-6">
+            {[
+              {
+                title: "E-Wallet",
+                desc: "Pembayaran melalui e-wallet",
+                logos: [
+                  { src: "/images/payments/shopeepay.png", alt: "ShopeePay" },
+                  { src: "/images/payments/dana.png", alt: "DANA" },
+                  { src: "/images/payments/ovo.png", alt: "OVO" },
+                  { src: "/images/payments/gopay.png", alt: "GoPay" },
+                  { src: "/images/payments/qris.png", alt: "QRIS" },
+                ],
+              },
+              {
+                title: "Kartu Kredit",
+                desc: "Pembayaran internasional menggunakan kartu kredit",
+                logos: [
+                  { src: "/images/payments/mastercard.png", alt: "Mastercard" },
+                  { src: "/images/payments/visa.png", alt: "Visa" },
+                ],
+              },
+              {
+                title: "Transfer Bank",
+                desc: "Pembayaran melalui transfer antar bank",
+                logos: [
+                  { src: "/images/payments/bca.png", alt: "BCA" },
+                  { src: "/images/payments/bri.png", alt: "BRI" },
+                  { src: "/images/payments/mandiri.png", alt: "Mandiri" },
+                  { src: "/images/payments/bni.png", alt: "BNI" },
+                  { src: "/images/payments/bsi.png", alt: "BSI" },
+                ],
+              },
+              {
+                title: "Gerai / Outlet",
+                desc: "Pembayaran melalui gerai Alfamart atau Indomaret",
+                logos: [
+                  { src: "/images/payments/alfamart.png", alt: "Alfamart" },
+                  { src: "/images/payments/indomaret.png", alt: "Indomaret" },
+                ],
+              },
+            ].map((category, ci) => (
+              <motion.div
+                key={ci}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: ci * 0.08 }}
+                className="border-t border-border pt-5"
+              >
+                <h4 className="font-bold text-foreground text-sm">{category.title}</h4>
+                <p className="text-xs text-muted-foreground mb-3">{category.desc}</p>
+                <div className="flex flex-wrap items-center gap-4">
+                  {category.logos.map((logo, li) => (
+                    <div
+                      key={li}
+                      className="h-10 sm:h-12 px-3 bg-background rounded-lg border border-border/50 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <img
+                        src={logo.src}
+                        alt={logo.alt}
+                        className="h-6 sm:h-8 w-auto object-contain"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="relative rounded-3xl gradient-primary overflow-hidden min-h-[280px] sm:min-h-[320px]">
