@@ -39,6 +39,9 @@ const StudentDetail = () => {
     setStudent(studentRes.data);
     setPickupHistory(logsRes.data || []);
     setSchool(schoolRes.data);
+    if (instrRes.data && instrRes.data.length > 0) {
+      setQrInstructions(instrRes.data.map((r: any) => r.instruction_text));
+    }
     if (studentRes.data) {
       setEditForm({
         name: studentRes.data.name,
