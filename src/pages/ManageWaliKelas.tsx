@@ -52,11 +52,12 @@ const ManageWaliKelas = () => {
       supabase.from("classes").select("name").eq("school_id", schoolId).order("name"),
     ]);
 
-    const assignmentData = assignmentsRes.data || [];
+    const rawData = assignmentsRes.data || [];
+    const enriched: ClassTeacher[] = rawData.map((a) => ({ ...a, user_name: "" }));
 
     // Fetch profiles for each teacher
-    if (assignmentData.length > 0) {
-      const userIds = [...new Set(assignmentData.map((a) => a.user_id))];
+    if (enriched.length > 0) {
+      const userIds = [...new Set(enriched.map((a) => a.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, full_name")
@@ -64,6 +65,10 @@ const ManageWaliKelas = () => {
 
       const profileMap = new Map<string, string>();
       (profiles || []).forEach((p) => profileMap.set(p.user_id, p.full_name));
+
+      enriched.forEach((a) => {
+        a.user_name = profileMap.get(a.user_id) || "Unknown";
+      });
 
       assignmentData.forEach((a) => {
         a.user_name = profileMap.get(a.user_id) || "Unknown";
