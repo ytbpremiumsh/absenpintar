@@ -11,6 +11,7 @@ export interface PlanFeatures {
   canMultiBranch: boolean;
   canWhatsApp: boolean;
   canMultiStaff: boolean;
+  canFaceRecognition: boolean;
   maxClasses: number;
   maxStudentsPerClass: number;
   maxStudentsTotal: number | null;
@@ -26,6 +27,7 @@ const PLAN_FEATURES: Record<string, Omit<PlanFeatures, "planName" | "loading">> 
     canMultiBranch: false,
     canWhatsApp: false,
     canMultiStaff: false,
+    canFaceRecognition: false,
     maxClasses: 2,
     maxStudentsPerClass: 10,
     maxStudentsTotal: 20,
@@ -38,6 +40,7 @@ const PLAN_FEATURES: Record<string, Omit<PlanFeatures, "planName" | "loading">> 
     canMultiBranch: false,
     canWhatsApp: false,
     canMultiStaff: false,
+    canFaceRecognition: false,
     maxClasses: 10,
     maxStudentsPerClass: 50,
     maxStudentsTotal: 200,
@@ -48,8 +51,9 @@ const PLAN_FEATURES: Record<string, Omit<PlanFeatures, "planName" | "loading">> 
     canExportReport: true,
     canCustomLogo: true,
     canMultiBranch: false,
-    canWhatsApp: false,
+    canWhatsApp: true,
     canMultiStaff: true,
+    canFaceRecognition: false,
     maxClasses: 999,
     maxStudentsPerClass: 999,
     maxStudentsTotal: null,
@@ -62,6 +66,7 @@ const PLAN_FEATURES: Record<string, Omit<PlanFeatures, "planName" | "loading">> 
     canMultiBranch: true,
     canWhatsApp: true,
     canMultiStaff: true,
+    canFaceRecognition: true,
     maxClasses: 999,
     maxStudentsPerClass: 999,
     maxStudentsTotal: null,
@@ -89,7 +94,6 @@ export function useSubscriptionFeatures(): PlanFeatures {
       if (data) {
         const sub = data as any;
         const name = sub.subscription_plans?.name || "Free";
-        // Check expiry
         if (sub.expires_at && new Date(sub.expires_at) < new Date()) {
           setPlanName("Free");
         } else {
