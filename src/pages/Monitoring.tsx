@@ -226,7 +226,7 @@ const Monitoring = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           { icon: Users, value: students.length, label: "Total", color: "text-primary", bg: "bg-primary/10" },
           { icon: UserCheck, value: totalHadir, label: "Hadir", color: "text-success", bg: "bg-success/10" },
