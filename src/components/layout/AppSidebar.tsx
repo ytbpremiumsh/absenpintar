@@ -55,6 +55,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
+  const features = useSubscriptionFeatures();
   const isActive = (path: string) => location.pathname.startsWith(path);
 
   const handleLogout = async () => {
