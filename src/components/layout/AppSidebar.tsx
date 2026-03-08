@@ -42,7 +42,8 @@ const mainNav = [
 const dataNav = [
   { title: "Kelas", url: "/classes", icon: GraduationCap },
   { title: "Siswa", url: "/students", icon: Users },
-  { title: "Guru / Wali Kelas", url: "/teachers", icon: UserCheck },
+  { title: "Wali Murid", url: "/teachers", icon: UserCheck },
+  { title: "Wali Kelas", url: "/wali-kelas", icon: ClipboardCheck },
 ];
 
 const settingsNav = [
