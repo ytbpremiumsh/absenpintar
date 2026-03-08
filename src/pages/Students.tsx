@@ -130,6 +130,21 @@ const Students = () => {
     toast.success("Data siswa berhasil diexport!");
   };
 
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      { "Nama Siswa": "Ahmad Zaki", "NIS": "STD001", "Kelas": "1-A", "Nama Wali": "Budi Santoso", "No. HP Wali": "081234567890" },
+      { "Nama Siswa": "Siti Aisyah", "NIS": "STD002", "Kelas": "1-A", "Nama Wali": "Dewi Lestari", "No. HP Wali": "082345678901" },
+      { "Nama Siswa": "Muhammad Rizki", "NIS": "STD003", "Kelas": "2-B", "Nama Wali": "Hendra Wijaya", "No. HP Wali": "083456789012" },
+    ];
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    // Set column widths
+    ws["!cols"] = [{ wch: 25 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 18 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template Siswa");
+    XLSX.writeFile(wb, "template-import-siswa.xlsx");
+    toast.success("Template berhasil didownload! Isi data lalu import kembali.");
+  };
+
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!features.canImportExport) {
       toast.error("Fitur import tersedia di paket Basic ke atas");
