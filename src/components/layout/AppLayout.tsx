@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
-import { Outlet, Navigate, useNavigate } from "react-router-dom";
+import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { Settings, LogOut, School, KeyRound } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
