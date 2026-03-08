@@ -43,6 +43,7 @@ const SuperAdminWhatsApp = () => {
     api_url: "http://proxy.onesender.net/api/v1/messages",
     api_key: "",
     is_active: false,
+    message_template: DEFAULT_TEMPLATE,
   });
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState<string | null>(null);
