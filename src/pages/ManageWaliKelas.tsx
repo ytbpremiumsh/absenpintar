@@ -70,12 +70,12 @@ const ManageWaliKelas = () => {
         a.user_name = profileMap.get(a.user_id) || "Unknown";
       });
 
-      assignmentData.forEach((a) => {
+      enriched.forEach((a) => {
         a.user_name = profileMap.get(a.user_id) || "Unknown";
       });
     }
 
-    setAssignments(assignmentData);
+    setAssignments(enriched);
     setClasses((classesRes.data || []).map((c) => c.name));
     setLoading(false);
   };
