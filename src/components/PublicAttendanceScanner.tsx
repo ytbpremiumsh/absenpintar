@@ -310,12 +310,25 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
             <Badge variant="outline" className="text-[8px] px-1.5 py-0">
               <ScanLine className="h-2.5 w-2.5 mr-0.5" />QR
             </Badge>
-            <Badge variant="outline" className="text-[8px] px-1.5 py-0">
-              <UserCheck className="h-2.5 w-2.5 mr-0.5" />Face
-            </Badge>
-            <Badge variant="outline" className="text-[8px] px-1.5 py-0">
-              <CreditCard className="h-2.5 w-2.5 mr-0.5" />RFID
-            </Badge>
+            {canFaceRecognition ? (
+              <>
+                <Badge variant="outline" className="text-[8px] px-1.5 py-0">
+                  <UserCheck className="h-2.5 w-2.5 mr-0.5" />Face
+                </Badge>
+                <Badge variant="outline" className="text-[8px] px-1.5 py-0">
+                  <CreditCard className="h-2.5 w-2.5 mr-0.5" />RFID
+                </Badge>
+              </>
+            ) : (
+              <>
+                <Badge variant="outline" className="text-[8px] px-1.5 py-0 opacity-40">
+                  <Lock className="h-2.5 w-2.5 mr-0.5" />Face
+                </Badge>
+                <Badge variant="outline" className="text-[8px] px-1.5 py-0 opacity-40">
+                  <Lock className="h-2.5 w-2.5 mr-0.5" />RFID
+                </Badge>
+              </>
+            )}
           </div>
         </div>
 
@@ -330,7 +343,8 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                 </div>
                 <div className="absolute bottom-1 left-0 right-0 text-center">
                   <span className="text-[10px] text-white/80 bg-black/50 px-2 py-0.5 rounded">
-                    {scanPaused.current ? "✓ Terdeteksi" : "Arahkan ke Barcode / Wajah..."}
+                    {scanPaused.current ? "✓ Terdeteksi" : canFaceRecognition ? "Arahkan ke Barcode / Wajah..." : "Arahkan ke Barcode..."}
+                  </span>
                   </span>
                 </div>
               </div>
@@ -342,9 +356,12 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                     <>
                       <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
                       <span className="text-[10px]">
-                        <ScanLine className="h-2.5 w-2.5 inline mr-0.5" />QR + 
-                        <UserCheck className="h-2.5 w-2.5 inline mx-0.5" />Face + 
-                        <CreditCard className="h-2.5 w-2.5 inline mx-0.5" />RFID
+                        <ScanLine className="h-2.5 w-2.5 inline mr-0.5" />QR
+                        {canFaceRecognition ? (
+                          <>{" + "}<UserCheck className="h-2.5 w-2.5 inline mx-0.5" />Face + <CreditCard className="h-2.5 w-2.5 inline mx-0.5" />RFID</>
+                        ) : (
+                          <>{" + "}<Lock className="h-2.5 w-2.5 inline mx-0.5 opacity-40" /><span className="opacity-40">Face + RFID</span> <span className="text-[9px] text-amber-600 font-semibold">(Premium)</span></>
+                        )}
                       </span>
                     </>
                   )}
