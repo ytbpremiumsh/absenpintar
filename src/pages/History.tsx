@@ -24,7 +24,7 @@ const History = () => {
     const fetchLogs = async () => {
       const { data } = await supabase
         .from("pickup_logs")
-        .select("*, students(name, class, parent_name)")
+        .select("*, students(name, class, parent_name, photo_url)")
         .eq("school_id", profile.school_id)
         .order("pickup_time", { ascending: false })
         .limit(500);
