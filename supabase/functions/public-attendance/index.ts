@@ -25,10 +25,11 @@ serve(async (req) => {
 
     const today = new Date().toISOString().slice(0, 10);
 
-    const [schoolRes, studentsRes, logsRes] = await Promise.all([
+    const [schoolRes, studentsRes, logsRes, settingsRes] = await Promise.all([
       supabase.from('schools').select('name, logo').eq('id', school_id).single(),
       supabase.from('students').select('id, name, class, student_id, photo_url, parent_name').eq('school_id', school_id).order('class').order('name'),
-      supabase.from('attendance_logs').select('id, student_id, time, status, method, created_at').eq('school_id', school_id).eq('date', today).order('created_at', { ascending: false }),
+      supabase.from('attendance_logs').select('id, student_id, time, status, method, created_at, attendance_type').eq('school_id', school_id).eq('date', today).order('created_at', { ascending: false }),
+      supabase.from('pickup_settings').select('attendance_start_time, attendance_end_time, departure_start_time, departure_end_time').eq('school_id', school_id).maybeSingle(),
     ]);
 
     if (schoolRes.error || !schoolRes.data) {
@@ -39,20 +40,43 @@ serve(async (req) => {
 
     const students = studentsRes.data || [];
     const logs = logsRes.data || [];
+    const settings = settingsRes.data;
+
+    // Determine current attendance mode
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 8);
+    const attStart = settings?.attendance_start_time || '06:00:00';
+    const attEnd = settings?.attendance_end_time || '12:00:00';
+    const depStart = settings?.departure_start_time || '12:00:00';
+    const depEnd = settings?.departure_end_time || '17:00:00';
+
+    let currentMode: string;
+    if (currentTime >= attStart && currentTime < attEnd) {
+      currentMode = 'datang';
+    } else if (currentTime >= depStart && currentTime <= depEnd) {
+      currentMode = 'pulang';
+    } else if (currentTime < attStart) {
+      currentMode = 'datang';
+    } else {
+      currentMode = 'pulang';
+    }
 
     // Build per-class data
     const classes: Record<string, any[]> = {};
     for (const s of students) {
       if (!classes[s.class]) classes[s.class] = [];
-      const log = logs.find((l: any) => l.student_id === s.id);
+      const logDatang = logs.find((l: any) => l.student_id === s.id && l.attendance_type === 'datang');
+      const logPulang = logs.find((l: any) => l.student_id === s.id && l.attendance_type === 'pulang');
       classes[s.class].push({
         id: s.id,
         name: s.name,
         student_id: s.student_id,
         photo_url: s.photo_url,
-        status: log?.status || "belum",
-        time: log?.time || null,
-        method: log?.method || null,
+        status: logDatang?.status || "belum",
+        time: logDatang?.time || null,
+        method: logDatang?.method || null,
+        datang: logDatang ? { status: logDatang.status, time: logDatang.time, method: logDatang.method } : null,
+        pulang: logPulang ? { status: logPulang.status, time: logPulang.time, method: logPulang.method } : null,
       });
     }
 
@@ -69,14 +93,18 @@ serve(async (req) => {
         method: log.method,
         time: log.time,
         created_at: log.created_at,
+        attendance_type: log.attendance_type || 'datang',
       };
     });
 
+    const datangLogs = logs.filter((l: any) => (l.attendance_type || 'datang') === 'datang');
+    const pulangLogs = logs.filter((l: any) => l.attendance_type === 'pulang');
+
     const totalStudents = students.length;
-    const totalHadir = logs.filter((l: any) => l.status === "hadir").length;
-    const totalIzin = logs.filter((l: any) => l.status === "izin").length;
-    const totalSakit = logs.filter((l: any) => l.status === "sakit").length;
-    const totalAlfa = logs.filter((l: any) => l.status === "alfa").length;
+    const totalHadir = datangLogs.filter((l: any) => l.status === "hadir").length;
+    const totalIzin = datangLogs.filter((l: any) => l.status === "izin").length;
+    const totalSakit = datangLogs.filter((l: any) => l.status === "sakit").length;
+    const totalAlfa = datangLogs.filter((l: any) => l.status === "alfa").length;
     const totalBelum = totalStudents - (totalHadir + totalIzin + totalSakit + totalAlfa);
 
     return new Response(JSON.stringify({
@@ -85,6 +113,9 @@ serve(async (req) => {
       liveFeed,
       stats: { total: totalStudents, hadir: totalHadir, izin: totalIzin, sakit: totalSakit, alfa: totalAlfa, belum: totalBelum },
       date: today,
+      currentMode,
+      pulangStats: { total: totalStudents, recorded: pulangLogs.length },
+      timeSettings: { attStart, attEnd, depStart, depEnd },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   UserCheck, Clock, Users, GraduationCap, Activity, AlertTriangle,
-  Thermometer, FileText, Scan, RefreshCw, School,
+  Thermometer, FileText, Scan, RefreshCw, School, LogIn, LogOut, CreditCard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,7 +18,8 @@ const STATUS_BG: Record<string, string> = {
   alfa: "bg-destructive/10 text-destructive border-destructive/20",
   belum: "bg-muted text-muted-foreground border-border",
 };
-const METHOD_LABELS: Record<string, string> = { barcode: "Barcode", face_recognition: "Face Recognition", manual: "Manual" };
+const METHOD_LABELS: Record<string, string> = { barcode: "Barcode", face_recognition: "Face Recognition", rfid: "Kartu RFID", manual: "Manual" };
+const TYPE_LABELS: Record<string, string> = { datang: "Datang", pulang: "Pulang" };
 
 interface LiveEntry {
   id: string; student_name: string; student_class: string; student_id: string;
@@ -28,9 +29,12 @@ interface LiveEntry {
 interface AttendanceData {
   school: { name: string; logo: string | null };
   classes: Record<string, { id: string; name: string; student_id: string; photo_url: string | null; status: string; time: string | null; method: string | null }[]>;
-  liveFeed: LiveEntry[];
+  liveFeed: (LiveEntry & { attendance_type?: string })[];
   stats: { total: number; hadir: number; izin: number; sakit: number; alfa: number; belum: number };
   date: string;
+  currentMode?: string;
+  pulangStats?: { total: number; recorded: number };
+  timeSettings?: { attStart: string; attEnd: string; depStart: string; depEnd: string };
 }
 
 const LiveDot = () => (
@@ -136,6 +140,11 @@ const PublicAttendanceMonitoring = () => {
                   <span>Live Monitoring Absensi</span>
                   <span>•</span>
                   <span>{currentDate}</span>
+                  <span>•</span>
+                  <Badge className={`text-xs ${data.currentMode === "pulang" ? "bg-warning/20 text-warning border-warning/30" : "bg-success/20 text-success border-success/30"}`}>
+                    {data.currentMode === "pulang" ? <LogOut className="h-3 w-3 mr-1" /> : <LogIn className="h-3 w-3 mr-1" />}
+                    Mode: {data.currentMode === "pulang" ? "Pulang" : "Datang"}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -252,8 +261,13 @@ const PublicAttendanceMonitoring = () => {
                               <Badge variant="secondary" className={`text-[9px] ${STATUS_BG[entry.status] || ""}`}>
                                 {STATUS_LABELS[entry.status] || entry.status}
                               </Badge>
+                              <Badge variant="outline" className={`text-[8px] px-1 py-0 ${
+                                (entry as any).attendance_type === "pulang" ? "border-warning/30 text-warning" : "border-success/30 text-success"
+                              }`}>
+                                {(entry as any).attendance_type === "pulang" ? "Pulang" : "Datang"}
+                              </Badge>
                               <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
-                                <Scan className="h-2.5 w-2.5" /> {METHOD_LABELS[entry.method] || entry.method}
+                                {entry.method === "rfid" ? <CreditCard className="h-2.5 w-2.5" /> : <Scan className="h-2.5 w-2.5" />} {METHOD_LABELS[entry.method] || entry.method}
                               </span>
                               <span className="text-[10px] font-mono text-muted-foreground">{entry.time?.slice(0, 5)}</span>
                             </div>
@@ -270,7 +284,7 @@ const PublicAttendanceMonitoring = () => {
           {/* Right: Scanner */}
           <div className="lg:col-span-2">
             {schoolId && (
-              <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} />
+              <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} currentMode={data?.currentMode || "datang"} />
             )}
           </div>
         </div>

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       attendance_logs: {
         Row: {
+          attendance_type: string
           created_at: string
           date: string
           id: string
@@ -28,6 +29,7 @@ export type Database = {
           time: string
         }
         Insert: {
+          attendance_type?: string
           created_at?: string
           date?: string
           id?: string
@@ -40,6 +42,7 @@ export type Database = {
           time?: string
         }
         Update: {
+          attendance_type?: string
           created_at?: string
           date?: string
           id?: string
@@ -298,7 +301,11 @@ export type Database = {
       }
       pickup_settings: {
         Row: {
+          attendance_end_time: string | null
+          attendance_start_time: string | null
           created_at: string
+          departure_end_time: string | null
+          departure_start_time: string | null
           id: string
           is_active: boolean
           school_end_time: string | null
@@ -306,7 +313,11 @@ export type Database = {
           school_start_time: string | null
         }
         Insert: {
+          attendance_end_time?: string | null
+          attendance_start_time?: string | null
           created_at?: string
+          departure_end_time?: string | null
+          departure_start_time?: string | null
           id?: string
           is_active?: boolean
           school_end_time?: string | null
@@ -314,7 +325,11 @@ export type Database = {
           school_start_time?: string | null
         }
         Update: {
+          attendance_end_time?: string | null
+          attendance_start_time?: string | null
           created_at?: string
+          departure_end_time?: string | null
+          departure_start_time?: string | null
           id?: string
           is_active?: boolean
           school_end_time?: string | null
