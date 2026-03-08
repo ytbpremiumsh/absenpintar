@@ -327,6 +327,11 @@ const Students = () => {
             </DialogContent>
           </Dialog>
 
+          {/* Template Download */}
+          <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+            <Download className="h-4 w-4 mr-1" /> Template
+          </Button>
+
           {/* Import */}
           <div className="relative">
             {features.canImportExport && (
