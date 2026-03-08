@@ -25,11 +25,12 @@ serve(async (req) => {
 
     const today = new Date().toISOString().slice(0, 10);
 
-    const [schoolRes, studentsRes, logsRes, settingsRes] = await Promise.all([
+    const [schoolRes, studentsRes, logsRes, settingsRes, subRes] = await Promise.all([
       supabase.from('schools').select('name, logo').eq('id', school_id).single(),
       supabase.from('students').select('id, name, class, student_id, photo_url, parent_name').eq('school_id', school_id).order('class').order('name'),
       supabase.from('attendance_logs').select('id, student_id, time, status, method, created_at, attendance_type').eq('school_id', school_id).eq('date', today).order('created_at', { ascending: false }),
       supabase.from('pickup_settings').select('attendance_start_time, attendance_end_time, departure_start_time, departure_end_time').eq('school_id', school_id).maybeSingle(),
+      supabase.from('school_subscriptions').select('*, subscription_plans(name)').eq('school_id', school_id).eq('status', 'active').maybeSingle(),
     ]);
 
     if (schoolRes.error || !schoolRes.data) {
@@ -107,6 +108,18 @@ serve(async (req) => {
     const totalAlfa = datangLogs.filter((l: any) => l.status === "alfa").length;
     const totalBelum = totalStudents - (totalHadir + totalIzin + totalSakit + totalAlfa);
 
+    // Determine plan features
+    const sub = subRes.data as any;
+    let planName = 'Free';
+    if (sub?.subscription_plans?.name) {
+      if (sub.expires_at && new Date(sub.expires_at) < new Date()) {
+        planName = 'Free';
+      } else {
+        planName = sub.subscription_plans.name;
+      }
+    }
+    const canFaceRecognition = planName === 'Premium';
+
     return new Response(JSON.stringify({
       school: schoolRes.data,
       classes,
@@ -116,6 +129,7 @@ serve(async (req) => {
       currentMode,
       pulangStats: { total: totalStudents, recorded: pulangLogs.length },
       timeSettings: { attStart, attEnd, depStart, depEnd },
+      canFaceRecognition,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
