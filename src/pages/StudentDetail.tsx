@@ -30,10 +30,11 @@ const StudentDetail = () => {
 
   const fetchData = async () => {
     if (!id || !profile?.school_id) return;
-    const [studentRes, logsRes, schoolRes] = await Promise.all([
+    const [studentRes, logsRes, schoolRes, instrRes] = await Promise.all([
       supabase.from("students").select("*").eq("id", id).eq("school_id", profile.school_id).single(),
       supabase.from("pickup_logs").select("*").eq("student_id", id).eq("school_id", profile.school_id).order("pickup_time", { ascending: false }).limit(20),
       supabase.from("schools").select("name, logo, address").eq("id", profile.school_id).single(),
+      supabase.from("qr_instructions").select("instruction_text").eq("school_id", profile.school_id).order("sort_order"),
     ]);
     setStudent(studentRes.data);
     setPickupHistory(logsRes.data || []);
