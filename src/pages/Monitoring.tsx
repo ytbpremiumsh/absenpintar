@@ -111,7 +111,7 @@ const Monitoring = () => {
     if (error) {
       toast.error("Gagal mencatat penjemputan");
     } else {
-      toast.success(`${student.name} berhasil ditandai dijemput`);
+      toast.success(`${student.name} berhasil ditandai pulang`);
       announcePickup(student.name, student.class);
       fetchData();
     }
@@ -207,7 +207,7 @@ const Monitoring = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { icon: Users, value: students.length, label: "Total Siswa", color: "text-primary", bg: "bg-primary/10" },
-          { icon: UserCheck, value: totalPicked, label: "Sudah Dijemput", color: "text-success", bg: "bg-success/10" },
+          { icon: UserCheck, value: totalPicked, label: "Sudah Pulang", color: "text-success", bg: "bg-success/10" },
           { icon: UserX, value: totalWaiting, label: "Menunggu", color: "text-destructive", bg: "bg-destructive/10" },
           { icon: Activity, value: `${percentage}%`, label: "Progress", color: "text-primary", bg: "gradient-primary" },
         ].map((stat, i) => (
@@ -317,13 +317,13 @@ const Monitoring = () => {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-xs sm:text-sm text-foreground truncate">{s.name}</p>
-                                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">NIS: {s.student_id} • {s.parent_name}</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">NIS: {s.student_id}</p>
                                   </div>
                                   {s.status === "picked_up" ? (
                                     <div className="flex items-center gap-1.5 shrink-0">
                                       <div className="text-right">
                                         <Badge className="bg-success/10 text-success border-success/20 text-[9px] sm:text-[10px]">
-                                          <UserCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" /> Dijemput
+                                          <UserCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" /> Pulang
                                         </Badge>
                                         {s.pickup_time && (
                                           <div className="flex items-center gap-0.5 text-muted-foreground mt-0.5 justify-end">
@@ -363,9 +363,9 @@ const Monitoring = () => {
       <AlertDialog open={!!confirmStudent} onOpenChange={(o) => !o && setConfirmStudent(null)}>
         <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base sm:text-lg">Konfirmasi Penjemputan</AlertDialogTitle>
+            <AlertDialogTitle className="text-base sm:text-lg">Konfirmasi Kepulangan</AlertDialogTitle>
             <AlertDialogDescription className="text-xs sm:text-sm">
-              Tandai <strong>{confirmStudent?.name}</strong> (Kelas {confirmStudent?.class}) sebagai sudah dijemput?
+              Tandai <strong>{confirmStudent?.name}</strong> (Kelas {confirmStudent?.class}) sebagai sudah pulang?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
