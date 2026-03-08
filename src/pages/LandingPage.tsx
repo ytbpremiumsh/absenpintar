@@ -73,62 +73,37 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 relative">
+      <section className="relative overflow-hidden grid-bg">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-32 relative">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center max-w-3xl mx-auto"
+            className="text-center max-w-4xl mx-auto"
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6"
-            >
-              <CheckCircle2 className="h-4 w-4" /> Sistem Penjemputan Digital #1
-            </motion.div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground leading-tight">
-              {get("hero_title", "Smart Pickup School")}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <span className="text-foreground">{get("hero_title", "Smart Pickup School").split(" ").slice(0, -2).join(" ")} </span>
+              <span className="text-primary">{get("hero_title", "Smart Pickup School").split(" ").slice(-2).join(" ")}</span>
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
-              {get("hero_subtitle")}
+            <p className="mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto italic">
+              {get("hero_subtitle", "Kini Anda dapat fokus mengelola sekolah tanpa repot mengurus penjemputan. Smart Pickup hadir untuk mengotomatisasi proses penjemputan siswa, sehingga Anda memiliki lebih banyak waktu.")}
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button size="lg" className="gradient-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow" onClick={() => navigate("/register")}>
-                {get("cta_text", "Mulai Sekarang")} <ArrowRight className="ml-2 h-4 w-4" />
+            <div className="mt-8">
+              <Button size="lg" className="gradient-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow px-8" onClick={() => navigate("/register")}>
+                {get("cta_text", "Mulai Gratis")} <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/login")}>
-                Masuk
-              </Button>
-            </div>
-            <div className="mt-8 flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
-              {["Gratis Uji Coba", "Tanpa Kartu Kredit", "Setup Instan"].map((t, i) => (
-                <motion.span
-                  key={t}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className="flex items-center gap-1.5"
-                >
-                  <CheckCircle2 className="h-4 w-4 text-success" /> {t}
-                </motion.span>
-              ))}
             </div>
           </motion.div>
 
-          {/* Centered Hero Image */}
-          <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-14 max-w-4xl mx-auto"
-          >
-            {get("hero_image") ? (
+          {/* Hero Image below */}
+          {get("hero_image") && (
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="mt-16 max-w-4xl mx-auto"
+            >
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-lg opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
                 <img
@@ -137,15 +112,8 @@ const LandingPage = () => {
                   className="relative w-full rounded-2xl shadow-2xl shadow-foreground/10 border border-border/50 transition-transform duration-500 group-hover:scale-[1.01]"
                 />
               </div>
-            ) : (
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-lg opacity-40" />
-                <div className="relative w-full aspect-[16/9] rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center shadow-2xl shadow-foreground/10 border border-border/50">
-                  <School className="h-24 w-24 text-primary/20" />
-                </div>
-              </div>
-            )}
-          </motion.div>
+            </motion.div>
+          )}
         </div>
       </section>
 
