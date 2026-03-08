@@ -7,7 +7,7 @@ import {
   ArrowRight, ArrowDown, CheckCircle2, School, Mail, Phone, MapPin,
   Shield, Zap, HeadphonesIcon, BarChart3, Smartphone, Layout,
   Lock, Star, TrendingUp, Sparkles, ChevronRight, Globe, Bell, Clock, Settings, FileText, QrCode, Users, GraduationCap,
-  AlertTriangle, XCircle, Lightbulb,
+  AlertTriangle, XCircle, Lightbulb, UserCheck, Camera,
 } from "lucide-react";
 
 const iconMap: Record<string, any> = {
@@ -23,36 +23,35 @@ const fadeUp = {
 };
 
 const STATS = [
-  { value: "< 1 detik", label: "Waktu Scan QR" },
-  { value: "24/7", label: "Akses Monitoring" },
+  { value: "< 1 detik", label: "Waktu Scan Barcode" },
+  { value: "AI", label: "Face Recognition" },
   { value: "100%", label: "Data Terenkripsi" },
   { value: "∞", label: "Riwayat Tersimpan" },
 ];
 
 const WHY_ITEMS_FALLBACK = [
-  { icon: Lock, title: "Keamanan Terjamin", desc: "Setiap penjemputan melalui verifikasi QR Code atau NIS. Data terenkripsi dan tersimpan aman." },
+  { icon: Lock, title: "Keamanan Terjamin", desc: "Setiap absensi melalui verifikasi barcode atau face recognition. Data terenkripsi dan tersimpan aman." },
   { icon: Smartphone, title: "Multi-Platform", desc: "Akses dari perangkat apa saja tanpa perlu install aplikasi. Responsive di semua ukuran layar." },
   { icon: TrendingUp, title: "Skalabel & Fleksibel", desc: "Dari 30 siswa hingga ribuan siswa. Tumbuh bersama sekolah Anda." },
-  { icon: Star, title: "Mudah Digunakan", desc: "Setup hanya beberapa menit — import data, cetak QR, langsung pakai." },
+  { icon: Star, title: "Mudah Digunakan", desc: "Setup hanya beberapa menit — import data, aktifkan scan, langsung pakai." },
 ];
 
-
 const PROBLEMS = [
-  { icon: AlertTriangle, title: "Keamanan Rentan", desc: "Tidak ada verifikasi identitas penjemput. Siapa saja bisa mengaku sebagai wali murid.", color: "text-destructive" },
-  { icon: XCircle, title: "Tidak Ada Rekam Jejak", desc: "Sekolah tidak memiliki catatan digital siapa yang menjemput dan jam berapa.", color: "text-destructive" },
-  { icon: Clock, title: "Proses Lambat & Kacau", desc: "Area penjemputan tidak teratur. Guru kesulitan memantau ratusan siswa sekaligus.", color: "text-destructive" },
-  { icon: Users, title: "Orang Tua Cemas", desc: "Wali murid tidak mendapat informasi real-time apakah anaknya sudah dijemput.", color: "text-destructive" },
-  { icon: FileText, title: "Laporan Manual", desc: "Pencatatan masih di buku tulis, rawan hilang, tidak akurat, dan sulit diaudit.", color: "text-destructive" },
-  { icon: Globe, title: "Tidak Transparan", desc: "Tidak ada sistem monitoring yang bisa diakses orang tua secara online.", color: "text-destructive" },
+  { icon: AlertTriangle, title: "Absensi Manual", desc: "Pencatatan kehadiran masih menggunakan buku tulis, rawan kesalahan dan manipulasi data." },
+  { icon: XCircle, title: "Tidak Ada Rekap Digital", desc: "Sekolah kesulitan membuat laporan kehadiran bulanan karena data tidak terdigitalisasi." },
+  { icon: Clock, title: "Proses Lambat", desc: "Guru harus memanggil satu per satu siswa untuk absensi, memakan waktu belajar." },
+  { icon: Users, title: "Orang Tua Tidak Tahu", desc: "Wali murid tidak mendapat informasi real-time tentang kehadiran anaknya di sekolah." },
+  { icon: FileText, title: "Laporan Tidak Akurat", desc: "Data absensi manual sulit diaudit dan sering terjadi ketidakcocokan data." },
+  { icon: Globe, title: "Tidak Transparan", desc: "Tidak ada sistem monitoring kehadiran yang bisa diakses orang tua secara online." },
 ];
 
 const SOLUTIONS_MAP = [
-  { icon: QrCode, problem: "Keamanan Rentan", solution: "Verifikasi QR Code & NIS", desc: "Setiap penjemput wajib memindai kartu QR unik siswa. Sistem memastikan hanya pemegang kartu yang bisa menjemput." },
-  { icon: BarChart3, problem: "Tidak Ada Rekam Jejak", solution: "Riwayat Digital Otomatis", desc: "Setiap aktivitas tercatat otomatis dan bisa di-export kapan saja." },
-  { icon: Monitor, problem: "Proses Lambat & Kacau", solution: "Monitoring Real-Time", desc: "Dashboard monitoring menampilkan status penjemputan seluruh kelas secara live." },
-  { icon: Bell, problem: "Orang Tua Cemas", solution: "Notifikasi WhatsApp Instan", desc: "Wali murid langsung menerima pesan WhatsApp otomatis saat anaknya dijemput." },
-  { icon: Globe, problem: "Tidak Transparan", solution: "Live Monitor Publik", desc: "Halaman monitoring publik bisa diakses tanpa login. Status penjemputan terlihat real-time." },
-  { icon: Smartphone, problem: "Laporan Manual", solution: "Export & Analitik Digital", desc: "Laporan harian otomatis dalam format Excel dengan grafik dan statistik." },
+  { icon: QrCode, problem: "Absensi Manual", solution: "Scan Barcode Instan", desc: "Siswa cukup scan barcode untuk mencatat kehadiran. Proses kurang dari 1 detik." },
+  { icon: UserCheck, problem: "Proses Lambat", solution: "Face Recognition AI", desc: "Siswa berdiri di depan kamera, AI mengenali wajah dan mencatat absensi otomatis." },
+  { icon: BarChart3, problem: "Tidak Ada Rekap Digital", solution: "Rekap Otomatis", desc: "Rekap harian, mingguan, dan bulanan dibuat otomatis dengan statistik lengkap." },
+  { icon: Monitor, problem: "Tidak Transparan", solution: "Dashboard Real-Time", desc: "Dashboard menampilkan statistik kehadiran secara live — hadir, izin, sakit, alfa." },
+  { icon: Bell, problem: "Orang Tua Tidak Tahu", solution: "Notifikasi WhatsApp", desc: "Wali murid otomatis menerima notifikasi WhatsApp saat anak tercatat hadir." },
+  { icon: FileBarChart, problem: "Laporan Tidak Akurat", solution: "Export Excel & PDF", desc: "Laporan kehadiran lengkap bisa di-export dalam format Excel atau PDF." },
 ];
 
 const LandingPage = () => {
@@ -61,15 +60,12 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
-      .from("landing_content")
-      .select("key, value")
-      .then(({ data }) => {
-        const map: Record<string, string> = {};
-        (data || []).forEach((item: any) => { map[item.key] = item.value; });
-        setContent(map);
-        setLoading(false);
-      });
+    supabase.from("landing_content").select("key, value").then(({ data }) => {
+      const map: Record<string, string> = {};
+      (data || []).forEach((item: any) => { map[item.key] = item.value; });
+      setContent(map);
+      setLoading(false);
+    });
   }, []);
 
   const get = (key: string, fallback = "") => content[key] || fallback;
@@ -82,11 +78,14 @@ const LandingPage = () => {
     );
   }
 
-  const features = [1, 2, 3, 4, 5, 6].map((i) => ({
-    title: get(`feature_${i}_title`),
-    desc: get(`feature_${i}_desc`),
-    icon: iconMap[get(`feature_${i}_icon`, "scan")] || CheckCircle2,
-  }));
+  const features = [
+    { title: "Scan Barcode", desc: "Absensi instan dengan scan barcode. Siswa cukup menunjukkan kartu barcode untuk dicatat kehadirannya.", icon: ScanLine },
+    { title: "Face Recognition", desc: "Absensi menggunakan pengenalan wajah berbasis AI. Tanpa kartu, tanpa sentuhan.", icon: UserCheck },
+    { title: "Dashboard Real-Time", desc: "Pantau statistik kehadiran siswa secara real-time dengan grafik interaktif.", icon: Monitor },
+    { title: "Rekap & Export", desc: "Rekap harian, mingguan, bulanan. Export laporan ke Excel atau PDF.", icon: FileBarChart },
+    { title: "Notifikasi WhatsApp", desc: "Kirim notifikasi otomatis ke orang tua saat siswa tercatat hadir.", icon: Bell },
+    { title: "Multi Sekolah", desc: "Arsitektur SaaS multi-tenant. Satu platform untuk banyak sekolah.", icon: GraduationCap },
+  ];
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -98,10 +97,10 @@ const LandingPage = () => {
               <img src={get("footer_logo")} alt="Logo" className="h-8 w-8 rounded-lg object-cover" />
             ) : (
               <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
-                <School className="h-4 w-4 text-primary-foreground" />
+                <GraduationCap className="h-4 w-4 text-primary-foreground" />
               </div>
             )}
-            <span className="font-bold text-foreground text-sm">{get("hero_title", "Smart Pickup")}</span>
+            <span className="font-bold text-foreground text-sm">Smart School Attendance</span>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => navigate("/login")} className="text-sm font-medium text-muted-foreground hover:text-foreground px-4 py-2 transition-colors">Masuk</button>
@@ -118,22 +117,22 @@ const LandingPage = () => {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-6 relative z-10">
           <span className="inline-flex items-center gap-2 bg-primary/5 border border-primary/10 rounded-full px-4 py-1.5 text-xs font-medium text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Solusi Penjemputan Siswa #1 di Indonesia
+            <Sparkles className="h-3.5 w-3.5" /> Sistem Absensi Digital #1 untuk Sekolah Indonesia
           </span>
         </motion.div>
 
         <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.8 }} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-[0.95] relative z-10">
-          <span className="text-foreground">{get("hero_title", "Smart Pickup").split(" ").slice(0, -1).join(" ")} </span>
-          <span className="text-primary">{get("hero_title", "Smart Pickup").split(" ").slice(-1).join(" ")}</span>
+          <span className="text-foreground">Smart School </span>
+          <span className="text-primary">Attendance</span>
         </motion.h1>
 
         <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.7 }} className="mt-6 text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed relative z-10">
-          {get("hero_subtitle", "Sistem penjemputan siswa modern yang mengutamakan keamanan, efisiensi, dan transparansi. Dirancang khusus untuk sekolah Indonesia.")}
+          Sistem absensi siswa modern dengan barcode scan dan face recognition. Dirancang khusus untuk sekolah Indonesia.
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-10 flex flex-col sm:flex-row gap-3 relative z-10">
           <button onClick={() => navigate("/register")} className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground px-8 py-3.5 rounded-2xl font-semibold transition-all shadow-xl shadow-primary/20 hover:shadow-primary/40 text-sm">
-            <Zap className="h-4 w-4" /> {get("cta_text", "Mulai Gratis Sekarang")}
+            <Zap className="h-4 w-4" /> Mulai Gratis Sekarang
           </button>
           <a href="#features" className="inline-flex items-center justify-center gap-2 bg-muted hover:bg-muted/80 text-foreground px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border border-border">
             Lihat Fitur <ArrowDown className="h-4 w-4" />
@@ -149,41 +148,17 @@ const LandingPage = () => {
             </div>
           ))}
         </motion.div>
-
-        {/* Hero Image */}
-        <motion.div initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.7, delay: 0.3 }} className="mt-14 max-w-5xl mx-auto w-full px-2 relative z-10">
-          {get("hero_image") ? (
-            <div className="relative group">
-              <div className="absolute -inset-3 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 rounded-3xl blur-2xl opacity-50 group-hover:opacity-80 transition-opacity duration-500" />
-              <img src={get("hero_image")} alt="Hero" className="relative w-full rounded-2xl shadow-2xl shadow-foreground/10 border border-border/50" />
-            </div>
-          ) : (
-            <div className="relative">
-              <div className="absolute -inset-3 bg-gradient-to-r from-primary/8 to-primary/8 rounded-3xl blur-2xl opacity-40" />
-              <div className="relative w-full aspect-[16/9] rounded-2xl bg-muted/50 flex items-center justify-center shadow-2xl border border-border/50">
-                <School className="h-20 w-20 text-primary/10" />
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Caption */}
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-8 text-center text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2 relative z-10">
-          {get("hero_caption", "Sistem ini mampu mengelola penjemputan siswa secara otomatis, memantau status real-time, dan mengirim notifikasi WhatsApp ke orang tua.")}
-        </motion.p>
       </section>
 
-      {/* Problem & Solution Section */}
+      {/* Problem & Solution */}
       <section className="py-20 sm:py-28 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          {/* Problems Header */}
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-destructive mb-3 block">Latar Belakang</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Kondisi Permasalahan</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">Sistem penjemputan konvensional di sekolah Indonesia masih menyimpan banyak risiko dan ketidakefisienan.</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Masalah Absensi di Sekolah</h2>
+            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">Sistem absensi manual di sekolah Indonesia masih menyimpan banyak masalah dan ketidakefisienan.</p>
           </motion.div>
 
-          {/* Problem Cards */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
             {PROBLEMS.map((p, i) => (
               <motion.div key={p.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
@@ -195,7 +170,6 @@ const LandingPage = () => {
             ))}
           </div>
 
-          {/* Divider Arrow */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-col items-center mb-16">
             <div className="h-14 w-14 rounded-full bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-xl shadow-success/20">
               <ArrowDown className="h-6 w-6 text-success-foreground" />
@@ -203,14 +177,12 @@ const LandingPage = () => {
             <p className="mt-3 font-bold text-success text-base">Solusi Kami</p>
           </motion.div>
 
-          {/* Solutions Header */}
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-success mb-3 block">Jawaban Tepat</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Smart Pickup School System</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">Sistem digital terintegrasi yang menyelesaikan setiap permasalahan penjemputan dengan teknologi modern.</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Smart School Attendance System</h2>
+            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">Sistem absensi digital terintegrasi yang menyelesaikan setiap permasalahan dengan teknologi modern.</p>
           </motion.div>
 
-          {/* Solution Cards */}
           <div className="grid sm:grid-cols-2 gap-5">
             {SOLUTIONS_MAP.map((s, i) => (
               <motion.div key={s.solution} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
@@ -235,16 +207,15 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Fitur & Keunggulan (merged) */}
+      {/* Features */}
       <section id="features" className="py-20 sm:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3 block">Fitur & Keunggulan</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Semua yang Sekolah Anda Butuhkan</h2>
-            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Solusi lengkap dan menyeluruh untuk mengelola sistem penjemputan siswa yang aman, efisien, dan transparan.</p>
+            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Solusi lengkap untuk mengelola absensi siswa dengan aman, cepat, dan terstruktur.</p>
           </motion.div>
 
-          {/* Main features from DB */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
             {features.map((f, i) => {
               const Icon = f.icon;
@@ -270,26 +241,64 @@ const LandingPage = () => {
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3 block">Kenapa Harus Kami</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
-              {get("why_title", "Solusi Lengkap untuk Keamanan Penjemputan Siswa")}
+              Solusi Lengkap untuk Absensi Siswa Digital
             </h2>
             <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
-              {get("why_desc", "Kami menyediakan solusi menyeluruh untuk membantu sekolah Anda mengelola penjemputan siswa dengan aman, cepat, dan terstruktur.")}
+              Kami menyediakan solusi menyeluruh untuk membantu sekolah Anda mengelola absensi siswa dengan modern dan efisien.
             </p>
           </motion.div>
 
-            <div className="grid sm:grid-cols-2 gap-5">
-              {WHY_ITEMS_FALLBACK.map((item, i) => (
-                <motion.div key={item.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                  className="flex gap-4 sm:gap-5 items-start bg-card border border-border/50 rounded-2xl p-6 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-                  <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <item.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-foreground mb-1">{get(`why_item_${i + 1}_title`, item.title)}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{get(`why_item_${i + 1}_desc`, item.desc)}</p>
-                  </div>
-                </motion.div>
-              ))}
+          <div className="grid sm:grid-cols-2 gap-5">
+            {WHY_ITEMS_FALLBACK.map((item, i) => (
+              <motion.div key={item.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+                className="flex gap-4 sm:gap-5 items-start bg-card border border-border/50 rounded-2xl p-6 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <item.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground mb-1">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-20 sm:py-28 bg-muted/30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3 block">Harga</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Paket Langganan</h2>
+            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Pilih paket yang sesuai dengan kebutuhan sekolah Anda.</p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-3 gap-5">
+            {[
+              { name: "Basic", price: "Rp 99.000", features: ["Absensi barcode", "Manajemen siswa & kelas", "Dashboard statistik", "Rekap absensi", "Maks. 200 siswa"], highlighted: false },
+              { name: "School", price: "Rp 199.000", features: ["Semua fitur Basic", "Unlimited siswa", "Rekap absensi lengkap", "Export laporan Excel", "Notifikasi WhatsApp"], highlighted: true },
+              { name: "Premium", price: "Rp 399.000", features: ["Semua fitur School", "Face Recognition AI", "Multi cabang sekolah", "Custom logo sekolah", "Dukungan prioritas"], highlighted: false },
+            ].map((plan, i) => (
+              <motion.div key={plan.name} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+                <div className={`rounded-2xl p-6 sm:p-7 border transition-all h-full flex flex-col ${plan.highlighted ? "border-primary shadow-xl shadow-primary/10 bg-card ring-2 ring-primary" : "border-border/50 bg-card"}`}>
+                  {plan.highlighted && <span className="text-xs font-bold text-primary mb-2 block">⭐ Rekomendasi</span>}
+                  <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
+                  <p className="text-2xl font-extrabold text-primary mt-2">{plan.price}<span className="text-xs text-muted-foreground font-normal"> /bulan</span></p>
+                  <ul className="mt-5 space-y-2 flex-1">
+                    {plan.features.map(f => (
+                      <li key={f} className="flex items-start gap-2 text-sm">
+                        <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                        <span className="text-foreground">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={() => navigate("/register")} className={`mt-6 w-full py-3 rounded-xl font-semibold text-sm transition-all ${plan.highlighted ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-muted text-foreground hover:bg-muted/80 border border-border"}`}>
+                    Mulai Sekarang
+                  </button>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -323,12 +332,12 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
             <div className="h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/20">
-              <Shield className="h-8 w-8 text-primary-foreground" />
+              <GraduationCap className="h-8 w-8 text-primary-foreground" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-4">
-              {get("cta_banner_text", "Siap Tingkatkan Keamanan Penjemputan Sekolah Anda?")}
+              Siap Tingkatkan Sistem Absensi Sekolah Anda?
             </h2>
-            <p className="text-muted-foreground text-base sm:text-lg mb-10 max-w-xl mx-auto">Bergabung sekarang dan rasakan kemudahan sistem penjemputan modern. Setup hanya 5 menit.</p>
+            <p className="text-muted-foreground text-base sm:text-lg mb-10 max-w-xl mx-auto">Bergabung sekarang dan rasakan kemudahan absensi digital. Setup hanya 5 menit.</p>
             <button onClick={() => navigate("/register")} className="inline-flex items-center gap-2 gradient-primary text-primary-foreground px-10 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-primary/20 hover:shadow-primary/40 text-base">
               <Zap className="h-5 w-5" /> Daftar Gratis Sekarang
             </button>
@@ -346,12 +355,12 @@ const LandingPage = () => {
                 <img src={get("footer_logo")} alt="Logo" className="h-10 w-10 rounded-xl object-cover shadow-md" />
               ) : (
                 <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center shadow-md">
-                  <School className="h-5 w-5 text-primary-foreground" />
+                  <GraduationCap className="h-5 w-5 text-primary-foreground" />
                 </div>
               )}
               <div>
-                <p className="font-bold text-foreground text-sm">{get("hero_title", "Smart Pickup School")}</p>
-                <p className="text-xs text-muted-foreground">Sistem Penjemputan Digital</p>
+                <p className="font-bold text-foreground text-sm">Smart School Attendance System</p>
+                <p className="text-xs text-muted-foreground">Sistem Absensi Digital</p>
               </div>
             </div>
             <div className="flex flex-col items-center sm:items-end gap-2 text-sm text-muted-foreground">
@@ -361,7 +370,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-border text-center">
-            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {get("hero_title", "Smart Pickup School")}. All rights reserved.</p>
+            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Smart School Attendance System. All rights reserved.</p>
           </div>
         </div>
       </footer>
