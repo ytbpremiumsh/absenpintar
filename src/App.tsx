@@ -32,6 +32,8 @@ import ExportHistory from "./pages/ExportHistory";
 import SupportTickets from "./pages/SupportTickets";
 import SuperAdminAnnouncements from "./pages/super-admin/SuperAdminAnnouncements";
 import SuperAdminTickets from "./pages/super-admin/SuperAdminTickets";
+import SuperAdminLanding from "./pages/super-admin/SuperAdminLanding";
+import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,7 +46,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/live/:schoolId" element={<PublicMonitoring />} />
@@ -60,6 +62,7 @@ const App = () => (
               <Route path="/super-admin/branches" element={<SuperAdminBranches />} />
               <Route path="/super-admin/announcements" element={<SuperAdminAnnouncements />} />
               <Route path="/super-admin/tickets" element={<SuperAdminTickets />} />
+              <Route path="/super-admin/landing" element={<SuperAdminLanding />} />
             </Route>
             {/* School Admin / Staff */}
             <Route element={<AppLayout />}>
