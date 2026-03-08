@@ -53,9 +53,10 @@ const QRCodeDisplay = ({ data, size = 200, studentName, studentClass, schoolName
   const downloadWithFrame = useCallback(async () => {
     if (!qrCode.current) return;
 
-    const qrBlob = await qrCode.current.getRawData("png");
-    if (!qrBlob) return;
+    const qrRaw = await qrCode.current.getRawData("png");
+    if (!qrRaw) return;
 
+    const qrBlob = qrRaw instanceof Blob ? qrRaw : new Blob([qrRaw]);
     const qrImg = new Image();
     const qrUrl = URL.createObjectURL(qrBlob);
 
