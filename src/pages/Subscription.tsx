@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Check, Star, Zap, Crown, Loader2, Shield, Calendar, Clock,
-  GraduationCap, Users, AlertTriangle, ExternalLink,
+  GraduationCap, Users, AlertTriangle, ExternalLink, CheckCircle2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 const iconMap: Record<string, any> = { Free: Zap, Basic: Star, School: Crown, Premium: Crown };
 
