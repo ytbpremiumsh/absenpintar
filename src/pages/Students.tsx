@@ -16,6 +16,8 @@ import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import * as XLSX from "xlsx";
+import JSZip from "jszip";
+import QRCodeStyling from "qr-code-styling";
 
 const Students = () => {
   const { profile } = useAuth();
