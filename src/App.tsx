@@ -64,6 +64,7 @@ const App = () => (
               <Route path="/history" element={<History />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/school-settings" element={<SchoolSettings />} />
+              <Route path="/whatsapp-settings" element={<WhatsAppSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />
             </Route>
             <Route path="*" element={<NotFound />} />

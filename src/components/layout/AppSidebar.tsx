@@ -46,6 +46,7 @@ const dataNav = [
 
 const settingsNav = [
   { title: "Langganan", url: "/subscription", icon: CreditCard },
+  { title: "WhatsApp", url: "/whatsapp-settings", icon: MessageSquare },
 ];
 
 export function AppSidebar() {

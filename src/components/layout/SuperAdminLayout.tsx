@@ -14,6 +14,7 @@ const navItems = [
   { title: "Dashboard", url: "/super-admin", icon: LayoutDashboard },
   { title: "Sekolah", url: "/super-admin/schools", icon: School },
   { title: "Paket Langganan", url: "/super-admin/plans", icon: CreditCard },
+  { title: "Langganan", url: "/super-admin/subscriptions", icon: CalendarCheck },
   { title: "Riwayat Pembayaran", url: "/super-admin/payments", icon: Receipt },
 ];
 
