@@ -154,7 +154,7 @@ export function AppSidebar() {
             Laporan
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-1">
               {renderNavItems([{ title: "Riwayat", url: "/history", icon: History }])}
               {features.canExportReport ? (
                 renderNavItems([{ title: "Export Harian", url: "/export-history", icon: FileBarChart }])
