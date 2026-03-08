@@ -141,8 +141,8 @@ export function AppSidebar() {
                   onClick={copyPublicLink}
                   className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 rounded-xl px-4 py-3 transition-all duration-200"
                 >
-                  <Globe className="h-[22px] w-[22px]" />
-                  {!collapsed && <span className="text-base font-normal tracking-wide">Live Monitor</span>}
+                  <Globe className="h-4 w-4" />
+                  {!collapsed && <span className="text-sm">Live Monitor</span>}
                   {!collapsed && <Copy className="h-3.5 w-3.5 ml-auto opacity-40" />}
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -167,10 +167,10 @@ export function AppSidebar() {
                     onClick={() => toast.error("Fitur Export Harian tersedia di paket Basic ke atas. Silakan upgrade langganan Anda.")}
                     className="text-sidebar-foreground/50 hover:bg-sidebar-accent/40 rounded-xl px-4 py-3 transition-all duration-200 opacity-60"
                   >
-                    <FileBarChart className="h-[22px] w-[22px]" />
+                    <FileBarChart className="h-4 w-4" />
                     {!collapsed && (
                       <>
-                        <span className="text-base font-normal tracking-wide">Export Harian</span>
+                        <span className="text-sm">Export Harian</span>
                         <Lock className="h-3.5 w-3.5 ml-auto text-warning" />
                       </>
                     )}
@@ -202,8 +202,8 @@ export function AppSidebar() {
               className="text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl px-4 py-3 transition-all duration-200"
               onClick={handleLogout}
             >
-              <LogOut className="h-[22px] w-[22px]" />
-              {!collapsed && <span className="text-base font-medium tracking-wide">Keluar</span>}
+              <LogOut className="h-4 w-4" />
+              {!collapsed && <span className="text-sm font-medium">Keluar</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
