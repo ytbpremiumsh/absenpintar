@@ -98,6 +98,39 @@ const Subscription = () => {
     fetchData();
   }, [profile?.school_id]);
 
+  // Poll for payment confirmation when returning from Mayar
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status !== "success" || !profile?.school_id) return;
+
+    toast.info("Menunggu konfirmasi pembayaran...");
+    let attempts = 0;
+    const maxAttempts = 30; // 30 * 5s = 2.5 minutes
+
+    pollingRef.current = setInterval(async () => {
+      attempts++;
+      const { data: latestPayment } = await supabase
+        .from("payment_transactions")
+        .select("status")
+        .eq("school_id", profile.school_id!)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestPayment?.status === "paid") {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        setPaymentSuccess(true);
+        toast.success("Pembayaran berhasil! Paket Anda telah diaktifkan.");
+        setTimeout(() => window.location.replace("/subscription"), 2000);
+      } else if (attempts >= maxAttempts) {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        toast.info("Pembayaran belum dikonfirmasi. Silakan cek kembali nanti.");
+      }
+    }, 5000);
+
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+  }, [searchParams, profile?.school_id]);
+
   const handlePurchase = async (planId: string) => {
     setPurchasing(planId);
     try {
