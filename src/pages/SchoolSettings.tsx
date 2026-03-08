@@ -233,6 +233,63 @@ const SchoolSettings = () => {
         </CardContent>
       </Card>
 
+      {/* Waktu Absensi Datang & Pulang */}
+      <Card className="border-0 shadow-card">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="h-4 w-4 text-primary" />
+            Waktu Absensi Datang & Pulang
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Atur rentang waktu untuk absensi datang dan pulang. Sistem akan otomatis menentukan mode absensi berdasarkan waktu saat scan.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="bg-success/5 border border-success/20 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-success/15 text-success border-success/20 text-xs">Datang</Badge>
+                <span className="text-xs text-muted-foreground">Waktu absensi kedatangan siswa</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="att-start" className="text-xs">Mulai</Label>
+                  <Input id="att-start" type="time" value={attStartTime} onChange={(e) => setAttStartTime(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="att-end" className="text-xs">Selesai</Label>
+                  <Input id="att-end" type="time" value={attEndTime} onChange={(e) => setAttEndTime(e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-warning/5 border border-warning/20 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-warning/15 text-warning border-warning/20 text-xs">Pulang</Badge>
+                <span className="text-xs text-muted-foreground">Waktu absensi kepulangan siswa</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="dep-start" className="text-xs">Mulai</Label>
+                  <Input id="dep-start" type="time" value={depStartTime} onChange={(e) => setDepStartTime(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="dep-end" className="text-xs">Selesai</Label>
+                  <Input id="dep-end" type="time" value={depEndTime} onChange={(e) => setDepEndTime(e.target.value)} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-secondary/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+            <p>• <strong>Waktu Datang ({attStartTime} - {attEndTime}):</strong> Scan akan tercatat sebagai absensi <strong>Datang</strong></p>
+            <p>• <strong>Waktu Pulang ({depStartTime} - {depEndTime}):</strong> Scan akan tercatat sebagai absensi <strong>Pulang</strong></p>
+            <p>• Setiap siswa bisa scan <strong>1x Datang</strong> dan <strong>1x Pulang</strong> per hari</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Petunjuk QR Code */}
       <Card className="border-0 shadow-card">
         <CardHeader>
