@@ -7,7 +7,7 @@ export function announcePickup(studentName: string, className: string) {
   // Cancel any ongoing speech
   window.speechSynthesis.cancel();
 
-  const text = `Perhatian. ${studentName}, kelas ${className}, sudah dijemput oleh wali murid. Terima kasih.`;
+  const text = `Perhatian. ${studentName}, kelas ${className}, sudah pulang. Terima kasih.`;
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "id-ID";
   utterance.rate = 0.9;
