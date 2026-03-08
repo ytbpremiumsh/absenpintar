@@ -115,7 +115,7 @@ const Monitoring = () => {
       toast.error("Gagal mencatat penjemputan");
     } else {
       toast.success(`${student.name} berhasil ditandai pulang`);
-      announcePickup(student.name, student.class);
+      announcePickup(student.name, student.class, "dismissed");
       fetchData();
     }
     setConfirmStudent(null);
