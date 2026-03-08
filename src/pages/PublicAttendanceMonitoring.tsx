@@ -324,7 +324,6 @@ const PublicAttendanceMonitoring = () => {
                 );
               })}
             </div>
-          </div>
         </div>
 
         {/* Footer */}
