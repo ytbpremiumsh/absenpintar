@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, School, CreditCard, Receipt, LogOut, Shield, CalendarCheck } from "lucide-react";
+import { LayoutDashboard, School, CreditCard, Receipt, LogOut, Shield, CalendarCheck, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -16,6 +16,7 @@ const navItems = [
   { title: "Paket Langganan", url: "/super-admin/plans", icon: CreditCard },
   { title: "Langganan", url: "/super-admin/subscriptions", icon: CalendarCheck },
   { title: "Riwayat Pembayaran", url: "/super-admin/payments", icon: Receipt },
+  { title: "WhatsApp Gateway", url: "/super-admin/whatsapp", icon: MessageSquare },
 ];
 
 function SuperAdminSidebar() {

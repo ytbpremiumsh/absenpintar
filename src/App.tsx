@@ -26,7 +26,7 @@ import SuperAdminSchools from "./pages/super-admin/SuperAdminSchools";
 import SuperAdminPlans from "./pages/super-admin/SuperAdminPlans";
 import SuperAdminPayments from "./pages/super-admin/SuperAdminPayments";
 import SuperAdminSubscriptions from "./pages/super-admin/SuperAdminSubscriptions";
-import WhatsAppSettings from "./pages/WhatsAppSettings";
+import SuperAdminWhatsApp from "./pages/super-admin/SuperAdminWhatsApp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +51,7 @@ const App = () => (
               <Route path="/super-admin/plans" element={<SuperAdminPlans />} />
               <Route path="/super-admin/subscriptions" element={<SuperAdminSubscriptions />} />
               <Route path="/super-admin/payments" element={<SuperAdminPayments />} />
+              <Route path="/super-admin/whatsapp" element={<SuperAdminWhatsApp />} />
             </Route>
             {/* School Admin / Staff */}
             <Route element={<AppLayout />}>
@@ -64,7 +65,6 @@ const App = () => (
               <Route path="/history" element={<History />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/school-settings" element={<SchoolSettings />} />
-              <Route path="/whatsapp-settings" element={<WhatsAppSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
