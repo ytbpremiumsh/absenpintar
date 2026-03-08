@@ -108,6 +108,18 @@ serve(async (req) => {
     const totalAlfa = datangLogs.filter((l: any) => l.status === "alfa").length;
     const totalBelum = totalStudents - (totalHadir + totalIzin + totalSakit + totalAlfa);
 
+    // Determine plan features
+    const sub = subRes.data as any;
+    let planName = 'Free';
+    if (sub?.subscription_plans?.name) {
+      if (sub.expires_at && new Date(sub.expires_at) < new Date()) {
+        planName = 'Free';
+      } else {
+        planName = sub.subscription_plans.name;
+      }
+    }
+    const canFaceRecognition = planName === 'Premium';
+
     return new Response(JSON.stringify({
       school: schoolRes.data,
       classes,
@@ -117,6 +129,7 @@ serve(async (req) => {
       currentMode,
       pulangStats: { total: totalStudents, recorded: pulangLogs.length },
       timeSettings: { attStart, attEnd, depStart, depEnd },
+      canFaceRecognition,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
