@@ -122,7 +122,7 @@ export function AppSidebar() {
             Data Sekolah
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">{renderNavItems(dataNav)}</SidebarMenu>
+            <SidebarMenu className="space-y-1">{renderNavItems(dataNav)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
