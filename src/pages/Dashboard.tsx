@@ -19,6 +19,7 @@ interface StudentData {
 
 const Dashboard = () => {
   const { profile } = useAuth();
+  const features = useSubscriptionFeatures();
   const [totalStudents, setTotalStudents] = useState(0);
   const [pickedUp, setPickedUp] = useState(0);
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
