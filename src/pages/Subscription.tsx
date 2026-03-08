@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Check, Star, Zap, Crown, Loader2, Shield, Calendar, Clock,
-  GraduationCap, Users, AlertTriangle, ExternalLink,
+  GraduationCap, Users, AlertTriangle, ExternalLink, CheckCircle2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 const iconMap: Record<string, any> = { Free: Zap, Basic: Star, School: Crown, Premium: Crown };
 
@@ -31,11 +32,14 @@ const planLimits: Record<string, { maxClasses: number; maxStudentsPerClass: numb
 
 const Subscription = () => {
   const { profile } = useAuth();
+  const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [currentSub, setCurrentSub] = useState<any>(null);
   const [currentPlan, setCurrentPlan] = useState<any>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const [usage, setUsage] = useState<UsageStats>({ classCount: 0, studentCount: 0, maxClasses: 2, maxStudentsPerClass: 10, maxStudentsTotal: 20 });
 
   useEffect(() => {
@@ -93,6 +97,39 @@ const Subscription = () => {
     };
     fetchData();
   }, [profile?.school_id]);
+
+  // Poll for payment confirmation when returning from Mayar
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status !== "success" || !profile?.school_id) return;
+
+    toast.info("Menunggu konfirmasi pembayaran...");
+    let attempts = 0;
+    const maxAttempts = 30; // 30 * 5s = 2.5 minutes
+
+    pollingRef.current = setInterval(async () => {
+      attempts++;
+      const { data: latestPayment } = await supabase
+        .from("payment_transactions")
+        .select("status")
+        .eq("school_id", profile.school_id!)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestPayment?.status === "paid") {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        setPaymentSuccess(true);
+        toast.success("Pembayaran berhasil! Paket Anda telah diaktifkan.");
+        setTimeout(() => window.location.replace("/subscription"), 2000);
+      } else if (attempts >= maxAttempts) {
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        toast.info("Pembayaran belum dikonfirmasi. Silakan cek kembali nanti.");
+      }
+    }, 5000);
+
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+  }, [searchParams, profile?.school_id]);
 
   const handlePurchase = async (planId: string) => {
     setPurchasing(planId);
@@ -159,6 +196,27 @@ const Subscription = () => {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
+      {/* Payment Success Banner */}
+      {(paymentSuccess || searchParams.get("status") === "success") && (
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <Card className="border-success/30 bg-success/5 shadow-card">
+            <div className="p-4 flex items-center gap-3">
+              <CheckCircle2 className="h-6 w-6 text-success shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-foreground">
+                  {paymentSuccess ? "Pembayaran Berhasil!" : "Menunggu Konfirmasi Pembayaran..."}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {paymentSuccess
+                    ? "Paket langganan Anda telah diaktifkan secara otomatis."
+                    : "Sistem sedang memverifikasi pembayaran Anda. Halaman akan otomatis diperbarui."}
+                </p>
+              </div>
+              {!paymentSuccess && <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0 ml-auto" />}
+            </div>
+          </Card>
+        </motion.div>
+      )}
       {/* Header: Current Plan Status */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="border-0 shadow-elevated overflow-hidden">
