@@ -58,8 +58,8 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
 
   // RFID listener: most RFID readers emulate keyboard and type card number + Enter rapidly
   useEffect(() => {
+    if (!canFaceRecognition) return; // RFID is a Premium feature
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in input fields
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
 
@@ -71,10 +71,8 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
         return;
       }
 
-      // Accumulate characters (alphanumeric)
       if (e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) {
         rfidBuffer.current += e.key;
-        // Reset buffer after 100ms of no input (not rapid typing = not RFID)
         if (rfidTimeout.current) clearTimeout(rfidTimeout.current);
         rfidTimeout.current = window.setTimeout(() => {
           rfidBuffer.current = "";
@@ -84,7 +82,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [canFaceRecognition]);
 
   // Lookup student via public edge function - directly records attendance
   const lookupAndRecord = useCallback(async (code: string, method: string = "barcode", studentId?: string) => {
