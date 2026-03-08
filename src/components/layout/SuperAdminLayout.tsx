@@ -17,6 +17,7 @@ const navItems = [
   { title: "Langganan", url: "/super-admin/subscriptions", icon: CalendarCheck, group: "billing" },
   { title: "Riwayat Pembayaran", url: "/super-admin/payments", icon: Receipt, group: "billing" },
   { title: "WhatsApp Gateway", url: "/super-admin/whatsapp", icon: MessageSquare, group: "integration" },
+  { title: "Multi Cabang", url: "/super-admin/branches", icon: Building2, group: "integration" },
 ];
 
 const groups = [
