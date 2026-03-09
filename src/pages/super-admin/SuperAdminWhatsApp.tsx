@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare, Save, Loader2, Send, School, Pencil, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,10 +22,17 @@ interface IntegrationData {
   api_key: string;
   is_active: boolean;
   message_template: string;
+  attendance_arrive_template: string;
+  attendance_depart_template: string;
 }
 
-const DEFAULT_TEMPLATE = `📢 *Notifikasi Penjemputan*\n\nAnanda *{student_name}* (Kelas {class}) telah dijemput pada pukul {time}.\n\nDijemput oleh: {pickup_by}\n\n_Pesan otomatis dari Smart School Pickup System_`;
-const TEMPLATE_PLACEHOLDERS = [
+const DEFAULT_PICKUP_TEMPLATE = `📢 *Notifikasi Penjemputan*\n\nAnanda *{student_name}* (Kelas {class}) telah dijemput pada pukul {time}.\n\nDijemput oleh: {pickup_by}\n\n_Pesan otomatis dari Smart School Pickup System_`;
+
+const DEFAULT_ARRIVE_TEMPLATE = `📋 *Notifikasi Absensi Datang*\n\nAnanda *{student_name}* (Kelas {class}) telah tercatat HADIR pada pukul {time}.\n\nNIS: {student_id}\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+
+const DEFAULT_DEPART_TEMPLATE = `📋 *Notifikasi Absensi Pulang*\n\nAnanda *{student_name}* (Kelas {class}) telah tercatat PULANG pada pukul {time}.\n\nNIS: {student_id}\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+
+const PICKUP_PLACEHOLDERS = [
   { key: "{student_name}", label: "Nama Siswa" },
   { key: "{class}", label: "Kelas" },
   { key: "{time}", label: "Waktu Jemput" },
@@ -32,6 +40,30 @@ const TEMPLATE_PLACEHOLDERS = [
   { key: "{parent_name}", label: "Nama Wali" },
   { key: "{student_id}", label: "NIS" },
 ];
+
+const ATTENDANCE_PLACEHOLDERS = [
+  { key: "{student_name}", label: "Nama Siswa" },
+  { key: "{class}", label: "Kelas" },
+  { key: "{time}", label: "Waktu" },
+  { key: "{student_id}", label: "NIS" },
+  { key: "{method}", label: "Metode Absen" },
+  { key: "{parent_name}", label: "Nama Wali" },
+];
+
+const PlaceholderButtons = ({ placeholders, onInsert }: { placeholders: typeof PICKUP_PLACEHOLDERS; onInsert: (key: string) => void }) => (
+  <div className="flex flex-wrap gap-1 mt-2">
+    {placeholders.map((p) => (
+      <button
+        key={p.key}
+        type="button"
+        className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+        onClick={() => onInsert(p.key)}
+      >
+        {p.key} <span className="text-muted-foreground">({p.label})</span>
+      </button>
+    ))}
+  </div>
+);
 
 const SuperAdminWhatsApp = () => {
   const [integrations, setIntegrations] = useState<IntegrationData[]>([]);
@@ -44,7 +76,9 @@ const SuperAdminWhatsApp = () => {
     api_url: "http://proxy.onesender.net/api/v1/messages",
     api_key: "",
     is_active: false,
-    message_template: DEFAULT_TEMPLATE,
+    message_template: DEFAULT_PICKUP_TEMPLATE,
+    attendance_arrive_template: DEFAULT_ARRIVE_TEMPLATE,
+    attendance_depart_template: DEFAULT_DEPART_TEMPLATE,
   });
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState<string | null>(null);
@@ -72,13 +106,23 @@ const SuperAdminWhatsApp = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ school_id: "", api_url: "http://proxy.onesender.net/api/v1/messages", api_key: "", is_active: false, message_template: DEFAULT_TEMPLATE });
+    setForm({
+      school_id: "", api_url: "http://proxy.onesender.net/api/v1/messages", api_key: "", is_active: false,
+      message_template: DEFAULT_PICKUP_TEMPLATE,
+      attendance_arrive_template: DEFAULT_ARRIVE_TEMPLATE,
+      attendance_depart_template: DEFAULT_DEPART_TEMPLATE,
+    });
     setDialogOpen(true);
   };
 
   const openEdit = (int: IntegrationData) => {
     setEditing(int);
-    setForm({ school_id: int.school_id, api_url: int.api_url, api_key: int.api_key, is_active: int.is_active, message_template: int.message_template || DEFAULT_TEMPLATE });
+    setForm({
+      school_id: int.school_id, api_url: int.api_url, api_key: int.api_key, is_active: int.is_active,
+      message_template: int.message_template || DEFAULT_PICKUP_TEMPLATE,
+      attendance_arrive_template: int.attendance_arrive_template || DEFAULT_ARRIVE_TEMPLATE,
+      attendance_depart_template: int.attendance_depart_template || DEFAULT_DEPART_TEMPLATE,
+    });
     setDialogOpen(true);
   };
 
@@ -94,6 +138,8 @@ const SuperAdminWhatsApp = () => {
       api_key: form.api_key,
       is_active: form.is_active,
       message_template: form.message_template,
+      attendance_arrive_template: form.attendance_arrive_template,
+      attendance_depart_template: form.attendance_depart_template,
     };
 
     let error;
@@ -159,7 +205,7 @@ const SuperAdminWhatsApp = () => {
             <MessageSquare className="h-6 w-6 text-primary" />
             WhatsApp Gateway
           </h1>
-          <p className="text-muted-foreground text-sm">Kelola integrasi OneSender per sekolah</p>
+          <p className="text-muted-foreground text-sm">Kelola integrasi OneSender & template notifikasi per sekolah</p>
         </div>
         <Button onClick={openCreate} className="gradient-primary text-primary-foreground">
           <Plus className="h-4 w-4 mr-1" /> Tambah Integrasi
@@ -212,7 +258,7 @@ const SuperAdminWhatsApp = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Integrasi" : "Tambah Integrasi WhatsApp"}</DialogTitle>
           </DialogHeader>
@@ -236,28 +282,49 @@ const SuperAdminWhatsApp = () => {
               <Label>API Key / Token</Label>
               <Input type="password" value={form.api_key} onChange={(e) => setForm({ ...form, api_key: e.target.value })} placeholder="Token OneSender" />
             </div>
-            <div>
-              <Label>Template Pesan WhatsApp</Label>
-              <Textarea
-                value={form.message_template}
-                onChange={(e) => setForm({ ...form, message_template: e.target.value })}
-                rows={6}
-                className="font-mono text-xs"
-                placeholder="Template pesan notifikasi..."
-              />
-              <div className="flex flex-wrap gap-1 mt-2">
-                {TEMPLATE_PLACEHOLDERS.map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                    onClick={() => setForm({ ...form, message_template: form.message_template + p.key })}
-                  >
-                    {p.key} <span className="text-muted-foreground">({p.label})</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+
+            {/* Template Tabs */}
+            <Tabs defaultValue="pickup" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="pickup" className="text-xs">🚗 Penjemputan</TabsTrigger>
+                <TabsTrigger value="arrive" className="text-xs">📥 Absensi Datang</TabsTrigger>
+                <TabsTrigger value="depart" className="text-xs">📤 Absensi Pulang</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pickup" className="space-y-2 mt-3">
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Penjemputan</Label>
+                <Textarea
+                  value={form.message_template}
+                  onChange={(e) => setForm({ ...form, message_template: e.target.value })}
+                  rows={6}
+                  className="font-mono text-xs"
+                />
+                <PlaceholderButtons placeholders={PICKUP_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, message_template: form.message_template + key })} />
+              </TabsContent>
+
+              <TabsContent value="arrive" className="space-y-2 mt-3">
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Datang</Label>
+                <Textarea
+                  value={form.attendance_arrive_template}
+                  onChange={(e) => setForm({ ...form, attendance_arrive_template: e.target.value })}
+                  rows={6}
+                  className="font-mono text-xs"
+                />
+                <PlaceholderButtons placeholders={ATTENDANCE_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, attendance_arrive_template: form.attendance_arrive_template + key })} />
+              </TabsContent>
+
+              <TabsContent value="depart" className="space-y-2 mt-3">
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Pulang</Label>
+                <Textarea
+                  value={form.attendance_depart_template}
+                  onChange={(e) => setForm({ ...form, attendance_depart_template: e.target.value })}
+                  rows={6}
+                  className="font-mono text-xs"
+                />
+                <PlaceholderButtons placeholders={ATTENDANCE_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, attendance_depart_template: form.attendance_depart_template + key })} />
+              </TabsContent>
+            </Tabs>
+
             <div className="flex items-center gap-2">
               <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
               <Label>Aktifkan</Label>

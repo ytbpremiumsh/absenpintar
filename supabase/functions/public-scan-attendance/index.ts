@@ -51,12 +51,10 @@ serve(async (req) => {
       .maybeSingle();
 
     const now = new Date();
-    // Use Indonesian timezone (WIB) for time comparison
     const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
     const currentTime = jakartaTime.toTimeString().slice(0, 8);
     const today = jakartaTime.getFullYear() + '-' + String(jakartaTime.getMonth() + 1).padStart(2, '0') + '-' + String(jakartaTime.getDate()).padStart(2, '0');
 
-    // Determine attendance type based on time settings
     const attStart = settings?.attendance_start_time || '06:00:00';
     const attEnd = settings?.attendance_end_time || '12:00:00';
     const depStart = settings?.departure_start_time || '12:00:00';
@@ -68,9 +66,9 @@ serve(async (req) => {
     } else if (currentTime >= depStart && currentTime <= depEnd) {
       attendance_type = 'pulang';
     } else if (currentTime < attStart) {
-      attendance_type = 'datang'; // Before school starts, treat as arrival
+      attendance_type = 'datang';
     } else {
-      attendance_type = 'pulang'; // After everything, treat as departure
+      attendance_type = 'pulang';
     }
 
     // Check if already recorded for this type today
@@ -90,6 +88,7 @@ serve(async (req) => {
     }
 
     // Insert attendance
+    const methodLabel = method === 'face_recognition' ? 'Face Recognition' : method === 'rfid' ? 'Kartu RFID' : 'Barcode Scan';
     const { error: insertError } = await supabase.from('attendance_logs').insert({
       school_id,
       student_id: student.id,
@@ -107,10 +106,43 @@ serve(async (req) => {
       });
     }
 
-    // Send WhatsApp notification (fire-and-forget)
+    // Send WhatsApp notification using stored template
     if (student.parent_phone) {
       try {
-        const typeLabel = attendance_type === 'datang' ? 'Datang (Hadir)' : 'Pulang';
+        // Fetch integration with templates
+        const { data: integration } = await supabase
+          .from('school_integrations')
+          .select('attendance_arrive_template, attendance_depart_template, is_active')
+          .eq('school_id', school_id)
+          .eq('integration_type', 'onesender')
+          .eq('is_active', true)
+          .maybeSingle();
+
+        const timeStr = jakartaTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
+
+        let message: string;
+        if (integration) {
+          const template = attendance_type === 'datang'
+            ? (integration.attendance_arrive_template || '')
+            : (integration.attendance_depart_template || '');
+
+          if (template) {
+            message = template
+              .replace(/\{student_name\}/g, student.name)
+              .replace(/\{class\}/g, student.class)
+              .replace(/\{time\}/g, timeStr)
+              .replace(/\{student_id\}/g, student.student_id)
+              .replace(/\{method\}/g, methodLabel)
+              .replace(/\{parent_name\}/g, student.parent_name || '');
+          } else {
+            const typeLabel = attendance_type === 'datang' ? 'Datang (Hadir)' : 'Pulang';
+            message = `📋 *Notifikasi Absensi ${typeLabel}*\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+          }
+        } else {
+          const typeLabel = attendance_type === 'datang' ? 'Datang (Hadir)' : 'Pulang';
+          message = `📋 *Notifikasi Absensi ${typeLabel}*\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+        }
+
         const waUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-whatsapp`;
         await fetch(waUrl, {
           method: 'POST',
@@ -118,11 +150,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
           },
-          body: JSON.stringify({
-            school_id,
-            phone: student.parent_phone,
-            message: `📋 *Notifikasi Absensi ${typeLabel}*\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada pukul ${jakartaTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })}.\n\nMetode: ${method === 'face_recognition' ? 'Face Recognition' : method === 'rfid' ? 'Kartu RFID' : 'Barcode Scan'}\n\n_Pesan otomatis dari Smart School Attendance System_`,
-          }),
+          body: JSON.stringify({ school_id, phone: student.parent_phone, message }),
         });
       } catch { /* ignore WA errors */ }
     }
