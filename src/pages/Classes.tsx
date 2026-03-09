@@ -113,9 +113,22 @@ const Classes = () => {
     fetchData();
   };
 
+  const handleSaveGroupId = async () => {
+    if (!groupIdTarget) return;
+    setSavingGroupId(true);
+    const { error } = await supabase.from("classes").update({ wa_group_id: groupIdValue.trim() || null }).eq("id", groupIdTarget.id);
+    setSavingGroupId(false);
+    if (error) { toast.error("Gagal menyimpan: " + error.message); return; }
+    toast.success(`ID Group WA kelas "${groupIdTarget.name}" berhasil disimpan`);
+    setGroupIdDialogOpen(false);
+    setGroupIdTarget(null);
+    setGroupIdValue("");
+    fetchData();
+  };
+
   const classData = useMemo(() => {
-    const groups: Record<string, { id?: string; students: any[]; hadir: number; izin: number; sakit: number; alfa: number }> = {};
-    for (const c of classes) groups[c.name] = { id: c.id, students: [], hadir: 0, izin: 0, sakit: 0, alfa: 0 };
+    const groups: Record<string, { id?: string; waGroupId?: string; students: any[]; hadir: number; izin: number; sakit: number; alfa: number }> = {};
+    for (const c of classes) groups[c.name] = { id: c.id, waGroupId: c.wa_group_id || "", students: [], hadir: 0, izin: 0, sakit: 0, alfa: 0 };
     for (const s of students) {
       if (!groups[s.class]) groups[s.class] = { students: [], hadir: 0, izin: 0, sakit: 0, alfa: 0 };
       groups[s.class].students.push(s);
