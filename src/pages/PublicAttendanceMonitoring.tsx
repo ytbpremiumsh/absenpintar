@@ -69,6 +69,9 @@ const PublicAttendanceMonitoring = () => {
         if (newEntry) {
           setNewEntryId(newEntry.id);
           setTimeout(() => setNewEntryId(null), 4000);
+          // Announce with sound + speech
+          const type = (newEntry as any).attendance_type === "pulang" ? "pulang" : "datang";
+          announceAttendance(newEntry.student_name, newEntry.student_class, type);
         }
       }
       initialLoad.current = false;
