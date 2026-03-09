@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,17 +6,14 @@ import { Button } from "@/components/ui/button";
 import {
   UserCheck, UserX, Clock, School, Users, RefreshCw,
   GraduationCap, Activity, TrendingUp, Volume2,
-  Eye, EyeOff, CheckCircle2,
+  Eye, EyeOff, CheckCircle2, Maximize, Minimize,
+  ChevronLeft, ChevronRight, Pause, Play,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { announcePickup } from "@/lib/announcePickup";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -95,10 +92,15 @@ const StudentCard = ({ student, index }: { student: StudentStatus; index: number
   );
 };
 
-const ClassCard = ({
-  className: cls, students, isExpanded, onToggle, showProgress,
+// Airport-style rotating class panel
+const RotatingClassPanel = ({
+  className: cls,
+  students,
+  isActive,
 }: {
-  className: string; students: StudentStatus[]; isExpanded: boolean; onToggle: () => void; showProgress: boolean;
+  className: string;
+  students: StudentStatus[];
+  isActive: boolean;
 }) => {
   const picked = students.filter((s) => s.status === "picked_up").length;
   const total = students.length;
@@ -107,53 +109,71 @@ const ClassCard = ({
   const allDone = waiting === 0;
 
   return (
-    <motion.div layout transition={{ type: "spring", stiffness: 300, damping: 30 }}>
-      <Card className={`overflow-hidden border transition-all duration-300 cursor-pointer ${
-        allDone ? "border-success/30 shadow-[0_0_15px_-3px_hsl(var(--success)/0.15)]" : "border-border shadow-card hover:shadow-elevated"
-      }`}>
-        <div onClick={onToggle} className="p-4 flex items-center gap-4">
-          <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${
-            allDone ? "bg-success/15 text-success" : "gradient-primary text-primary-foreground"
+    <AnimatePresence mode="wait">
+      {isActive && (
+        <motion.div
+          key={cls}
+          initial={{ opacity: 0, rotateX: -90, y: -30 }}
+          animate={{ opacity: 1, rotateX: 0, y: 0 }}
+          exit={{ opacity: 0, rotateX: 90, y: 30 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="w-full"
+          style={{ perspective: "1000px" }}
+        >
+          <Card className={`overflow-hidden border-2 transition-all duration-300 ${
+            allDone
+              ? "border-success/40 shadow-[0_0_25px_-3px_hsl(var(--success)/0.25)]"
+              : "border-primary/30 shadow-[0_0_25px_-3px_hsl(var(--primary)/0.15)]"
           }`}>
-            <GraduationCap className="h-6 w-6" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-base text-foreground">{cls}</h3>
-              {allDone && <Badge className="bg-success/10 text-success border-success/20 text-[10px]">✓ Selesai</Badge>}
-            </div>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {total} siswa</span>
-              <span className="flex items-center gap-1 text-success"><UserCheck className="h-3 w-3" /> {picked}</span>
-              <span className="flex items-center gap-1 text-destructive"><UserX className="h-3 w-3" /> {waiting}</span>
-            </div>
-          </div>
-          <p className={`text-xl font-extrabold shrink-0 ${allDone ? "text-success" : "text-primary"}`}>{percentage}%</p>
-        </div>
-
-        {showProgress && (
-          <div className="px-4 pb-3">
-            <div className="h-2 rounded-full bg-secondary overflow-hidden">
-              <motion.div className={`h-full rounded-full ${allDone ? "bg-success" : "bg-gradient-to-r from-primary to-primary/70"}`}
-                initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 0.8, ease: "easeOut" }} />
-            </div>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
-              <div className="px-4 pb-4 space-y-2 border-t border-border pt-3">
-                {students.sort((a, b) => (a.status === "waiting" ? -1 : 1)).map((s, i) => (
-                  <StudentCard key={s.id} student={s} index={i} />
-                ))}
+            {/* Class Header */}
+            <div className="p-5 flex items-center gap-4 bg-gradient-to-r from-card to-muted/30">
+              <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 ${
+                allDone ? "bg-success/15 text-success" : "gradient-primary text-primary-foreground"
+              }`}>
+                <GraduationCap className="h-7 w-7" />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Card>
-    </motion.div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="font-extrabold text-xl text-foreground">{cls}</h3>
+                  {allDone && (
+                    <Badge className="bg-success text-white text-xs px-2 py-0.5">
+                      ✓ Selesai
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1"><Users className="h-4 w-4" /> {total} siswa</span>
+                  <span className="flex items-center gap-1 text-success font-semibold"><UserCheck className="h-4 w-4" /> {picked} pulang</span>
+                  <span className="flex items-center gap-1 text-destructive font-semibold"><UserX className="h-4 w-4" /> {waiting} menunggu</span>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <p className={`text-4xl font-black ${allDone ? "text-success" : "text-primary"}`}>{percentage}%</p>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="px-5 pb-2 pt-1">
+              <div className="h-3 rounded-full bg-secondary overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${allDone ? "bg-success" : "bg-gradient-to-r from-primary to-primary/70"}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percentage}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                />
+              </div>
+            </div>
+
+            {/* Students list */}
+            <div className="px-5 pb-5 pt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto">
+              {students.sort((a, b) => (a.status === "waiting" ? -1 : 1)).map((s, i) => (
+                <StudentCard key={s.id} student={s} index={i} />
+              ))}
+            </div>
+          </Card>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -161,16 +181,21 @@ const PublicMonitoring = () => {
   const { schoolId } = useParams<{ schoolId: string }>();
   const [data, setData] = useState<MonitoringData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showProgress, setShowProgress] = useState(true);
-  const [columns, setColumns] = useState("2");
   const prevPickedIds = useRef<Set<string>>(new Set());
   const initialLoad = useRef(true);
   const [successPopup, setSuccessPopup] = useState<StudentStatus | null>(null);
 
-  const fetchData = async (showRefresh = false) => {
+  // Auto-rotate state
+  const [currentClassIndex, setCurrentClassIndex] = useState(0);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [rotateInterval, setRotateIntervalTime] = useState(8); // seconds
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const fetchData = useCallback(async (showRefresh = false) => {
     if (!schoolId) return;
     if (showRefresh) setIsRefreshing(true);
     try {
@@ -179,7 +204,6 @@ const PublicMonitoring = () => {
       const json = await res.json();
       if (json.error) return;
 
-      // Announce newly picked up students (skip initial load)
       if (!initialLoad.current) {
         const allStudents: StudentStatus[] = [];
         Object.values(json.classes as Record<string, StudentStatus[]>).forEach((arr) => allStudents.push(...arr));
@@ -187,16 +211,21 @@ const PublicMonitoring = () => {
           (s) => s.status === "picked_up" && !prevPickedIds.current.has(s.id)
         );
         if (newPicked.length > 0) {
-          // Show popup first, then announce with delay so DOM settles
           const lastPicked = newPicked[newPicked.length - 1];
           setSuccessPopup(lastPicked);
           setTimeout(() => setSuccessPopup(null), 5000);
-          // Stagger announcements after popup renders
           newPicked.forEach((s, i) => {
             setTimeout(() => {
               announcePickup(s.name, s.class);
             }, 600 + i * 3000);
           });
+
+          // Auto-navigate to the class of the newly picked up student
+          const classNames = Object.keys(json.classes).sort();
+          const pickedClassIdx = classNames.indexOf(lastPicked.class);
+          if (pickedClassIdx !== -1) {
+            setCurrentClassIndex(pickedClassIdx);
+          }
         }
         prevPickedIds.current = new Set(allStudents.filter(s => s.status === "picked_up").map(s => s.id));
       } else {
@@ -214,28 +243,60 @@ const PublicMonitoring = () => {
       setLoading(false);
       setIsRefreshing(false);
     }
+  }, [schoolId]);
+
+  // Initial fetch + realtime subscription (no polling delay)
+  useEffect(() => {
+    fetchData();
+    // Fast polling at 3s for near-realtime
+    const interval = setInterval(() => fetchData(), 3000);
+    // Also listen to realtime changes for instant updates
+    const channel = supabase.channel("public-monitoring-rt")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pickup_logs" }, () => fetchData(true))
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pickup_logs" }, () => fetchData(true))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "attendance_logs" }, () => fetchData(true))
+      .subscribe();
+    return () => { clearInterval(interval); supabase.removeChannel(channel); };
+  }, [fetchData]);
+
+  // Auto-rotate classes
+  useEffect(() => {
+    if (!isAutoRotating || !data) return;
+    const classNames = Object.keys(data.classes).sort();
+    if (classNames.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentClassIndex((prev) => (prev + 1) % classNames.length);
+    }, rotateInterval * 1000);
+
+    return () => clearInterval(timer);
+  }, [isAutoRotating, data, rotateInterval]);
+
+  // Fullscreen handling
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(() => fetchData(), 10000);
-    const channel = supabase.channel("public-monitoring-rt")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pickup_logs" }, () => fetchData(true))
-      .subscribe();
-    return () => { clearInterval(interval); supabase.removeChannel(channel); };
-  }, [schoolId]);
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
 
-  const toggleClass = (cls: string) => {
-    setExpandedClasses((prev) => { const n = new Set(prev); if (n.has(cls)) n.delete(cls); else n.add(cls); return n; });
-  };
-
-  const expandAll = () => {
+  const navigateClass = (dir: "prev" | "next") => {
     if (!data) return;
-    const all = Object.keys(data.classes);
-    setExpandedClasses(expandedClasses.size === all.length ? new Set() : new Set(all));
+    const classNames = Object.keys(data.classes).sort();
+    setCurrentClassIndex((prev) =>
+      dir === "next" ? (prev + 1) % classNames.length : (prev - 1 + classNames.length) % classNames.length
+    );
   };
-
-  const colsClass = columns === "1" ? "grid-cols-1" : columns === "2" ? "md:grid-cols-2" : columns === "3" ? "md:grid-cols-3" : "md:grid-cols-4";
 
   if (loading) {
     return (
@@ -263,12 +324,13 @@ const PublicMonitoring = () => {
   const waiting = data.total - data.picked_up;
   const percentage = data.total ? Math.round((data.picked_up / data.total) * 100) : 0;
   const isActive = data.settings?.is_active !== false;
+  const safeClassIndex = currentClassIndex % Math.max(classNames.length, 1);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={containerRef} className="min-h-screen bg-background">
       {/* Header */}
       <header className="gradient-hero text-primary-foreground sticky top-0 z-50 shadow-elevated">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {data.school?.logo ? (
@@ -282,17 +344,31 @@ const PublicMonitoring = () => {
                 <h1 className="text-lg font-bold">{data.school?.name || "Smart Pickup"}</h1>
                 <div className="flex items-center gap-2 text-xs opacity-80">
                   {isActive ? <LiveDot /> : <span className="h-2.5 w-2.5 rounded-full bg-destructive" />}
-                  <span>{isActive ? "Monitoring Kepulangan Realtime" : "Sistem Kepulangan Nonaktif"}</span>
+                  <span>{isActive ? "Live Monitoring Kepulangan" : "Sistem Nonaktif"}</span>
                   <Volume2 className="h-3 w-3 ml-1" />
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {/* Auto-rotate controls */}
+              <button
+                onClick={() => setIsAutoRotating(!isAutoRotating)}
+                className={`h-9 px-3 rounded-lg flex items-center gap-1.5 text-xs font-medium transition-all ${
+                  isAutoRotating ? "bg-white/20 hover:bg-white/30" : "bg-white/10 hover:bg-white/20"
+                }`}
+              >
+                {isAutoRotating ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">{isAutoRotating ? "Pause" : "Play"}</span>
+              </button>
               <button onClick={() => fetchData(true)}
                 className="h-9 w-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all">
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
               </button>
-              <div className="text-right text-xs opacity-70 hidden sm:block">
+              <button onClick={toggleFullscreen}
+                className="h-9 w-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all">
+                {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              </button>
+              <div className="text-right text-xs opacity-70 hidden sm:block ml-1">
                 <p>Update terakhir</p>
                 <p className="font-mono font-bold">
                   {lastUpdated.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
@@ -309,9 +385,9 @@ const PublicMonitoring = () => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { icon: Users, value: data.total, label: "Total Siswa", color: "text-primary", bg: "bg-primary/10" },
             { icon: UserCheck, value: data.picked_up, label: "Sudah Pulang", color: "text-success", bg: "bg-success/10" },
@@ -320,7 +396,7 @@ const PublicMonitoring = () => {
           ].map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Card className="border-0 shadow-card">
-                <CardContent className="p-4 flex items-center gap-3">
+                <CardContent className="p-3 flex items-center gap-3">
                   <div className={`h-10 w-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
                     <stat.icon className={`h-5 w-5 ${stat.bg.includes("gradient") ? "text-primary-foreground" : stat.color}`} />
                   </div>
@@ -345,7 +421,7 @@ const PublicMonitoring = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <LiveDot />
-                  <span className="text-xs text-muted-foreground">Live</span>
+                  <span className="text-xs text-muted-foreground">Realtime</span>
                 </div>
               </div>
               <div className="h-4 rounded-full bg-secondary overflow-hidden">
@@ -360,51 +436,110 @@ const PublicMonitoring = () => {
           </Card>
         )}
 
-        {/* Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-foreground">Per Kelas</h2>
-            <Badge variant="secondary" className="text-xs">{classNames.length} kelas</Badge>
+        {/* Rotating Class Display - Airport Style */}
+        <div className="space-y-3">
+          {/* Navigation Bar */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-foreground">Kelas</h2>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowProgress(!showProgress)} className="text-xs gap-1.5">
+                {showProgress ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                {showProgress ? "Sembunyikan" : "Tampilkan"}
+              </Button>
+              <Select value={String(rotateInterval)} onValueChange={(v) => setRotateIntervalTime(Number(v))}>
+                <SelectTrigger className="w-[100px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 detik</SelectItem>
+                  <SelectItem value="8">8 detik</SelectItem>
+                  <SelectItem value="12">12 detik</SelectItem>
+                  <SelectItem value="15">15 detik</SelectItem>
+                  <SelectItem value="20">20 detik</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setShowProgress(!showProgress)}
-              className="text-xs gap-1.5">
-              {showProgress ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              {showProgress ? "Sembunyikan" : "Tampilkan"} Progress
-            </Button>
-            <Select value={columns} onValueChange={setColumns}>
-              <SelectTrigger className="w-[120px] h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 Kolom</SelectItem>
-                <SelectItem value="2">2 Kolom</SelectItem>
-                <SelectItem value="3">3 Kolom</SelectItem>
-                <SelectItem value="4">4 Kolom</SelectItem>
-              </SelectContent>
-            </Select>
-            <button onClick={expandAll} className="text-xs text-primary font-semibold hover:underline">
-              {expandedClasses.size === classNames.length ? "Tutup Semua" : "Buka Semua"}
+
+          {/* Class Indicator Dots + Nav */}
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => navigateClass("prev")}
+              className="h-9 w-9 rounded-full bg-muted hover:bg-accent flex items-center justify-center transition-all"
+            >
+              <ChevronLeft className="h-5 w-5 text-foreground" />
+            </button>
+
+            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+              {classNames.map((cls, i) => {
+                const clsStudents = data.classes[cls];
+                const clsPicked = clsStudents.filter(s => s.status === "picked_up").length;
+                const clsAllDone = clsPicked === clsStudents.length;
+                const isCurrentClass = i === safeClassIndex;
+
+                return (
+                  <button
+                    key={cls}
+                    onClick={() => { setCurrentClassIndex(i); setIsAutoRotating(false); }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+                      isCurrentClass
+                        ? clsAllDone
+                          ? "bg-success text-white scale-110 shadow-md"
+                          : "bg-primary text-primary-foreground scale-110 shadow-md"
+                        : clsAllDone
+                          ? "bg-success/15 text-success hover:bg-success/25"
+                          : "bg-muted text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {cls}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => navigateClass("next")}
+              className="h-9 w-9 rounded-full bg-muted hover:bg-accent flex items-center justify-center transition-all"
+            >
+              <ChevronRight className="h-5 w-5 text-foreground" />
             </button>
           </div>
-        </div>
 
-        {/* Class Cards Grid */}
-        <div className={`grid ${colsClass} gap-4`}>
-          <AnimatePresence>
-            {classNames.map((cls) => (
-              <ClassCard key={cls} className={cls} students={data.classes[cls]}
-                isExpanded={expandedClasses.has(cls)} onToggle={() => toggleClass(cls)} showProgress={showProgress} />
+          {/* Auto-rotate progress bar */}
+          {isAutoRotating && classNames.length > 1 && (
+            <div className="h-1 rounded-full bg-secondary overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-primary/50"
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: rotateInterval, ease: "linear", repeat: Infinity }}
+                key={`${safeClassIndex}-${rotateInterval}`}
+              />
+            </div>
+          )}
+
+          {/* Rotating Class Card */}
+          <div className="relative min-h-[200px]">
+            {classNames.map((cls, i) => (
+              <RotatingClassPanel
+                key={cls}
+                className={cls}
+                students={data.classes[cls]}
+                isActive={i === safeClassIndex}
+              />
             ))}
-          </AnimatePresence>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="text-center py-6 border-t border-border">
+        <div className="text-center py-4 border-t border-border">
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <LiveDot />
-            <span>Smart Pickup System • Data diperbarui otomatis setiap 10 detik</span>
+            <span>Smart Pickup System • Data diperbarui realtime</span>
           </div>
         </div>
       </div>
