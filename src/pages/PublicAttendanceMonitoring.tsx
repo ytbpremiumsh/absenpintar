@@ -9,6 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import PublicAttendanceScanner from "@/components/PublicAttendanceScanner";
+import { announceAttendance } from "@/lib/announceAttendance";
 
 const STATUS_LABELS: Record<string, string> = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa", belum: "Belum" };
 const STATUS_BG: Record<string, string> = {
