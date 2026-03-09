@@ -23,7 +23,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const today = jakartaTime.getFullYear() + '-' + String(jakartaTime.getMonth() + 1).padStart(2, '0') + '-' + String(jakartaTime.getDate()).padStart(2, '0');
 
     const [schoolRes, studentsRes, logsRes, settingsRes, subRes] = await Promise.all([
       supabase.from('schools').select('name, logo').eq('id', school_id).single(),
@@ -44,8 +46,7 @@ serve(async (req) => {
     const settings = settingsRes.data;
 
     // Determine current attendance mode
-    const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 8);
+    const currentTime = jakartaTime.toTimeString().slice(0, 8);
     const attStart = settings?.attendance_start_time || '06:00:00';
     const attEnd = settings?.attendance_end_time || '12:00:00';
     const depStart = settings?.departure_start_time || '12:00:00';

@@ -51,8 +51,10 @@ serve(async (req) => {
       .maybeSingle();
 
     const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 8);
-    const today = now.toISOString().slice(0, 10);
+    // Use Indonesian timezone (WIB) for time comparison
+    const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const currentTime = jakartaTime.toTimeString().slice(0, 8);
+    const today = jakartaTime.getFullYear() + '-' + String(jakartaTime.getMonth() + 1).padStart(2, '0') + '-' + String(jakartaTime.getDate()).padStart(2, '0');
 
     // Determine attendance type based on time settings
     const attStart = settings?.attendance_start_time || '06:00:00';
@@ -119,7 +121,7 @@ serve(async (req) => {
           body: JSON.stringify({
             school_id,
             phone: student.parent_phone,
-            message: `📋 *Notifikasi Absensi ${typeLabel}*\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada pukul ${now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}.\n\nMetode: ${method === 'face_recognition' ? 'Face Recognition' : method === 'rfid' ? 'Kartu RFID' : 'Barcode Scan'}\n\n_Pesan otomatis dari Smart School Attendance System_`,
+            message: `📋 *Notifikasi Absensi ${typeLabel}*\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada pukul ${jakartaTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })}.\n\nMetode: ${method === 'face_recognition' ? 'Face Recognition' : method === 'rfid' ? 'Kartu RFID' : 'Barcode Scan'}\n\n_Pesan otomatis dari Smart School Attendance System_`,
           }),
         });
       } catch { /* ignore WA errors */ }
