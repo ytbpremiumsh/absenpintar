@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { School, Calendar, CheckCircle2, XCircle, Clock, Pencil, Plus, Minus, Webhook, Copy, Check } from "lucide-react";
+import { School, Calendar, CheckCircle2, XCircle, Clock, Pencil, Plus, Minus, Webhook, Copy, Check, Key, Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -109,13 +109,58 @@ const SuperAdminSubscriptions = () => {
   };
 
   const [webhookCopied, setWebhookCopied] = useState(false);
-  const webhookUrl = `https://bohuglednqirnaearrkj.supabase.co/functions/v1/mayar-webhook`;
+  const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mayar-webhook`;
 
   const copyWebhook = () => {
     navigator.clipboard.writeText(webhookUrl);
     setWebhookCopied(true);
     toast.success("URL Webhook disalin!");
     setTimeout(() => setWebhookCopied(false), 2000);
+  };
+
+  // Mayar API Key management
+  const [apiKeyDialog, setApiKeyDialog] = useState(false);
+  const [maskedKey, setMaskedKey] = useState("");
+  const [hasKey, setHasKey] = useState(false);
+  const [newApiKey, setNewApiKey] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [savingKey, setSavingKey] = useState(false);
+  const [loadingKey, setLoadingKey] = useState(false);
+
+  const fetchApiKeyStatus = async () => {
+    setLoadingKey(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-mayar-key', {
+        body: { action: 'get' },
+      });
+      if (!error && data) {
+        setHasKey(data.has_key);
+        setMaskedKey(data.masked_key || '');
+      }
+    } catch {}
+    setLoadingKey(false);
+  };
+
+  useEffect(() => { fetchApiKeyStatus(); }, []);
+
+  const handleSaveApiKey = async () => {
+    if (!newApiKey.trim()) { toast.error("API Key tidak boleh kosong"); return; }
+    setSavingKey(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-mayar-key', {
+        body: { action: 'set', api_key: newApiKey.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("API Key Mayar berhasil diperbarui!");
+      setNewApiKey("");
+      setApiKeyDialog(false);
+      fetchApiKeyStatus();
+    } catch (err: any) {
+      toast.error("Gagal menyimpan: " + (err.message || "Unknown error"));
+    } finally {
+      setSavingKey(false);
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
@@ -143,6 +188,33 @@ const SuperAdminSubscriptions = () => {
                 </code>
                 <Button variant="outline" size="sm" className="h-8 shrink-0" onClick={copyWebhook}>
                   {webhookCopied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Mayar API Key */}
+      <Card className="border-0 shadow-card bg-gradient-to-r from-accent/30 to-accent/10">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center shrink-0">
+              <Key className="h-5 w-5 text-accent-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm text-foreground">API Key Mayar</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Kelola API Key untuk integrasi pembayaran Mayar</p>
+              <div className="flex items-center gap-2 mt-2">
+                {loadingKey ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                ) : hasKey ? (
+                  <code className="text-[11px] bg-background/80 px-3 py-1.5 rounded-lg border text-foreground">{maskedKey}</code>
+                ) : (
+                  <span className="text-[11px] text-destructive font-medium">⚠ Belum dikonfigurasi</span>
+                )}
+                <Button variant="outline" size="sm" className="h-8 shrink-0" onClick={() => { setNewApiKey(""); setShowKey(false); setApiKeyDialog(true); }}>
+                  <Pencil className="h-3.5 w-3.5 mr-1" /> Ubah
                 </Button>
               </div>
             </div>
@@ -257,6 +329,47 @@ const SuperAdminSubscriptions = () => {
           </div>
           <DialogFooter>
             <Button onClick={handleSave} className="gradient-primary text-primary-foreground">Simpan Perubahan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* API Key Dialog */}
+      <Dialog open={apiKeyDialog} onOpenChange={setApiKeyDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Ubah API Key Mayar</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>API Key Baru</Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showKey ? "text" : "password"}
+                  placeholder="Masukkan API Key Mayar..."
+                  value={newApiKey}
+                  onChange={(e) => setNewApiKey(e.target.value)}
+                  className="pr-10"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full w-10"
+                  onClick={() => setShowKey(!showKey)}
+                >
+                  {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              API Key bisa didapatkan dari dashboard Mayar di bagian Settings &gt; API Keys. Key yang baru akan langsung digunakan untuk pembayaran selanjutnya.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApiKeyDialog(false)}>Batal</Button>
+            <Button onClick={handleSaveApiKey} disabled={savingKey} className="gradient-primary text-primary-foreground">
+              {savingKey ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Key className="h-4 w-4 mr-1" />}
+              {savingKey ? "Menyimpan..." : "Simpan Key"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
