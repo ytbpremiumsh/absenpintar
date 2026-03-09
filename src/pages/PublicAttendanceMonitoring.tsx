@@ -236,10 +236,17 @@ const PublicAttendanceMonitoring = () => {
           </CardContent>
         </Card>
 
-        {/* Two-column: Live Feed 70% (left) | Scanner 30% (right) */}
-        <div className="grid lg:grid-cols-10 gap-4">
-          {/* Left: Live Feed - 70% */}
-          <div className="lg:col-span-7">
+        {/* Two-column: Scanner 40% (left) | Live Feed 60% (right) */}
+        <div className="grid lg:grid-cols-5 gap-4">
+          {/* Left: Scanner - 40% */}
+          <div className="lg:col-span-2">
+            {schoolId && (
+              <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} currentMode={data?.currentMode || "datang"} canFaceRecognition={data?.canFaceRecognition ?? false} />
+            )}
+          </div>
+
+          {/* Right: Live Feed - 60% */}
+          <div className="lg:col-span-3">
             <Card className="border-0 shadow-card overflow-hidden h-full">
               <div className="px-3 py-2 border-b border-border flex items-center gap-2">
                 <div className="h-7 w-7 rounded-md bg-success/10 flex items-center justify-center">
@@ -308,13 +315,6 @@ const PublicAttendanceMonitoring = () => {
                 )}
               </div>
             </Card>
-          </div>
-
-          {/* Right: Scanner - 30% */}
-          <div className="lg:col-span-3">
-            {schoolId && (
-              <PublicAttendanceScanner schoolId={schoolId} onAttendanceRecorded={fetchData} currentMode={data?.currentMode || "datang"} canFaceRecognition={data?.canFaceRecognition ?? false} />
-            )}
           </div>
         </div>
 
