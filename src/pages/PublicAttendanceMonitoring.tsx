@@ -2,9 +2,11 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   UserCheck, Clock, Users, GraduationCap, Activity, AlertTriangle,
   Thermometer, FileText, Scan, RefreshCw, School, LogIn, LogOut, CreditCard,
+  Maximize, Minimize,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
