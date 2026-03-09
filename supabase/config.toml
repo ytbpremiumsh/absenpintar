@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.create-mayar-payment]
 verify_jwt = false
+
+[functions.admin-approve-payment]
+verify_jwt = false
+
+[functions.manage-mayar-key]
+verify_jwt = false

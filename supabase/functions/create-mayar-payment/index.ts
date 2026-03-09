@@ -10,7 +10,11 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const MAYAR_API_KEY = Deno.env.get('MAYAR_API_KEY');
+    // Try platform_settings first, then fall back to env var
+    let MAYAR_API_KEY = Deno.env.get('MAYAR_API_KEY');
+    const tempAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data: keyFromDb } = await tempAdmin.from('platform_settings').select('value').eq('key', 'mayar_api_key').maybeSingle();
+    if (keyFromDb?.value) MAYAR_API_KEY = keyFromDb.value;
     if (!MAYAR_API_KEY) throw new Error('MAYAR_API_KEY not configured');
 
     const authHeader = req.headers.get('Authorization');
