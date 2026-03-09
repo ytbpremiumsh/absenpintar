@@ -17,7 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const Classes = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const { canWhatsApp } = useSubscriptionFeatures();
+  const { canWhatsApp, loading: subscriptionLoading } = useSubscriptionFeatures();
   const [students, setStudents] = useState<any[]>([]);
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
@@ -111,6 +111,29 @@ const Classes = () => {
     setRenameValue("");
     toast.success(`Kelas "${renameTarget.oldName}" diubah menjadi "${newName}"`);
     fetchData();
+  };
+
+  const ensureClassRow = async (className: string) => {
+    if (!profile?.school_id) return null;
+
+    const { data: existing, error: selectError } = await supabase
+      .from("classes")
+      .select("id, name, wa_group_id")
+      .eq("school_id", profile.school_id)
+      .eq("name", className)
+      .maybeSingle();
+
+    if (selectError) throw selectError;
+    if (existing?.id) return existing;
+
+    const { data: created, error: insertError } = await supabase
+      .from("classes")
+      .insert({ school_id: profile.school_id, name: className })
+      .select("id, name, wa_group_id")
+      .single();
+
+    if (insertError) throw insertError;
+    return created;
   };
 
   const handleSaveGroupId = async () => {
@@ -274,14 +297,32 @@ const Classes = () => {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              {canWhatsApp && info.id ? (
-                                <Button variant="ghost" size="icon" className="h-8 w-8"
-                                  onClick={(e) => {
+                              {subscriptionLoading ? (
+                                <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                </Button>
+                              ) : canWhatsApp ? (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={async (e) => {
                                     e.stopPropagation();
-                                    setGroupIdTarget({ id: info.id!, name: cls, waGroupId: info.waGroupId || "" });
-                                    setGroupIdValue(info.waGroupId || "");
-                                    setGroupIdDialogOpen(true);
-                                  }}>
+                                    try {
+                                      const row = info.id
+                                        ? ({ id: info.id, wa_group_id: info.waGroupId || null } as any)
+                                        : await ensureClassRow(cls);
+
+                                      if (!row?.id) return;
+
+                                      setGroupIdTarget({ id: row.id, name: cls, waGroupId: row.wa_group_id || "" });
+                                      setGroupIdValue(row.wa_group_id || "");
+                                      setGroupIdDialogOpen(true);
+                                    } catch (err: any) {
+                                      toast.error("Gagal menyiapkan kelas: " + (err?.message || "Unknown error"));
+                                    }
+                                  }}
+                                >
                                   <MessageCircle className={`h-4 w-4 ${info.waGroupId ? "text-success" : "text-muted-foreground"}`} />
                                 </Button>
                               ) : (
@@ -291,7 +332,11 @@ const Classes = () => {
                               )}
                             </TooltipTrigger>
                             <TooltipContent>
-                              {canWhatsApp ? (info.waGroupId ? "WA Group: Terhubung" : "Atur ID Group WA") : "Upgrade paket untuk fitur WA Group"}
+                              {subscriptionLoading
+                                ? "Memeriksa paket..."
+                                : canWhatsApp
+                                  ? (info.waGroupId ? "WA Group: Terhubung" : "Atur ID Group WA")
+                                  : "Upgrade paket untuk fitur WA Group"}
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
