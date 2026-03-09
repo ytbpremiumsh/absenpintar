@@ -5,16 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { GraduationCap, Users, UserCheck, UserX, ChevronRight, Plus, Trash2, Loader2, Clock, AlertTriangle, Pencil } from "lucide-react";
+import { GraduationCap, Users, UserCheck, UserX, ChevronRight, Plus, Trash2, Loader2, Clock, AlertTriangle, Pencil, MessageCircle, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Classes = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { canWhatsApp } = useSubscriptionFeatures();
   const [students, setStudents] = useState<any[]>([]);
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
@@ -26,6 +29,10 @@ const Classes = () => {
   const [renameTarget, setRenameTarget] = useState<{ id: string; oldName: string } | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [renaming, setRenaming] = useState(false);
+  const [groupIdDialogOpen, setGroupIdDialogOpen] = useState(false);
+  const [groupIdTarget, setGroupIdTarget] = useState<{ id: string; name: string; waGroupId: string } | null>(null);
+  const [groupIdValue, setGroupIdValue] = useState("");
+  const [savingGroupId, setSavingGroupId] = useState(false);
 
   const fetchData = async () => {
     if (!profile?.school_id) return;
