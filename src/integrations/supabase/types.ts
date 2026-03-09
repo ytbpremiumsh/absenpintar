@@ -465,6 +465,8 @@ export type Database = {
         Row: {
           api_key: string | null
           api_url: string | null
+          attendance_arrive_template: string | null
+          attendance_depart_template: string | null
           created_at: string
           id: string
           integration_type: string
@@ -476,6 +478,8 @@ export type Database = {
         Insert: {
           api_key?: string | null
           api_url?: string | null
+          attendance_arrive_template?: string | null
+          attendance_depart_template?: string | null
           created_at?: string
           id?: string
           integration_type?: string
@@ -487,6 +491,8 @@ export type Database = {
         Update: {
           api_key?: string | null
           api_url?: string | null
+          attendance_arrive_template?: string | null
+          attendance_depart_template?: string | null
           created_at?: string
           id?: string
           integration_type?: string
