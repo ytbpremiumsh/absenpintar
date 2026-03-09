@@ -332,6 +332,47 @@ const SuperAdminSubscriptions = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* API Key Dialog */}
+      <Dialog open={apiKeyDialog} onOpenChange={setApiKeyDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Ubah API Key Mayar</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>API Key Baru</Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showKey ? "text" : "password"}
+                  placeholder="Masukkan API Key Mayar..."
+                  value={newApiKey}
+                  onChange={(e) => setNewApiKey(e.target.value)}
+                  className="pr-10"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full w-10"
+                  onClick={() => setShowKey(!showKey)}
+                >
+                  {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              API Key bisa didapatkan dari dashboard Mayar di bagian Settings &gt; API Keys. Key yang baru akan langsung digunakan untuk pembayaran selanjutnya.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApiKeyDialog(false)}>Batal</Button>
+            <Button onClick={handleSaveApiKey} disabled={savingKey} className="gradient-primary text-primary-foreground">
+              {savingKey ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Key className="h-4 w-4 mr-1" />}
+              {savingKey ? "Menyimpan..." : "Simpan Key"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
