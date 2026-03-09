@@ -9,6 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import PublicAttendanceScanner from "@/components/PublicAttendanceScanner";
+import { announceAttendance } from "@/lib/announceAttendance";
 
 const STATUS_LABELS: Record<string, string> = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa", belum: "Belum" };
 const STATUS_BG: Record<string, string> = {
@@ -68,6 +69,9 @@ const PublicAttendanceMonitoring = () => {
         if (newEntry) {
           setNewEntryId(newEntry.id);
           setTimeout(() => setNewEntryId(null), 4000);
+          // Announce with sound + speech
+          const type = (newEntry as any).attendance_type === "pulang" ? "pulang" : "datang";
+          announceAttendance(newEntry.student_name, newEntry.student_class, type);
         }
       }
       initialLoad.current = false;
