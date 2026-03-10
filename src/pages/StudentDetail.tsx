@@ -1,17 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, User, Phone, GraduationCap, Hash, Clock, UserCheck, Calendar, QrCode, Shield, Camera, Loader2, Pencil, Save, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  ArrowLeft, User, Phone, GraduationCap, Hash, Clock, UserCheck, Calendar,
+  QrCode, Shield, Camera, Loader2, Pencil, Save, X, FileSpreadsheet, FileText,
+  ChevronLeft, ChevronRight,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "bg-success/10 text-success",
@@ -20,9 +27,9 @@ const STATUS_COLORS: Record<string, string> = {
   alfa: "bg-destructive/10 text-destructive",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa",
-};
+const STATUS_LABELS: Record<string, string> = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa" };
+const STATUS_CODES: Record<string, string> = { hadir: "H", sakit: "S", izin: "I", alfa: "A" };
+const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
 const StudentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +45,10 @@ const StudentDetail = () => {
   const [editForm, setEditForm] = useState({ name: "", class: "", student_id: "", parent_name: "", parent_phone: "" });
   const [saving, setSaving] = useState(false);
   const [qrInstructions, setQrInstructions] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"list" | "monthly">("list");
+  const [recapMonth, setRecapMonth] = useState(new Date());
+  const [monthlyLogs, setMonthlyLogs] = useState<any[]>([]);
+  const [waliKelasName, setWaliKelasName] = useState("");
 
   const fetchData = async () => {
     if (!id || !profile?.school_id) return;
@@ -61,6 +72,33 @@ const StudentDetail = () => {
   };
 
   useEffect(() => { fetchData(); }, [id, profile?.school_id]);
+
+  // Fetch monthly logs for recap view
+  useEffect(() => {
+    if (!id || !profile?.school_id || viewMode !== "monthly") return;
+    const year = recapMonth.getFullYear();
+    const month = recapMonth.getMonth();
+    const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+    const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`;
+
+    supabase.from("attendance_logs").select("date, status, time, method")
+      .eq("student_id", id).eq("school_id", profile.school_id)
+      .gte("date", startDate).lte("date", endDate)
+      .then(({ data }) => setMonthlyLogs(data || []));
+  }, [id, profile?.school_id, recapMonth, viewMode]);
+
+  // Fetch wali kelas
+  useEffect(() => {
+    if (!student || !profile?.school_id) return;
+    supabase.from("class_teachers").select("user_id")
+      .eq("school_id", profile.school_id).eq("class_name", student.class).maybeSingle()
+      .then(({ data }) => {
+        if (data?.user_id) {
+          supabase.from("profiles").select("full_name").eq("user_id", data.user_id).maybeSingle()
+            .then(({ data: prof }) => setWaliKelasName(prof?.full_name || ""));
+        }
+      });
+  }, [student, profile?.school_id]);
 
   const handlePhotoUpload = async (file: File) => {
     if (!features.canUploadPhoto || !student) return;
@@ -90,6 +128,137 @@ const StudentDetail = () => {
     fetchData();
   };
 
+  // Monthly recap data
+  const daysInMonth = new Date(recapMonth.getFullYear(), recapMonth.getMonth() + 1, 0).getDate();
+  const monthLabel = `${MONTH_NAMES[recapMonth.getMonth()]} ${recapMonth.getFullYear()}`;
+
+  const monthlyData = useMemo(() => {
+    const days: Record<number, string> = {};
+    const totals = { H: 0, S: 0, I: 0, A: 0 };
+    monthlyLogs.forEach(l => {
+      const day = parseInt(l.date.split("-")[2]);
+      const code = STATUS_CODES[l.status] || "";
+      days[day] = code;
+      if (code in totals) totals[code as keyof typeof totals]++;
+    });
+    return { days, totals };
+  }, [monthlyLogs]);
+
+  const getCellColor = (code: string) => {
+    switch (code) {
+      case "H": return "bg-success/15 text-success";
+      case "S": return "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400";
+      case "I": return "bg-warning/15 text-warning";
+      case "A": return "bg-destructive/15 text-destructive";
+      default: return "";
+    }
+  };
+
+  const exportStudentPDF = () => {
+    if (!student) return;
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("REKAP ABSENSI SISWA", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
+    doc.setFontSize(11);
+    doc.text(`BULAN : ${monthLabel.toUpperCase()}`, doc.internal.pageSize.getWidth() / 2, 22, { align: "center" });
+    doc.setFontSize(10);
+    doc.text(`Nama : ${student.name}`, 14, 30);
+    doc.text(`NIS : ${student.student_id}  |  Kelas : ${student.class}`, 14, 36);
+
+    const head = [["NO", "TANGGAL", "STATUS", "WAKTU", "METODE"]];
+    const body = monthlyLogs.map((l, i) => [
+      i + 1,
+      new Date(l.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
+      STATUS_LABELS[l.status] || l.status,
+      l.time?.slice(0, 5) || "-",
+      l.method === "face" ? "Face Recognition" : l.method === "manual" ? "Manual" : "Barcode",
+    ]);
+
+    const statusColors: Record<string, { bg: [number, number, number]; fg: [number, number, number] }> = {
+      Hadir: { bg: [220, 252, 231], fg: [22, 163, 74] },
+      Sakit: { bg: [219, 234, 254], fg: [37, 99, 235] },
+      Izin: { bg: [254, 249, 195], fg: [202, 138, 4] },
+      Alfa: { bg: [254, 202, 202], fg: [220, 38, 38] },
+    };
+
+    (doc as any).autoTable({
+      startY: 42,
+      head,
+      body,
+      styles: { fontSize: 8, cellPadding: 2, halign: "center" },
+      headStyles: { fillColor: [79, 70, 229] },
+      didParseCell: (data: any) => {
+        if (data.section === "body" && data.column.index === 2) {
+          const text = String(data.cell.raw);
+          if (statusColors[text]) {
+            data.cell.styles.fillColor = statusColors[text].bg;
+            data.cell.styles.textColor = statusColors[text].fg;
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      },
+      didDrawPage: () => {
+        const pageH = doc.internal.pageSize.getHeight();
+        const pageW = doc.internal.pageSize.getWidth();
+        doc.setFontSize(9);
+        doc.text(`Ringkasan: H=${monthlyData.totals.H}  S=${monthlyData.totals.S}  I=${monthlyData.totals.I}  A=${monthlyData.totals.A}`, 14, pageH - 30);
+        doc.text(`${school?.address || school?.name || ""}, ........................ ${recapMonth.getFullYear()}`, pageW - 14, pageH - 25, { align: "right" });
+        doc.text(`WALI KELAS ${student.class}`, pageW - 14, pageH - 20, { align: "right" });
+        doc.text(waliKelasName ? `( ${waliKelasName} )` : "(..................................)", pageW - 14, pageH - 8, { align: "right" });
+      },
+    });
+
+    doc.save(`Absensi-${student.name}-${monthLabel}.pdf`);
+    toast.success("PDF berhasil diunduh!");
+  };
+
+  const exportStudentExcel = () => {
+    if (!student) return;
+    const totalCols = daysInMonth + 7;
+    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="utf-8"><style>
+      td, th { border: 1px solid #999; padding: 3px; font-family: Arial; font-size: 9pt; text-align: center; }
+      th { background: #4f46e5; color: white; font-weight: bold; }
+      .H { background: #dcfce7; color: #16a34a; font-weight: bold; }
+      .S { background: #dbeafe; color: #2563eb; font-weight: bold; }
+      .I { background: #fef9c3; color: #ca8a04; font-weight: bold; }
+      .A { background: #fecaca; color: #dc2626; font-weight: bold; }
+      .title { font-size: 14pt; font-weight: bold; text-align: center; border: none; }
+      .subtitle { font-size: 11pt; text-align: center; border: none; }
+      .name { text-align: left; }
+    </style></head><body><table>`;
+
+    html += `<tr><td colspan="${daysInMonth + 4}" class="title">REKAP ABSENSI SISWA</td></tr>`;
+    html += `<tr><td colspan="${daysInMonth + 4}" class="subtitle">BULAN : ${monthLabel.toUpperCase()}</td></tr>`;
+    html += `<tr><td colspan="${daysInMonth + 4}" class="subtitle">Nama : ${student.name} | NIS : ${student.student_id} | Kelas : ${student.class}</td></tr>`;
+    html += `<tr><td colspan="${daysInMonth + 4}"></td></tr>`;
+
+    // Header row with day numbers
+    html += `<tr>`;
+    for (let d = 1; d <= daysInMonth; d++) html += `<th>${d}</th>`;
+    html += `<th class="H">H</th><th class="S">S</th><th class="I">I</th><th class="A">A</th></tr>`;
+
+    // Data row
+    html += `<tr>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const code = monthlyData.days[d] || "";
+      html += `<td${code ? ` class="${code}"` : ""}>${code}</td>`;
+    }
+    html += `<td class="H">${monthlyData.totals.H}</td><td class="S">${monthlyData.totals.S}</td>`;
+    html += `<td class="I">${monthlyData.totals.I}</td><td class="A">${monthlyData.totals.A}</td></tr>`;
+
+    html += `</table></body></html>`;
+
+    const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Absensi-${student.name}-${monthLabel}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Excel berhasil diunduh!");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -112,12 +281,10 @@ const StudentDetail = () => {
     );
   }
 
-  // Attendance stats
   const totalHadir = attendanceHistory.filter(l => l.status === "hadir").length;
   const totalIzin = attendanceHistory.filter(l => l.status === "izin").length;
   const totalSakit = attendanceHistory.filter(l => l.status === "sakit").length;
   const totalAlfa = attendanceHistory.filter(l => l.status === "alfa").length;
-
   const todayLog = attendanceHistory.find(l => l.date === new Date().toISOString().slice(0, 10));
 
   return (
@@ -126,6 +293,7 @@ const StudentDetail = () => {
         <ArrowLeft className="h-4 w-4 mr-1" /> Kembali
       </Button>
 
+      {/* Student header card */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="shadow-elevated border-0 overflow-hidden">
           <div className="gradient-hero h-28 sm:h-32" />
@@ -157,9 +325,7 @@ const StudentDetail = () => {
                   <Badge variant="secondary" className="text-xs"><GraduationCap className="h-3 w-3 mr-1" />Kelas {student.class}</Badge>
                   <Badge variant="secondary" className="text-xs"><Hash className="h-3 w-3 mr-1" />NIS: {student.student_id}</Badge>
                   {todayLog ? (
-                    <Badge className={`text-xs border-0 ${STATUS_COLORS[todayLog.status]}`}>
-                      {STATUS_LABELS[todayLog.status] || todayLog.status}
-                    </Badge>
+                    <Badge className={`text-xs border-0 ${STATUS_COLORS[todayLog.status]}`}>{STATUS_LABELS[todayLog.status] || todayLog.status}</Badge>
                   ) : (
                     <Badge variant="secondary" className="text-xs">Belum Absen Hari Ini</Badge>
                   )}
@@ -251,35 +417,121 @@ const StudentDetail = () => {
         </motion.div>
       </div>
 
+      {/* Attendance History Section */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <Card className="shadow-card border-0">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2"><Clock className="h-4 w-4 text-primary" />Riwayat Kehadiran</CardTitle>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />Riwayat Kehadiran
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Select value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="list">📋 Daftar</SelectItem>
+                    <SelectItem value="monthly">📅 Rekap Bulanan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            {attendanceHistory.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-8">Belum ada riwayat kehadiran</p>
+            {viewMode === "list" ? (
+              /* List view */
+              attendanceHistory.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground py-8">Belum ada riwayat kehadiran</p>
+              ) : (
+                <div className="space-y-3">
+                  {attendanceHistory.map((log) => (
+                    <div key={log.id} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${STATUS_COLORS[log.status]?.split(" ")[0] || "bg-muted"}`}>
+                        <UserCheck className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{new Date(log.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {log.time?.slice(0, 5)} • {log.method === "face" ? "Face Recognition" : log.method === "manual" ? "Manual" : "Barcode"}
+                          {log.attendance_type === "pulang" && " • Pulang"}
+                          {log.recorded_by && ` • oleh ${log.recorded_by}`}
+                        </p>
+                      </div>
+                      <Badge className={`text-[10px] border-0 shrink-0 ${STATUS_COLORS[log.status] || ""}`}>
+                        {STATUS_LABELS[log.status] || log.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="space-y-3">
-                {attendanceHistory.map((log) => (
-                  <div key={log.id} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${STATUS_COLORS[log.status]?.split(" ")[0] || "bg-muted"}`}>
-                      <UserCheck className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">
-                        {new Date(log.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {log.time?.slice(0, 5)} • {log.method === "face" ? "Face Recognition" : log.method === "manual" ? "Manual" : "Barcode"}
-                        {log.recorded_by && ` • oleh ${log.recorded_by}`}
-                      </p>
-                    </div>
-                    <Badge className={`text-[10px] border-0 shrink-0 ${STATUS_COLORS[log.status] || ""}`}>
-                      {STATUS_LABELS[log.status] || log.status}
-                    </Badge>
+              /* Monthly recap view */
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setRecapMonth(new Date(recapMonth.getFullYear(), recapMonth.getMonth() - 1, 1))}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-semibold min-w-[130px] text-center">{monthLabel}</span>
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setRecapMonth(new Date(recapMonth.getFullYear(), recapMonth.getMonth() + 1, 1))}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
-                ))}
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="text-xs" onClick={exportStudentExcel}>
+                      <FileSpreadsheet className="h-3.5 w-3.5 mr-1" /> Excel
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-xs" onClick={exportStudentPDF}>
+                      <FileText className="h-3.5 w-3.5 mr-1" /> PDF
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Monthly grid */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-muted/60">
+                        {Array.from({ length: daysInMonth }, (_, i) => (
+                          <th key={i} className="border border-border px-1 py-1.5 text-center font-semibold text-[10px] min-w-[28px]">{i + 1}</th>
+                        ))}
+                        <th className="border border-border px-1.5 py-1.5 text-center font-bold text-success">H</th>
+                        <th className="border border-border px-1.5 py-1.5 text-center font-bold text-blue-500">S</th>
+                        <th className="border border-border px-1.5 py-1.5 text-center font-bold text-warning">I</th>
+                        <th className="border border-border px-1.5 py-1.5 text-center font-bold text-destructive">A</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {Array.from({ length: daysInMonth }, (_, d) => {
+                          const code = monthlyData.days[d + 1] || "";
+                          return (
+                            <td key={d} className={`border border-border px-0.5 py-1.5 text-center text-[10px] font-bold ${getCellColor(code)}`}>
+                              {code}
+                            </td>
+                          );
+                        })}
+                        <td className="border border-border px-1 py-1.5 text-center font-bold text-success">{monthlyData.totals.H}</td>
+                        <td className="border border-border px-1 py-1.5 text-center font-bold text-blue-500">{monthlyData.totals.S}</td>
+                        <td className="border border-border px-1 py-1.5 text-center font-bold text-warning">{monthlyData.totals.I}</td>
+                        <td className="border border-border px-1 py-1.5 text-center font-bold text-destructive">{monthlyData.totals.A}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Signature area */}
+                <div className="flex justify-end pt-4">
+                  <div className="text-center text-xs text-muted-foreground space-y-1">
+                    <p>{school?.address || school?.name || ""}, ........................ {recapMonth.getFullYear()}</p>
+                    <p className="font-semibold text-foreground">WALI KELAS {student.class}</p>
+                    <div className="h-14" />
+                    <p className="font-semibold text-foreground border-b border-foreground inline-block min-w-[160px]">
+                      {waliKelasName ? `( ${waliKelasName} )` : "(.................................)"}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

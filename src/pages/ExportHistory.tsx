@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { motion } from "framer-motion";
@@ -24,6 +23,13 @@ interface StudentRow {
   days: Record<number, string>;
   totals: { H: number; S: number; I: number; A: number };
 }
+
+const STATUS_EXCEL_COLORS: Record<string, { bg: string; fg: string }> = {
+  H: { bg: "#dcfce7", fg: "#16a34a" },
+  S: { bg: "#dbeafe", fg: "#2563eb" },
+  I: { bg: "#fef9c3", fg: "#ca8a04" },
+  A: { bg: "#fecaca", fg: "#dc2626" },
+};
 
 const ExportHistory = () => {
   const { user, profile, roles } = useAuth();
@@ -44,7 +50,7 @@ const ExportHistory = () => {
   const isTeacher = roles.includes("teacher");
   const isPremiumFeature = !features.canExportReport;
 
-  // Fetch classes - for teachers only their assigned classes
+  // Fetch classes - merge from classes table + distinct student classes
   useEffect(() => {
     if (!profile?.school_id) return;
     const fetchClasses = async () => {
@@ -58,32 +64,32 @@ const ExportHistory = () => {
         setClasses(names);
         if (names.length > 0) setSelectedClass(names[0]);
       } else {
-        const { data } = await supabase
-          .from("classes")
-          .select("name")
-          .eq("school_id", profile.school_id)
-          .order("name");
-        const names = (data || []).map(d => d.name);
-        setClasses(names);
-        if (names.length > 0) setSelectedClass(names[0]);
+        // Fetch from classes table AND distinct student classes, merge unique
+        const [classesRes, studentsRes] = await Promise.all([
+          supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
+          supabase.from("students").select("class").eq("school_id", profile.school_id),
+        ]);
+        const fromClasses = (classesRes.data || []).map(d => d.name);
+        const fromStudents = [...new Set((studentsRes.data || []).map(d => d.class))];
+        const merged = [...new Set([...fromClasses, ...fromStudents])].sort();
+        setClasses(merged);
+        if (merged.length > 0) setSelectedClass(merged[0]);
       }
     };
     fetchClasses();
   }, [profile?.school_id, user, isTeacher]);
 
-  // Fetch school info & wali kelas name
+  // Fetch school info
   useEffect(() => {
     if (!profile?.school_id) return;
     const fetchSchool = async () => {
       const { data } = await supabase.from("schools").select("name, address").eq("id", profile.school_id).maybeSingle();
-      if (data) {
-        setSchoolName(data.name);
-        setSchoolAddress(data.address || "");
-      }
+      if (data) { setSchoolName(data.name); setSchoolAddress(data.address || ""); }
     };
     fetchSchool();
   }, [profile?.school_id]);
 
+  // Fetch wali kelas name
   useEffect(() => {
     if (!profile?.school_id || !selectedClass) return;
     const fetchWali = async () => {
@@ -129,85 +135,87 @@ const ExportHistory = () => {
   const studentRows: StudentRow[] = useMemo(() => {
     const studentIds = new Set(students.map(s => s.id));
     const filteredLogs = logs.filter(l => studentIds.has(l.student_id));
-
     return students.map(s => {
       const days: Record<number, string> = {};
       const totals = { H: 0, S: 0, I: 0, A: 0 };
-
       filteredLogs.filter(l => l.student_id === s.id).forEach(l => {
         const day = parseInt(l.date.split("-")[2]);
         const code = STATUS_CODES[l.status] || "";
         days[day] = code;
-        if (code === "H") totals.H++;
-        else if (code === "S") totals.S++;
-        else if (code === "I") totals.I++;
-        else if (code === "A") totals.A++;
+        if (code in totals) totals[code as keyof typeof totals]++;
       });
-
       return { id: s.id, name: s.name, student_id: s.student_id, days, totals };
     });
   }, [students, logs]);
 
   const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-
   const monthLabel = `${MONTH_NAMES[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
 
+  // Export Excel with colored cells via HTML table blob
   const exportExcel = () => {
     if (isPremiumFeature) { toast.error("Upgrade ke paket Basic untuk export"); return; }
     if (!studentRows.length) { toast.error("Tidak ada data"); return; }
 
-    const wb = XLSX.utils.book_new();
-    const headerRows = [
-      ["ABSENSI SISWA"],
-      [`BULAN : ${monthLabel.toUpperCase()}`],
-      [`Kelas : ${selectedClass}`],
-      [],
-    ];
+    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="utf-8"><style>
+      td, th { border: 1px solid #999; padding: 3px 4px; font-family: Arial; font-size: 9pt; text-align: center; }
+      th { background: #4f46e5; color: white; font-weight: bold; }
+      .name { text-align: left; min-width: 120px; }
+      .title { font-size: 14pt; font-weight: bold; text-align: center; border: none; }
+      .subtitle { font-size: 11pt; text-align: center; border: none; }
+      .H { background: ${STATUS_EXCEL_COLORS.H.bg}; color: ${STATUS_EXCEL_COLORS.H.fg}; font-weight: bold; }
+      .S { background: ${STATUS_EXCEL_COLORS.S.bg}; color: ${STATUS_EXCEL_COLORS.S.fg}; font-weight: bold; }
+      .I { background: ${STATUS_EXCEL_COLORS.I.bg}; color: ${STATUS_EXCEL_COLORS.I.fg}; font-weight: bold; }
+      .A { background: ${STATUS_EXCEL_COLORS.A.bg}; color: ${STATUS_EXCEL_COLORS.A.fg}; font-weight: bold; }
+    </style></head><body><table>`;
 
-    const tableHeader = ["NO", "NIS", "NAMA SISWA"];
-    for (let d = 1; d <= daysInMonth; d++) tableHeader.push(String(d));
-    tableHeader.push("H", "S", "I", "A");
+    const totalCols = 3 + daysInMonth + 4;
+    html += `<tr><td colspan="${totalCols}" class="title">ABSENSI SISWA</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" class="subtitle">BULAN : ${monthLabel.toUpperCase()}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" class="subtitle">Kelas : ${selectedClass}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}"></td></tr>`;
 
-    const dataRows = studentRows.map((s, i) => {
-      const row: (string | number)[] = [i + 1, s.student_id, s.name];
-      for (let d = 1; d <= daysInMonth; d++) row.push(s.days[d] || "");
-      row.push(s.totals.H, s.totals.S, s.totals.I, s.totals.A);
-      return row;
+    // Header
+    html += `<tr><th rowspan="2">NO</th><th rowspan="2">NIS</th><th rowspan="2" class="name">NAMA SISWA</th>`;
+    html += `<th colspan="${daysInMonth}">TANGGAL</th><th colspan="4">KET</th></tr>`;
+    html += `<tr>`;
+    for (let d = 1; d <= daysInMonth; d++) html += `<th>${d}</th>`;
+    html += `<th class="H">H</th><th class="S">S</th><th class="I">I</th><th class="A">A</th></tr>`;
+
+    // Data
+    studentRows.forEach((s, i) => {
+      html += `<tr><td>${i + 1}</td><td>${s.student_id}</td><td class="name">${s.name}</td>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const code = s.days[d] || "";
+        html += `<td${code ? ` class="${code}"` : ""}>${code}</td>`;
+      }
+      html += `<td class="H">${s.totals.H || ""}</td><td class="S">${s.totals.S || ""}</td>`;
+      html += `<td class="I">${s.totals.I || ""}</td><td class="A">${s.totals.A || ""}</td></tr>`;
     });
 
-    const footer = [
-      [],
-      [],
-      [`${schoolAddress || schoolName}, ........................ ${currentMonth.getFullYear()}`],
-      [`WALI KELAS ${selectedClass}`],
-      [],
-      [],
-      [],
-      [waliKelasName ? `( ${waliKelasName} )` : "(..................................)"],
-    ];
+    // Signature
+    html += `<tr><td colspan="${totalCols}"></td></tr><tr><td colspan="${totalCols}"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none">${schoolAddress || schoolName}, ........................ ${currentMonth.getFullYear()}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">WALI KELAS ${selectedClass}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="border:none"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="border:none"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="border:none"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">${waliKelasName ? `( ${waliKelasName} )` : "(..................................)"}</td></tr>`;
 
-    const ws = XLSX.utils.aoa_to_sheet([...headerRows, tableHeader, ...dataRows, ...footer]);
+    html += `</table></body></html>`;
 
-    // Merge title cells
-    ws["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: tableHeader.length - 1 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: tableHeader.length - 1 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: tableHeader.length - 1 } },
-    ];
-
-    // Column widths
-    ws["!cols"] = [
-      { wch: 4 }, { wch: 10 }, { wch: 25 },
-      ...Array(daysInMonth).fill({ wch: 3 }),
-      { wch: 4 }, { wch: 4 }, { wch: 4 }, { wch: 4 },
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, selectedClass);
-    XLSX.writeFile(wb, `Absensi-${selectedClass}-${monthLabel}.xlsx`);
+    const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Absensi-${selectedClass}-${monthLabel}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
     toast.success("Excel berhasil diunduh!");
   };
 
+  // Export PDF
   const exportPDF = () => {
     if (isPremiumFeature) { toast.error("Upgrade ke paket Basic untuk export"); return; }
     if (!studentRows.length) { toast.error("Tidak ada data"); return; }
@@ -220,7 +228,7 @@ const ExportHistory = () => {
     doc.setFontSize(10);
     doc.text(`Kelas : ${selectedClass}`, 14, 30);
 
-    const head = [["NO", "NIS", "NAMA SISWA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
+    const head = [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
     const body = studentRows.map((s, i) => {
       const row: (string | number)[] = [i + 1, s.student_id, s.name];
       for (let d = 1; d <= daysInMonth; d++) row.push(s.days[d] || "");
@@ -228,16 +236,45 @@ const ExportHistory = () => {
       return row;
     });
 
+    const statusColors: Record<string, { bg: [number, number, number]; fg: [number, number, number] }> = {
+      H: { bg: [220, 252, 231], fg: [22, 163, 74] },
+      S: { bg: [219, 234, 254], fg: [37, 99, 235] },
+      I: { bg: [254, 249, 195], fg: [202, 138, 4] },
+      A: { bg: [254, 202, 202], fg: [220, 38, 38] },
+    };
+
     (doc as any).autoTable({
       startY: 35,
       head,
       body,
-      styles: { fontSize: 6, cellPadding: 1, halign: "center" },
-      headStyles: { fillColor: [79, 70, 229], fontSize: 6 },
+      styles: { fontSize: 5.5, cellPadding: 1, halign: "center", lineWidth: 0.1, lineColor: [180, 180, 180] },
+      headStyles: { fillColor: [79, 70, 229], fontSize: 5.5, textColor: [255, 255, 255] },
       columnStyles: {
         0: { cellWidth: 7 },
-        1: { cellWidth: 14 },
-        2: { cellWidth: 30, halign: "left" },
+        1: { cellWidth: 13 },
+        2: { cellWidth: 28, halign: "left" },
+      },
+      didParseCell: (data: any) => {
+        if (data.section === "body") {
+          const cellText = String(data.cell.raw);
+          const colIdx = data.column.index;
+          const totalCols = 3 + daysInMonth;
+          // Color status cells in the day columns
+          if (colIdx >= 3 && colIdx < totalCols && cellText in statusColors) {
+            data.cell.styles.fillColor = statusColors[cellText].bg;
+            data.cell.styles.textColor = statusColors[cellText].fg;
+            data.cell.styles.fontStyle = "bold";
+          }
+          // Color summary columns
+          const summaryMap = ["H", "S", "I", "A"];
+          if (colIdx >= totalCols) {
+            const key = summaryMap[colIdx - totalCols];
+            if (key && statusColors[key]) {
+              data.cell.styles.textColor = statusColors[key].fg;
+              data.cell.styles.fontStyle = "bold";
+            }
+          }
+        }
       },
       didDrawPage: () => {
         const pageH = doc.internal.pageSize.getHeight();
@@ -296,7 +333,6 @@ const ExportHistory = () => {
         <Card className="border-0 shadow-card">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              {/* Class selector */}
               <div className="flex-1 w-full sm:w-auto">
                 <label className="text-xs font-semibold text-muted-foreground mb-1 block">Kelas</label>
                 <Select value={selectedClass} onValueChange={setSelectedClass}>
@@ -306,8 +342,6 @@ const ExportHistory = () => {
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Month selector */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground mb-1 block">Bulan</label>
                 <div className="flex items-center gap-1">
@@ -316,8 +350,6 @@ const ExportHistory = () => {
                   <Button variant="outline" size="icon" className="h-9 w-9" onClick={nextMonth}><ChevronRight className="h-4 w-4" /></Button>
                 </div>
               </div>
-
-              {/* Export buttons */}
               <div className="sm:ml-auto flex gap-2">
                 <Button variant="outline" size="sm" disabled={isPremiumFeature} onClick={exportExcel} className="text-xs">
                   <FileSpreadsheet className="h-3.5 w-3.5 mr-1.5" /> Excel {isPremiumFeature && <Lock className="h-3 w-3 ml-1" />}
