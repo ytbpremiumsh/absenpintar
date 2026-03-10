@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Users, UserCheck, Clock, GraduationCap, Search,
-  AlertTriangle, Thermometer, FileText, Activity,
+  AlertTriangle, Thermometer, FileText, Activity, FileSpreadsheet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +34,7 @@ interface StudentWithAttendance {
 
 const WaliKelasDashboard = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState<{ class_name: string; school_id: string }[]>([]);
   const [students, setStudents] = useState<StudentWithAttendance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,37 +54,20 @@ const WaliKelasDashboard = () => {
   }, [user]);
 
   useEffect(() => {
-    if (assignments.length === 0) {
-      setLoading(false);
-      return;
-    }
+    if (assignments.length === 0) { setLoading(false); return; }
     const fetchStudentsAndAttendance = async () => {
       const schoolId = assignments[0].school_id;
       const classNames = assignments.map((a) => a.class_name);
-
-      // Fetch students in assigned classes
       const { data: studentData } = await supabase
-        .from("students")
-        .select("id, name, student_id, class, photo_url")
-        .eq("school_id", schoolId)
-        .in("class", classNames)
-        .order("class")
-        .order("name");
+        .from("students").select("id, name, student_id, class, photo_url")
+        .eq("school_id", schoolId).in("class", classNames).order("class").order("name");
 
-      if (!studentData || studentData.length === 0) {
-        setStudents([]);
-        setLoading(false);
-        return;
-      }
+      if (!studentData || studentData.length === 0) { setStudents([]); setLoading(false); return; }
 
-      // Fetch today's attendance
       const studentIds = studentData.map((s) => s.id);
       const { data: attendanceData } = await supabase
-        .from("attendance_logs")
-        .select("student_id, status, time, method")
-        .eq("school_id", schoolId)
-        .eq("date", today)
-        .in("student_id", studentIds);
+        .from("attendance_logs").select("student_id, status, time, method")
+        .eq("school_id", schoolId).eq("date", today).in("student_id", studentIds);
 
       const attendanceMap = new Map<string, { status: string; time: string; method: string }>();
       (attendanceData || []).forEach((a) => {
@@ -90,12 +76,7 @@ const WaliKelasDashboard = () => {
 
       const merged: StudentWithAttendance[] = studentData.map((s) => {
         const att = attendanceMap.get(s.id);
-        return {
-          ...s,
-          status: att?.status || "belum",
-          time: att?.time || null,
-          method: att?.method || null,
-        };
+        return { ...s, status: att?.status || "belum", time: att?.time || null, method: att?.method || null };
       });
 
       setStudents(merged);
@@ -146,11 +127,16 @@ const WaliKelasDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard Wali Kelas</h1>
-        <p className="text-muted-foreground text-sm">
-          Kelas: {classNames.join(", ")} • {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard Wali Kelas</h1>
+          <p className="text-muted-foreground text-sm">
+            Kelas: {classNames.join(", ")} • {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => navigate("/export-history")} className="shrink-0">
+          <FileSpreadsheet className="h-4 w-4 mr-1.5" /> Rekap & Export
+        </Button>
       </div>
 
       {/* Stats */}
