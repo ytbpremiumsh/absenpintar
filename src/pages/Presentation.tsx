@@ -1,189 +1,181 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ArrowDown, Shield, QrCode, Monitor, Users, GraduationCap, BarChart3, Clock, Bell, Globe, FileText, Settings, ChevronRight, CheckCircle2, Zap, Lock, Smartphone, Star, TrendingUp, Sparkles, Sun, Moon, AlertTriangle, Lightbulb, XCircle, ArrowRight } from "lucide-react";
+import { Loader2, Shield, QrCode, Monitor, Users, GraduationCap, BarChart3, Clock, Bell, Globe, FileText, Settings, ChevronRight, CheckCircle2, Zap, Smartphone, Sparkles, Sun, Moon, ArrowDown, Star, TrendingUp, Eye, Download, UserCheck, ScanLine, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { Navigate } from "react-router-dom";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 50 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.12, duration: 0.7 } }),
+  hidden: { opacity: 0, y: 40 },
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] } }),
 };
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.85 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.8 } },
-};
-
-const SECTIONS = [
+const FEATURES = [
   {
-    id: "dashboard",
-    title: "Dashboard Analitik Real-Time",
+    title: "Dashboard Analitik",
     subtitle: "Pusat Kendali Sekolah Anda",
-    desc: "Dashboard utama yang dirancang untuk memberikan gambaran menyeluruh tentang aktivitas penjemputan di sekolah Anda — dalam satu layar.",
-    details: [
-      "Statistik harian real-time: total siswa, sudah dijemput, belum dijemput, dan jumlah scan hari ini",
-      "Grafik aktivitas per jam untuk mengidentifikasi pola penjemputan dan jam sibuk",
-      "Donut chart status penjemputan dengan persentase visual yang mudah dipahami",
-      "Log penjemputan terbaru lengkap dengan nama siswa, kelas, waktu, dan penanggung jawab",
-      "Data diperbarui otomatis tanpa perlu refresh halaman",
+    desc: "Dashboard real-time yang menampilkan statistik kehadiran lengkap: total siswa, hadir, izin, sakit, alfa, dan belum absen. Dilengkapi grafik statistik harian/mingguan/bulanan serta donut chart status kehadiran interaktif.",
+    points: [
+      "Statistik harian real-time dengan 6 kartu indikator berwarna",
+      "Grafik aktivitas kehadiran per jam dengan filter harian, mingguan, bulanan",
+      "Donut chart interaktif — klik untuk melihat daftar siswa per status",
+      "Feed absensi terbaru lengkap dengan nama, kelas, metode scan, dan waktu",
     ],
-    image: "/images/presentation/dashboard.png",
+    image: "/images/presentation/ss-dashboard.png",
     icon: BarChart3,
-    gradient: "from-blue-600 via-indigo-600 to-violet-700",
-    glow: "shadow-blue-500/20",
+    accent: "from-blue-500 to-indigo-600",
     badge: "Core Feature",
   },
   {
-    id: "monitoring",
-    title: "Monitoring Penjemputan Live",
-    subtitle: "Pantau Setiap Siswa Secara Real-Time",
-    desc: "Sistem monitoring canggih yang memungkinkan staf sekolah memantau progress penjemputan seluruh kelas secara simultan dengan update otomatis.",
-    details: [
-      "Progress bar visual per kelas — lihat sekilas kelas mana yang sudah selesai dan mana yang masih menunggu",
-      "Card per kelas menampilkan jumlah total siswa, sudah dijemput (hijau), dan menunggu (merah)",
-      "Tombol 'Pulangkan' untuk penjemputan manual langsung dari halaman monitoring",
-      "Toggle Aktif/Nonaktif sistem dan tombol 'Reset Harian' untuk memulai hari baru",
-      "Indikator real-time dengan timestamp terakhir diperbarui",
-      "Daftar siswa per kelas yang bisa langsung di-pulangkan satu per satu",
+    title: "Live Monitoring Absensi",
+    subtitle: "Pantau Kehadiran Secara Real-Time",
+    desc: "Sistem monitoring canggih dengan scanner built-in yang mendukung QR Code, Face Recognition, dan RFID. Progress bar kehadiran seluruh sekolah terlihat dalam satu layar dengan live feed aktivitas terbaru.",
+    points: [
+      "Scanner multi-mode: QR Code, Face Recognition, dan RFID dalam satu halaman",
+      "Progress bar kehadiran real-time dengan persentase visual",
+      "Live feed — setiap scan langsung muncul di panel aktivitas",
+      "Mode Datang & Pulang otomatis sesuai jam operasional sekolah",
     ],
-    image: "/images/presentation/monitoring.jpeg",
+    image: "/images/presentation/ss-monitoring.png",
     icon: Monitor,
-    gradient: "from-emerald-500 via-teal-600 to-cyan-700",
-    glow: "shadow-emerald-500/20",
+    accent: "from-emerald-500 to-teal-600",
     badge: "Real-Time",
   },
   {
-    id: "scan-qr",
-    title: "Scan QR Code & Input NIS",
-    subtitle: "Proses Penjemputan Instan",
-    desc: "Fitur inti yang menjadikan proses penjemputan aman dan efisien — cukup scan kartu QR siswa atau ketik NIS, sistem langsung mencatat dan mengumumkan.",
-    details: [
-      "Scan QR Code menggunakan kamera perangkat — mendukung smartphone, tablet, dan laptop",
-      "Input NIS manual sebagai alternatif jika kartu QR tidak tersedia",
-      "Pengumuman suara otomatis (Text-to-Speech) saat siswa di-scan: nama siswa dan kelas diumumkan keras",
-      "Pop-up konfirmasi dengan detail lengkap siswa setelah scan berhasil",
-      "Indikator waktu penjemputan aktif (jam operasional) di bagian atas halaman",
-      "Pencegahan scan ganda — siswa yang sudah dijemput tidak bisa di-scan ulang",
+    title: "Scan Absensi Multi-Metode",
+    subtitle: "Barcode + Face Recognition + RFID",
+    desc: "Halaman scan absensi yang mendukung 3 metode sekaligus: scan barcode via kamera, pengenalan wajah (Face Recognition), dan input NIS manual. Dirancang untuk kecepatan dan kemudahan penggunaan di lapangan.",
+    points: [
+      "Kamera aktif untuk scan barcode QR Code secara instan",
+      "Face Recognition — cukup arahkan wajah siswa ke kamera",
+      "Input NIS manual sebagai alternatif jika kartu tidak tersedia",
+      "Indikator waktu & tanggal absensi di bagian atas halaman",
     ],
-    image: "/images/presentation/scan-qr.jpeg",
-    icon: QrCode,
-    gradient: "from-violet-600 via-purple-600 to-fuchsia-700",
-    glow: "shadow-violet-500/20",
+    image: "/images/presentation/ss-scan.png",
+    icon: ScanLine,
+    accent: "from-violet-500 to-purple-600",
     badge: "Smart Scan",
   },
   {
-    id: "qr-card",
-    title: "Kartu QR Code Siswa",
-    subtitle: "Identitas Digital Setiap Siswa",
-    desc: "Setiap siswa mendapatkan kartu QR Code unik yang berfungsi sebagai identitas digital untuk proses penjemputan. Kartu ini bisa dicetak dan diberikan ke wali murid.",
-    details: [
-      "QR Code unik untuk setiap siswa — tidak ada duplikasi, 100% aman",
-      "Desain kartu menampilkan QR Code besar yang mudah di-scan dari jarak wajar",
-      "Informasi siswa tertera jelas: nama, kelas, dan NIS",
-      "Tombol download QR Code dalam format gambar berkualitas tinggi",
-      "QR Code bisa dicetak untuk ditempelkan di kartu pelajar atau digantung sebagai ID card",
-      "Wali murid cukup menunjukkan kartu QR saat menjemput — proses verifikasi instan",
+    title: "Manajemen Kelas",
+    subtitle: "7 Kelas Terorganisir dengan Statistik Lengkap",
+    desc: "Kelola seluruh kelas dengan tampilan card visual yang menampilkan jumlah siswa, progress absensi harian, dan statistik kehadiran per kelas. Tambah, edit, atau hapus kelas dengan mudah.",
+    points: [
+      "Card visual per kelas: nama, jumlah siswa, progress absensi harian",
+      "Badge status berwarna: hadir (hijau), izin (oranye), sakit (biru), alfa (merah)",
+      "Statistik header: total kelas, total siswa, hadir hari ini, belum absen",
+      "Integrasi WhatsApp Group per kelas untuk komunikasi cepat",
     ],
-    image: "/images/presentation/qr-code.png",
-    icon: QrCode,
-    gradient: "from-indigo-600 via-blue-600 to-sky-600",
-    glow: "shadow-indigo-500/20",
-    badge: "ID Card",
-  },
-  {
-    id: "classes",
-    title: "Manajemen Kelas Terpusat",
-    subtitle: "Organisasi Data yang Rapi & Terstruktur",
-    desc: "Kelola seluruh kelas dalam satu halaman yang terorganisir dengan statistik lengkap dan aksi cepat untuk setiap kelas.",
-    details: [
-      "Card visual per kelas dengan nama, jumlah siswa, dan progress penjemputan harian",
-      "Badge status berwarna: hijau untuk dijemput, merah untuk menunggu — mudah dibaca",
-      "Statistik agregat di header: total kelas, total siswa, dijemput hari ini, belum dijemput",
-      "Tambah kelas baru dengan satu klik melalui tombol 'Tambah Kelas'",
-      "Hapus kelas yang tidak diperlukan dengan konfirmasi keamanan",
-      "Navigasi cepat ke detail siswa per kelas",
-    ],
-    image: "/images/presentation/classes.jpeg",
+    image: "/images/presentation/ss-classes.png",
     icon: GraduationCap,
-    gradient: "from-amber-500 via-orange-500 to-red-500",
-    glow: "shadow-amber-500/20",
+    accent: "from-amber-500 to-orange-600",
     badge: "Organized",
   },
   {
-    id: "students",
-    title: "Database Siswa Komprehensif",
-    subtitle: "Semua Data Siswa dalam Genggaman",
-    desc: "Sistem manajemen data siswa lengkap dengan fitur CRUD, import/export massal, pencetakan kartu QR, dan pengelolaan kenaikan kelas otomatis.",
-    details: [
+    title: "Database Siswa Lengkap",
+    subtitle: "Data 29 Siswa dalam Genggaman",
+    desc: "Sistem manajemen data siswa komprehensif dengan tampilan accordion per kelas. Mendukung import/export Excel, pencetakan QR Code massal, dan fitur naik kelas otomatis.",
+    points: [
       "Tampilan accordion per kelas — data terorganisir dan mudah dinavigasi",
-      "Informasi lengkap per siswa: nama, NIS, wali murid, nomor HP, dan foto",
-      "Fitur Import dari Excel — tambahkan puluhan siswa sekaligus tanpa input manual",
-      "Export data ke Excel untuk dokumentasi dan pelaporan",
-      "Cetak kartu QR Code individual atau massal",
-      "Fitur 'Naik Kelas' — perpindahan kelas massal di awal tahun ajaran baru",
-      "Pencarian global: cari berdasarkan nama siswa, NIS, kelas, atau nama wali",
+      "Informasi lengkap: nama, NIS, wali murid, nomor HP, foto",
+      "Import dari Excel & Export data untuk dokumentasi",
+      "Cetak kartu QR Code individual atau massal, fitur Naik Kelas otomatis",
     ],
-    image: "/images/presentation/students.jpeg",
+    image: "/images/presentation/ss-students.png",
     icon: Users,
-    gradient: "from-cyan-500 via-blue-600 to-indigo-600",
-    glow: "shadow-cyan-500/20",
+    accent: "from-cyan-500 to-blue-600",
     badge: "Complete",
   },
   {
-    id: "parents",
+    title: "QR Code Siswa",
+    subtitle: "Identitas Digital Setiap Siswa",
+    desc: "Setiap siswa memiliki QR Code unik yang dapat di-download dan dicetak sebagai kartu identitas. QR Code ini digunakan untuk proses scan absensi yang cepat dan aman.",
+    points: [
+      "QR Code unik per siswa — desain branded dengan warna sekolah",
+      "Download dalam format gambar berkualitas tinggi",
+      "Informasi siswa tertera: nama, kelas, dan NIS",
+      "Bisa dicetak sebagai ID Card atau ditempelkan di kartu pelajar",
+    ],
+    image: "/images/presentation/ss-qrcode.png",
+    icon: QrCode,
+    accent: "from-indigo-500 to-violet-600",
+    badge: "ID Card",
+  },
+  {
+    title: "Detail Profil Siswa",
+    subtitle: "Riwayat Kehadiran Individual",
+    desc: "Halaman profil siswa yang menampilkan identitas lengkap, data wali/orang tua, barcode siswa, serta riwayat kehadiran yang dapat di-filter dan di-download dalam format absensi nasional.",
+    points: [
+      "Profil visual dengan avatar, nama, kelas, NIS, dan status kehadiran hari ini",
+      "Statistik kehadiran per siswa: hadir, izin, sakit, alfa",
+      "Data wali murid: nama, nomor HP — terintegrasi WhatsApp",
+      "Riwayat kehadiran lengkap dengan rekap bulanan & download PDF/Excel",
+    ],
+    image: "/images/presentation/ss-detail.png",
+    icon: UserCheck,
+    accent: "from-pink-500 to-rose-600",
+    badge: "Profile",
+  },
+  {
     title: "Data Wali Murid",
     subtitle: "Koneksi Langsung dengan Orang Tua",
-    desc: "Halaman khusus yang menampilkan seluruh wali murid beserta anak-anak yang terdaftar, memudahkan komunikasi dan verifikasi identitas saat penjemputan.",
-    details: [
-      "Card visual per wali: nama, nomor telepon, dan daftar anak terdaftar",
-      "Relasi wali-siswa yang jelas — satu wali bisa memiliki beberapa anak di kelas berbeda",
-      "Statistik ringkas: total wali, total siswa, dan jumlah kelas",
+    desc: "Halaman khusus menampilkan seluruh wali murid dengan card visual, nomor telepon, dan daftar anak terdaftar. Memudahkan komunikasi dan verifikasi identitas.",
+    points: [
+      "Card visual per wali: nama, nomor HP, dan daftar anak",
+      "Relasi wali-siswa yang jelas — satu wali bisa punya beberapa anak",
       "Pencarian cepat berdasarkan nama wali, siswa, atau kelas",
-      "Data wali terintegrasi dengan sistem notifikasi WhatsApp",
-      "Nomor telepon wali digunakan untuk pengiriman notifikasi otomatis saat anak dijemput",
+      "Terintegrasi dengan sistem notifikasi WhatsApp otomatis",
     ],
-    image: "/images/presentation/parents.jpeg",
+    image: "/images/presentation/ss-walimurid.png",
     icon: Users,
-    gradient: "from-pink-500 via-rose-500 to-red-500",
-    glow: "shadow-pink-500/20",
+    accent: "from-teal-500 to-emerald-600",
     badge: "Connected",
   },
   {
-    id: "live-monitor",
-    title: "Live Monitor Publik",
-    subtitle: "Transparansi Penuh untuk Wali Murid",
-    desc: "Halaman monitoring real-time yang bisa diakses wali murid tanpa perlu login. Cukup buka link khusus sekolah, dan status penjemputan anak langsung terlihat.",
-    details: [
-      "Akses publik tanpa login — wali murid cukup membuka link yang diberikan sekolah",
-      "Statistik real-time: total siswa, sudah pulang, menunggu, dan persentase progress",
-      "Progress bar keseluruhan dengan indikator 'Live' yang menunjukkan data selalu terbaru",
-      "Tampilan per kelas dengan jumlah siswa, status dijemput/menunggu, dan progress individual",
-      "Daftar siswa per kelas dengan badge status berwarna (Pulang/Menunggu)",
-      "Layout responsif dengan pilihan 1-4 kolom dan toggle sembunyikan progress bar",
-      "Pengumuman suara otomatis saat ada siswa baru yang berstatus 'Pulang'",
+    title: "Kelola Wali Kelas",
+    subtitle: "Assign Wali Kelas per Kelas",
+    desc: "Halaman manajemen wali kelas yang memungkinkan admin menugaskan guru sebagai wali kelas. Wali kelas mendapat dashboard khusus untuk memantau kelas yang diampu.",
+    points: [
+      "Tambah wali kelas dari daftar guru yang terdaftar",
+      "Assign satu atau beberapa kelas per wali kelas",
+      "Dashboard khusus wali kelas dengan data kelas yang diampu",
+      "Fitur rekap & export absensi per kelas dari dashboard wali kelas",
     ],
-    image: "/images/presentation/live-monitor.png",
-    icon: Globe,
-    gradient: "from-teal-500 via-emerald-500 to-green-600",
-    glow: "shadow-teal-500/20",
-    badge: "Public Access",
+    image: "/images/presentation/ss-walikelas.png",
+    icon: BookOpen,
+    accent: "from-purple-500 to-fuchsia-600",
+    badge: "Management",
+  },
+  {
+    title: "Rekap & Export Absensi",
+    subtitle: "Format Absensi Nasional Bulanan",
+    desc: "Fitur rekap absensi dengan format tabel nasional bulanan. Tabel menampilkan grid tanggal 1-31 dengan kode warna (H, S, I, A), ringkasan per siswa, dan area tanda tangan wali kelas. Dapat di-export ke Excel dan PDF.",
+    points: [
+      "Format tabel absensi nasional: NO, NIS, Nama, Tanggal 1-31, Rekap H/S/I/A",
+      "Kode warna status: Hijau (H), Biru (S), Kuning (I), Merah (A)",
+      "Export Excel & PDF dengan format yang sama persis seperti preview",
+      "Area tanda tangan wali kelas & alamat sekolah otomatis",
+    ],
+    image: "/images/presentation/ss-rekap.png",
+    icon: FileText,
+    accent: "from-blue-600 to-indigo-700",
+    badge: "Export",
   },
 ];
 
 const EXTRA_FEATURES = [
-  { icon: Clock, title: "Riwayat Penjemputan", desc: "Rekam jejak lengkap seluruh aktivitas penjemputan yang bisa difilter berdasarkan tanggal, kelas, siswa, dan metode scan. Tidak ada data yang hilang.", color: "text-blue-500 dark:text-blue-400" },
-  { icon: FileText, title: "Export Laporan Harian", desc: "Unduh laporan penjemputan harian dalam format Excel siap cetak. Cocok untuk dokumentasi internal dan pelaporan ke manajemen sekolah.", color: "text-amber-500 dark:text-amber-400" },
-  { icon: Bell, title: "Notifikasi WhatsApp Otomatis", desc: "Setiap kali siswa di-scan, wali murid menerima pesan WhatsApp otomatis berisi konfirmasi bahwa anak mereka sudah dijemput. Aman dan terpercaya.", color: "text-green-500 dark:text-green-400" },
-  { icon: Shield, title: "Sistem Langganan Fleksibel", desc: "Pilih paket yang sesuai dengan kebutuhan sekolah Anda. Dari paket gratis untuk sekolah kecil hingga premium untuk institusi besar dengan fitur lengkap.", color: "text-violet-500 dark:text-violet-400" },
-  { icon: Settings, title: "Pengaturan Komprehensif", desc: "Konfigurasi jam operasional, logo sekolah, instruksi pada kartu QR, integrasi WhatsApp Gateway, dan pengaturan lainnya sesuai kebutuhan.", color: "text-rose-500 dark:text-rose-400" },
-  { icon: Smartphone, title: "Responsif Multi-Perangkat", desc: "Akses dari smartphone, tablet, atau desktop. Tampilan optimal di semua ukuran layar tanpa perlu install aplikasi.", color: "text-cyan-500 dark:text-cyan-400" },
+  { icon: Globe, title: "Live Monitor Publik", desc: "Wali murid bisa memantau status kehadiran anak tanpa login via link khusus sekolah.", color: "from-teal-500 to-emerald-500" },
+  { icon: Clock, title: "Riwayat Kehadiran", desc: "Rekam jejak lengkap seluruh aktivitas kehadiran yang bisa difilter tanggal, kelas, dan status.", color: "from-blue-500 to-indigo-500" },
+  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Notifikasi otomatis ke wali murid setiap kali anak di-scan masuk atau pulang sekolah.", color: "from-green-500 to-emerald-500" },
+  { icon: Shield, title: "Multi-Role & Keamanan", desc: "4 level akses: Super Admin, School Admin, Staff/Operator, dan Wali Kelas dengan RLS.", color: "from-violet-500 to-purple-500" },
+  { icon: Settings, title: "Pengaturan Lengkap", desc: "Konfigurasi jam operasional, logo sekolah, template pesan WhatsApp, dan integrasi gateway.", color: "from-rose-500 to-pink-500" },
+  { icon: Smartphone, title: "Responsif & PWA-Ready", desc: "Tampilan optimal di smartphone, tablet, dan desktop tanpa perlu install aplikasi.", color: "from-cyan-500 to-blue-500" },
 ];
 
 const STATS = [
-  { value: "< 1 detik", label: "Waktu Scan QR" },
-  { value: "24/7", label: "Akses Monitoring" },
+  { value: "< 1 detik", label: "Waktu Scan" },
+  { value: "3 Metode", label: "QR · Face · RFID" },
   { value: "100%", label: "Data Terenkripsi" },
-  { value: "∞", label: "Riwayat Tersimpan" },
+  { value: "Real-Time", label: "Live Monitoring" },
 ];
 
 const Presentation = () => {
@@ -191,7 +183,7 @@ const Presentation = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState("Smart Pickup School System");
   const [subtitle, setSubtitle] = useState("");
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,300 +202,242 @@ const Presentation = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="h-8 w-8 animate-spin text-indigo-500" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950"><Loader2 className="h-8 w-8 animate-spin text-indigo-400" /></div>;
   if (!isPublic) return <Navigate to="/" replace />;
 
-  // Theme classes
-  const bg = dark ? "bg-slate-950 text-white" : "bg-white text-slate-900";
-  const navBg = dark ? "bg-slate-950/80 border-white/5" : "bg-white/80 border-slate-200";
-  const navText = dark ? "text-white" : "text-slate-900";
-  const mutedText = dark ? "text-slate-400" : "text-slate-500";
-  const subtleText = dark ? "text-slate-500" : "text-slate-400";
-  const sectionAlt = dark ? "bg-white/[0.01]" : "bg-slate-50/80";
-  const cardBg = dark ? "bg-white/[0.03] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.06]" : "bg-white border-slate-200/80 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5";
-  const imgBorder = dark ? "border-white/10" : "border-slate-200";
-  const checkColor = dark ? "text-emerald-400" : "text-emerald-500";
-  const sectionDesc = dark ? "text-slate-300" : "text-slate-600";
-  const detailText = dark ? "text-slate-400" : "text-slate-500";
-  const dividerColor = dark ? "bg-slate-700" : "bg-slate-300";
-  const badgeLabel = dark ? "text-slate-500" : "text-slate-400";
-  const footerBg = dark ? "border-white/5" : "border-slate-200";
-  const footerText = dark ? "text-slate-600" : "text-slate-400";
-  const ambientGlow1 = dark ? "bg-violet-600/8" : "bg-indigo-200/40";
-  const ambientGlow2 = dark ? "bg-blue-600/6" : "bg-violet-200/30";
-  const whyCardBg = dark ? "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]" : "bg-white border-slate-200/80 hover:border-indigo-200 hover:shadow-lg";
-  const whyIconBg = dark ? "bg-gradient-to-br from-violet-600 to-indigo-600 shadow-violet-500/20" : "bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/20";
-  const statGradient = dark ? "from-violet-400 to-indigo-300" : "from-indigo-600 to-violet-500";
-  const heroBadgeBg = dark ? "bg-white/5 border-white/10 text-violet-300" : "bg-indigo-50 border-indigo-100 text-indigo-600";
-  const heroTitle = dark ? "from-white via-white to-white/60" : "from-slate-900 via-slate-800 to-indigo-700";
-  const ctaBg = dark ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-violet-600/30 hover:shadow-violet-500/50" : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-600/20 hover:shadow-indigo-500/40";
-  const secondaryBtn = dark ? "bg-white/5 hover:bg-white/10 border-white/10 text-white" : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700";
-  const ambientSection = dark ? "via-violet-950/10" : "via-indigo-50/50";
-  const ctaSectionBg = dark ? "from-violet-950/20" : "from-indigo-50/60";
+  const d = dark;
+  const bg = d ? "bg-slate-950" : "bg-white";
+  const text = d ? "text-white" : "text-slate-900";
+  const muted = d ? "text-slate-400" : "text-slate-500";
+  const cardBg = d ? "bg-white/[0.03] border-white/[0.06]" : "bg-white border-slate-200";
+  const navBg = d ? "bg-slate-950/80 border-white/[0.05]" : "bg-white/80 border-slate-200";
 
   return (
-    <div className={`min-h-screen ${bg} overflow-x-hidden transition-colors duration-300`} style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className={`absolute top-0 left-1/4 w-[600px] h-[600px] ${ambientGlow1} rounded-full blur-[150px]`} />
-        <div className={`absolute bottom-1/4 right-1/4 w-[500px] h-[500px] ${ambientGlow2} rounded-full blur-[150px]`} />
+    <div className={`min-h-screen ${bg} ${text} overflow-x-hidden transition-colors duration-500`} style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className={`absolute -top-40 left-1/3 w-[800px] h-[800px] rounded-full blur-[200px] ${d ? "bg-indigo-600/10" : "bg-indigo-200/40"}`} />
+        <div className={`absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full blur-[200px] ${d ? "bg-violet-600/8" : "bg-violet-200/30"}`} />
+        <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[200px] ${d ? "bg-blue-600/6" : "bg-blue-200/20"}`} />
       </div>
 
-      {/* Sticky Nav */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b ${navBg} transition-colors duration-300`}>
+      {/* Nav */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl border-b ${navBg} transition-colors duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
               <Shield className="h-4 w-4 text-white" />
             </div>
-            <span className={`font-bold text-sm tracking-tight hidden sm:block ${navText}`}>Smart Pickup</span>
+            <span className="font-bold text-sm tracking-tight hidden sm:block">AbsenPintar</span>
           </div>
           <div className="flex items-center gap-2">
-            {/* Theme toggle */}
-            <button
-              onClick={() => setDark(!dark)}
-              className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-300 ${dark ? "bg-white/10 hover:bg-white/15 text-yellow-300" : "bg-slate-100 hover:bg-slate-200 text-slate-600"}`}
-              title={dark ? "Mode Terang" : "Mode Gelap"}
-            >
-              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <button onClick={() => setDark(!d)} className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all ${d ? "bg-white/10 hover:bg-white/15 text-yellow-300" : "bg-slate-100 hover:bg-slate-200 text-slate-600"}`}>
+              {d ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <a href="/register" className={`inline-flex items-center gap-1.5 ${ctaBg} text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-lg`}>
+            <a href="/register" className="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all">
               Mulai Sekarang <ChevronRight className="h-3.5 w-3.5" />
             </a>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* ===== HERO ===== */}
       <section className="min-h-screen flex flex-col items-center justify-center relative px-4 text-center pt-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-6">
-          <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium border ${heroBadgeBg}`}>
-            <Sparkles className="h-3.5 w-3.5" /> Solusi Penjemputan Siswa #1 di Indonesia
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mb-8">
+          <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium border ${d ? "bg-white/5 border-white/10 text-indigo-300" : "bg-indigo-50 border-indigo-100 text-indigo-600"}`}>
+            <Sparkles className="h-3.5 w-3.5" /> Sistem Absensi Sekolah #1 di Indonesia
           </span>
         </motion.div>
 
-        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.8 }} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter leading-[0.9]">
-          <span className={`bg-gradient-to-b ${heroTitle} bg-clip-text text-transparent`}>{title}</span>
+        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.7 }} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter leading-[0.9]">
+          <span className={`bg-gradient-to-b ${d ? "from-white via-white to-white/50" : "from-slate-900 via-slate-800 to-indigo-700"} bg-clip-text text-transparent`}>
+            {title}
+          </span>
         </motion.h1>
 
-        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.7 }} className={`mt-6 text-base sm:text-lg md:text-xl ${mutedText} max-w-2xl leading-relaxed`}>
-          {subtitle || "Sistem penjemputan siswa modern yang mengutamakan keamanan, efisiensi, dan transparansi. Dirancang khusus untuk sekolah Indonesia."}
+        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className={`mt-6 text-base sm:text-lg md:text-xl ${muted} max-w-2xl leading-relaxed`}>
+          {subtitle || "Sistem absensi & penjemputan siswa modern yang mengutamakan keamanan, efisiensi, dan transparansi. Dirancang khusus untuk sekolah Indonesia."}
         </motion.p>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-10 flex flex-col sm:flex-row gap-3">
-          <a href="/register" className={`inline-flex items-center justify-center gap-2 ${ctaBg} text-white px-8 py-3.5 rounded-2xl font-semibold transition-all shadow-2xl text-sm`}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-10 flex flex-col sm:flex-row gap-3">
+          <a href="/register" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all text-sm">
             <Zap className="h-4 w-4" /> Daftar Gratis Sekarang
           </a>
-          <a href="#features" className={`inline-flex items-center justify-center gap-2 ${secondaryBtn} px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border`}>
+          <a href="#features" className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border ${d ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700"}`}>
             Lihat Fitur <ArrowDown className="h-4 w-4" />
           </a>
         </motion.div>
 
-        {/* Stats bar */}
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 w-full max-w-3xl">
+        {/* Stats */}
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 w-full max-w-3xl">
           {STATS.map((s) => (
             <div key={s.label} className="text-center">
-              <div className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-r ${statGradient} bg-clip-text text-transparent`}>{s.value}</div>
-              <div className={`text-xs ${subtleText} mt-1 font-medium`}>{s.label}</div>
+              <div className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
+                {s.value}
+              </div>
+              <div className={`text-xs mt-1 ${d ? "text-slate-500" : "text-slate-400"}`}>{s.label}</div>
             </div>
           ))}
         </motion.div>
 
-        <div className="absolute bottom-8 animate-bounce">
-          <ArrowDown className={`h-5 w-5 ${subtleText}`} />
-        </div>
-      </section>
-
-      {/* Problem & Solution Section */}
-      <section className={`py-20 sm:py-32 px-4 ${sectionAlt}`}>
-        <div className="max-w-6xl mx-auto">
-          <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
-            <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-red-400" : "text-red-500"} mb-4 block`}>Latar Belakang</span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Kondisi Permasalahan</h2>
-            <p className={`mt-4 ${mutedText} max-w-2xl mx-auto`}>Sistem penjemputan konvensional di sekolah Indonesia masih menyimpan banyak risiko dan ketidakefisienan.</p>
-          </motion.div>
-
-          {/* Problems */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-20">
-            {[
-              { icon: AlertTriangle, title: "Keamanan Rentan", desc: "Tidak ada verifikasi identitas penjemput. Siapa saja bisa mengaku sebagai wali murid dan membawa pulang siswa tanpa proses pengecekan.", color: dark ? "text-red-400" : "text-red-500", borderColor: dark ? "border-red-500/20" : "border-red-200" },
-              { icon: XCircle, title: "Tidak Ada Rekam Jejak", desc: "Sekolah tidak memiliki catatan digital siapa yang menjemput, jam berapa, dan siswa mana yang sudah/belum dijemput setiap harinya.", color: dark ? "text-orange-400" : "text-orange-500", borderColor: dark ? "border-orange-500/20" : "border-orange-200" },
-              { icon: Clock, title: "Proses Lambat & Kacau", desc: "Saat jam pulang, area penjemputan menjadi tidak teratur. Guru kesulitan memantau ratusan siswa sekaligus tanpa sistem yang terstruktur.", color: dark ? "text-amber-400" : "text-amber-500", borderColor: dark ? "border-amber-500/20" : "border-amber-200" },
-              { icon: Users, title: "Orang Tua Cemas", desc: "Wali murid tidak mendapat informasi real-time apakah anaknya sudah dijemput atau masih menunggu, menimbulkan kekhawatiran.", color: dark ? "text-rose-400" : "text-rose-500", borderColor: dark ? "border-rose-500/20" : "border-rose-200" },
-              { icon: FileText, title: "Laporan Manual", desc: "Pencatatan penjemputan masih dilakukan secara manual di buku tulis, rawan hilang, tidak akurat, dan sulit diaudit.", color: dark ? "text-yellow-400" : "text-yellow-600", borderColor: dark ? "border-yellow-500/20" : "border-yellow-200" },
-              { icon: Globe, title: "Tidak Transparan", desc: "Tidak ada sistem monitoring yang bisa diakses orang tua. Informasi hanya tersedia bagi petugas di lokasi sekolah.", color: dark ? "text-pink-400" : "text-pink-500", borderColor: dark ? "border-pink-500/20" : "border-pink-200" },
-            ].map((p, i) => (
-              <motion.div key={p.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className={`group relative rounded-2xl p-6 sm:p-8 transition-all duration-300 border ${dark ? "bg-red-950/10 border-red-500/10 hover:border-red-500/20" : "bg-red-50/50 border-red-100 hover:border-red-200 hover:shadow-lg hover:shadow-red-500/5"}`}>
-                <p.icon className={`h-8 w-8 ${p.color} mb-4`} />
-                <h3 className="font-bold text-lg mb-2">{p.title}</h3>
-                <p className={`${detailText} text-sm leading-relaxed`}>{p.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Divider Arrow */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={scaleIn} className="flex flex-col items-center mb-20">
-            <div className={`h-16 w-16 rounded-full ${dark ? "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/30" : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20"} flex items-center justify-center shadow-2xl`}>
-              <ArrowDown className="h-7 w-7 text-white" />
-            </div>
-            <p className={`mt-4 font-bold text-lg ${dark ? "text-emerald-400" : "text-emerald-600"}`}>Solusi Kami</p>
-          </motion.div>
-
-          {/* Solutions */}
-          <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
-            <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-emerald-400" : "text-emerald-500"} mb-4 block`}>Jawaban Tepat</span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Smart Pickup School System</h2>
-            <p className={`mt-4 ${mutedText} max-w-2xl mx-auto`}>Sistem digital terintegrasi yang menyelesaikan setiap permasalahan penjemputan dengan teknologi modern.</p>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 gap-5">
-            {[
-              { icon: QrCode, problem: "Keamanan Rentan", solution: "Verifikasi QR Code & NIS", desc: "Setiap penjemput wajib memindai kartu QR Code unik siswa atau memasukkan NIS. Sistem memastikan hanya orang yang memiliki kartu yang bisa menjemput." },
-              { icon: BarChart3, problem: "Tidak Ada Rekam Jejak", solution: "Riwayat Digital Otomatis", desc: "Setiap aktivitas penjemputan tercatat otomatis: siapa yang menjemput, jam berapa, dan oleh siapa. Data tersimpan aman dan bisa di-export kapan saja." },
-              { icon: Monitor, problem: "Proses Lambat & Kacau", solution: "Monitoring Real-Time", desc: "Dashboard monitoring menampilkan status penjemputan seluruh kelas secara live. Guru bisa memantau dan mengelola proses dengan cepat dan terstruktur." },
-              { icon: Bell, problem: "Orang Tua Cemas", solution: "Notifikasi WhatsApp Instan", desc: "Wali murid langsung menerima pesan WhatsApp otomatis saat anaknya dijemput. Tidak perlu menunggu, tidak perlu bertanya — informasi langsung sampai." },
-              { icon: Globe, problem: "Tidak Transparan", solution: "Live Monitor Publik", desc: "Halaman monitoring publik bisa diakses wali murid tanpa login. Cukup buka link, dan status penjemputan anak terlihat secara real-time." },
-              { icon: Smartphone, problem: "Laporan Manual", solution: "Export & Analitik Digital", desc: "Laporan harian otomatis dalam format Excel. Dashboard analitik dengan grafik dan statistik untuk pengambilan keputusan berbasis data." },
-            ].map((s, i) => (
-              <motion.div key={s.solution} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className={`rounded-2xl p-6 sm:p-8 transition-all duration-300 border ${dark ? "bg-emerald-950/10 border-emerald-500/10 hover:border-emerald-500/20" : "bg-emerald-50/50 border-emerald-100 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5"}`}>
-                <div className="flex items-start gap-4">
-                  <div className={`h-12 w-12 rounded-xl ${dark ? "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20" : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/15"} flex items-center justify-center shrink-0 shadow-lg`}>
-                    <s.icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${dark ? "bg-red-500/15 text-red-400" : "bg-red-100 text-red-600"}`}>{s.problem}</span>
-                      <ArrowRight className={`h-3.5 w-3.5 ${dark ? "text-emerald-400" : "text-emerald-500"}`} />
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${dark ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-100 text-emerald-600"}`}>{s.solution}</span>
-                    </div>
-                    <h3 className="font-bold text-base mb-1">{s.solution}</h3>
-                    <p className={`${detailText} text-sm leading-relaxed`}>{s.desc}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Sections */}
-      <div id="features">
-        {SECTIONS.map((section, idx) => (
-          <section key={section.id} className={`py-20 sm:py-32 px-4 relative ${idx % 2 === 0 ? "" : sectionAlt}`}>
-            <div className="max-w-7xl mx-auto">
-              {/* Section header */}
-              <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} className="mb-12 sm:mb-16">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${badgeLabel}`}>0{idx + 1}</span>
-                  <div className={`h-px w-8 ${dividerColor}`} />
-                  <span className={`text-[11px] font-bold uppercase tracking-[0.15em] bg-gradient-to-r ${section.gradient} bg-clip-text text-transparent`}>{section.badge}</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">{section.title}</h2>
-                <p className={`${mutedText} mt-2 text-base sm:text-lg`}>{section.subtitle}</p>
-              </motion.div>
-
-              <div className={`grid lg:grid-cols-2 gap-10 lg:gap-16 items-center ${idx % 2 === 1 ? "lg:[direction:rtl]" : ""}`}>
-                {/* Image */}
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={scaleIn} className={`${idx % 2 === 1 ? "lg:[direction:ltr]" : ""}`}>
-                  <div className={`relative rounded-2xl overflow-hidden border shadow-2xl ${imgBorder} ${section.glow}`}>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-5`} />
-                    <img src={section.image} alt={section.title} className="w-full h-auto relative z-10" loading="lazy" />
-                  </div>
-                </motion.div>
-
-                {/* Content */}
-                <motion.div custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className={`space-y-6 ${idx % 2 === 1 ? "lg:[direction:ltr]" : ""}`}>
-                  <p className={`${sectionDesc} text-base sm:text-lg leading-relaxed`}>{section.desc}</p>
-                  <div className="space-y-3">
-                    {section.details.map((detail, i) => (
-                      <motion.div key={i} custom={i + 2} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex gap-3 items-start">
-                        <CheckCircle2 className={`h-5 w-5 shrink-0 mt-0.5 ${checkColor}`} />
-                        <span className={`${detailText} text-sm leading-relaxed`}>{detail}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </section>
-        ))}
-      </div>
-
-      {/* Extra Features Grid */}
-      <section className="py-20 sm:py-32 px-4 relative">
-        <div className={`absolute inset-0 bg-gradient-to-b from-transparent ${ambientSection} to-transparent pointer-events-none`} />
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
-            <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-violet-400" : "text-indigo-500"} mb-4 block`}>Dan masih banyak lagi</span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Fitur Pendukung Premium</h2>
-            <p className={`mt-4 ${mutedText} max-w-xl mx-auto`}>Setiap fitur dirancang untuk menyempurnakan ekosistem penjemputan di sekolah Anda.</p>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {EXTRA_FEATURES.map((f, i) => (
-              <motion.div key={f.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className={`group relative rounded-2xl p-6 sm:p-8 transition-all duration-300 border ${cardBg}`}>
-                <f.icon className={`h-8 w-8 ${f.color} mb-5 relative z-10`} />
-                <h3 className="font-bold text-lg mb-2 relative z-10">{f.title}</h3>
-                <p className={`${detailText} text-sm leading-relaxed relative z-10`}>{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose Us */}
-      <section className={`py-20 sm:py-32 px-4 ${dark ? "" : "bg-slate-50/80"}`}>
-        <div className="max-w-4xl mx-auto">
-          <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Mengapa Smart Pickup?</h2>
-          </motion.div>
-
-          <div className="space-y-5">
-            {[
-              { icon: Lock, title: "Keamanan Terjamin", desc: "Setiap penjemputan harus melalui verifikasi QR Code atau input NIS. Tidak ada siswa yang bisa dijemput tanpa proses verifikasi. Data terenkripsi dan tersimpan aman di cloud." },
-              { icon: Smartphone, title: "Multi-Platform", desc: "Akses dari perangkat apa saja — smartphone, tablet, laptop, atau desktop. Tampilan responsif yang optimal di semua ukuran layar. Tidak perlu install aplikasi." },
-              { icon: TrendingUp, title: "Skalabel & Fleksibel", desc: "Dari sekolah dengan 30 siswa hingga institusi dengan ribuan siswa. Sistem dirancang untuk tumbuh bersama sekolah Anda dengan paket langganan yang fleksibel." },
-              { icon: Star, title: "Mudah Digunakan", desc: "Antarmuka intuitif yang bisa digunakan oleh siapa saja tanpa pelatihan khusus. Setup awal hanya membutuhkan beberapa menit — import data siswa, cetak kartu QR, dan sistem siap digunakan." },
-            ].map((item, i) => (
-              <motion.div key={item.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className={`flex gap-5 sm:gap-6 items-start rounded-2xl p-6 sm:p-8 transition-all duration-300 border ${whyCardBg}`}>
-                <div className={`h-12 w-12 rounded-xl ${whyIconBg} flex items-center justify-center shrink-0 shadow-lg`}>
-                  <item.icon className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-1">{item.title}</h3>
-                  <p className={`${detailText} text-sm leading-relaxed`}>{item.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-20 sm:py-32 px-4 relative">
-        <div className={`absolute inset-0 bg-gradient-to-t ${ctaSectionBg} to-transparent pointer-events-none`} />
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto text-center relative z-10">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-500/30">
-            <Shield className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
-            Siap Tingkatkan Keamanan <br className="hidden sm:block" />Penjemputan Sekolah Anda?
-          </h2>
-          <p className={`${mutedText} text-base sm:text-lg mb-10 max-w-xl mx-auto`}>Bergabung sekarang dan rasakan kemudahan sistem penjemputan modern. Setup hanya 5 menit.</p>
-          <a href="/register" className={`inline-flex items-center gap-2 ${ctaBg} text-white px-10 py-4 rounded-2xl font-bold transition-all shadow-2xl text-base`}>
-            <Zap className="h-5 w-5" /> Daftar Gratis Sekarang
-          </a>
-          <p className={`${subtleText} text-xs mt-4`}>Tidak perlu kartu kredit • Setup instan • Batalkan kapan saja</p>
+        {/* Scroll indicator */}
+        <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }} className={`absolute bottom-8 ${d ? "text-slate-600" : "text-slate-300"}`}>
+          <ArrowDown className="h-5 w-5" />
         </motion.div>
       </section>
 
+      {/* ===== FEATURES ===== */}
+      <section id="features" className="relative py-20 sm:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUp} custom={0} className="text-center mb-16 sm:mb-24">
+            <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-indigo-400" : "text-indigo-500"}`}>Fitur Utama</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mt-3">
+              Semua yang Sekolah Anda <br className="hidden sm:block" />
+              <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>Butuhkan</span>
+            </h2>
+            <p className={`mt-4 ${muted} max-w-xl mx-auto text-sm sm:text-base`}>
+              10 fitur utama yang dirancang untuk mempermudah proses absensi dan penjemputan siswa secara digital, aman, dan efisien.
+            </p>
+          </motion.div>
+
+          <div className="space-y-24 sm:space-y-32">
+            {FEATURES.map((f, idx) => {
+              const isEven = idx % 2 === 0;
+              const Icon = f.icon;
+              return (
+                <motion.div key={f.title} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} custom={1} className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
+                  {/* Screenshot */}
+                  <div className="w-full lg:w-[58%] relative group">
+                    <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
+                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-300/50"}`}>
+                      <img src={f.image} alt={f.title} className="w-full h-auto" loading="lazy" />
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="w-full lg:w-[42%]">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg`}>
+                        <Icon className="h-5 w-5 text-white" />
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${d ? "text-slate-500" : "text-slate-400"}`}>{f.badge}</span>
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
+                    <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-indigo-400" : "text-indigo-500"}`}>{f.subtitle}</p>
+                    <p className={`mt-4 text-sm leading-relaxed ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
+                    <ul className="mt-5 space-y-2.5">
+                      {f.points.map((p, i) => (
+                        <li key={i} className="flex items-start gap-2.5">
+                          <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${d ? "text-emerald-400" : "text-emerald-500"}`} />
+                          <span className={`text-sm ${d ? "text-slate-400" : "text-slate-500"}`}>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== EXTRA FEATURES ===== */}
+      <section className={`py-20 sm:py-32 ${d ? "bg-white/[0.01]" : "bg-slate-50/80"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
+            <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-indigo-400" : "text-indigo-500"}`}>Dan Masih Banyak Lagi</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3">Fitur Pendukung</h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {EXTRA_FEATURES.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <motion.div key={f.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i} className={`rounded-2xl border p-6 transition-all duration-300 ${d ? "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04]" : "bg-white border-slate-200 hover:border-indigo-200 hover:shadow-lg"}`}>
+                  <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-lg mb-4`}>
+                    <Icon className="h-5 w-5 text-white" />
+                  </div>
+                  <h4 className="font-bold text-sm">{f.title}</h4>
+                  <p className={`mt-2 text-xs leading-relaxed ${muted}`}>{f.desc}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== WHY CHOOSE ===== */}
+      <section className="py-20 sm:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              Mengapa{" "}
+              <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
+                AbsenPintar?
+              </span>
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: Zap, title: "Cepat & Efisien", desc: "Scan absensi kurang dari 1 detik. Proses yang dulu memakan 30 menit kini selesai dalam hitungan detik." },
+              { icon: Shield, title: "Aman & Terverifikasi", desc: "Setiap scan divalidasi sistem. Data terenkripsi dan hanya bisa diakses oleh pihak yang berwenang." },
+              { icon: TrendingUp, title: "Data & Analitik", desc: "Dashboard analitik real-time membantu sekolah mengambil keputusan berbasis data kehadiran." },
+              { icon: Star, title: "Mudah Digunakan", desc: "Tidak perlu pelatihan khusus. Antarmuka intuitif yang bisa digunakan oleh semua staf sekolah." },
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <motion.div key={item.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i} className={`rounded-2xl border p-6 text-center transition-all duration-300 ${d ? "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]" : "bg-white border-slate-200 hover:border-indigo-200 hover:shadow-lg"}`}>
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 mx-auto mb-4">
+                    <Icon className="h-5 w-5 text-white" />
+                  </div>
+                  <h4 className="font-bold text-sm">{item.title}</h4>
+                  <p className={`mt-2 text-xs leading-relaxed ${muted}`}>{item.desc}</p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== CTA ===== */}
+      <section className={`py-20 sm:py-32 ${d ? "bg-gradient-to-b from-violet-950/20 to-transparent" : "bg-gradient-to-b from-indigo-50/60 to-transparent"}`}>
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+              Siap Memodernisasi{" "}
+              <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
+                Absensi Sekolah Anda?
+              </span>
+            </h2>
+            <p className={`mt-4 ${muted} max-w-lg mx-auto text-sm sm:text-base`}>
+              Bergabung sekarang dan rasakan kemudahan sistem absensi digital yang aman, cepat, dan transparan.
+            </p>
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+              <a href="/register" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all text-sm">
+                <Zap className="h-4 w-4" /> Daftar Gratis
+              </a>
+              <a href="/login" className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border ${d ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"}`}>
+                Masuk ke Dashboard <ChevronRight className="h-4 w-4" />
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className={`border-t ${footerBg} py-8 px-4 text-center transition-colors duration-300`}>
-        <p className={`${footerText} text-xs`}>© {new Date().getFullYear()} Smart Pickup School System. All rights reserved.</p>
+      <footer className={`border-t py-10 ${d ? "border-white/5" : "border-slate-200"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+              <Shield className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span className="font-bold text-xs">AbsenPintar</span>
+          </div>
+          <p className={`text-xs ${d ? "text-slate-600" : "text-slate-400"}`}>
+            © {new Date().getFullYear()} AbsenPintar. Sistem Absensi & Penjemputan Siswa Modern.
+          </p>
+        </div>
       </footer>
     </div>
   );
