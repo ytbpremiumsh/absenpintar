@@ -34,8 +34,19 @@ const SuperAdminPlans = () => {
 
   const fetchPlans = async () => {
     const { data } = await supabase.from("subscription_plans").select("*").order("sort_order");
-    if (data) setPlans(data.map((p: any) => ({ ...p, features: Array.isArray(p.features) ? p.features : [] })));
+    if (data) setPlans(data.map((p: any) => ({ ...p, features: Array.isArray(p.features) ? p.features : [], show_on_landing: p.show_on_landing !== false })));
     setLoading(false);
+  };
+
+  const handleToggleLanding = async (planId: string, val: boolean) => {
+    setPlans(prev => prev.map(p => p.id === planId ? { ...p, show_on_landing: val } : p));
+    const { error } = await supabase.from("subscription_plans").update({ show_on_landing: val } as any).eq("id", planId);
+    if (error) {
+      toast.error("Gagal mengubah visibilitas");
+      fetchPlans();
+    } else {
+      toast.success(val ? "Paket ditampilkan di Landing Page" : "Paket disembunyikan dari Landing Page");
+    }
   };
 
   useEffect(() => { fetchPlans(); fetchShowPricing(); }, []);
