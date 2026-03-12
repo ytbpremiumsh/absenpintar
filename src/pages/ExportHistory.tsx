@@ -468,7 +468,7 @@ const ExportHistory = () => {
             )}
 
             {/* Signature footer */}
-            {studentRows.length > 0 && (
+            {activeRows.length > 0 && (
               <div className="p-6 border-t border-border">
                 <div className="flex justify-end">
                   <div className="text-center text-xs text-muted-foreground space-y-1">
