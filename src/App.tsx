@@ -98,6 +98,7 @@ const App = () => (
               <Route path="/school-settings" element={<SchoolSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />
               <Route path="/support" element={<SupportTickets />} />
+              <Route path="/whatsapp-settings" element={<WhatsAppSettings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

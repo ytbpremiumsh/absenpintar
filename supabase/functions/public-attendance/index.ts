@@ -107,8 +107,11 @@ serve(async (req) => {
     const totalHadir = datangLogs.filter((l: any) => l.status === "hadir").length;
     const totalIzin = datangLogs.filter((l: any) => l.status === "izin").length;
     const totalSakit = datangLogs.filter((l: any) => l.status === "sakit").length;
-    const totalAlfa = datangLogs.filter((l: any) => l.status === "alfa").length;
-    const totalBelum = totalStudents - (totalHadir + totalIzin + totalSakit + totalAlfa);
+    const dbAlfa = datangLogs.filter((l: any) => l.status === "alfa").length;
+    const remaining = totalStudents - (totalHadir + totalIzin + totalSakit + dbAlfa);
+    const autoAlfa = currentTime > attEnd;
+    const totalAlfa = autoAlfa ? dbAlfa + remaining : dbAlfa;
+    const totalBelum = autoAlfa ? 0 : remaining;
 
     // Determine plan features
     const sub = subRes.data as any;

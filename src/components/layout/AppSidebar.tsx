@@ -52,6 +52,7 @@ const dataNav = [
 ];
 
 const settingsNav = [
+  { title: "WhatsApp", url: "/whatsapp-settings", icon: MessageSquare },
   { title: "Langganan", url: "/subscription", icon: CreditCard },
   { title: "Bantuan", url: "/support", icon: LifeBuoy },
 ];
