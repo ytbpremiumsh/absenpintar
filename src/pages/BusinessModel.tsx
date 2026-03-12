@@ -225,7 +225,7 @@ const COMPETITIVE_ADVANTAGES = [
 
 const UNIT_ECONOMICS = [
 { label: "Customer Acquisition Cost (CAC)", value: "Rp 150.000", note: "Via referral & digital marketing" },
-{ label: "Average Revenue Per User (ARPU)", value: "Rp 200.000/bln", note: "Rata-rata paket Professional" },
+{ label: "Average Revenue Per User (ARPU)", value: "Rp 200.000/bln", note: "Rata-rata paket Premium" },
 { label: "Customer Lifetime Value (LTV)", value: "Rp 7.200.000", note: "Rata-rata 36 bulan retention" },
 { label: "LTV/CAC Ratio", value: "48x", note: "Sangat sehat (benchmark > 3x)" },
 { label: "Payback Period", value: "< 1 Bulan", note: "ROI tercepat di industri EdTech" },
