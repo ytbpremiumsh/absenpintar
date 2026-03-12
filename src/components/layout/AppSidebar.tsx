@@ -14,6 +14,7 @@ import {
   LifeBuoy,
   ClipboardCheck,
   Users2,
+  MessageSquare,
 } from "lucide-react";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
