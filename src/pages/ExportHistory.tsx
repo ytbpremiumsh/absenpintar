@@ -137,7 +137,7 @@ const ExportHistory = () => {
 
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
 
-  const buildStudentRows = (logs: any[]): StudentRow[] => {
+  const buildStudentRows = (logs: any[], isPulang = false): StudentRow[] => {
     const studentIds = new Set(students.map(s => s.id));
     const filteredLogs = logs.filter(l => studentIds.has(l.student_id));
     return students.map(s => {
@@ -145,17 +145,24 @@ const ExportHistory = () => {
       const totals = { H: 0, S: 0, I: 0, A: 0 };
       filteredLogs.filter(l => l.student_id === s.id).forEach(l => {
         const day = parseInt(l.date.split("-")[2]);
-        const code = STATUS_CODES[l.status] || "";
-        days[day] = code;
-        if (code in totals) totals[code as keyof typeof totals]++;
+        if (isPulang) {
+          // For pulang, just mark with checkmark
+          days[day] = "✓";
+          totals.H++;
+        } else {
+          const code = STATUS_CODES[l.status] || "";
+          days[day] = code;
+          if (code in totals) totals[code as keyof typeof totals]++;
+        }
       });
       return { id: s.id, name: s.name, student_id: s.student_id, days, totals };
     });
   };
 
-  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs), [students, datangLogs]);
-  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs), [students, pulangLogs]);
+  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs, false), [students, datangLogs]);
+  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs, true), [students, pulangLogs]);
   const activeRows = rekapTab === "datang" ? studentRows : pulangRows;
+  const isPulangMode = rekapTab === "pulang";
 
   const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
