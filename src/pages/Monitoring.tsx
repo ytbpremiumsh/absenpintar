@@ -96,8 +96,9 @@ const Monitoring = () => {
     const allStudents = studentsRes.data || [];
     const logs = logsRes.data || [];
 
+    const datangLogs = logs.filter((l: any) => (l.attendance_type || 'datang') === 'datang');
     const mapped: StudentWithStatus[] = allStudents.map((s: any) => {
-      const log = logs.find((l: any) => l.student_id === s.id);
+      const log = datangLogs.find((l: any) => l.student_id === s.id);
       return {
         id: s.id, name: s.name, class: s.class,
         parent_name: s.parent_name, student_id: s.student_id, photo_url: s.photo_url,

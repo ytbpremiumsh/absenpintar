@@ -83,6 +83,7 @@ const Dashboard = () => {
       .from("attendance_logs")
       .select("date, status")
       .eq("school_id", profile.school_id)
+      .eq("attendance_type", "datang")
       .gte("date", fromDate)
       .order("date");
 
