@@ -194,7 +194,7 @@ const ExportHistory = () => {
     html += `<th class="H">H</th><th class="S">S</th><th class="I">I</th><th class="A">A</th></tr>`;
 
     // Data
-    studentRows.forEach((s, i) => {
+    activeRows.forEach((s, i) => {
       html += `<tr><td>${i + 1}</td><td>${s.student_id}</td><td class="name">${s.name}</td>`;
       for (let d = 1; d <= daysInMonth; d++) {
         const code = s.days[d] || "";
