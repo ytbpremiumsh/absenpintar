@@ -258,11 +258,17 @@ const ExportHistory = () => {
     doc.setFontSize(10);
     doc.text(`Kelas : ${selectedClass}`, 14, 30);
 
-    const head = [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
+    const head = isPulangMode
+      ? [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "✓"]]
+      : [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
     const body = activeRows.map((s, i) => {
       const row: (string | number)[] = [i + 1, s.student_id, s.name];
       for (let d = 1; d <= daysInMonth; d++) row.push(s.days[d] || "");
-      row.push(s.totals.H, s.totals.S, s.totals.I, s.totals.A);
+      if (isPulangMode) {
+        row.push(s.totals.H);
+      } else {
+        row.push(s.totals.H, s.totals.S, s.totals.I, s.totals.A);
+      }
       return row;
     });
 
