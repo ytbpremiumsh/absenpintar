@@ -64,6 +64,12 @@ interface LiveEntry {
   method: string;
   time: string;
   created_at: string;
+  attendance_type: string;
+}
+  status: string;
+  method: string;
+  time: string;
+  created_at: string;
 }
 
 const LiveDot = () => (
