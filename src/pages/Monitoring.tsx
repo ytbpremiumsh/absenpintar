@@ -121,6 +121,7 @@ const Monitoring = () => {
         method: log.method || "manual",
         time: log.time,
         created_at: log.created_at,
+        attendance_type: log.attendance_type || "datang",
       };
     });
 
