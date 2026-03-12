@@ -68,17 +68,32 @@ const SOLUTIONS = [
   { icon: FileBarChart, problem: "Laporan Tidak Akurat", solution: "Export Excel & PDF", desc: "Laporan kehadiran lengkap bisa di-export dalam format Excel atau PDF kapan saja." },
 ];
 
+interface PlanRow {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  features: any;
+  max_students: number | null;
+  sort_order: number;
+}
+
 const LandingPage = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState<Record<string, string>>({});
+  const [plans, setPlans] = useState<PlanRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    supabase.from("landing_content").select("key, value").then(({ data }) => {
+    Promise.all([
+      supabase.from("landing_content").select("key, value"),
+      supabase.from("subscription_plans").select("*").eq("is_active", true).order("sort_order"),
+    ]).then(([contentRes, plansRes]) => {
       const map: Record<string, string> = {};
-      (data || []).forEach((item: any) => { map[item.key] = item.value; });
+      (contentRes.data || []).forEach((item: any) => { map[item.key] = item.value; });
       setContent(map);
+      setPlans((plansRes.data as PlanRow[]) || []);
       setLoading(false);
     });
 
