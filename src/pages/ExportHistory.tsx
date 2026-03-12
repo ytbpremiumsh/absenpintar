@@ -41,11 +41,13 @@ const ExportHistory = () => {
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [students, setStudents] = useState<{ id: string; name: string; student_id: string }[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [datangLogs, setDatangLogs] = useState<any[]>([]);
+  const [pulangLogs, setPulangLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState("");
   const [schoolAddress, setSchoolAddress] = useState("");
   const [waliKelasName, setWaliKelasName] = useState("");
+  const [rekapTab, setRekapTab] = useState<"datang" | "pulang">("datang");
   const tableRef = useRef<HTMLDivElement>(null);
 
   const isTeacher = roles.includes("teacher");
