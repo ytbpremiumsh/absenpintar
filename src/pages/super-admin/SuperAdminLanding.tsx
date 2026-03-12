@@ -165,7 +165,7 @@ const SuperAdminLanding = () => {
             <h3 className="font-bold text-foreground text-sm">{section.title}</h3>
             {section.keys.map((key) => {
               const item = items.find((i) => i.key === key);
-              const isImage = item?.type === "image";
+              const isImage = item?.type === "image" || key.includes("image") || key.includes("logo");
               const label = LABELS[key] || key;
               const val = getValue(key);
 
