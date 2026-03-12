@@ -129,7 +129,7 @@ const SuperAdminPlans = () => {
               <p className="text-2xl font-bold text-primary">{formatRupiah(plan.price)}<span className="text-sm text-muted-foreground font-normal"> / bulan</span></p>
               {plan.description && <p className="text-xs text-muted-foreground">{plan.description}</p>}
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <ul className="space-y-1">
                 {plan.features.map((f, i) => (
                   <li key={i} className="text-sm text-foreground flex items-start gap-1.5">
@@ -137,7 +137,11 @@ const SuperAdminPlans = () => {
                   </li>
                 ))}
               </ul>
-              {plan.max_students && <p className="text-xs text-muted-foreground mt-2">Maks {plan.max_students} siswa</p>}
+              {plan.max_students && <p className="text-xs text-muted-foreground">Maks {plan.max_students} siswa</p>}
+              <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                <span className="text-xs text-muted-foreground">Tampil di Landing Page</span>
+                <Switch checked={plan.show_on_landing} onCheckedChange={(val) => handleToggleLanding(plan.id, val)} />
+              </div>
             </CardContent>
           </Card>
         ))}

@@ -94,8 +94,10 @@ const LandingPage = () => {
       const map: Record<string, string> = {};
       (contentRes.data || []).forEach((item: any) => { map[item.key] = item.value; });
       setContent(map);
-      setShowPricing(map["show_pricing"] !== "false");
-      setPlans((plansRes.data as PlanRow[]) || []);
+      const allPlans = (plansRes.data || []) as any[];
+      const landingPlans = allPlans.filter((p: any) => p.show_on_landing !== false);
+      setPlans(landingPlans as PlanRow[]);
+      setShowPricing(landingPlans.length > 0);
       setLoading(false);
     });
 
