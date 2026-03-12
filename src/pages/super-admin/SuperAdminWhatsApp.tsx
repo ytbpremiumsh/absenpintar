@@ -292,23 +292,11 @@ const SuperAdminWhatsApp = () => {
             </div>
 
             {/* Template Tabs */}
-            <Tabs defaultValue="pickup" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="pickup" className="text-xs">🚗 Penjemputan</TabsTrigger>
+            <Tabs defaultValue="arrive" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="arrive" className="text-xs">📥 Absensi Datang</TabsTrigger>
                 <TabsTrigger value="depart" className="text-xs">📤 Absensi Pulang</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="pickup" className="space-y-2 mt-3">
-                <Label className="text-xs text-muted-foreground">Template Notifikasi Penjemputan</Label>
-                <Textarea
-                  value={form.message_template}
-                  onChange={(e) => setForm({ ...form, message_template: e.target.value })}
-                  rows={6}
-                  className="font-mono text-xs"
-                />
-                <PlaceholderButtons placeholders={PICKUP_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, message_template: form.message_template + key })} />
-              </TabsContent>
 
               <TabsContent value="arrive" className="space-y-2 mt-3">
                 <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Datang</Label>
