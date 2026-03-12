@@ -55,7 +55,7 @@ const LABELS: Record<string, string> = {
   footer_email: "Email",
   footer_phone: "Telepon",
   cta_text: "Teks Tombol CTA",
-  show_pricing: "Tampilkan Section Harga di Landing Page (true/false)",
+  show_pricing: "Tampilkan Section Harga di Landing Page (pindah ke Manajemen Paket)",
 };
 
 const SECTIONS = [
