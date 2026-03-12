@@ -41,16 +41,22 @@ const ATTENDANCE_PLACEHOLDERS = [
   { key: "{school_name}", label: "Nama Sekolah" },
 ];
 
-const ATTENDANCE_PLACEHOLDERS = [
-  { key: "{student_name}", label: "Nama Siswa" },
-  { key: "{class}", label: "Kelas" },
-  { key: "{time}", label: "Waktu" },
-  { key: "{day}", label: "Nama Hari" },
-  { key: "{student_id}", label: "NIS" },
-  { key: "{method}", label: "Metode Absen" },
-  { key: "{parent_name}", label: "Nama Wali" },
-  { key: "{school_name}", label: "Nama Sekolah" },
-];
+const ATTENDANCE_PLACEHOLDERS_2 = ATTENDANCE_PLACEHOLDERS; // reuse
+
+const PlaceholderButtons = ({ placeholders, onInsert }: { placeholders: typeof ATTENDANCE_PLACEHOLDERS; onInsert: (key: string) => void }) => (
+  <div className="flex flex-wrap gap-1 mt-2">
+    {placeholders.map((p) => (
+      <button
+        key={p.key}
+        type="button"
+        className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+        onClick={() => onInsert(p.key)}
+      >
+        {p.key} <span className="text-muted-foreground">({p.label})</span>
+      </button>
+    ))}
+  </div>
+);
 
 const PlaceholderButtons = ({ placeholders, onInsert }: { placeholders: typeof PICKUP_PLACEHOLDERS; onInsert: (key: string) => void }) => (
   <div className="flex flex-wrap gap-1 mt-2">
