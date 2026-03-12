@@ -137,7 +137,7 @@ const ExportHistory = () => {
 
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
 
-  const studentRows: StudentRow[] = useMemo(() => {
+  const buildStudentRows = (logs: any[]): StudentRow[] => {
     const studentIds = new Set(students.map(s => s.id));
     const filteredLogs = logs.filter(l => studentIds.has(l.student_id));
     return students.map(s => {
@@ -151,7 +151,11 @@ const ExportHistory = () => {
       });
       return { id: s.id, name: s.name, student_id: s.student_id, days, totals };
     });
-  }, [students, logs]);
+  };
+
+  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs), [students, datangLogs]);
+  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs), [students, pulangLogs]);
+  const activeRows = rekapTab === "datang" ? studentRows : pulangRows;
 
   const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
