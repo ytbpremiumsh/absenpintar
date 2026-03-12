@@ -375,14 +375,22 @@ const ExportHistory = () => {
           </CardContent>
         </Card>
 
+        {/* Tabs: Datang / Pulang */}
+        <Tabs value={rekapTab} onValueChange={(v) => setRekapTab(v as "datang" | "pulang")}>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="datang" className="flex-1 sm:flex-none text-xs sm:text-sm">📋 Rekap Kehadiran</TabsTrigger>
+            <TabsTrigger value="pulang" className="flex-1 sm:flex-none text-xs sm:text-sm">🏠 Rekap Kepulangan</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {/* Summary cards */}
-        {studentRows.length > 0 && (
+        {activeRows.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Total Siswa", value: studentRows.length, color: "text-primary" },
-              { label: "Total Hadir", value: studentRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
-              { label: "Total Sakit", value: studentRows.reduce((a, s) => a + s.totals.S, 0), color: "text-blue-500" },
-              { label: "Total Alfa", value: studentRows.reduce((a, s) => a + s.totals.A, 0), color: "text-destructive" },
+              { label: "Total Siswa", value: activeRows.length, color: "text-primary" },
+              { label: rekapTab === "datang" ? "Total Hadir" : "Total Pulang", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
+              { label: "Total Sakit", value: activeRows.reduce((a, s) => a + s.totals.S, 0), color: "text-blue-500" },
+              { label: "Total Alfa", value: activeRows.reduce((a, s) => a + s.totals.A, 0), color: "text-destructive" },
             ].map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <Card className="border-0 shadow-card">
@@ -400,7 +408,9 @@ const ExportHistory = () => {
         <Card className="border-0 shadow-card overflow-hidden">
           <CardContent className="p-0">
             <div className="p-4 border-b border-border text-center">
-              <h2 className="text-base font-bold text-foreground tracking-wide">ABSENSI SISWA</h2>
+              <h2 className="text-base font-bold text-foreground tracking-wide">
+                {rekapTab === "datang" ? "ABSENSI SISWA" : "REKAP KEPULANGAN SISWA"}
+              </h2>
               <p className="text-sm text-muted-foreground font-semibold">BULAN : {monthLabel.toUpperCase()}</p>
               <p className="text-xs text-muted-foreground">Kelas : {selectedClass || "-"}</p>
             </div>
