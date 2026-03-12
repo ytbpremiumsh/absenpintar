@@ -20,9 +20,10 @@ interface Plan {
   max_students: number | null;
   is_active: boolean;
   sort_order: number;
+  show_on_landing: boolean;
 }
 
-const emptyPlan = { name: "", price: 0, description: "", features: "", max_students: "", is_active: true };
+const emptyPlan = { name: "", price: 0, description: "", features: "", max_students: "", is_active: true, show_on_landing: true };
 
 const SuperAdminPlans = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -30,36 +31,32 @@ const SuperAdminPlans = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
   const [form, setForm] = useState(emptyPlan);
-  const [showPricing, setShowPricing] = useState(true);
-  const [savingToggle, setSavingToggle] = useState(false);
-
-  const fetchShowPricing = async () => {
-    const { data } = await supabase.from("platform_settings").select("value").eq("key", "show_pricing").maybeSingle();
-    setShowPricing(data?.value !== "false");
-  };
-
-  const handleTogglePricing = async (val: boolean) => {
-    setShowPricing(val);
-    setSavingToggle(true);
-    await supabase.from("platform_settings").upsert({ key: "show_pricing", value: val ? "true" : "false", updated_at: new Date().toISOString() }, { onConflict: "key" });
-    setSavingToggle(false);
-    toast.success(val ? "Section harga ditampilkan di Landing Page" : "Section harga disembunyikan dari Landing Page");
-  };
 
   const fetchPlans = async () => {
     const { data } = await supabase.from("subscription_plans").select("*").order("sort_order");
-    if (data) setPlans(data.map((p: any) => ({ ...p, features: Array.isArray(p.features) ? p.features : [] })));
+    if (data) setPlans(data.map((p: any) => ({ ...p, features: Array.isArray(p.features) ? p.features : [], show_on_landing: p.show_on_landing !== false })));
     setLoading(false);
   };
 
-  useEffect(() => { fetchPlans(); fetchShowPricing(); }, []);
+  const handleToggleLanding = async (planId: string, val: boolean) => {
+    setPlans(prev => prev.map(p => p.id === planId ? { ...p, show_on_landing: val } : p));
+    const { error } = await supabase.from("subscription_plans").update({ show_on_landing: val } as any).eq("id", planId);
+    if (error) {
+      toast.error("Gagal mengubah visibilitas");
+      fetchPlans();
+    } else {
+      toast.success(val ? "Paket ditampilkan di Landing Page" : "Paket disembunyikan dari Landing Page");
+    }
+  };
+
+  useEffect(() => { fetchPlans(); }, []);
 
   const openCreate = () => { setEditing(null); setForm(emptyPlan); setDialogOpen(true); };
   const openEdit = (plan: Plan) => {
     setEditing(plan);
     setForm({
       name: plan.name, price: plan.price, description: plan.description || "",
-      features: plan.features.join("\n"), max_students: plan.max_students?.toString() || "", is_active: plan.is_active,
+      features: plan.features.join("\n"), max_students: plan.max_students?.toString() || "", is_active: plan.is_active, show_on_landing: plan.show_on_landing,
     });
     setDialogOpen(true);
   };
@@ -107,15 +104,6 @@ const SuperAdminPlans = () => {
         <Button onClick={openCreate} className="gradient-primary text-primary-foreground"><Plus className="h-4 w-4 mr-1" /> Tambah Paket</Button>
       </div>
 
-      <Card className="border-0 shadow-card">
-        <CardContent className="p-4 flex items-center justify-between">
-          <div>
-            <p className="font-medium text-foreground text-sm">Tampilkan Harga di Landing Page</p>
-            <p className="text-xs text-muted-foreground">Toggle untuk menampilkan/menyembunyikan section harga di halaman utama</p>
-          </div>
-          <Switch checked={showPricing} onCheckedChange={handleTogglePricing} disabled={savingToggle} />
-        </CardContent>
-      </Card>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {plans.map((plan) => (
@@ -132,7 +120,7 @@ const SuperAdminPlans = () => {
               <p className="text-2xl font-bold text-primary">{formatRupiah(plan.price)}<span className="text-sm text-muted-foreground font-normal"> / bulan</span></p>
               {plan.description && <p className="text-xs text-muted-foreground">{plan.description}</p>}
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <ul className="space-y-1">
                 {plan.features.map((f, i) => (
                   <li key={i} className="text-sm text-foreground flex items-start gap-1.5">
@@ -140,7 +128,11 @@ const SuperAdminPlans = () => {
                   </li>
                 ))}
               </ul>
-              {plan.max_students && <p className="text-xs text-muted-foreground mt-2">Maks {plan.max_students} siswa</p>}
+              {plan.max_students && <p className="text-xs text-muted-foreground">Maks {plan.max_students} siswa</p>}
+              <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                <span className="text-xs text-muted-foreground">Tampil di Landing Page</span>
+                <Switch checked={plan.show_on_landing} onCheckedChange={(val) => handleToggleLanding(plan.id, val)} />
+              </div>
             </CardContent>
           </Card>
         ))}
