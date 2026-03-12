@@ -33,18 +33,21 @@ const SuperAdminPresentation = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    const updates = [
+    const rows = [
       { key: "presentation_is_public", value: isPublic ? "true" : "false" },
       { key: "presentation_title", value: title },
       { key: "presentation_subtitle", value: subtitle },
-    ];
-    for (const u of updates) {
-      await supabase
-        .from("platform_settings")
-        .update({ value: u.value, updated_at: new Date().toISOString() })
-        .eq("key", u.key);
+    ].map((r) => ({ ...r, updated_at: new Date().toISOString() }));
+
+    const { error } = await supabase
+      .from("platform_settings")
+      .upsert(rows, { onConflict: "key" });
+
+    if (error) {
+      toast.error("Gagal menyimpan: " + error.message);
+    } else {
+      toast.success("Pengaturan presentasi berhasil disimpan!");
     }
-    toast.success("Pengaturan presentasi berhasil disimpan!");
     setSaving(false);
   };
 
