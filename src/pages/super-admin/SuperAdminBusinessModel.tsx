@@ -129,6 +129,33 @@ const SuperAdminBusinessModel = () => {
         </Button>
       </div>
 
+      {/* Visibility Toggle */}
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 sm:p-6 space-y-4">
+                <h3 className="font-bold text-foreground text-sm">Akses Halaman</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Publik</p>
+                    <p className="text-xs text-muted-foreground">Jika aktif, halaman presentasi bisa diakses siapa saja via link</p>
+                  </div>
+                  <Switch checked={isPublic} onCheckedChange={setIsPublic} />
+                </div>
+                {isPublic && (
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                    <Input value={presentationUrl} readOnly className="bg-transparent border-0 text-xs flex-1" />
+                    <Button size="sm" variant="outline" onClick={copyLink}>
+                      <Copy className="h-3.5 w-3.5 mr-1" /> Salin
+                    </Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <a href="/presentation" target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" /> Buka
+                      </a>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
       {/* Visibility */}
       <Card className="border-0 shadow-card">
         <CardContent className="p-4 sm:p-6 space-y-4">
