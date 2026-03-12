@@ -393,13 +393,25 @@ const ExportHistory = () => {
 
         {/* Summary cards */}
         {activeRows.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
+          <div className={`grid ${isPulangMode ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'} gap-3`}>
+            {isPulangMode ? [
               { label: "Total Siswa", value: activeRows.length, color: "text-primary" },
-              { label: rekapTab === "datang" ? "Total Hadir" : "Total Pulang", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
+              { label: "Sudah Pulang", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
+            ] : [
+              { label: "Total Siswa", value: activeRows.length, color: "text-primary" },
+              { label: "Total Hadir", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
               { label: "Total Sakit", value: activeRows.reduce((a, s) => a + s.totals.S, 0), color: "text-blue-500" },
               { label: "Total Alfa", value: activeRows.reduce((a, s) => a + s.totals.A, 0), color: "text-destructive" },
-            ].map((s, i) => (
+            ]}
+            {(isPulangMode ? [
+              { label: "Total Siswa", value: activeRows.length, color: "text-primary" },
+              { label: "Sudah Pulang", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
+            ] : [
+              { label: "Total Siswa", value: activeRows.length, color: "text-primary" },
+              { label: "Total Hadir", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
+              { label: "Total Sakit", value: activeRows.reduce((a, s) => a + s.totals.S, 0), color: "text-blue-500" },
+              { label: "Total Alfa", value: activeRows.reduce((a, s) => a + s.totals.A, 0), color: "text-destructive" },
+            ]).map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <Card className="border-0 shadow-card">
                   <CardContent className="p-3 text-center">
