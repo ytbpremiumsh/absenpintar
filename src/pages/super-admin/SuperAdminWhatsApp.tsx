@@ -110,7 +110,7 @@ const SuperAdminWhatsApp = () => {
     setEditing(int);
     setForm({
       school_id: int.school_id, api_url: int.api_url, api_key: int.api_key, is_active: int.is_active,
-      message_template: int.message_template || DEFAULT_PICKUP_TEMPLATE,
+      message_template: int.message_template || "",
       attendance_arrive_template: int.attendance_arrive_template || DEFAULT_ARRIVE_TEMPLATE,
       attendance_depart_template: int.attendance_depart_template || DEFAULT_DEPART_TEMPLATE,
     });
