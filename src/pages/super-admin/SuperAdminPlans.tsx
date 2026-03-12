@@ -56,7 +56,7 @@ const SuperAdminPlans = () => {
     setEditing(plan);
     setForm({
       name: plan.name, price: plan.price, description: plan.description || "",
-      features: plan.features.join("\n"), max_students: plan.max_students?.toString() || "", is_active: plan.is_active,
+      features: plan.features.join("\n"), max_students: plan.max_students?.toString() || "", is_active: plan.is_active, show_on_landing: plan.show_on_landing,
     });
     setDialogOpen(true);
   };
