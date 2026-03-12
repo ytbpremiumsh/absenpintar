@@ -137,7 +137,7 @@ const ExportHistory = () => {
 
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
 
-  const buildStudentRows = (logs: any[]): StudentRow[] => {
+  const buildStudentRows = (logs: any[], isPulang = false): StudentRow[] => {
     const studentIds = new Set(students.map(s => s.id));
     const filteredLogs = logs.filter(l => studentIds.has(l.student_id));
     return students.map(s => {
@@ -145,17 +145,24 @@ const ExportHistory = () => {
       const totals = { H: 0, S: 0, I: 0, A: 0 };
       filteredLogs.filter(l => l.student_id === s.id).forEach(l => {
         const day = parseInt(l.date.split("-")[2]);
-        const code = STATUS_CODES[l.status] || "";
-        days[day] = code;
-        if (code in totals) totals[code as keyof typeof totals]++;
+        if (isPulang) {
+          // For pulang, just mark with checkmark
+          days[day] = "✓";
+          totals.H++;
+        } else {
+          const code = STATUS_CODES[l.status] || "";
+          days[day] = code;
+          if (code in totals) totals[code as keyof typeof totals]++;
+        }
       });
       return { id: s.id, name: s.name, student_id: s.student_id, days, totals };
     });
   };
 
-  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs), [students, datangLogs]);
-  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs), [students, pulangLogs]);
+  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs, false), [students, datangLogs]);
+  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs, true), [students, pulangLogs]);
   const activeRows = rekapTab === "datang" ? studentRows : pulangRows;
+  const isPulangMode = rekapTab === "pulang";
 
   const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
@@ -178,9 +185,11 @@ const ExportHistory = () => {
       .S { background: ${STATUS_EXCEL_COLORS.S.bg}; color: ${STATUS_EXCEL_COLORS.S.fg}; font-weight: bold; }
       .I { background: ${STATUS_EXCEL_COLORS.I.bg}; color: ${STATUS_EXCEL_COLORS.I.fg}; font-weight: bold; }
       .A { background: ${STATUS_EXCEL_COLORS.A.bg}; color: ${STATUS_EXCEL_COLORS.A.fg}; font-weight: bold; }
+      .check { background: ${STATUS_EXCEL_COLORS.H.bg}; color: ${STATUS_EXCEL_COLORS.H.fg}; font-weight: bold; }
     </style></head><body><table>`;
 
-    const totalCols = 3 + daysInMonth + 4;
+    const ketCols = isPulangMode ? 1 : 4;
+    const totalCols = 3 + daysInMonth + ketCols;
     html += `<tr><td colspan="${totalCols}" class="title">${titleLabel}</td></tr>`;
     html += `<tr><td colspan="${totalCols}" class="subtitle">BULAN : ${monthLabel.toUpperCase()}</td></tr>`;
     html += `<tr><td colspan="${totalCols}" class="subtitle">Kelas : ${selectedClass}</td></tr>`;
@@ -188,20 +197,29 @@ const ExportHistory = () => {
 
     // Header
     html += `<tr><th rowspan="2">NO</th><th rowspan="2">NIS</th><th rowspan="2" class="name">NAMA SISWA</th>`;
-    html += `<th colspan="${daysInMonth}">TANGGAL</th><th colspan="4">KET</th></tr>`;
+    html += `<th colspan="${daysInMonth}">TANGGAL</th><th colspan="${ketCols}">KET</th></tr>`;
     html += `<tr>`;
     for (let d = 1; d <= daysInMonth; d++) html += `<th>${d}</th>`;
-    html += `<th class="H">H</th><th class="S">S</th><th class="I">I</th><th class="A">A</th></tr>`;
+    if (isPulangMode) {
+      html += `<th class="H">✓</th></tr>`;
+    } else {
+      html += `<th class="H">H</th><th class="S">S</th><th class="I">I</th><th class="A">A</th></tr>`;
+    }
 
     // Data
     activeRows.forEach((s, i) => {
       html += `<tr><td>${i + 1}</td><td>${s.student_id}</td><td class="name">${s.name}</td>`;
       for (let d = 1; d <= daysInMonth; d++) {
         const code = s.days[d] || "";
-        html += `<td${code ? ` class="${code}"` : ""}>${code}</td>`;
+        const cls = code === "✓" ? "check" : code;
+        html += `<td${cls ? ` class="${cls}"` : ""}>${code}</td>`;
       }
-      html += `<td class="H">${s.totals.H || ""}</td><td class="S">${s.totals.S || ""}</td>`;
-      html += `<td class="I">${s.totals.I || ""}</td><td class="A">${s.totals.A || ""}</td></tr>`;
+      if (isPulangMode) {
+        html += `<td class="H">${s.totals.H || ""}</td></tr>`;
+      } else {
+        html += `<td class="H">${s.totals.H || ""}</td><td class="S">${s.totals.S || ""}</td>`;
+        html += `<td class="I">${s.totals.I || ""}</td><td class="A">${s.totals.A || ""}</td></tr>`;
+      }
     });
 
     // Signature
@@ -240,11 +258,17 @@ const ExportHistory = () => {
     doc.setFontSize(10);
     doc.text(`Kelas : ${selectedClass}`, 14, 30);
 
-    const head = [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
+    const head = isPulangMode
+      ? [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "✓"]]
+      : [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
     const body = activeRows.map((s, i) => {
       const row: (string | number)[] = [i + 1, s.student_id, s.name];
       for (let d = 1; d <= daysInMonth; d++) row.push(s.days[d] || "");
-      row.push(s.totals.H, s.totals.S, s.totals.I, s.totals.A);
+      if (isPulangMode) {
+        row.push(s.totals.H);
+      } else {
+        row.push(s.totals.H, s.totals.S, s.totals.I, s.totals.A);
+      }
       return row;
     });
 
@@ -304,6 +328,7 @@ const ExportHistory = () => {
   };
 
   const getCellColor = (code: string) => {
+    if (code === "✓") return "bg-success/15 text-success";
     switch (code) {
       case "H": return "bg-success/15 text-success";
       case "S": return "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400";
@@ -321,7 +346,7 @@ const ExportHistory = () => {
           <p className="text-muted-foreground text-xs sm:text-sm">Format absensi bulanan nasional per kelas</p>
         </div>
 
-        {isPremiumFeature && (
+        {isPremiumFeature && !features.loading && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="border-0 shadow-card bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
               <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -385,13 +410,16 @@ const ExportHistory = () => {
 
         {/* Summary cards */}
         {activeRows.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
+          <div className={`grid ${isPulangMode ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'} gap-3`}>
+            {(isPulangMode ? [
               { label: "Total Siswa", value: activeRows.length, color: "text-primary" },
-              { label: rekapTab === "datang" ? "Total Hadir" : "Total Pulang", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
+              { label: "Sudah Pulang", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
+            ] : [
+              { label: "Total Siswa", value: activeRows.length, color: "text-primary" },
+              { label: "Total Hadir", value: activeRows.reduce((a, s) => a + s.totals.H, 0), color: "text-success" },
               { label: "Total Sakit", value: activeRows.reduce((a, s) => a + s.totals.S, 0), color: "text-blue-500" },
               { label: "Total Alfa", value: activeRows.reduce((a, s) => a + s.totals.A, 0), color: "text-destructive" },
-            ].map((s, i) => (
+            ]).map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <Card className="border-0 shadow-card">
                   <CardContent className="p-3 text-center">
@@ -430,16 +458,26 @@ const ExportHistory = () => {
                       <th rowSpan={2} className="border border-border px-2 py-2 text-center font-bold w-20">NIS</th>
                       <th rowSpan={2} className="border border-border px-2 py-2 text-left font-bold min-w-[140px]">NAMA SISWA</th>
                       <th colSpan={daysInMonth} className="border border-border px-1 py-1.5 text-center font-bold">TANGGAL</th>
-                      <th colSpan={4} className="border border-border px-1 py-1.5 text-center font-bold">KET</th>
+                      {isPulangMode ? (
+                        <th className="border border-border px-1 py-1.5 text-center font-bold">KET</th>
+                      ) : (
+                        <th colSpan={4} className="border border-border px-1 py-1.5 text-center font-bold">KET</th>
+                      )}
                     </tr>
                     <tr className="bg-muted/40">
                       {Array.from({ length: daysInMonth }, (_, i) => (
                         <th key={i} className="border border-border px-0.5 py-1 text-center font-semibold w-7 text-[10px]">{i + 1}</th>
                       ))}
-                      <th className="border border-border px-1 py-1 text-center font-bold text-success w-7">H</th>
-                      <th className="border border-border px-1 py-1 text-center font-bold text-blue-500 w-7">S</th>
-                      <th className="border border-border px-1 py-1 text-center font-bold text-warning w-7">I</th>
-                      <th className="border border-border px-1 py-1 text-center font-bold text-destructive w-7">A</th>
+                      {isPulangMode ? (
+                        <th className="border border-border px-1 py-1 text-center font-bold text-success w-7">✓</th>
+                      ) : (
+                        <>
+                          <th className="border border-border px-1 py-1 text-center font-bold text-success w-7">H</th>
+                          <th className="border border-border px-1 py-1 text-center font-bold text-blue-500 w-7">S</th>
+                          <th className="border border-border px-1 py-1 text-center font-bold text-warning w-7">I</th>
+                          <th className="border border-border px-1 py-1 text-center font-bold text-destructive w-7">A</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -456,10 +494,16 @@ const ExportHistory = () => {
                             </td>
                           );
                         })}
-                        <td className="border border-border px-1 py-1 text-center font-bold text-success">{s.totals.H || ""}</td>
-                        <td className="border border-border px-1 py-1 text-center font-bold text-blue-500">{s.totals.S || ""}</td>
-                        <td className="border border-border px-1 py-1 text-center font-bold text-warning">{s.totals.I || ""}</td>
-                        <td className="border border-border px-1 py-1 text-center font-bold text-destructive">{s.totals.A || ""}</td>
+                        {isPulangMode ? (
+                          <td className="border border-border px-1 py-1 text-center font-bold text-success">{s.totals.H || ""}</td>
+                        ) : (
+                          <>
+                            <td className="border border-border px-1 py-1 text-center font-bold text-success">{s.totals.H || ""}</td>
+                            <td className="border border-border px-1 py-1 text-center font-bold text-blue-500">{s.totals.S || ""}</td>
+                            <td className="border border-border px-1 py-1 text-center font-bold text-warning">{s.totals.I || ""}</td>
+                            <td className="border border-border px-1 py-1 text-center font-bold text-destructive">{s.totals.A || ""}</td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
