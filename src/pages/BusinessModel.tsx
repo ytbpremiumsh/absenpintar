@@ -114,7 +114,7 @@ const REVENUE_STREAMS = [
   desc: "Pendapatan berulang yang stabil dan terprediksi setiap bulan dari setiap sekolah yang berlangganan.",
   details: [
   "Model subscription per sekolah — pembayaran otomatis setiap bulan",
-  "Paket bertingkat (Starter, Professional, Enterprise) menyesuaikan skala sekolah",
+  "Paket bertingkat (Basic, Premium, School) menyesuaikan skala sekolah",
   "Upgrade otomatis saat jumlah siswa melebihi kuota paket",
   "Retensi tinggi karena sistem menjadi bagian dari operasional harian sekolah",
   "Revenue churn sangat rendah — data terintegrasi membuat switching cost tinggi"],
