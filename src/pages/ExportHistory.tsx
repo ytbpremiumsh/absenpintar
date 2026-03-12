@@ -181,7 +181,7 @@ const ExportHistory = () => {
     </style></head><body><table>`;
 
     const totalCols = 3 + daysInMonth + 4;
-    html += `<tr><td colspan="${totalCols}" class="title">ABSENSI SISWA</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" class="title">${titleLabel}</td></tr>`;
     html += `<tr><td colspan="${totalCols}" class="subtitle">BULAN : ${monthLabel.toUpperCase()}</td></tr>`;
     html += `<tr><td colspan="${totalCols}" class="subtitle">Kelas : ${selectedClass}</td></tr>`;
     html += `<tr><td colspan="${totalCols}"></td></tr>`;
