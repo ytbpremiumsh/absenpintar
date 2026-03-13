@@ -163,8 +163,16 @@ const SuperAdminPresentation = () => {
               <Input value={ctaBtn1} onChange={(e) => setCtaBtn1(e.target.value)} placeholder="Daftar Gratis" />
             </div>
             <div className="space-y-1">
+              <Label className="text-xs">Link Tombol Utama</Label>
+              <Input value={ctaBtn1Link} onChange={(e) => setCtaBtn1Link(e.target.value)} placeholder="/register" />
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs">Tombol Kedua (Teks)</Label>
               <Input value={ctaBtn2} onChange={(e) => setCtaBtn2(e.target.value)} placeholder="Masuk ke Dashboard" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Link Tombol Kedua</Label>
+              <Input value={ctaBtn2Link} onChange={(e) => setCtaBtn2Link(e.target.value)} placeholder="/login" />
             </div>
           </div>
         </CardContent>
