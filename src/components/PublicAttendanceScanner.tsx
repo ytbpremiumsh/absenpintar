@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Camera, X, Search, ScanLine, UserCheck, CheckCircle2,
   ShieldCheck, Loader2, AlertTriangle, CreditCard, LogIn, LogOut, Lock, Crown,
+  SwitchCamera,
 } from "lucide-react";
 import { toast } from "sonner";
 import jsQR from "jsqr";
