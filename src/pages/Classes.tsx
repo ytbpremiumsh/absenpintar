@@ -17,7 +17,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const Classes = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const { canWhatsApp, loading: subscriptionLoading } = useSubscriptionFeatures();
+  const features = useSubscriptionFeatures();
+  const { canWhatsApp, loading: subscriptionLoading } = features;
   const [students, setStudents] = useState<any[]>([]);
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
