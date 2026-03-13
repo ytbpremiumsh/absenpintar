@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScanLine, CheckCircle2, Camera, Search, ShieldCheck, X, Clock, UserCheck, Loader2, Crown, Lock } from "lucide-react";
+import { ScanLine, CheckCircle2, Camera, Search, ShieldCheck, X, Clock, UserCheck, Loader2, Crown, Lock, SwitchCamera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -36,6 +36,7 @@ const ScanQR = () => {
   const [scanMethod, setScanMethod] = useState<"barcode" | "face">("barcode");
   const [faceScanning, setFaceScanning] = useState(false);
   const [currentAttType, setCurrentAttType] = useState<"datang" | "pulang">("datang");
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -192,14 +193,16 @@ const ScanQR = () => {
     return () => { video.onloadedmetadata = null; stopFaceScanning(); };
   }, [cameraActive, startBarcodeScanning, startFaceScanning, stopFaceScanning, canFace]);
 
-  const startCamera = async () => {
+  const startCamera = async (preferredFacing?: "user" | "environment") => {
     setCameraError("");
+    const facing = preferredFacing || facingMode;
     try {
       let stream: MediaStream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 } } });
       } catch {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" }, width: { ideal: 640 }, height: { ideal: 480 } } });
+        const fallback = facing === "user" ? "environment" : "user";
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: fallback, width: { ideal: 640 }, height: { ideal: 480 } } });
       }
       streamRef.current = stream;
       setCameraActive(true);
@@ -207,6 +210,13 @@ const ScanQR = () => {
       if (err.name === "NotAllowedError") setCameraError("Izin kamera ditolak. Berikan izin kamera di pengaturan browser.");
       else setCameraError("Gagal mengakses kamera: " + (err.message || "Unknown error"));
     }
+  };
+
+  const switchCamera = () => {
+    const newFacing = facingMode === "user" ? "environment" : "user";
+    setFacingMode(newFacing);
+    stopCamera();
+    setTimeout(() => startCamera(newFacing), 300);
   };
 
   const stopCamera = () => {
@@ -404,9 +414,14 @@ const ScanQR = () => {
                     </>
                   )}
                 </div>
-                <Button variant="outline" size="sm" onClick={stopCamera}>
-                  <X className="h-4 w-4 mr-1" /> Tutup
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button variant="outline" size="sm" onClick={switchCamera} title={facingMode === "user" ? "Ganti ke Kamera Belakang" : "Ganti ke Kamera Depan"}>
+                    <SwitchCamera className="h-4 w-4 mr-1" /> {facingMode === "user" ? "Belakang" : "Depan"}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={stopCamera}>
+                    <X className="h-4 w-4 mr-1" /> Tutup
+                  </Button>
+                </div>
               </div>
             </>
           ) : (
@@ -415,7 +430,7 @@ const ScanQR = () => {
                 <Camera className="h-7 w-7 sm:h-8 sm:w-8 text-primary-foreground" />
               </div>
               {cameraError && <p className="text-destructive text-xs sm:text-sm text-center px-4">{cameraError}</p>}
-              <Button onClick={startCamera} className="gradient-primary hover:opacity-90">
+              <Button onClick={() => startCamera()} className="gradient-primary hover:opacity-90">
                 <Camera className="h-4 w-4 mr-2" /> Aktifkan Kamera
               </Button>
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground">
