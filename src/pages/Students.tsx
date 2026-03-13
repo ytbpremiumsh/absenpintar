@@ -723,7 +723,7 @@ const Students = () => {
                                         {features.canUploadPhoto ? (
                                           <>
                                             <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer w-8 h-8" onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(student.id, e.target.files[0]); }} />
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={photoUploading === student.id}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors" disabled={photoUploading === student.id}>
                                               {photoUploading === student.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4 text-muted-foreground" />}
                                             </Button>
                                           </>
