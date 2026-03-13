@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Camera, X, Search, ScanLine, UserCheck, CheckCircle2,
   ShieldCheck, Loader2, AlertTriangle, CreditCard, LogIn, LogOut, Lock, Crown,
+  SwitchCamera,
 } from "lucide-react";
 import { toast } from "sonner";
 import jsQR from "jsqr";
@@ -39,6 +40,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
   const [scanMethod, setScanMethod] = useState<string>("barcode");
   const [faceScanning, setFaceScanning] = useState(false);
   const [attendanceType, setAttendanceType] = useState<string>("datang");
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -233,14 +235,16 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
     };
   }, [cameraActive, startBarcodeScanning, startFaceScanning, stopFaceScanning, canFaceRecognition]);
 
-  const startCamera = async () => {
+  const startCamera = async (preferredFacing?: "user" | "environment") => {
     setCameraError("");
+    const facing = preferredFacing || facingMode;
     try {
       let stream: MediaStream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 } } });
       } catch {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" }, width: { ideal: 640 }, height: { ideal: 480 } } });
+        const fallback = facing === "user" ? "environment" : "user";
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: fallback, width: { ideal: 640 }, height: { ideal: 480 } } });
       }
       streamRef.current = stream;
       setCameraActive(true);
@@ -248,6 +252,13 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
       if (err.name === "NotAllowedError") setCameraError("Izin kamera ditolak.");
       else setCameraError("Gagal mengakses kamera: " + (err.message || "Unknown"));
     }
+  };
+
+  const switchCamera = async () => {
+    const newFacing = facingMode === "user" ? "environment" : "user";
+    setFacingMode(newFacing);
+    stopCamera();
+    setTimeout(() => startCamera(newFacing), 300);
   };
 
   const stopCamera = () => {
@@ -364,9 +375,14 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                     </>
                   )}
                 </div>
-                <Button variant="outline" size="sm" onClick={stopCamera} className="h-7 text-xs px-2">
-                  <X className="h-3 w-3 mr-1" /> Tutup
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button variant="outline" size="sm" onClick={switchCamera} className="h-7 text-xs px-2" title={facingMode === "user" ? "Ganti ke Kamera Belakang" : "Ganti ke Kamera Depan"}>
+                    <SwitchCamera className="h-3 w-3 mr-1" /> {facingMode === "user" ? "Belakang" : "Depan"}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={stopCamera} className="h-7 text-xs px-2">
+                    <X className="h-3 w-3 mr-1" /> Tutup
+                  </Button>
+                </div>
               </div>
             </>
           ) : (
@@ -375,7 +391,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                 <Camera className="h-6 w-6 text-primary-foreground" />
               </div>
               {cameraError && <p className="text-destructive text-xs text-center">{cameraError}</p>}
-              <Button onClick={startCamera} size="sm" className="gradient-primary hover:opacity-90">
+              <Button onClick={() => startCamera()} size="sm" className="gradient-primary hover:opacity-90">
                 <Camera className="h-4 w-4 mr-2" /> Aktifkan Kamera
               </Button>
               <p className="text-[10px] text-muted-foreground">
