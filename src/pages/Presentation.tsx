@@ -205,6 +205,8 @@ const Presentation = () => {
   const [ctaSubtitle, setCtaSubtitle] = useState("");
   const [ctaBtn1, setCtaBtn1] = useState("");
   const [ctaBtn2, setCtaBtn2] = useState("");
+  const [ctaBtn1Link, setCtaBtn1Link] = useState("/register");
+  const [ctaBtn2Link, setCtaBtn2Link] = useState("/login");
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -212,7 +214,7 @@ const Presentation = () => {
       const { data } = await supabase
         .from("platform_settings")
         .select("key, value")
-        .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle", "presentation_cta_title", "presentation_cta_subtitle", "presentation_cta_btn1", "presentation_cta_btn2"]);
+        .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle", "presentation_cta_title", "presentation_cta_subtitle", "presentation_cta_btn1", "presentation_cta_btn2", "presentation_cta_btn1_link", "presentation_cta_btn2_link"]);
       if (data) {
         const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
         setIsPublic(map.presentation_is_public === "true");
@@ -222,6 +224,8 @@ const Presentation = () => {
         if (map.presentation_cta_subtitle) setCtaSubtitle(map.presentation_cta_subtitle);
         if (map.presentation_cta_btn1) setCtaBtn1(map.presentation_cta_btn1);
         if (map.presentation_cta_btn2) setCtaBtn2(map.presentation_cta_btn2);
+        if (map.presentation_cta_btn1_link) setCtaBtn1Link(map.presentation_cta_btn1_link);
+        if (map.presentation_cta_btn2_link) setCtaBtn2Link(map.presentation_cta_btn2_link);
       }
       setLoading(false);
     };
@@ -516,10 +520,10 @@ const Presentation = () => {
               {ctaSubtitle || "Bergabung sekarang dan rasakan kemudahan sistem absensi digital yang aman, cepat, dan transparan."}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="/register" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all text-sm">
+              <a href={ctaBtn1Link} className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all text-sm">
                 <Zap className="h-4 w-4" /> {ctaBtn1 || "Daftar Gratis"}
               </a>
-              <a href="/login" className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border ${d ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"}`}>
+              <a href={ctaBtn2Link} className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border ${d ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"}`}>
                 {ctaBtn2 || "Masuk ke Dashboard"} <ChevronRight className="h-4 w-4" />
               </a>
             </div>

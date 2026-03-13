@@ -17,6 +17,8 @@ const KEYS = [
   "presentation_cta_subtitle",
   "presentation_cta_btn1",
   "presentation_cta_btn2",
+  "presentation_cta_btn1_link",
+  "presentation_cta_btn2_link",
 ];
 
 const SuperAdminPresentation = () => {
@@ -29,6 +31,8 @@ const SuperAdminPresentation = () => {
   const [ctaSubtitle, setCtaSubtitle] = useState("");
   const [ctaBtn1, setCtaBtn1] = useState("");
   const [ctaBtn2, setCtaBtn2] = useState("");
+  const [ctaBtn1Link, setCtaBtn1Link] = useState("");
+  const [ctaBtn2Link, setCtaBtn2Link] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -42,6 +46,8 @@ const SuperAdminPresentation = () => {
         setCtaSubtitle(map.presentation_cta_subtitle || "");
         setCtaBtn1(map.presentation_cta_btn1 || "");
         setCtaBtn2(map.presentation_cta_btn2 || "");
+        setCtaBtn1Link(map.presentation_cta_btn1_link || "");
+        setCtaBtn2Link(map.presentation_cta_btn2_link || "");
       }
       setLoading(false);
     };
@@ -58,6 +64,8 @@ const SuperAdminPresentation = () => {
       { key: "presentation_cta_subtitle", value: ctaSubtitle },
       { key: "presentation_cta_btn1", value: ctaBtn1 },
       { key: "presentation_cta_btn2", value: ctaBtn2 },
+      { key: "presentation_cta_btn1_link", value: ctaBtn1Link },
+      { key: "presentation_cta_btn2_link", value: ctaBtn2Link },
     ].map((r) => ({ ...r, updated_at: new Date().toISOString() }));
 
     const { error } = await supabase
@@ -155,8 +163,16 @@ const SuperAdminPresentation = () => {
               <Input value={ctaBtn1} onChange={(e) => setCtaBtn1(e.target.value)} placeholder="Daftar Gratis" />
             </div>
             <div className="space-y-1">
+              <Label className="text-xs">Link Tombol Utama</Label>
+              <Input value={ctaBtn1Link} onChange={(e) => setCtaBtn1Link(e.target.value)} placeholder="/register" />
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs">Tombol Kedua (Teks)</Label>
               <Input value={ctaBtn2} onChange={(e) => setCtaBtn2(e.target.value)} placeholder="Masuk ke Dashboard" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Link Tombol Kedua</Label>
+              <Input value={ctaBtn2Link} onChange={(e) => setCtaBtn2Link(e.target.value)} placeholder="/login" />
             </div>
           </div>
         </CardContent>
