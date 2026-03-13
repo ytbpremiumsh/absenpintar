@@ -201,19 +201,27 @@ const Presentation = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState("Absensi Pintar");
   const [subtitle, setSubtitle] = useState("");
-  const [dark, setDark] = useState(true);
+  const [ctaTitle, setCtaTitle] = useState("");
+  const [ctaSubtitle, setCtaSubtitle] = useState("");
+  const [ctaBtn1, setCtaBtn1] = useState("");
+  const [ctaBtn2, setCtaBtn2] = useState("");
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       const { data } = await supabase
         .from("platform_settings")
         .select("key, value")
-        .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle"]);
+        .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle", "presentation_cta_title", "presentation_cta_subtitle", "presentation_cta_btn1", "presentation_cta_btn2"]);
       if (data) {
         const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
         setIsPublic(map.presentation_is_public === "true");
         if (map.presentation_title) setTitle(map.presentation_title);
         if (map.presentation_subtitle) setSubtitle(map.presentation_subtitle);
+        if (map.presentation_cta_title) setCtaTitle(map.presentation_cta_title);
+        if (map.presentation_cta_subtitle) setCtaSubtitle(map.presentation_cta_subtitle);
+        if (map.presentation_cta_btn1) setCtaBtn1(map.presentation_cta_btn1);
+        if (map.presentation_cta_btn2) setCtaBtn2(map.presentation_cta_btn2);
       }
       setLoading(false);
     };
@@ -395,7 +403,7 @@ const Presentation = () => {
                   {/* Screenshot */}
                   <div className="w-full lg:w-[58%] relative group">
                     <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
-                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-300/50"}`}>
+                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
                       <img src={f.image} alt={f.title} className="w-full h-auto" loading="lazy" />
                     </div>
                   </div>
@@ -491,20 +499,28 @@ const Presentation = () => {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-              Siap Memodernisasi{" "}
-              <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
-                Absensi Sekolah Anda?
-              </span>
+              {ctaTitle ? (
+                <span className={`bg-gradient-to-r ${d ? "from-white via-white to-indigo-300" : "from-slate-900 via-slate-800 to-indigo-600"} bg-clip-text text-transparent`}>
+                  {ctaTitle}
+                </span>
+              ) : (
+                <>
+                  Siap Memodernisasi{" "}
+                  <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
+                    Absensi Sekolah Anda?
+                  </span>
+                </>
+              )}
             </h2>
             <p className={`mt-4 ${muted} max-w-lg mx-auto text-sm sm:text-base`}>
-              Bergabung sekarang dan rasakan kemudahan sistem absensi digital yang aman, cepat, dan transparan.
+              {ctaSubtitle || "Bergabung sekarang dan rasakan kemudahan sistem absensi digital yang aman, cepat, dan transparan."}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <a href="/register" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all text-sm">
-                <Zap className="h-4 w-4" /> Daftar Gratis
+                <Zap className="h-4 w-4" /> {ctaBtn1 || "Daftar Gratis"}
               </a>
               <a href="/login" className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border ${d ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"}`}>
-                Masuk ke Dashboard <ChevronRight className="h-4 w-4" />
+                {ctaBtn2 || "Masuk ke Dashboard"} <ChevronRight className="h-4 w-4" />
               </a>
             </div>
           </motion.div>
