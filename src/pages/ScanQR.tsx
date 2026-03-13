@@ -414,9 +414,14 @@ const ScanQR = () => {
                     </>
                   )}
                 </div>
-                <Button variant="outline" size="sm" onClick={stopCamera}>
-                  <X className="h-4 w-4 mr-1" /> Tutup
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button variant="outline" size="sm" onClick={switchCamera} title={facingMode === "user" ? "Ganti ke Kamera Belakang" : "Ganti ke Kamera Depan"}>
+                    <SwitchCamera className="h-4 w-4 mr-1" /> {facingMode === "user" ? "Belakang" : "Depan"}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={stopCamera}>
+                    <X className="h-4 w-4 mr-1" /> Tutup
+                  </Button>
+                </div>
               </div>
             </>
           ) : (
