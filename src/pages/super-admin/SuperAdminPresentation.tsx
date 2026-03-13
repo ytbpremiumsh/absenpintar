@@ -190,16 +190,28 @@ const SuperAdminPresentation = () => {
       <Card className="border-0 shadow-card">
         <CardContent className="p-4 sm:p-6 space-y-4">
           <h3 className="font-bold text-foreground text-sm">Halaman Login</h3>
-          <p className="text-xs text-muted-foreground">Gambar sidebar yang tampil di halaman login (URL gambar)</p>
-          <div className="space-y-1">
-            <Label className="text-xs">URL Gambar Sidebar Login</Label>
-            <Input value={loginImage} onChange={(e) => setLoginImage(e.target.value)} placeholder="/images/presentation/students.jpeg" />
-          </div>
-          {loginImage && (
-            <div className="rounded-lg overflow-hidden border border-border w-48 h-32">
-              <img src={loginImage} alt="Preview" className="w-full h-full object-cover" />
+          <p className="text-xs text-muted-foreground">Kustomisasi tampilan halaman login</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">URL Gambar Sidebar Login</Label>
+              <Input value={loginImage} onChange={(e) => setLoginImage(e.target.value)} placeholder="/images/presentation/students.jpeg" />
+              {loginImage && (
+                <div className="rounded-lg overflow-hidden border border-border w-full h-32 mt-2">
+                  <img src={loginImage} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
-          )}
+            <div className="space-y-1">
+              <Label className="text-xs">URL Logo Login</Label>
+              <Input value={loginLogo} onChange={(e) => setLoginLogo(e.target.value)} placeholder="/images/logo-absensi-pintar.png" />
+              {loginLogo && (
+                <div className="mt-2 flex items-center gap-2">
+                  <img src={loginLogo} alt="Logo Preview" className="h-12 w-12 rounded-xl object-contain border border-border" />
+                  <span className="text-xs text-muted-foreground">Preview logo</span>
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 

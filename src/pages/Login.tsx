@@ -16,15 +16,19 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginImage, setLoginImage] = useState("/images/presentation/students.jpeg");
+  const [loginLogo, setLoginLogo] = useState("/images/logo-absensi-pintar.png");
 
   useEffect(() => {
     supabase
       .from("platform_settings")
-      .select("value")
-      .eq("key", "login_sidebar_image")
-      .maybeSingle()
+      .select("key, value")
+      .in("key", ["login_sidebar_image", "login_logo_url"])
       .then(({ data }) => {
-        if (data?.value) setLoginImage(data.value);
+        if (data) {
+          const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
+          if (map.login_sidebar_image) setLoginImage(map.login_sidebar_image);
+          if (map.login_logo_url) setLoginLogo(map.login_logo_url);
+        }
       });
   }, []);
 
