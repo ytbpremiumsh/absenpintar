@@ -205,6 +205,8 @@ const Presentation = () => {
   const [ctaSubtitle, setCtaSubtitle] = useState("");
   const [ctaBtn1, setCtaBtn1] = useState("");
   const [ctaBtn2, setCtaBtn2] = useState("");
+  const [ctaBtn1Link, setCtaBtn1Link] = useState("/register");
+  const [ctaBtn2Link, setCtaBtn2Link] = useState("/login");
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
