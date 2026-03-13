@@ -24,11 +24,16 @@ interface IntegrationData {
   message_template: string;
   attendance_arrive_template: string;
   attendance_depart_template: string;
+  attendance_group_template: string;
+  wa_delivery_target: string;
+  wa_enabled: boolean;
 }
 
 const DEFAULT_ARRIVE_TEMPLATE = `📋 *Notifikasi Absensi Datang*\n\n{school_name}\n\nAnanda *{student_name}* (Kelas {class}) telah tercatat HADIR pada {day}, pukul {time}.\n\nNIS: {student_id}\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
 
 const DEFAULT_DEPART_TEMPLATE = `📋 *Notifikasi Absensi Pulang*\n\n{school_name}\n\nAnanda *{student_name}* (Kelas {class}) telah tercatat PULANG pada {day}, pukul {time}.\n\nNIS: {student_id}\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+
+const DEFAULT_GROUP_TEMPLATE = `📋 *Notifikasi Absensi {type}*\n\n{school_name}\n\nSiswa *{student_name}* (Kelas {class}) telah tercatat {type} pada {day}, pukul {time}.\n\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
 
 const ATTENDANCE_PLACEHOLDERS = [
   { key: "{student_name}", label: "Nama Siswa" },
@@ -39,6 +44,11 @@ const ATTENDANCE_PLACEHOLDERS = [
   { key: "{method}", label: "Metode Absen" },
   { key: "{parent_name}", label: "Nama Wali" },
   { key: "{school_name}", label: "Nama Sekolah" },
+];
+
+const GROUP_PLACEHOLDERS = [
+  ...ATTENDANCE_PLACEHOLDERS,
+  { key: "{type}", label: "Tipe (Datang/Pulang)" },
 ];
 
 const PlaceholderButtons = ({ placeholders, onInsert }: { placeholders: typeof ATTENDANCE_PLACEHOLDERS; onInsert: (key: string) => void }) => (
@@ -70,6 +80,9 @@ const SuperAdminWhatsApp = () => {
     message_template: "",
     attendance_arrive_template: DEFAULT_ARRIVE_TEMPLATE,
     attendance_depart_template: DEFAULT_DEPART_TEMPLATE,
+    attendance_group_template: DEFAULT_GROUP_TEMPLATE,
+    wa_delivery_target: "parent_only",
+    wa_enabled: true,
   });
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState<string | null>(null);
@@ -102,6 +115,9 @@ const SuperAdminWhatsApp = () => {
       message_template: "",
       attendance_arrive_template: DEFAULT_ARRIVE_TEMPLATE,
       attendance_depart_template: DEFAULT_DEPART_TEMPLATE,
+      attendance_group_template: DEFAULT_GROUP_TEMPLATE,
+      wa_delivery_target: "parent_only",
+      wa_enabled: true,
     });
     setDialogOpen(true);
   };
@@ -113,6 +129,9 @@ const SuperAdminWhatsApp = () => {
       message_template: int.message_template || "",
       attendance_arrive_template: int.attendance_arrive_template || DEFAULT_ARRIVE_TEMPLATE,
       attendance_depart_template: int.attendance_depart_template || DEFAULT_DEPART_TEMPLATE,
+      attendance_group_template: int.attendance_group_template || DEFAULT_GROUP_TEMPLATE,
+      wa_delivery_target: int.wa_delivery_target || "parent_only",
+      wa_enabled: int.wa_enabled !== false,
     });
     setDialogOpen(true);
   };
@@ -131,6 +150,9 @@ const SuperAdminWhatsApp = () => {
       message_template: form.message_template,
       attendance_arrive_template: form.attendance_arrive_template,
       attendance_depart_template: form.attendance_depart_template,
+      attendance_group_template: form.attendance_group_template,
+      wa_delivery_target: form.wa_delivery_target,
+      wa_enabled: form.wa_enabled,
     };
 
     let error;
@@ -276,13 +298,14 @@ const SuperAdminWhatsApp = () => {
 
             {/* Template Tabs */}
             <Tabs defaultValue="arrive" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="arrive" className="text-xs">📥 Absensi Datang</TabsTrigger>
-                <TabsTrigger value="depart" className="text-xs">📤 Absensi Pulang</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="arrive" className="text-xs">📥 Datang</TabsTrigger>
+                <TabsTrigger value="depart" className="text-xs">📤 Pulang</TabsTrigger>
+                <TabsTrigger value="group" className="text-xs">👥 Group</TabsTrigger>
               </TabsList>
 
               <TabsContent value="arrive" className="space-y-2 mt-3">
-                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Datang</Label>
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Datang (Wali Murid)</Label>
                 <Textarea
                   value={form.attendance_arrive_template}
                   onChange={(e) => setForm({ ...form, attendance_arrive_template: e.target.value })}
@@ -293,7 +316,7 @@ const SuperAdminWhatsApp = () => {
               </TabsContent>
 
               <TabsContent value="depart" className="space-y-2 mt-3">
-                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Pulang</Label>
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Pulang (Wali Murid)</Label>
                 <Textarea
                   value={form.attendance_depart_template}
                   onChange={(e) => setForm({ ...form, attendance_depart_template: e.target.value })}
@@ -302,11 +325,41 @@ const SuperAdminWhatsApp = () => {
                 />
                 <PlaceholderButtons placeholders={ATTENDANCE_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, attendance_depart_template: form.attendance_depart_template + key })} />
               </TabsContent>
+
+              <TabsContent value="group" className="space-y-2 mt-3">
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Group Kelas</Label>
+                <Textarea
+                  value={form.attendance_group_template}
+                  onChange={(e) => setForm({ ...form, attendance_group_template: e.target.value })}
+                  rows={6}
+                  className="font-mono text-xs"
+                />
+                <PlaceholderButtons placeholders={GROUP_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, attendance_group_template: form.attendance_group_template + key })} />
+              </TabsContent>
             </Tabs>
 
-            <div className="flex items-center gap-2">
-              <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
-              <Label>Aktifkan</Label>
+            {/* Delivery Target */}
+            <div className="space-y-2">
+              <Label className="text-xs">Target Pengiriman Notifikasi Scan</Label>
+              <Select value={form.wa_delivery_target} onValueChange={(v) => setForm({ ...form, wa_delivery_target: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="parent_only">Hanya Wali Murid</SelectItem>
+                  <SelectItem value="group_only">Hanya Group Kelas</SelectItem>
+                  <SelectItem value="both">Group Kelas & Wali Murid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
+                <Label>Aktifkan Integrasi</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={form.wa_enabled} onCheckedChange={(v) => setForm({ ...form, wa_enabled: v })} />
+                <Label>WA Notifikasi</Label>
+              </div>
             </div>
           </div>
           <DialogFooter>

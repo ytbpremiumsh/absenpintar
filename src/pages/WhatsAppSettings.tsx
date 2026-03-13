@@ -5,12 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Save, Loader2, Send, History, Users, Clock } from "lucide-react";
+import { MessageSquare, Save, Loader2, Send, History, Users, Clock, Power } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { toast } from "sonner";
 import { PremiumGate } from "@/components/PremiumGate";
 import { motion } from "framer-motion";
@@ -26,12 +26,24 @@ const PLACEHOLDERS = [
   { key: "{school_name}", label: "Nama Sekolah" },
 ];
 
+const GROUP_PLACEHOLDERS = [
+  { key: "{student_name}", label: "Nama Siswa" },
+  { key: "{class}", label: "Kelas" },
+  { key: "{time}", label: "Waktu" },
+  { key: "{day}", label: "Nama Hari" },
+  { key: "{student_id}", label: "NIS" },
+  { key: "{method}", label: "Metode" },
+  { key: "{school_name}", label: "Nama Sekolah" },
+  { key: "{type}", label: "Tipe (Datang/Pulang)" },
+];
+
 const DEFAULT_ARRIVE = `📋 *Notifikasi Absensi Datang*\n\n{school_name}\n\nAnanda *{student_name}* (Kelas {class}) telah tercatat HADIR pada {day}, pukul {time}.\n\nNIS: {student_id}\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
 const DEFAULT_DEPART = `📋 *Notifikasi Absensi Pulang*\n\n{school_name}\n\nAnanda *{student_name}* (Kelas {class}) telah tercatat PULANG pada {day}, pukul {time}.\n\nNIS: {student_id}\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+const DEFAULT_GROUP = `📋 *Notifikasi Absensi {type}*\n\n{school_name}\n\nSiswa *{student_name}* (Kelas {class}) telah tercatat {type} pada {day}, pukul {time}.\n\nMetode: {method}\n\n_Pesan otomatis dari Smart School Attendance System_`;
 
-const PlaceholderButtons = ({ onInsert }: { onInsert: (key: string) => void }) => (
+const PlaceholderButtons = ({ placeholders, onInsert }: { placeholders: typeof PLACEHOLDERS; onInsert: (key: string) => void }) => (
   <div className="flex flex-wrap gap-1 mt-2">
-    {PLACEHOLDERS.map((p) => (
+    {placeholders.map((p) => (
       <button key={p.key} type="button"
         className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
         onClick={() => onInsert(p.key)}>
@@ -41,15 +53,23 @@ const PlaceholderButtons = ({ onInsert }: { onInsert: (key: string) => void }) =
   </div>
 );
 
+const DELIVERY_OPTIONS = [
+  { value: "parent_only", label: "Hanya Wali Murid" },
+  { value: "group_only", label: "Hanya Group Kelas" },
+  { value: "both", label: "Group Kelas & Wali Murid" },
+];
+
 const WhatsAppSettings = () => {
   const { profile } = useAuth();
-  const features = useSubscriptionFeatures();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [arriveTemplate, setArriveTemplate] = useState(DEFAULT_ARRIVE);
   const [departTemplate, setDepartTemplate] = useState(DEFAULT_DEPART);
+  const [groupTemplate, setGroupTemplate] = useState(DEFAULT_GROUP);
   const [integrationId, setIntegrationId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(false);
+  const [waEnabled, setWaEnabled] = useState(true);
+  const [deliveryTarget, setDeliveryTarget] = useState("parent_only");
 
   // Group messaging
   const [classes, setClasses] = useState<{ name: string; wa_group_id: string | null }[]>([]);
@@ -75,8 +95,11 @@ const WhatsAppSettings = () => {
         const d = intRes.data as any;
         setIntegrationId(d.id);
         setIsActive(d.is_active);
+        setWaEnabled(d.wa_enabled !== false);
+        setDeliveryTarget(d.wa_delivery_target || "parent_only");
         setArriveTemplate(d.attendance_arrive_template || DEFAULT_ARRIVE);
         setDepartTemplate(d.attendance_depart_template || DEFAULT_DEPART);
+        setGroupTemplate(d.attendance_group_template || DEFAULT_GROUP);
       }
       setClasses(classRes.data || []);
       setLoading(false);
@@ -97,7 +120,7 @@ const WhatsAppSettings = () => {
     setLogsLoading(false);
   };
 
-  const handleSaveTemplates = async () => {
+  const handleSaveSettings = async () => {
     if (!schoolId || !integrationId) {
       toast.error("Integrasi WhatsApp belum dikonfigurasi. Hubungi administrator.");
       return;
@@ -106,10 +129,21 @@ const WhatsAppSettings = () => {
     const { error } = await supabase.from("school_integrations" as any).update({
       attendance_arrive_template: arriveTemplate,
       attendance_depart_template: departTemplate,
+      attendance_group_template: groupTemplate,
+      wa_delivery_target: deliveryTarget,
+      wa_enabled: waEnabled,
     }).eq("id", integrationId);
     setSaving(false);
     if (error) toast.error("Gagal menyimpan: " + error.message);
-    else toast.success("Template berhasil disimpan!");
+    else toast.success("Pengaturan WhatsApp berhasil disimpan!");
+  };
+
+  const handleToggleWa = async (val: boolean) => {
+    setWaEnabled(val);
+    if (integrationId) {
+      await supabase.from("school_integrations" as any).update({ wa_enabled: val }).eq("id", integrationId);
+      toast.success(val ? "WhatsApp diaktifkan" : "WhatsApp dinonaktifkan");
+    }
   };
 
   const handleSendToGroup = async () => {
@@ -125,7 +159,7 @@ const WhatsAppSettings = () => {
     setSendingGroup(true);
     try {
       const res = await supabase.functions.invoke("send-whatsapp", {
-        body: { school_id: schoolId, group_id: cls.wa_group_id, message: groupMessage },
+        body: { school_id: schoolId, group_id: cls.wa_group_id, message: groupMessage, message_type: "group_broadcast" },
       });
       const data = res.data as any;
       if (data?.success) {
@@ -151,7 +185,7 @@ const WhatsAppSettings = () => {
             Pengaturan WhatsApp
           </h1>
           <p className="text-muted-foreground text-xs sm:text-sm mt-1">
-            Custom template notifikasi & kirim pesan ke grup kelas
+            Custom template, target pengiriman & kirim pesan ke grup kelas
           </p>
         </div>
 
@@ -163,43 +197,108 @@ const WhatsAppSettings = () => {
           </Card>
         )}
 
+        {/* WA Toggle & Delivery Target */}
+        <Card className="border-0 shadow-card">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Power className="h-4 w-4 text-primary" />
+                <div>
+                  <p className="font-semibold text-sm">Status WhatsApp</p>
+                  <p className="text-xs text-muted-foreground">Aktifkan atau nonaktifkan notifikasi WhatsApp saat scan</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={`text-[10px] ${waEnabled ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
+                  {waEnabled ? "Aktif" : "Nonaktif"}
+                </Badge>
+                <Switch checked={waEnabled} onCheckedChange={handleToggleWa} />
+              </div>
+            </div>
+
+            {waEnabled && (
+              <div className="space-y-2 pt-2 border-t border-border">
+                <Label className="text-xs font-semibold">Target Pengiriman Notifikasi Scan</Label>
+                <Select value={deliveryTarget} onValueChange={setDeliveryTarget}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DELIVERY_OPTIONS.map(o => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  Tentukan kemana notifikasi otomatis dikirim saat siswa scan absensi
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="templates" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="templates" className="text-xs">📝 Template</TabsTrigger>
-            <TabsTrigger value="group" className="text-xs">👥 Grup Kelas</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="templates" className="text-xs">📝 Wali Murid</TabsTrigger>
+            <TabsTrigger value="group_template" className="text-xs">👥 Group</TabsTrigger>
+            <TabsTrigger value="send_group" className="text-xs">📤 Kirim Grup</TabsTrigger>
             <TabsTrigger value="history" className="text-xs" onClick={fetchLogs}>📜 Riwayat</TabsTrigger>
           </TabsList>
 
-          {/* Templates Tab */}
+          {/* Individual Templates Tab */}
           <TabsContent value="templates" className="space-y-4 mt-4">
             <Card className="border-0 shadow-card">
-              <CardHeader><CardTitle className="text-base">Template Notifikasi Absensi Datang</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Template Notifikasi Datang (Wali Murid)</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 <Textarea value={arriveTemplate} onChange={(e) => setArriveTemplate(e.target.value)}
                   rows={6} className="font-mono text-xs" />
-                <PlaceholderButtons onInsert={(key) => setArriveTemplate(arriveTemplate + key)} />
+                <PlaceholderButtons placeholders={PLACEHOLDERS} onInsert={(key) => setArriveTemplate(arriveTemplate + key)} />
               </CardContent>
             </Card>
 
             <Card className="border-0 shadow-card">
-              <CardHeader><CardTitle className="text-base">Template Notifikasi Absensi Pulang</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Template Notifikasi Pulang (Wali Murid)</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 <Textarea value={departTemplate} onChange={(e) => setDepartTemplate(e.target.value)}
                   rows={6} className="font-mono text-xs" />
-                <PlaceholderButtons onInsert={(key) => setDepartTemplate(departTemplate + key)} />
+                <PlaceholderButtons placeholders={PLACEHOLDERS} onInsert={(key) => setDepartTemplate(departTemplate + key)} />
               </CardContent>
             </Card>
 
-            <Button onClick={handleSaveTemplates} disabled={saving || !integrationId} className="gradient-primary hover:opacity-90">
+            <Button onClick={handleSaveSettings} disabled={saving || !integrationId} className="gradient-primary hover:opacity-90">
               {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-              Simpan Template
+              Simpan Semua Pengaturan
             </Button>
           </TabsContent>
 
-          {/* Group Messaging Tab */}
-          <TabsContent value="group" className="space-y-4 mt-4">
+          {/* Group Template Tab */}
+          <TabsContent value="group_template" className="space-y-4 mt-4">
             <Card className="border-0 shadow-card">
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> Kirim Pesan ke Grup Kelas</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  Template Notifikasi Group Kelas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Template ini digunakan saat siswa scan absensi dan target pengiriman mencakup Group Kelas. 
+                  Gunakan placeholder <code className="bg-muted px-1 rounded">{"{type}"}</code> untuk tipe absensi (Datang/Pulang).
+                </p>
+                <Textarea value={groupTemplate} onChange={(e) => setGroupTemplate(e.target.value)}
+                  rows={8} className="font-mono text-xs" />
+                <PlaceholderButtons placeholders={GROUP_PLACEHOLDERS} onInsert={(key) => setGroupTemplate(groupTemplate + key)} />
+              </CardContent>
+            </Card>
+
+            <Button onClick={handleSaveSettings} disabled={saving || !integrationId} className="gradient-primary hover:opacity-90">
+              {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+              Simpan Semua Pengaturan
+            </Button>
+          </TabsContent>
+
+          {/* Send to Group Tab */}
+          <TabsContent value="send_group" className="space-y-4 mt-4">
+            <Card className="border-0 shadow-card">
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> Kirim Pesan Custom ke Grup Kelas</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Pilih Kelas</Label>
