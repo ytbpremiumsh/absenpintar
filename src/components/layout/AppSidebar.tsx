@@ -14,6 +14,7 @@ import {
   ClipboardCheck,
   Users2,
   MessageSquare,
+  Lock,
 } from "lucide-react";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
