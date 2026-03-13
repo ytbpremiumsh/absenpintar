@@ -192,20 +192,72 @@ const SuperAdminPresentation = () => {
           <h3 className="font-bold text-foreground text-sm">Halaman Login</h3>
           <p className="text-xs text-muted-foreground">Kustomisasi tampilan halaman login</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs">URL Gambar Sidebar Login</Label>
-              <Input value={loginImage} onChange={(e) => setLoginImage(e.target.value)} placeholder="/images/presentation/students.jpeg" />
+            <div className="space-y-2">
+              <Label className="text-xs">Gambar Sidebar Login</Label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-dashed border-border px-4 py-2.5 hover:bg-muted/50 transition-colors w-full">
+                  <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-xs text-muted-foreground truncate">
+                    {uploadingSidebar ? "Mengupload..." : "Pilih gambar sidebar"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingSidebar}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploadingSidebar(true);
+                      const ext = file.name.split(".").pop();
+                      const path = `login/sidebar-${Date.now()}.${ext}`;
+                      const { error } = await supabase.storage.from("landing-assets").upload(path, file, { upsert: true });
+                      if (error) { toast.error("Upload gagal: " + error.message); setUploadingSidebar(false); return; }
+                      const { data: urlData } = supabase.storage.from("landing-assets").getPublicUrl(path);
+                      setLoginImage(urlData.publicUrl);
+                      setUploadingSidebar(false);
+                      toast.success("Gambar sidebar berhasil diupload");
+                    }}
+                  />
+                </label>
+              </div>
               {loginImage && (
-                <div className="rounded-lg overflow-hidden border border-border w-full h-32 mt-2">
+                <div className="rounded-lg overflow-hidden border border-border w-full h-32 mt-1">
                   <img src={loginImage} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">URL Logo Login</Label>
-              <Input value={loginLogo} onChange={(e) => setLoginLogo(e.target.value)} placeholder="/images/logo-absensi-pintar.png" />
+            <div className="space-y-2">
+              <Label className="text-xs">Logo Login</Label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-dashed border-border px-4 py-2.5 hover:bg-muted/50 transition-colors w-full">
+                  <Image className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-xs text-muted-foreground truncate">
+                    {uploadingLogo ? "Mengupload..." : "Pilih logo"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingLogo}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploadingLogo(true);
+                      const ext = file.name.split(".").pop();
+                      const path = `login/logo-${Date.now()}.${ext}`;
+                      const { error } = await supabase.storage.from("landing-assets").upload(path, file, { upsert: true });
+                      if (error) { toast.error("Upload gagal: " + error.message); setUploadingLogo(false); return; }
+                      const { data: urlData } = supabase.storage.from("landing-assets").getPublicUrl(path);
+                      setLoginLogo(urlData.publicUrl);
+                      setUploadingLogo(false);
+                      toast.success("Logo berhasil diupload");
+                    }}
+                  />
+                </label>
+              </div>
               {loginLogo && (
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-1 flex items-center gap-2">
                   <img src={loginLogo} alt="Logo Preview" className="h-12 w-12 rounded-xl object-contain border border-border" />
                   <span className="text-xs text-muted-foreground">Preview logo</span>
                 </div>
