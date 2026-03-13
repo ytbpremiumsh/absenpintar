@@ -482,12 +482,22 @@ const Monitoring = () => {
                 <SelectTrigger><SelectValue placeholder="Pilih status" /></SelectTrigger>
                 <SelectContent>
                   {editStudent?.log_id && (
-                    <SelectItem value="belum">🔄 Batalkan (Belum Absen)</SelectItem>
+                    <SelectItem value="belum">
+                      <span className="flex items-center gap-2"><RotateCcw className="h-4 w-4 text-muted-foreground" /> Batalkan (Belum Absen)</span>
+                    </SelectItem>
                   )}
-                  <SelectItem value="hadir">✅ Hadir</SelectItem>
-                  <SelectItem value="izin">📝 Izin</SelectItem>
-                  <SelectItem value="sakit">🤒 Sakit</SelectItem>
-                  <SelectItem value="alfa">❌ Alfa</SelectItem>
+                  <SelectItem value="hadir">
+                    <span className="flex items-center gap-2"><UserCheck className="h-4 w-4 text-success" /> Hadir</span>
+                  </SelectItem>
+                  <SelectItem value="izin">
+                    <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-warning" /> Izin</span>
+                  </SelectItem>
+                  <SelectItem value="sakit">
+                    <span className="flex items-center gap-2"><Thermometer className="h-4 w-4 text-blue-500" /> Sakit</span>
+                  </SelectItem>
+                  <SelectItem value="alfa">
+                    <span className="flex items-center gap-2"><XCircle className="h-4 w-4 text-destructive" /> Alfa</span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <div className="flex gap-2">
