@@ -298,13 +298,14 @@ const SuperAdminWhatsApp = () => {
 
             {/* Template Tabs */}
             <Tabs defaultValue="arrive" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="arrive" className="text-xs">📥 Absensi Datang</TabsTrigger>
-                <TabsTrigger value="depart" className="text-xs">📤 Absensi Pulang</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="arrive" className="text-xs">📥 Datang</TabsTrigger>
+                <TabsTrigger value="depart" className="text-xs">📤 Pulang</TabsTrigger>
+                <TabsTrigger value="group" className="text-xs">👥 Group</TabsTrigger>
               </TabsList>
 
               <TabsContent value="arrive" className="space-y-2 mt-3">
-                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Datang</Label>
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Datang (Wali Murid)</Label>
                 <Textarea
                   value={form.attendance_arrive_template}
                   onChange={(e) => setForm({ ...form, attendance_arrive_template: e.target.value })}
@@ -315,7 +316,7 @@ const SuperAdminWhatsApp = () => {
               </TabsContent>
 
               <TabsContent value="depart" className="space-y-2 mt-3">
-                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Pulang</Label>
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Absensi Pulang (Wali Murid)</Label>
                 <Textarea
                   value={form.attendance_depart_template}
                   onChange={(e) => setForm({ ...form, attendance_depart_template: e.target.value })}
@@ -324,11 +325,41 @@ const SuperAdminWhatsApp = () => {
                 />
                 <PlaceholderButtons placeholders={ATTENDANCE_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, attendance_depart_template: form.attendance_depart_template + key })} />
               </TabsContent>
+
+              <TabsContent value="group" className="space-y-2 mt-3">
+                <Label className="text-xs text-muted-foreground">Template Notifikasi Group Kelas</Label>
+                <Textarea
+                  value={form.attendance_group_template}
+                  onChange={(e) => setForm({ ...form, attendance_group_template: e.target.value })}
+                  rows={6}
+                  className="font-mono text-xs"
+                />
+                <PlaceholderButtons placeholders={GROUP_PLACEHOLDERS} onInsert={(key) => setForm({ ...form, attendance_group_template: form.attendance_group_template + key })} />
+              </TabsContent>
             </Tabs>
 
-            <div className="flex items-center gap-2">
-              <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
-              <Label>Aktifkan</Label>
+            {/* Delivery Target */}
+            <div className="space-y-2">
+              <Label className="text-xs">Target Pengiriman Notifikasi Scan</Label>
+              <Select value={form.wa_delivery_target} onValueChange={(v) => setForm({ ...form, wa_delivery_target: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="parent_only">Hanya Wali Murid</SelectItem>
+                  <SelectItem value="group_only">Hanya Group Kelas</SelectItem>
+                  <SelectItem value="both">Group Kelas & Wali Murid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
+                <Label>Aktifkan Integrasi</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={form.wa_enabled} onCheckedChange={(v) => setForm({ ...form, wa_enabled: v })} />
+                <Label>WA Notifikasi</Label>
+              </div>
             </div>
           </div>
           <DialogFooter>
