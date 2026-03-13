@@ -100,7 +100,10 @@ const App = () => (
               <Route path="/school-settings" element={<SchoolSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />
               <Route path="/support" element={<SupportTickets />} />
-              <Route path="/whatsapp-settings" element={<WhatsAppSettings />} />
+              <Route path="/wa-templates" element={<WhatsAppTemplates />} />
+              <Route path="/wa-broadcast" element={<WhatsAppBroadcast />} />
+              <Route path="/wa-history" element={<WhatsAppHistory />} />
+              <Route path="/whatsapp-settings" element={<Navigate to="/wa-templates" replace />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

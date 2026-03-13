@@ -191,6 +191,15 @@ export function AppSidebar() {
 
             <SidebarGroup>
               <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
+                WhatsApp
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-0.5">{renderNavItems(whatsappNav)}</SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
                 Pengaturan
               </SidebarGroupLabel>
               <SidebarGroupContent>
