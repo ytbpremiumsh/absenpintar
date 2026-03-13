@@ -279,15 +279,15 @@ const Monitoring = () => {
         </CardContent>
       </Card>
 
-      {/* LIVE FEED - Kedatangan Terbaru */}
+      {/* LIVE FEED */}
       <Card className="border-0 shadow-card overflow-hidden">
         <div className="p-3 sm:p-4 border-b border-border flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center">
             <Activity className="h-4 w-4 text-success" />
           </div>
           <div className="flex-1">
-            <h2 className="text-sm sm:text-base font-bold text-foreground">Live Feed — Kedatangan</h2>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Menampilkan absensi terbaru secara realtime</p>
+            <h2 className="text-sm sm:text-base font-bold text-foreground">Live Feed — Datang & Pulang</h2>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Menampilkan aktivitas absensi terbaru secara realtime</p>
           </div>
           <div className="flex items-center gap-1.5">
             <LiveDot />
