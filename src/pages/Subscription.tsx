@@ -416,6 +416,56 @@ const Subscription = () => {
         </Card>
       </motion.div>
 
+      {/* Subscription History */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <Card className="border-0 shadow-card">
+          <div className="p-5">
+            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-primary" />
+              Riwayat Langganan
+            </h3>
+
+            {subscriptionHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Belum ada riwayat langganan.</p>
+            ) : (
+              <div className="space-y-2">
+                {subscriptionHistory.map((item) => {
+                  const statusClass =
+                    item.status === "paid"
+                      ? "bg-success/10 text-success border-success/20"
+                      : item.status === "pending"
+                        ? "bg-warning/10 text-warning border-warning/20"
+                        : "bg-muted text-muted-foreground border-border";
+
+                  return (
+                    <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          Paket {(item as any).subscription_plans?.name || "-"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(item.created_at).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                          {item.paid_at ? ` • Dibayar ${new Date(item.paid_at).toLocaleDateString("id-ID")}` : ""}
+                        </p>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold text-foreground">{formatRupiah(item.amount || 0)}</p>
+                        <Badge className={`text-[10px] border ${statusClass}`}>{item.status}</Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </Card>
+      </motion.div>
+
       {/* Upgrade Plans */}
       {upgradePlans.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
