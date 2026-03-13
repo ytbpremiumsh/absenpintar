@@ -115,6 +115,23 @@ const StudentDetail = () => {
     fetchData();
   };
 
+  const handlePhotoDelete = async () => {
+    if (!student?.photo_url) return;
+    const confirmed = window.confirm("Hapus foto profil siswa ini?");
+    if (!confirmed) return;
+    setUploading(true);
+    // Try to remove from storage
+    const url = student.photo_url.split("?")[0];
+    const pathMatch = url.split("/student-photos/")[1];
+    if (pathMatch) {
+      await supabase.storage.from("student-photos").remove([decodeURIComponent(pathMatch)]);
+    }
+    await supabase.from("students").update({ photo_url: null }).eq("id", student.id);
+    toast.success("Foto berhasil dihapus!");
+    setUploading(false);
+    fetchData();
+  };
+
   const handleSaveEdit = async () => {
     if (!student) return;
     setSaving(true);
