@@ -56,14 +56,19 @@ const Subscription = () => {
       setPlans(parsed);
 
       if (profile?.school_id) {
-        const [subRes, classRes, studentRes] = await Promise.all([
+        const [subRes, classRes, studentRes, classTableRes] = await Promise.all([
           supabase.from("school_subscriptions").select("*, subscription_plans(*)").eq("school_id", profile.school_id).eq("status", "active").maybeSingle(),
-          supabase.from("classes").select("id").eq("school_id", profile.school_id),
-          supabase.from("students").select("id").eq("school_id", profile.school_id),
+          supabase.from("classes").select("id, name").eq("school_id", profile.school_id),
+          supabase.from("students").select("id, class").eq("school_id", profile.school_id),
+          supabase.from("classes").select("name").eq("school_id", profile.school_id),
         ]);
 
         const sub = subRes.data;
-        const classCount = classRes.data?.length || 0;
+        // Count unique classes from both classes table and student class assignments
+        const classTableNames = new Set((classTableRes.data || []).map((c: any) => c.name));
+        const studentClassNames = new Set((studentRes.data || []).map((s: any) => s.class));
+        const allClassNames = new Set([...classTableNames, ...studentClassNames]);
+        const classCount = allClassNames.size;
         const studentCount = studentRes.data?.length || 0;
 
         if (sub) {
