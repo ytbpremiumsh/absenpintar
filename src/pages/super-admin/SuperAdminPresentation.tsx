@@ -31,6 +31,8 @@ const SuperAdminPresentation = () => {
   const [ctaSubtitle, setCtaSubtitle] = useState("");
   const [ctaBtn1, setCtaBtn1] = useState("");
   const [ctaBtn2, setCtaBtn2] = useState("");
+  const [ctaBtn1Link, setCtaBtn1Link] = useState("");
+  const [ctaBtn2Link, setCtaBtn2Link] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
