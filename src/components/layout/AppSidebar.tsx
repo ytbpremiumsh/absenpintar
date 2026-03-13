@@ -14,7 +14,8 @@ import {
   LifeBuoy,
   ClipboardCheck,
   Users2,
-  MessageSquare,
+  FileText,
+  Send,
 } from "lucide-react";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
@@ -51,8 +52,13 @@ const dataNav = [
   { title: "Staff / Operator", url: "/staff", icon: Users2 },
 ];
 
+const whatsappNav = [
+  { title: "Template WA", url: "/wa-templates", icon: FileText },
+  { title: "Broadcast Grup", url: "/wa-broadcast", icon: Send },
+  { title: "Riwayat WA", url: "/wa-history", icon: History },
+];
+
 const settingsNav = [
-  { title: "WhatsApp", url: "/whatsapp-settings", icon: MessageSquare },
   { title: "Langganan", url: "/subscription", icon: CreditCard },
   { title: "Bantuan", url: "/support", icon: LifeBuoy },
 ];
@@ -180,6 +186,15 @@ export function AppSidebar() {
                     { title: "Rekap & Export", url: "/export-history", icon: FileBarChart },
                   ])}
                 </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
+                WhatsApp
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-0.5">{renderNavItems(whatsappNav)}</SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 

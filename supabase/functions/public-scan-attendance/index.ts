@@ -108,11 +108,10 @@ serve(async (req) => {
 
     // Send WhatsApp notification based on delivery target settings
     try {
-      // Fetch integration with templates + school name + class wa_group_id
       const [integrationRes, schoolRes, classRes] = await Promise.all([
         supabase
           .from('school_integrations')
-          .select('attendance_arrive_template, attendance_depart_template, attendance_group_template, wa_delivery_target, wa_enabled, is_active')
+          .select('attendance_arrive_template, attendance_depart_template, attendance_group_template, wa_delivery_target, wa_enabled, is_active, api_url, api_key')
           .eq('school_id', school_id)
           .eq('integration_type', 'onesender')
           .eq('is_active', true)
@@ -134,10 +133,7 @@ serve(async (req) => {
       const schoolName = schoolRes.data?.name || '';
       const groupId = classRes.data?.wa_group_id || null;
 
-      // Check if WA is enabled
-      if (!integration || integration.wa_enabled === false) {
-        // WA disabled, skip
-      } else {
+      if (integration && integration.wa_enabled !== false) {
         const deliveryTarget = integration.wa_delivery_target || 'parent_only';
         const timeStr = jakartaTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
         const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -156,50 +152,58 @@ serve(async (req) => {
             .replace(/\{school_name\}/g, schoolName)
             .replace(/\{type\}/g, typeLabel);
 
-        const waUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-whatsapp`;
-        const waHeaders = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-        };
+        const apiUrl = integration.api_url;
+        const apiKey = integration.api_key;
 
-        // Send to parent (Wali Murid)
-        if ((deliveryTarget === 'parent_only' || deliveryTarget === 'both') && student.parent_phone) {
+        // Send to parent (Wali Murid) - use direct API call
+        if ((deliveryTarget === 'parent_only' || deliveryTarget === 'both') && student.parent_phone && apiUrl && apiKey) {
           const template = attendance_type === 'datang'
             ? (integration.attendance_arrive_template || '')
             : (integration.attendance_depart_template || '');
 
-          let message: string;
-          if (template) {
-            message = applyReplacements(template);
-          } else {
-            message = `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
-          }
+          const message = template ? applyReplacements(template)
+            : `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
 
-          fetch(waUrl, {
+          let formattedPhone = student.parent_phone.replace(/\D/g, '');
+          if (formattedPhone.startsWith('0')) formattedPhone = '62' + formattedPhone.substring(1);
+
+          fetch(apiUrl, {
             method: 'POST',
-            headers: waHeaders,
-            body: JSON.stringify({ school_id, phone: student.parent_phone, message, student_name: student.name, message_type: 'attendance' }),
-          }).catch(() => {});
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient_type: 'individual', to: formattedPhone, type: 'text', text: { body: message } }),
+          }).then(async (r) => {
+            const result = await r.json().catch(() => ({}));
+            console.log('WA parent result:', JSON.stringify(result));
+            // Log to wa_message_logs
+            await supabase.from('wa_message_logs').insert({
+              school_id, phone: formattedPhone, message: message.substring(0, 500),
+              message_type: 'attendance', status: r.ok ? 'sent' : 'failed', student_name: student.name,
+            }).catch(() => {});
+          }).catch((e) => console.error('WA parent error:', e));
         }
 
-        // Send to Group Kelas
-        if ((deliveryTarget === 'group_only' || deliveryTarget === 'both') && groupId) {
+        // Send to Group Kelas - use direct API call
+        if ((deliveryTarget === 'group_only' || deliveryTarget === 'both') && groupId && apiUrl && apiKey) {
           const groupTpl = integration.attendance_group_template || '';
-          let groupMessage: string;
-          if (groupTpl) {
-            groupMessage = applyReplacements(groupTpl);
-          } else {
-            groupMessage = `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nSiswa *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
-          }
+          const groupMessage = groupTpl ? applyReplacements(groupTpl)
+            : `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nSiswa *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
 
-          fetch(waUrl, {
+          console.log('Sending to group:', groupId, 'via:', apiUrl);
+          fetch(apiUrl, {
             method: 'POST',
-            headers: waHeaders,
-            body: JSON.stringify({ school_id, group_id: groupId, message: groupMessage, student_name: student.name, message_type: 'attendance_group' }),
-          }).catch(() => {});
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient_type: 'group', to: groupId, type: 'text', text: { body: groupMessage } }),
+          }).then(async (r) => {
+            const result = await r.json().catch(() => ({}));
+            console.log('WA group result:', JSON.stringify(result));
+            await supabase.from('wa_message_logs').insert({
+              school_id, group_id: groupId, message: groupMessage.substring(0, 500),
+              message_type: 'attendance_group', status: r.ok ? 'sent' : 'failed', student_name: student.name,
+            }).catch(() => {});
+          }).catch((e) => console.error('WA group error:', e));
         }
       }
-    } catch { /* ignore WA errors */ }
+    } catch (waErr) { console.error('WA notification error:', waErr); }
 
     return new Response(JSON.stringify({
       success: true,
