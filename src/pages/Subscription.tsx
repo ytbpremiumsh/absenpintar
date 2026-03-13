@@ -57,11 +57,11 @@ const Subscription = () => {
       setPlans(parsed);
 
       if (profile?.school_id) {
-        const [subRes, classRes, studentRes, classTableRes] = await Promise.all([
-          supabase.from("school_subscriptions").select("*, subscription_plans(*)").eq("school_id", profile.school_id).eq("status", "active").maybeSingle(),
-          supabase.from("classes").select("id, name").eq("school_id", profile.school_id),
-          supabase.from("students").select("id, class").eq("school_id", profile.school_id),
+        const [subRes, classesRes, studentRes, historyRes] = await Promise.all([
+          supabase.from("school_subscriptions").select("*, subscription_plans(*)").eq("school_id", profile.school_id).eq("status", "active").order("created_at", { ascending: false }).limit(1).maybeSingle(),
           supabase.from("classes").select("name").eq("school_id", profile.school_id),
+          supabase.from("students").select("id, class").eq("school_id", profile.school_id),
+          supabase.from("payment_transactions").select("id, amount, status, created_at, paid_at, payment_method, subscription_plans(name)").eq("school_id", profile.school_id).order("created_at", { ascending: false }).limit(20),
         ]);
 
         const sub = subRes.data;
