@@ -53,6 +53,7 @@ const SuperAdminPresentation = () => {
         setCtaBtn1Link(map.presentation_cta_btn1_link || "");
         setCtaBtn2Link(map.presentation_cta_btn2_link || "");
         setLoginImage(map.login_sidebar_image || "");
+        setLoginLogo(map.login_logo_url || "");
       }
       setLoading(false);
     };
