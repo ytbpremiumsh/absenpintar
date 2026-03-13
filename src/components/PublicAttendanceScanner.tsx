@@ -386,7 +386,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                 <Camera className="h-6 w-6 text-primary-foreground" />
               </div>
               {cameraError && <p className="text-destructive text-xs text-center">{cameraError}</p>}
-              <Button onClick={startCamera} size="sm" className="gradient-primary hover:opacity-90">
+              <Button onClick={() => startCamera()} size="sm" className="gradient-primary hover:opacity-90">
                 <Camera className="h-4 w-4 mr-2" /> Aktifkan Kamera
               </Button>
               <p className="text-[10px] text-muted-foreground">
