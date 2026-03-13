@@ -11,16 +11,19 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('Unauthorized');
+    if (!authHeader?.startsWith('Bearer ')) throw new Error('Unauthorized');
 
-    const supabase = createClient(
+    const token = authHeader.replace('Bearer ', '');
+    
+    const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error('Unauthorized');
+    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) throw new Error('Unauthorized');
+    const userId = claimsData.claims.sub;
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -28,7 +31,7 @@ serve(async (req) => {
     );
 
     // Check super_admin role
-    const { data: hasRole } = await supabaseAdmin.rpc('has_role', { _user_id: user.id, _role: 'super_admin' });
+    const { data: hasRole } = await supabaseAdmin.rpc('has_role', { _user_id: userId, _role: 'super_admin' });
     if (!hasRole) throw new Error('Forbidden: Super admin only');
 
     const { action, api_key } = await req.json();
