@@ -182,6 +182,23 @@ const SuperAdminPresentation = () => {
         </CardContent>
       </Card>
 
+      {/* Login Page Settings */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <h3 className="font-bold text-foreground text-sm">Halaman Login</h3>
+          <p className="text-xs text-muted-foreground">Gambar sidebar yang tampil di halaman login (URL gambar)</p>
+          <div className="space-y-1">
+            <Label className="text-xs">URL Gambar Sidebar Login</Label>
+            <Input value={loginImage} onChange={(e) => setLoginImage(e.target.value)} placeholder="/images/presentation/students.jpeg" />
+          </div>
+          {loginImage && (
+            <div className="rounded-lg overflow-hidden border border-border w-48 h-32">
+              <img src={loginImage} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Preview Info */}
       <Card className="border-0 shadow-card bg-muted/30">
         <CardContent className="p-4 sm:p-6">
