@@ -27,6 +27,7 @@ const STATUS_BG: Record<string, string> = {
   izin: "bg-warning/10 border-warning/20",
   sakit: "bg-blue-50 border-blue-200",
   alfa: "bg-destructive/10 border-destructive/20",
+  pulang: "bg-primary/10 border-primary/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -34,6 +35,7 @@ const STATUS_LABELS: Record<string, string> = {
   izin: "Izin",
   sakit: "Sakit",
   alfa: "Alfa",
+  pulang: "Pulang",
 };
 
 const METHOD_LABELS: Record<string, string> = {
