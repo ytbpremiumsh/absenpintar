@@ -92,6 +92,22 @@ const Students = () => {
       toast.error("Nama, Kelas, dan NIS wajib diisi");
       return;
     }
+    // Check student limit
+    const maxTotal = features.maxStudentsTotal ?? (features.maxClasses >= 999 ? Infinity : features.maxClasses * features.maxStudentsPerClass);
+    if (maxTotal !== Infinity && students.length >= maxTotal) {
+      toast.error(`Batas maksimal ${maxTotal} siswa untuk paket ${features.planName}. Silakan upgrade paket untuk menambah siswa.`);
+      navigate("/subscription");
+      return;
+    }
+    // Check per-class limit
+    if (features.maxStudentsPerClass < 999) {
+      const classStudentCount = students.filter(s => s.class === form.class).length;
+      if (classStudentCount >= features.maxStudentsPerClass) {
+        toast.error(`Batas maksimal ${features.maxStudentsPerClass} siswa per kelas untuk paket ${features.planName}. Silakan upgrade paket.`);
+        navigate("/subscription");
+        return;
+      }
+    }
     setSaving(true);
     const { error } = await supabase.from("students").insert({
       school_id: profile.school_id,
@@ -178,6 +194,13 @@ const Students = () => {
         const rows: any[] = XLSX.utils.sheet_to_json(ws);
 
         if (rows.length === 0) { toast.error("File kosong"); return; }
+
+        // Check student limit before import
+        const maxTotal = features.maxStudentsTotal ?? (features.maxClasses >= 999 ? Infinity : features.maxClasses * features.maxStudentsPerClass);
+        if (maxTotal !== Infinity && (students.length + rows.length) > maxTotal) {
+          toast.error(`Import akan melebihi batas ${maxTotal} siswa untuk paket ${features.planName}. Sisa kuota: ${Math.max(0, maxTotal - students.length)} siswa. Silakan upgrade paket.`);
+          return;
+        }
 
         const toInsert = rows.map((row) => ({
           school_id: profile!.school_id!,
