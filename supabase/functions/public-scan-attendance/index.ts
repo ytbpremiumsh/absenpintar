@@ -106,31 +106,43 @@ serve(async (req) => {
       });
     }
 
-    // Send WhatsApp notification using stored template
-    if (student.parent_phone) {
-      try {
-        // Fetch integration with templates + school name
-        const [integrationRes, schoolRes] = await Promise.all([
-          supabase
-            .from('school_integrations')
-            .select('attendance_arrive_template, attendance_depart_template, is_active')
-            .eq('school_id', school_id)
-            .eq('integration_type', 'onesender')
-            .eq('is_active', true)
-            .maybeSingle(),
-          supabase
-            .from('schools')
-            .select('name')
-            .eq('id', school_id)
-            .single(),
-        ]);
+    // Send WhatsApp notification based on delivery target settings
+    try {
+      // Fetch integration with templates + school name + class wa_group_id
+      const [integrationRes, schoolRes, classRes] = await Promise.all([
+        supabase
+          .from('school_integrations')
+          .select('attendance_arrive_template, attendance_depart_template, attendance_group_template, wa_delivery_target, wa_enabled, is_active')
+          .eq('school_id', school_id)
+          .eq('integration_type', 'onesender')
+          .eq('is_active', true)
+          .maybeSingle(),
+        supabase
+          .from('schools')
+          .select('name')
+          .eq('id', school_id)
+          .single(),
+        supabase
+          .from('classes')
+          .select('wa_group_id')
+          .eq('school_id', school_id)
+          .eq('name', student.class)
+          .maybeSingle(),
+      ]);
 
-        const integration = integrationRes.data;
-        const schoolName = schoolRes.data?.name || '';
+      const integration = integrationRes.data;
+      const schoolName = schoolRes.data?.name || '';
+      const groupId = classRes.data?.wa_group_id || null;
 
+      // Check if WA is enabled
+      if (!integration || integration.wa_enabled === false) {
+        // WA disabled, skip
+      } else {
+        const deliveryTarget = integration.wa_delivery_target || 'parent_only';
         const timeStr = jakartaTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
         const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const dayName = dayNames[jakartaTime.getDay()];
+        const typeLabel = attendance_type === 'datang' ? 'Datang (Hadir)' : 'Pulang';
 
         const applyReplacements = (tpl: string) =>
           tpl
@@ -141,36 +153,53 @@ serve(async (req) => {
             .replace(/\{student_id\}/g, student.student_id)
             .replace(/\{method\}/g, methodLabel)
             .replace(/\{parent_name\}/g, student.parent_name || '')
-            .replace(/\{school_name\}/g, schoolName);
+            .replace(/\{school_name\}/g, schoolName)
+            .replace(/\{type\}/g, typeLabel);
 
-        let message: string;
-        if (integration) {
+        const waUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-whatsapp`;
+        const waHeaders = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        };
+
+        // Send to parent (Wali Murid)
+        if ((deliveryTarget === 'parent_only' || deliveryTarget === 'both') && student.parent_phone) {
           const template = attendance_type === 'datang'
             ? (integration.attendance_arrive_template || '')
             : (integration.attendance_depart_template || '');
 
+          let message: string;
           if (template) {
             message = applyReplacements(template);
           } else {
-            const typeLabel = attendance_type === 'datang' ? 'Datang (Hadir)' : 'Pulang';
             message = `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
           }
-        } else {
-          const typeLabel = attendance_type === 'datang' ? 'Datang (Hadir)' : 'Pulang';
-          message = `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+
+          fetch(waUrl, {
+            method: 'POST',
+            headers: waHeaders,
+            body: JSON.stringify({ school_id, phone: student.parent_phone, message, student_name: student.name, message_type: 'attendance' }),
+          }).catch(() => {});
         }
 
-        const waUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-whatsapp`;
-        await fetch(waUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-          },
-          body: JSON.stringify({ school_id, phone: student.parent_phone, message }),
-        });
-      } catch { /* ignore WA errors */ }
-    }
+        // Send to Group Kelas
+        if ((deliveryTarget === 'group_only' || deliveryTarget === 'both') && groupId) {
+          const groupTpl = integration.attendance_group_template || '';
+          let groupMessage: string;
+          if (groupTpl) {
+            groupMessage = applyReplacements(groupTpl);
+          } else {
+            groupMessage = `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nSiswa *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+          }
+
+          fetch(waUrl, {
+            method: 'POST',
+            headers: waHeaders,
+            body: JSON.stringify({ school_id, group_id: groupId, message: groupMessage, student_name: student.name, message_type: 'attendance_group' }),
+          }).catch(() => {});
+        }
+      }
+    } catch { /* ignore WA errors */ }
 
     return new Response(JSON.stringify({
       success: true,
