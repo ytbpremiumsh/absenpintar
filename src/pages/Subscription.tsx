@@ -142,7 +142,7 @@ const Subscription = () => {
     setPurchasing(planId);
     try {
       const { data, error } = await supabase.functions.invoke("create-mayar-payment", {
-        body: { plan_id: planId },
+        body: { plan_id: planId, school_id: profile?.school_id || null },
       });
 
       if (error) {
