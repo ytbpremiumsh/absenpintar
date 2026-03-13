@@ -201,7 +201,11 @@ const Presentation = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState("Absensi Pintar");
   const [subtitle, setSubtitle] = useState("");
-  const [dark, setDark] = useState(true);
+  const [ctaTitle, setCtaTitle] = useState("");
+  const [ctaSubtitle, setCtaSubtitle] = useState("");
+  const [ctaBtn1, setCtaBtn1] = useState("");
+  const [ctaBtn2, setCtaBtn2] = useState("");
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {

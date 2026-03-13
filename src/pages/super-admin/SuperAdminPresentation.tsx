@@ -4,11 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, ExternalLink, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const KEYS = ["presentation_is_public", "presentation_title", "presentation_subtitle"];
+const KEYS = [
+  "presentation_is_public",
+  "presentation_title",
+  "presentation_subtitle",
+  "presentation_cta_title",
+  "presentation_cta_subtitle",
+  "presentation_cta_btn1",
+  "presentation_cta_btn2",
+];
 
 const SuperAdminPresentation = () => {
   const [loading, setLoading] = useState(true);
@@ -16,6 +25,10 @@ const SuperAdminPresentation = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
+  const [ctaTitle, setCtaTitle] = useState("");
+  const [ctaSubtitle, setCtaSubtitle] = useState("");
+  const [ctaBtn1, setCtaBtn1] = useState("");
+  const [ctaBtn2, setCtaBtn2] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -25,6 +38,10 @@ const SuperAdminPresentation = () => {
         setIsPublic(map.presentation_is_public === "true");
         setTitle(map.presentation_title || "");
         setSubtitle(map.presentation_subtitle || "");
+        setCtaTitle(map.presentation_cta_title || "");
+        setCtaSubtitle(map.presentation_cta_subtitle || "");
+        setCtaBtn1(map.presentation_cta_btn1 || "");
+        setCtaBtn2(map.presentation_cta_btn2 || "");
       }
       setLoading(false);
     };
@@ -37,6 +54,10 @@ const SuperAdminPresentation = () => {
       { key: "presentation_is_public", value: isPublic ? "true" : "false" },
       { key: "presentation_title", value: title },
       { key: "presentation_subtitle", value: subtitle },
+      { key: "presentation_cta_title", value: ctaTitle },
+      { key: "presentation_cta_subtitle", value: ctaSubtitle },
+      { key: "presentation_cta_btn1", value: ctaBtn1 },
+      { key: "presentation_cta_btn2", value: ctaBtn2 },
     ].map((r) => ({ ...r, updated_at: new Date().toISOString() }));
 
     const { error } = await supabase
@@ -100,17 +121,43 @@ const SuperAdminPresentation = () => {
         </CardContent>
       </Card>
 
-      {/* Content Settings */}
+      {/* Content Settings - Hero */}
       <Card className="border-0 shadow-card">
         <CardContent className="p-4 sm:p-6 space-y-4">
           <h3 className="font-bold text-foreground text-sm">Konten Hero</h3>
           <div className="space-y-1">
             <Label className="text-xs">Judul Utama</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Smart Pickup School System" />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Absensi Pintar" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Subtitle</Label>
-            <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Sistem penjemputan modern..." />
+            <Textarea value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Sistem absensi siswa modern..." rows={2} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* CTA Section */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <h3 className="font-bold text-foreground text-sm">Konten CTA (Call to Action)</h3>
+          <p className="text-xs text-muted-foreground">Bagian ajakan di bawah halaman presentasi</p>
+          <div className="space-y-1">
+            <Label className="text-xs">Judul CTA</Label>
+            <Input value={ctaTitle} onChange={(e) => setCtaTitle(e.target.value)} placeholder="Siap Memodernisasi Absensi Sekolah Anda?" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Subtitle CTA</Label>
+            <Textarea value={ctaSubtitle} onChange={(e) => setCtaSubtitle(e.target.value)} placeholder="Bergabung sekarang dan rasakan kemudahan..." rows={2} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">Tombol Utama (Teks)</Label>
+              <Input value={ctaBtn1} onChange={(e) => setCtaBtn1(e.target.value)} placeholder="Daftar Gratis" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Tombol Kedua (Teks)</Label>
+              <Input value={ctaBtn2} onChange={(e) => setCtaBtn2(e.target.value)} placeholder="Masuk ke Dashboard" />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -120,10 +167,8 @@ const SuperAdminPresentation = () => {
         <CardContent className="p-4 sm:p-6">
           <h3 className="font-bold text-foreground text-sm mb-2">Konten Presentasi</h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Halaman presentasi menampilkan 6 section utama secara otomatis berdasarkan fitur sistem:
-            <strong> Dashboard, Monitoring, Scan QR, Manajemen Kelas, Data Siswa, dan Data Wali Murid</strong>.
-            Masing-masing dilengkapi screenshot dan penjelasan detail. Ditambah 6 fitur tambahan:
-            Live Monitor Publik, Riwayat, Export, Notifikasi WA, Langganan, dan Pengaturan.
+            Halaman presentasi menampilkan 10 section fitur utama secara otomatis berdasarkan fitur sistem,
+            ditambah 6 fitur pendukung. Konten Hero dan CTA bisa dikustomisasi melalui pengaturan di atas.
           </p>
         </CardContent>
       </Card>
