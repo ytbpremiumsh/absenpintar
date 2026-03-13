@@ -214,7 +214,7 @@ const Presentation = () => {
       const { data } = await supabase
         .from("platform_settings")
         .select("key, value")
-        .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle", "presentation_cta_title", "presentation_cta_subtitle", "presentation_cta_btn1", "presentation_cta_btn2"]);
+        .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle", "presentation_cta_title", "presentation_cta_subtitle", "presentation_cta_btn1", "presentation_cta_btn2", "presentation_cta_btn1_link", "presentation_cta_btn2_link"]);
       if (data) {
         const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
         setIsPublic(map.presentation_is_public === "true");
@@ -224,6 +224,8 @@ const Presentation = () => {
         if (map.presentation_cta_subtitle) setCtaSubtitle(map.presentation_cta_subtitle);
         if (map.presentation_cta_btn1) setCtaBtn1(map.presentation_cta_btn1);
         if (map.presentation_cta_btn2) setCtaBtn2(map.presentation_cta_btn2);
+        if (map.presentation_cta_btn1_link) setCtaBtn1Link(map.presentation_cta_btn1_link);
+        if (map.presentation_cta_btn2_link) setCtaBtn2Link(map.presentation_cta_btn2_link);
       }
       setLoading(false);
     };
