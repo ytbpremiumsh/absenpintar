@@ -306,6 +306,7 @@ const Monitoring = () => {
               <AnimatePresence initial={false}>
                 {liveEntries.slice(0, 30).map((entry, i) => {
                   const isNew = entry.id === newEntryId;
+                  const liveStatus = entry.attendance_type === "pulang" ? "pulang" : entry.status;
                   return (
                     <motion.div
                       key={entry.id}
@@ -316,9 +317,10 @@ const Monitoring = () => {
                     >
                       {/* Avatar / Initial */}
                       <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                        entry.status === "hadir" ? "bg-success/15 text-success" :
-                        entry.status === "izin" ? "bg-warning/15 text-warning" :
-                        entry.status === "sakit" ? "bg-blue-50 text-blue-500" :
+                        liveStatus === "hadir" ? "bg-success/15 text-success" :
+                        liveStatus === "izin" ? "bg-warning/15 text-warning" :
+                        liveStatus === "sakit" ? "bg-blue-50 text-blue-500" :
+                        liveStatus === "pulang" ? "bg-primary/15 text-primary" :
                         "bg-destructive/15 text-destructive"
                       }`}>
                         {entry.photo_url ? (
@@ -343,8 +345,8 @@ const Monitoring = () => {
 
                       {/* Status & Method */}
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <Badge variant="secondary" className={`text-[9px] sm:text-[10px] ${STATUS_BG[entry.status]?.replace("border-", "").split(" ")[0] || ""}`}>
-                          {STATUS_LABELS[entry.status] || entry.status}
+                        <Badge variant="secondary" className={`text-[9px] sm:text-[10px] ${STATUS_BG[liveStatus]?.replace("border-", "").split(" ")[0] || ""}`}>
+                          {STATUS_LABELS[liveStatus] || liveStatus}
                         </Badge>
                         <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-muted-foreground">
                           <Scan className="h-2.5 w-2.5" />
@@ -352,6 +354,9 @@ const Monitoring = () => {
                         </div>
                         <span className="text-[10px] font-mono text-muted-foreground">{entry.time?.slice(0, 5)}</span>
                       </div>
+                    </motion.div>
+                  );
+                })}
                     </motion.div>
                   );
                 })}
