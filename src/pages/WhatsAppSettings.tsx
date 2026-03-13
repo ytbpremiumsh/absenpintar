@@ -136,12 +136,41 @@ const WhatsAppSettings = () => {
   };
 
   const handleSaveSettings = async () => {
-    if (!schoolId || !integrationId) {
-      toast.error("Integrasi WhatsApp belum dikonfigurasi.");
+    if (!schoolId) {
+      toast.error("School ID tidak ditemukan.");
       return;
     }
 
     setSaving(true);
+
+    // Auto-create integration record if it doesn't exist
+    if (!integrationId) {
+      const { data: newInt, error: createErr } = await supabase
+        .from("school_integrations")
+        .insert({
+          school_id: schoolId,
+          integration_type: "onesender",
+          is_active: false,
+          wa_enabled: waEnabled,
+          wa_delivery_target: deliveryTarget,
+          attendance_arrive_template: arriveTemplate,
+          attendance_depart_template: departTemplate,
+          attendance_group_template: groupTemplate,
+        })
+        .select("id")
+        .single();
+
+      if (createErr) {
+        setSaving(false);
+        toast.error("Gagal menyimpan: " + createErr.message);
+        return;
+      }
+      setIntegrationId(newInt.id);
+      setSaving(false);
+      toast.success("Pengaturan WhatsApp berhasil disimpan");
+      return;
+    }
+
     const { error } = await supabase
       .from("school_integrations" as any)
       .update({
@@ -299,7 +328,7 @@ const WhatsAppSettings = () => {
               </CardContent>
             </Card>
 
-            <Button onClick={handleSaveSettings} disabled={saving || !integrationId}>
+            <Button onClick={handleSaveSettings} disabled={saving}>
               {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
               Simpan Pengaturan
             </Button>

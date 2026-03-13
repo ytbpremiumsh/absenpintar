@@ -20,6 +20,7 @@ const KEYS = [
   "presentation_cta_btn1_link",
   "presentation_cta_btn2_link",
   "login_sidebar_image",
+  "login_logo_url",
 ];
 
 const SuperAdminPresentation = () => {
@@ -35,6 +36,7 @@ const SuperAdminPresentation = () => {
   const [ctaBtn1Link, setCtaBtn1Link] = useState("");
   const [ctaBtn2Link, setCtaBtn2Link] = useState("");
   const [loginImage, setLoginImage] = useState("");
+  const [loginLogo, setLoginLogo] = useState("");
 
   useEffect(() => {
     const fetch = async () => {
@@ -51,6 +53,7 @@ const SuperAdminPresentation = () => {
         setCtaBtn1Link(map.presentation_cta_btn1_link || "");
         setCtaBtn2Link(map.presentation_cta_btn2_link || "");
         setLoginImage(map.login_sidebar_image || "");
+        setLoginLogo(map.login_logo_url || "");
       }
       setLoading(false);
     };
@@ -70,6 +73,7 @@ const SuperAdminPresentation = () => {
       { key: "presentation_cta_btn1_link", value: ctaBtn1Link },
       { key: "presentation_cta_btn2_link", value: ctaBtn2Link },
       { key: "login_sidebar_image", value: loginImage },
+      { key: "login_logo_url", value: loginLogo },
     ].map((r) => ({ ...r, updated_at: new Date().toISOString() }));
 
     const { error } = await supabase
@@ -186,16 +190,28 @@ const SuperAdminPresentation = () => {
       <Card className="border-0 shadow-card">
         <CardContent className="p-4 sm:p-6 space-y-4">
           <h3 className="font-bold text-foreground text-sm">Halaman Login</h3>
-          <p className="text-xs text-muted-foreground">Gambar sidebar yang tampil di halaman login (URL gambar)</p>
-          <div className="space-y-1">
-            <Label className="text-xs">URL Gambar Sidebar Login</Label>
-            <Input value={loginImage} onChange={(e) => setLoginImage(e.target.value)} placeholder="/images/presentation/students.jpeg" />
-          </div>
-          {loginImage && (
-            <div className="rounded-lg overflow-hidden border border-border w-48 h-32">
-              <img src={loginImage} alt="Preview" className="w-full h-full object-cover" />
+          <p className="text-xs text-muted-foreground">Kustomisasi tampilan halaman login</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">URL Gambar Sidebar Login</Label>
+              <Input value={loginImage} onChange={(e) => setLoginImage(e.target.value)} placeholder="/images/presentation/students.jpeg" />
+              {loginImage && (
+                <div className="rounded-lg overflow-hidden border border-border w-full h-32 mt-2">
+                  <img src={loginImage} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
-          )}
+            <div className="space-y-1">
+              <Label className="text-xs">URL Logo Login</Label>
+              <Input value={loginLogo} onChange={(e) => setLoginLogo(e.target.value)} placeholder="/images/logo-absensi-pintar.png" />
+              {loginLogo && (
+                <div className="mt-2 flex items-center gap-2">
+                  <img src={loginLogo} alt="Logo Preview" className="h-12 w-12 rounded-xl object-contain border border-border" />
+                  <span className="text-xs text-muted-foreground">Preview logo</span>
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
