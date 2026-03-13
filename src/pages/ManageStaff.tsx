@@ -39,6 +39,9 @@ const ManageStaff = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editPassword, setEditPassword] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
 
   const schoolId = profile?.school_id;
@@ -92,6 +95,9 @@ const ManageStaff = () => {
   const openDetail = (member: StaffMember) => {
     setSelectedStaff(member);
     setEditName(member.full_name);
+    setEditEmail("");
+    setEditPhone("");
+    setEditPassword("");
     setEditMode(false);
     setDetailDialog(true);
   };
@@ -99,9 +105,21 @@ const ManageStaff = () => {
   const handleSaveEdit = async () => {
     if (!selectedStaff || !editName.trim()) return;
     setSavingEdit(true);
-    const { error } = await supabase.from("profiles").update({ full_name: editName.trim() }).eq("user_id", selectedStaff.user_id);
-    if (error) { toast.error("Gagal update: " + error.message); }
-    else { toast.success("Nama berhasil diperbarui"); }
+    try {
+      const res = await supabase.functions.invoke("update-user", {
+        body: {
+          user_id: selectedStaff.user_id,
+          full_name: editName.trim(),
+          ...(editEmail.trim() ? { email: editEmail.trim() } : {}),
+          ...(editPhone.trim() ? { phone: editPhone.trim() } : {}),
+          ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
+        },
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      toast.success("Data berhasil diperbarui");
+    } catch (err: any) {
+      toast.error("Gagal update: " + err.message);
+    }
     setSavingEdit(false);
     setDetailDialog(false);
     fetchStaff();
@@ -221,7 +239,10 @@ const ManageStaff = () => {
                 </div>
                 <div className="flex-1">
                   {editMode ? (
-                    <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="font-semibold" />
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nama</Label>
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="font-semibold" />
+                    </div>
                   ) : (
                     <h3 className="font-bold text-lg">{selectedStaff.full_name}</h3>
                   )}
@@ -230,6 +251,32 @@ const ManageStaff = () => {
                   </Badge>
                 </div>
               </div>
+
+              {editMode && (
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Kosongkan jika tidak diubah" type="email" className="pl-9" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">No. WhatsApp</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="Kosongkan jika tidak diubah" type="tel" className="pl-9" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Password Baru</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input value={editPassword} onChange={(e) => setEditPassword(e.target.value)} placeholder="Kosongkan jika tidak diubah" type="password" className="pl-9" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-2 pt-2">
                 {editMode ? (
