@@ -31,7 +31,7 @@ serve(async (req) => {
     );
 
     // Check super_admin role
-    const { data: hasRole } = await supabaseAdmin.rpc('has_role', { _user_id: user.id, _role: 'super_admin' });
+    const { data: hasRole } = await supabaseAdmin.rpc('has_role', { _user_id: userId, _role: 'super_admin' });
     if (!hasRole) throw new Error('Forbidden: Super admin only');
 
     const { action, api_key } = await req.json();
