@@ -14,7 +14,6 @@ import {
   ClipboardCheck,
   Users2,
   MessageSquare,
-  Lock,
 } from "lucide-react";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
@@ -22,7 +21,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
