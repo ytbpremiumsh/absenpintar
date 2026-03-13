@@ -20,6 +20,7 @@ const KEYS = [
   "presentation_cta_btn1_link",
   "presentation_cta_btn2_link",
   "login_sidebar_image",
+  "login_logo_url",
 ];
 
 const SuperAdminPresentation = () => {
