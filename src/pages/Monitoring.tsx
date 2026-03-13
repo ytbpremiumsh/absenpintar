@@ -27,6 +27,7 @@ const STATUS_BG: Record<string, string> = {
   izin: "bg-warning/10 border-warning/20",
   sakit: "bg-blue-50 border-blue-200",
   alfa: "bg-destructive/10 border-destructive/20",
+  pulang: "bg-primary/10 border-primary/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -34,6 +35,7 @@ const STATUS_LABELS: Record<string, string> = {
   izin: "Izin",
   sakit: "Sakit",
   alfa: "Alfa",
+  pulang: "Pulang",
 };
 
 const METHOD_LABELS: Record<string, string> = {
@@ -89,21 +91,26 @@ const Monitoring = () => {
     const schoolId = profile.school_id;
     const today = new Date().toISOString().slice(0, 10);
 
-    const [studentsRes, logsRes] = await Promise.all([
+    const [studentsRes, logsRes, settingsRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, student_id, photo_url").eq("school_id", schoolId),
       supabase.from("attendance_logs").select("id, student_id, time, status, method, created_at, attendance_type").eq("school_id", schoolId).eq("date", today).order("created_at", { ascending: false }),
+      supabase.from("pickup_settings").select("attendance_end_time").eq("school_id", schoolId).maybeSingle(),
     ]);
 
     const allStudents = studentsRes.data || [];
     const logs = logsRes.data || [];
+    const attEnd = (settingsRes.data as any)?.attendance_end_time || "12:00:00";
+    const jakartaNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const currentTime = jakartaNow.toTimeString().slice(0, 8);
+    const autoAlfa = currentTime > attEnd;
 
-    const datangLogs = logs.filter((l: any) => (l.attendance_type || 'datang') === 'datang');
+    const datangLogs = logs.filter((l: any) => (l.attendance_type || "datang") === "datang");
     const mapped: StudentWithStatus[] = allStudents.map((s: any) => {
       const log = datangLogs.find((l: any) => l.student_id === s.id);
       return {
         id: s.id, name: s.name, class: s.class,
         parent_name: s.parent_name, student_id: s.student_id, photo_url: s.photo_url,
-        status: log ? (log.status as any) : "belum",
+        status: log ? (log.status as any) : (autoAlfa ? "alfa" : "belum"),
         attendance_time: log?.time,
         log_id: log?.id,
       };
@@ -272,15 +279,15 @@ const Monitoring = () => {
         </CardContent>
       </Card>
 
-      {/* LIVE FEED - Kedatangan Terbaru */}
+      {/* LIVE FEED */}
       <Card className="border-0 shadow-card overflow-hidden">
         <div className="p-3 sm:p-4 border-b border-border flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center">
             <Activity className="h-4 w-4 text-success" />
           </div>
           <div className="flex-1">
-            <h2 className="text-sm sm:text-base font-bold text-foreground">Live Feed — Kedatangan</h2>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Menampilkan absensi terbaru secara realtime</p>
+            <h2 className="text-sm sm:text-base font-bold text-foreground">Live Feed — Datang & Pulang</h2>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Menampilkan aktivitas absensi terbaru secara realtime</p>
           </div>
           <div className="flex items-center gap-1.5">
             <LiveDot />
@@ -299,6 +306,7 @@ const Monitoring = () => {
               <AnimatePresence initial={false}>
                 {liveEntries.slice(0, 30).map((entry, i) => {
                   const isNew = entry.id === newEntryId;
+                  const liveStatus = entry.attendance_type === "pulang" ? "pulang" : entry.status;
                   return (
                     <motion.div
                       key={entry.id}
@@ -309,9 +317,10 @@ const Monitoring = () => {
                     >
                       {/* Avatar / Initial */}
                       <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                        entry.status === "hadir" ? "bg-success/15 text-success" :
-                        entry.status === "izin" ? "bg-warning/15 text-warning" :
-                        entry.status === "sakit" ? "bg-blue-50 text-blue-500" :
+                        liveStatus === "hadir" ? "bg-success/15 text-success" :
+                        liveStatus === "izin" ? "bg-warning/15 text-warning" :
+                        liveStatus === "sakit" ? "bg-blue-50 text-blue-500" :
+                        liveStatus === "pulang" ? "bg-primary/15 text-primary" :
                         "bg-destructive/15 text-destructive"
                       }`}>
                         {entry.photo_url ? (
@@ -336,8 +345,8 @@ const Monitoring = () => {
 
                       {/* Status & Method */}
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <Badge variant="secondary" className={`text-[9px] sm:text-[10px] ${STATUS_BG[entry.status]?.replace("border-", "").split(" ")[0] || ""}`}>
-                          {STATUS_LABELS[entry.status] || entry.status}
+                        <Badge variant="secondary" className={`text-[9px] sm:text-[10px] ${STATUS_BG[liveStatus]?.replace("border-", "").split(" ")[0] || ""}`}>
+                          {STATUS_LABELS[liveStatus] || liveStatus}
                         </Badge>
                         <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-muted-foreground">
                           <Scan className="h-2.5 w-2.5" />
@@ -345,6 +354,9 @@ const Monitoring = () => {
                         </div>
                         <span className="text-[10px] font-mono text-muted-foreground">{entry.time?.slice(0, 5)}</span>
                       </div>
+                    </motion.div>
+                  );
+                })}
                     </motion.div>
                   );
                 })}

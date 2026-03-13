@@ -245,21 +245,30 @@ const ScanQR = () => {
     const typeLabel = currentAttType === "datang" ? "Datang" : "Pulang";
     toast.success(`Absensi ${typeLabel} ${scannedStudent.name} berhasil dicatat!`);
 
-    // Send WA notification using templates
-    if (scannedStudent.parent_phone) {
-      try {
-        const [integrationRes, schoolRes] = await Promise.all([
-          supabase.from("school_integrations").select("attendance_arrive_template, attendance_depart_template, is_active")
-            .eq("school_id", profile.school_id).eq("integration_type", "onesender").eq("is_active", true).maybeSingle(),
-          supabase.from("schools").select("name").eq("id", profile.school_id).single(),
-        ]);
+    // Send WA notification based on school delivery settings
+    try {
+      const [integrationRes, schoolRes, classRes] = await Promise.all([
+        supabase
+          .from("school_integrations")
+          .select("attendance_arrive_template, attendance_depart_template, attendance_group_template, wa_delivery_target, wa_enabled, is_active")
+          .eq("school_id", profile.school_id)
+          .eq("integration_type", "onesender")
+          .eq("is_active", true)
+          .maybeSingle(),
+        supabase.from("schools").select("name").eq("id", profile.school_id).single(),
+        supabase.from("classes").select("wa_group_id").eq("school_id", profile.school_id).eq("name", scannedStudent.class).maybeSingle(),
+      ]);
 
-        const integration = integrationRes.data as any;
+      const integration = integrationRes.data as any;
+      if (integration && integration.wa_enabled !== false) {
         const schoolName = schoolRes.data?.name || "";
+        const groupId = classRes.data?.wa_group_id || null;
+        const deliveryTarget = integration.wa_delivery_target || "parent_only";
         const methodLabel = method === "face_recognition" ? "Face Recognition" : "Barcode Scan";
         const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
         const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
         const dayName = dayNames[now.getDay()];
+        const typeLabel = currentAttType === "datang" ? "Datang (Hadir)" : "Pulang";
 
         const applyReplacements = (tpl: string) =>
           tpl
@@ -270,26 +279,57 @@ const ScanQR = () => {
             .replace(/\{student_id\}/g, scannedStudent.student_id)
             .replace(/\{method\}/g, methodLabel)
             .replace(/\{parent_name\}/g, scannedStudent.parent_name || "")
-            .replace(/\{school_name\}/g, schoolName);
+            .replace(/\{school_name\}/g, schoolName)
+            .replace(/\{type\}/g, typeLabel);
 
-        let message: string;
-        if (integration) {
-          const template = currentAttType === "datang"
+        const sendTasks: Promise<any>[] = [];
+
+        if ((deliveryTarget === "parent_only" || deliveryTarget === "both") && scannedStudent.parent_phone) {
+          const parentTemplate = currentAttType === "datang"
             ? (integration.attendance_arrive_template || "")
             : (integration.attendance_depart_template || "");
-          if (template) {
-            message = applyReplacements(template);
-          } else {
-            message = `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${scannedStudent.name}* (Kelas ${scannedStudent.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
-          }
-        } else {
-          message = `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${scannedStudent.name}* (Kelas ${scannedStudent.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+          const parentMessage = parentTemplate
+            ? applyReplacements(parentTemplate)
+            : `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${scannedStudent.name}* (Kelas ${scannedStudent.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+
+          sendTasks.push(
+            supabase.functions.invoke("send-whatsapp", {
+              body: {
+                school_id: profile.school_id,
+                phone: scannedStudent.parent_phone,
+                message: parentMessage,
+                message_type: "attendance",
+                student_name: scannedStudent.name,
+              },
+            })
+          );
         }
 
-        await supabase.functions.invoke("send-whatsapp", {
-          body: { school_id: profile.school_id, phone: scannedStudent.parent_phone, message },
-        });
-      } catch { /* Don't fail attendance if WA fails */ }
+        if ((deliveryTarget === "group_only" || deliveryTarget === "both") && groupId) {
+          const groupTemplate = integration.attendance_group_template || "";
+          const groupMessage = groupTemplate
+            ? applyReplacements(groupTemplate)
+            : `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nSiswa *${scannedStudent.name}* (Kelas ${scannedStudent.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${timeStr}.\n\nMetode: ${methodLabel}\n\n_Pesan otomatis dari Smart School Attendance System_`;
+
+          sendTasks.push(
+            supabase.functions.invoke("send-whatsapp", {
+              body: {
+                school_id: profile.school_id,
+                group_id: groupId,
+                message: groupMessage,
+                message_type: "attendance_group",
+                student_name: scannedStudent.name,
+              },
+            })
+          );
+        }
+
+        if (sendTasks.length > 0) {
+          await Promise.allSettled(sendTasks);
+        }
+      }
+    } catch {
+      // Don't fail attendance if WA fails
     }
 
     setTimeout(() => {
