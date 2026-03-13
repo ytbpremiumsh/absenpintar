@@ -235,14 +235,16 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
     };
   }, [cameraActive, startBarcodeScanning, startFaceScanning, stopFaceScanning, canFaceRecognition]);
 
-  const startCamera = async () => {
+  const startCamera = async (preferredFacing?: "user" | "environment") => {
     setCameraError("");
+    const facing = preferredFacing || facingMode;
     try {
       let stream: MediaStream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 } } });
       } catch {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" }, width: { ideal: 640 }, height: { ideal: 480 } } });
+        const fallback = facing === "user" ? "environment" : "user";
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: fallback, width: { ideal: 640 }, height: { ideal: 480 } } });
       }
       streamRef.current = stream;
       setCameraActive(true);
@@ -250,6 +252,13 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
       if (err.name === "NotAllowedError") setCameraError("Izin kamera ditolak.");
       else setCameraError("Gagal mengakses kamera: " + (err.message || "Unknown"));
     }
+  };
+
+  const switchCamera = async () => {
+    const newFacing = facingMode === "user" ? "environment" : "user";
+    setFacingMode(newFacing);
+    stopCamera();
+    setTimeout(() => startCamera(newFacing), 300);
   };
 
   const stopCamera = () => {
