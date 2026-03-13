@@ -479,7 +479,7 @@ const Subscription = () => {
 
                       <div className="text-right shrink-0">
                         <p className="text-sm font-bold text-foreground">{formatRupiah(item.amount || 0)}</p>
-                        <Badge className={`text-[10px] border ${statusClass}`}>{item.status}</Badge>
+                        <Badge className={`text-[10px] border ${statusClass}`}>berhasil</Badge>
                       </div>
                     </div>
                   );
