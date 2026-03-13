@@ -140,82 +140,63 @@ const LandingPage = () => {
       </nav>
 
       {/* ─── Hero Section ─── */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+      <section className="relative pt-28 sm:pt-36 pb-16 sm:pb-24 overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/8 rounded-full blur-[120px]" />
           <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
           <div className="absolute top-1/3 left-0 w-[300px] h-[300px] bg-primary/3 rounded-full blur-[80px]" />
         </div>
-
-        {/* Grid pattern overlay */}
         <div className="absolute inset-0 grid-bg opacity-50 pointer-events-none" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left: Text */}
-            <div className="text-center lg:text-left">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <span className="inline-flex items-center gap-2 bg-primary/8 border border-primary/15 rounded-full px-4 py-1.5 text-xs font-bold text-primary mb-6">
-                  <Sparkles className="h-3.5 w-3.5" /> Sistem Absensi Digital #1 Indonesia
-                </span>
-              </motion.div>
-
-              <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
-                className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-extrabold tracking-tight leading-[1.05]">
-                <span className="text-foreground">Absensi Sekolah </span>
-                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Lebih Cerdas</span>
-              </motion.h1>
-
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
-                className="mt-5 text-base sm:text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Platform absensi modern dengan barcode scan & face recognition AI. Dirancang khusus untuk sekolah Indonesia — cepat, aman, dan mudah digunakan.
-              </motion.p>
-
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
-                className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                <button onClick={() => navigate("/register")}
-                  className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground px-7 py-3.5 rounded-2xl font-bold transition-all shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] text-sm">
-                  <Zap className="h-4 w-4" /> Coba Gratis Sekarang
-                </button>
-                <a href="#how-it-works"
-                  className="inline-flex items-center justify-center gap-2 bg-card hover:bg-muted text-foreground px-7 py-3.5 rounded-2xl font-semibold transition-all text-sm border border-border shadow-sm">
-                  <Play className="h-4 w-4" /> Cara Kerja
-                </a>
-              </motion.div>
-
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-                className="mt-5 text-xs text-muted-foreground/60">
-                ✓ Gratis tanpa kartu kredit &nbsp;•&nbsp; ✓ Setup 5 menit &nbsp;•&nbsp; ✓ Batalkan kapan saja
-              </motion.p>
-            </div>
-
-            {/* Right: Hero Image or Stats */}
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-              className="relative hidden lg:block">
-              <div className="relative">
-                {/* Glow effect behind image */}
-                <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent rounded-[2rem] blur-2xl" />
-                <div className="absolute -inset-1 bg-gradient-to-br from-primary/15 to-primary/5 rounded-3xl" />
-                <img
-                  src={heroDashboard}
-                  alt="Dashboard Absensi Pintar"
-                  className="relative w-full h-auto rounded-2xl border border-border/50 shadow-[0_25px_60px_-12px_rgba(0,0,0,0.25),0_0_40px_-8px_hsl(234_89%_60%/0.15)]"
-                />
-              </div>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          {/* Centered Text */}
+          <div className="text-center max-w-3xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <span className="inline-flex items-center gap-2 bg-primary/8 border border-primary/15 rounded-full px-4 py-1.5 text-xs font-bold text-primary mb-6">
+                <Sparkles className="h-3.5 w-3.5" /> Sistem Absensi Digital #1 Indonesia
+              </span>
             </motion.div>
+
+            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-extrabold tracking-tight leading-[1.05]">
+              <span className="text-foreground">Absensi Sekolah </span>
+              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Lebih Cerdas</span>
+            </motion.h1>
+
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
+              className="mt-5 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              Platform absensi modern dengan barcode scan & face recognition AI. Dirancang khusus untuk sekolah Indonesia — cepat, aman, dan mudah digunakan.
+            </motion.p>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
+              className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+              <button onClick={() => navigate("/register")}
+                className="inline-flex items-center justify-center gap-2 gradient-primary text-primary-foreground px-7 py-3.5 rounded-2xl font-bold transition-all shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] text-sm">
+                <Zap className="h-4 w-4" /> Coba Gratis Sekarang
+              </button>
+              <a href="#how-it-works"
+                className="inline-flex items-center justify-center gap-2 bg-card hover:bg-muted text-foreground px-7 py-3.5 rounded-2xl font-semibold transition-all text-sm border border-border shadow-sm">
+                <Play className="h-4 w-4" /> Cara Kerja
+              </a>
+            </motion.div>
+
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+              className="mt-5 text-xs text-muted-foreground/60">
+              ✓ Gratis tanpa kartu kredit &nbsp;•&nbsp; ✓ Setup 5 menit &nbsp;•&nbsp; ✓ Batalkan kapan saja
+            </motion.p>
           </div>
 
-          {/* Mobile stats */}
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-            className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3 lg:hidden">
-            {STATS.map((s) => (
-              <div key={s.label} className="bg-card border border-border rounded-2xl p-4 text-center">
-                <s.icon className="h-5 w-5 text-primary mx-auto mb-2" />
-                <div className="text-xl font-extrabold text-foreground">{s.value}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5 font-medium">{s.label}</div>
-              </div>
-            ))}
+          {/* Centered Hero Image */}
+          <motion.div initial={{ opacity: 0, y: 40, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 0.9, ease: "easeOut" }}
+            className="mt-14 sm:mt-16 relative mx-auto max-w-5xl">
+            <div className="absolute -inset-6 bg-gradient-to-br from-primary/20 via-primary/8 to-transparent rounded-[2.5rem] blur-3xl" />
+            <div className="absolute -inset-2 bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl" />
+            <img
+              src={heroDashboard}
+              alt="Dashboard Absensi Pintar"
+              className="relative w-full h-auto rounded-2xl border border-border/50 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.3),0_0_50px_-10px_hsl(234_89%_60%/0.18)]"
+            />
           </motion.div>
         </div>
       </section>
@@ -394,7 +375,7 @@ const LandingPage = () => {
           <div className="grid sm:grid-cols-3 gap-5 items-stretch">
             {plans.map((plan, i) => {
               const featureList = Array.isArray(plan.features) ? plan.features as string[] : [];
-              const isHighlighted = plan.name.toUpperCase() === "PREMIUM" || plans.length === 1;
+              const isHighlighted = plan.name.toUpperCase() === "SCHOOL" || plans.length === 1;
               const priceText = plan.price === 0 ? "Gratis" : `Rp ${plan.price.toLocaleString("id-ID")}`;
               return (
               <motion.div key={plan.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="h-full">
