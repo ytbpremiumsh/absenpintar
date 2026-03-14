@@ -193,7 +193,7 @@ const PRICING_TIERS = [
   gradient: "from-blue-500 to-cyan-600"
 },
 {
-  name: "PREMIUM",
+  name: "SCHOOL",
   price: "Rp 249.000",
   period: "/bulan",
   students: "≤ 500 siswa",
@@ -202,11 +202,11 @@ const PRICING_TIERS = [
   gradient: "from-indigo-500 to-violet-600"
 },
 {
-  name: "SCHOOL",
+  name: "PREMIUM",
   price: "Custom",
   period: "",
   students: "Unlimited",
-  features: ["Semua fitur PREMIUM", "Multi Cabang", "White Label", "Dedicated Support", "Custom Integration", "SLA 99.9%"],
+  features: ["Semua fitur SCHOOL", "Multi Cabang", "White Label", "Dedicated Support", "Custom Integration", "SLA 99.9%"],
   highlight: false,
   gradient: "from-amber-500 to-orange-600"
 }];
