@@ -233,12 +233,12 @@ const COMPETITIVE_ADVANTAGES = [
 
 
 const UNIT_ECONOMICS = [
-{ label: "Customer Acquisition Cost (CAC)", value: "Rp 150.000", note: "Via referral & digital marketing" },
-{ label: "Average Revenue Per User (ARPU)", value: "Rp 200.000/bln", note: "Rata-rata paket Premium" },
-{ label: "Customer Lifetime Value (LTV)", value: "Rp 7.200.000", note: "Rata-rata 36 bulan retention" },
-{ label: "LTV/CAC Ratio", value: "48x", note: "Sangat sehat (benchmark > 3x)" },
-{ label: "Payback Period", value: "< 1 Bulan", note: "ROI tercepat di industri EdTech" },
-{ label: "Gross Margin", value: "85-90%", note: "SaaS margin tinggi, biaya infrastruktur rendah" }];
+{ label: "Biaya Akuisisi Pelanggan", value: "Rp 150.000", note: "Lewat referral & pemasaran digital" },
+{ label: "Pendapatan Rata-rata / Sekolah", value: "Rp 200.000/bln", note: "Rata-rata paket School" },
+{ label: "Nilai Pelanggan Seumur Hidup", value: "Rp 7.200.000", note: "Rata-rata berlangganan 36 bulan" },
+{ label: "Rasio Nilai / Biaya Akuisisi", value: "48x", note: "Sangat sehat (standar industri > 3x)" },
+{ label: "Balik Modal", value: "< 1 Bulan", note: "Tercepat di industri EdTech" },
+{ label: "Margin Keuntungan Kotor", value: "85-90%", note: "Margin tinggi khas bisnis SaaS" }];
 
 
 const STATS = [
