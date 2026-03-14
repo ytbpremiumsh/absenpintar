@@ -208,6 +208,21 @@ const FEATURES = [
     accent: "from-amber-500 to-orange-600",
     badge: "Subscription",
   },
+  {
+    title: "Super Admin Panel",
+    subtitle: "Pusat Kendali Manajemen Platform",
+    desc: "Panel Super Admin menyediakan kontrol penuh untuk mengelola seluruh ekosistem Sistem Manajemen Absensi Sekolah. Mulai dari monitoring sekolah, pengelolaan langganan & pembayaran, komunikasi, hingga integrasi — semua dalam satu dashboard terpusat.",
+    points: [
+      "Dashboard overview: total sekolah, siswa, kelas, pengguna, langganan aktif, dan pendapatan",
+      "Billing & Langganan: kelola paket, langganan aktif, dan riwayat pembayaran seluruh sekolah",
+      "Komunikasi: kirim pengumuman platform dan kelola tiket bantuan dari sekolah",
+      "Integrasi: konfigurasi WhatsApp Gateway, notifikasi registrasi, dan Multi Cabang",
+    ],
+    image: "/images/presentation/ss-superadmin.png",
+    icon: LayoutDashboard,
+    accent: "from-slate-600 to-indigo-700",
+    badge: "Super Admin",
+  },
 ];
 
 const EXTRA_FEATURES = [
