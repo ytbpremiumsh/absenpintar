@@ -646,7 +646,7 @@ const BusinessModel = () => {
               Lihat Demo Produk <ArrowUpRight className="h-5 w-5" />
             </a>
           </div>
-          <p className={`${subtleText} text-xs mt-4`}>Produk sudah live • Revenue-ready • Skalabel secara nasional</p>
+          <p className={`${subtleText} text-xs mt-4`}>Produk sudah aktif • Siap menghasilkan • Bisa berkembang ke seluruh Indonesia</p>
         </motion.div>
       </section>
 
