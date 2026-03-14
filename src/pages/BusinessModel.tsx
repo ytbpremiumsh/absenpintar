@@ -217,10 +217,10 @@ const MARKET_DATA = [
 
 
 const GROWTH_MILESTONES = [
-{ quarter: "Q1-Q2", title: "Foundation", schools: "50 sekolah", revenue: "Rp 12.5 jt/bln", focus: "Akuisisi awal, product-market fit, testimonial dari early adopters", color: "from-blue-500 to-indigo-500" },
-{ quarter: "Q3-Q4", title: "Growth", schools: "200 sekolah", revenue: "Rp 50 jt/bln", focus: "Referral program, partnership dinas pendidikan, ekspansi regional", color: "from-indigo-500 to-violet-500" },
-{ quarter: "Tahun 2", title: "Scale", schools: "1.000 sekolah", revenue: "Rp 250 jt/bln", focus: "Tim sales dedicated, enterprise deals, ekspansi nasional", color: "from-violet-500 to-purple-500" },
-{ quarter: "Tahun 3", title: "Dominance", schools: "5.000+ sekolah", revenue: "Rp 1.25 M/bln", focus: "Market leader, ekspansi fitur akademik, ARR Rp 15M+", color: "from-purple-500 to-pink-500" }];
+{ quarter: "Q1-Q2", title: "Fondasi", schools: "50 sekolah", revenue: "Rp 12.5 jt/bln", focus: "Akuisisi pelanggan awal, memastikan produk sesuai kebutuhan pasar, mengumpulkan testimoni", color: "from-blue-500 to-indigo-500" },
+{ quarter: "Q3-Q4", title: "Pertumbuhan", schools: "200 sekolah", revenue: "Rp 50 jt/bln", focus: "Program referral, kerja sama dengan dinas pendidikan, ekspansi ke daerah lain", color: "from-indigo-500 to-violet-500" },
+{ quarter: "Tahun 2", title: "Ekspansi", schools: "1.000 sekolah", revenue: "Rp 250 jt/bln", focus: "Tim penjualan khusus, kontrak yayasan besar, ekspansi ke seluruh Indonesia", color: "from-violet-500 to-purple-500" },
+{ quarter: "Tahun 3", title: "Dominasi Pasar", schools: "5.000+ sekolah", revenue: "Rp 1.25 M/bln", focus: "Pemimpin pasar, tambah fitur akademik, pendapatan tahunan Rp 15M+", color: "from-purple-500 to-pink-500" }];
 
 
 const COMPETITIVE_ADVANTAGES = [
