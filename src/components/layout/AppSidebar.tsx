@@ -177,8 +177,8 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">
                   {renderNavItems([
-                    { title: "Riwayat Absensi", url: "/history", icon: History },
                     { title: "Rekap & Export", url: "/export-history", icon: FileBarChart },
+                    { title: "Riwayat Absensi", url: "/history", icon: History },
                   ])}
                 </SidebarMenu>
               </SidebarGroupContent>
