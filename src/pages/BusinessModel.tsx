@@ -224,12 +224,12 @@ const GROWTH_MILESTONES = [
 
 
 const COMPETITIVE_ADVANTAGES = [
-{ icon: Zap, title: "Time to Value < 5 Menit", desc: "Setup instan — import data siswa dari Excel, cetak barcode, langsung operasional. Kompetitor butuh berminggu-minggu." },
-{ icon: CreditCard, title: "Harga Terjangkau", desc: "Mulai dari Rp 99.000/bulan — jauh lebih murah dari solusi enterprise yang bisa mencapai jutaan rupiah per bulan." },
-{ icon: ShieldCheck, title: "Keamanan Terverifikasi", desc: "Setiap absensi melalui verifikasi barcode digital. Data tersimpan aman di cloud dengan enkripsi end-to-end." },
-{ icon: Heart, title: "Pengalaman Pengguna Terbaik", desc: "UI/UX modern yang intuitif. Staf sekolah dan wali murid bisa menggunakan tanpa pelatihan khusus." },
-{ icon: Globe, title: "Transparansi untuk Wali Murid", desc: "Live Monitor Publik + notifikasi WhatsApp otomatis — wali murid selalu tahu status kehadiran anak mereka." },
-{ icon: Rocket, title: "Skalabilitas Tanpa Batas", desc: "Arsitektur cloud-native yang bisa melayani dari 30 siswa hingga ribuan siswa tanpa degradasi performa." }];
+{ icon: Zap, title: "Siap Pakai dalam 5 Menit", desc: "Tinggal import data siswa dari Excel, cetak barcode, dan sistem langsung bisa digunakan. Tidak perlu instalasi rumit." },
+{ icon: CreditCard, title: "Harga Terjangkau untuk Semua Sekolah", desc: "Mulai dari Rp 99.000/bulan — jauh lebih hemat dibanding solusi mahal yang bisa jutaan per bulan." },
+{ icon: ShieldCheck, title: "Data Aman & Terverifikasi", desc: "Setiap absensi diverifikasi lewat barcode digital. Semua data tersimpan aman di cloud dengan perlindungan maksimal." },
+{ icon: Heart, title: "Mudah Digunakan Siapa Saja", desc: "Tampilan modern dan intuitif. Guru, staf, dan wali murid bisa langsung pakai tanpa pelatihan khusus." },
+{ icon: Globe, title: "Wali Murid Selalu Tahu", desc: "Monitoring kehadiran bisa diakses online + notifikasi WhatsApp otomatis — orang tua tidak perlu khawatir lagi." },
+{ icon: Rocket, title: "Bisa Dipakai Sekolah Kecil hingga Besar", desc: "Sistem berbasis cloud yang bisa melayani dari 30 siswa hingga ribuan siswa tanpa masalah performa." }];
 
 
 const UNIT_ECONOMICS = [
