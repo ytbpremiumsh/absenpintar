@@ -188,7 +188,7 @@ const FEATURES = [
       "Template pesan kustom dengan placeholder dinamis",
       "Broadcast massal & riwayat pengiriman pesan lengkap",
     ],
-    image: "/images/presentation/ss-dashboard.png",
+    image: "/images/presentation/ss-whatsapp.png",
     icon: Bell,
     accent: "from-green-500 to-emerald-600",
     badge: "WhatsApp",
