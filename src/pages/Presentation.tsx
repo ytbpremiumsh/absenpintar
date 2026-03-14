@@ -178,6 +178,40 @@ const FEATURES = [
     accent: "from-blue-600 to-indigo-700",
     badge: "Export",
   },
+  {
+    title: "Notifikasi WhatsApp",
+    subtitle: "Yang Sekolah Anda Butuhkan",
+    desc: "Sistem notifikasi WhatsApp otomatis yang mengirimkan informasi kehadiran siswa langsung ke wali murid dan group kelas. Template pesan bisa dikustomisasi dengan placeholder dinamis seperti nama siswa, kelas, waktu, dan metode scan.",
+    points: [
+      "Notifikasi otomatis ke wali murid saat siswa scan datang & pulang",
+      "Kirim ke group WhatsApp kelas atau langsung ke nomor wali murid",
+      "Template pesan kustom dengan placeholder dinamis",
+      "Broadcast massal & riwayat pengiriman pesan lengkap",
+    ],
+    image: "/images/presentation/ss-dashboard.png",
+    icon: Bell,
+    accent: "from-green-500 to-emerald-600",
+    badge: "WhatsApp",
+  },
+  {
+    title: "Langganan & Pembayaran",
+    subtitle: "Yang Sekolah Anda Butuhkan",
+    desc: "Sistem langganan fleksibel dengan berbagai paket sesuai kebutuhan sekolah. Mulai dari paket gratis hingga premium dengan fitur lengkap termasuk Face Recognition, Multi Cabang, dan WhatsApp Gateway. Pembayaran mudah melalui berbagai metode.",
+    points: [
+      "Paket fleksibel: Free, Basic, School, dan Premium",
+      "Pembayaran otomatis via transfer bank, e-wallet, dan QRIS",
+      "Dashboard langganan: masa aktif, fitur tersedia, statistik penggunaan",
+      "Aktivasi otomatis setelah pembayaran berhasil diverifikasi",
+    ],
+    image: "/images/presentation/ss-dashboard.png",
+    icon: Star,
+    accent: "from-amber-500 to-orange-600",
+    badge: "Subscription",
+    image: "/images/presentation/ss-rekap.png",
+    icon: FileText,
+    accent: "from-blue-600 to-indigo-700",
+    badge: "Export",
+  },
 ];
 
 const EXTRA_FEATURES = [
