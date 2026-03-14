@@ -202,6 +202,7 @@ const FEATURES = [
       "Pembayaran otomatis via transfer bank, e-wallet, dan QRIS",
       "Dashboard langganan: masa aktif, fitur tersedia, statistik penggunaan",
       "Aktivasi otomatis setelah pembayaran berhasil diverifikasi",
+      "Terintegrasi dengan Payment Gateway Mayar",
     ],
     image: "/images/presentation/ss-langganan.png",
     icon: Star,
