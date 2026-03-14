@@ -46,9 +46,9 @@ const FEATURES = [
   {
     title: "Live Monitoring Absensi",
     subtitle: "Pantau Kehadiran Secara Real-Time",
-    desc: "Sistem monitoring canggih dengan scanner built-in yang mendukung QR Code, Face Recognition, dan RFID. Progress bar kehadiran seluruh sekolah terlihat dalam satu layar dengan live feed aktivitas terbaru.",
+    desc: "Sistem monitoring canggih dengan scanner built-in yang mendukung QR Code, Face Recognition, dan NIS Manual. Progress bar kehadiran seluruh sekolah terlihat dalam satu layar dengan live feed aktivitas terbaru.",
     points: [
-      "Scanner multi-mode: QR Code, Face Recognition, dan RFID dalam satu halaman",
+      "Scanner multi-mode: QR Code, Face Recognition, dan NIS Manual dalam satu halaman",
       "Progress bar kehadiran real-time dengan persentase visual",
       "Live feed — setiap scan langsung muncul di panel aktivitas",
       "Mode Datang & Pulang otomatis sesuai jam operasional sekolah",
@@ -60,12 +60,12 @@ const FEATURES = [
   },
   {
     title: "Scan Absensi Multi-Metode",
-    subtitle: "Barcode + Face Recognition + RFID",
-    desc: "Halaman scan absensi yang mendukung 3 metode sekaligus: scan barcode via kamera, pengenalan wajah (Face Recognition), dan input NIS manual. Dirancang untuk kecepatan dan kemudahan penggunaan di lapangan.",
+    subtitle: "QR Code + Face Recognition + NIS Manual",
+    desc: "Halaman scan absensi yang mendukung 3 metode sekaligus: scan QR Code via kamera, pengenalan wajah (Face Recognition), dan input NIS manual. Dirancang untuk kecepatan dan kemudahan penggunaan di lapangan.",
     points: [
-      "Kamera aktif untuk scan barcode QR Code secara instan",
+      "Scan QR Code — kamera aktif untuk scan barcode secara instan",
       "Face Recognition — cukup arahkan wajah siswa ke kamera",
-      "Input NIS manual sebagai alternatif jika kartu tidak tersedia",
+      "NIS Manual — input NIS sebagai alternatif jika kartu tidak tersedia",
       "Indikator waktu & tanggal absensi di bagian atas halaman",
     ],
     image: "/images/presentation/ss-scan.png",
@@ -178,20 +178,50 @@ const FEATURES = [
     accent: "from-blue-600 to-indigo-700",
     badge: "Export",
   },
+  {
+    title: "Notifikasi WhatsApp",
+    subtitle: "Yang Sekolah Anda Butuhkan",
+    desc: "Sistem notifikasi WhatsApp otomatis yang mengirimkan informasi kehadiran siswa langsung ke wali murid dan group kelas. Template pesan bisa dikustomisasi dengan placeholder dinamis seperti nama siswa, kelas, waktu, dan metode scan.",
+    points: [
+      "Notifikasi otomatis ke wali murid saat siswa scan datang & pulang",
+      "Kirim ke group WhatsApp kelas atau langsung ke nomor wali murid",
+      "Template pesan kustom dengan placeholder dinamis",
+      "Broadcast massal & riwayat pengiriman pesan lengkap",
+    ],
+    image: "/images/presentation/ss-dashboard.png",
+    icon: Bell,
+    accent: "from-green-500 to-emerald-600",
+    badge: "WhatsApp",
+  },
+  {
+    title: "Langganan & Pembayaran",
+    subtitle: "Yang Sekolah Anda Butuhkan",
+    desc: "Sistem langganan fleksibel dengan berbagai paket sesuai kebutuhan sekolah. Mulai dari paket gratis hingga premium dengan fitur lengkap termasuk Face Recognition, Multi Cabang, dan WhatsApp Gateway. Pembayaran mudah melalui berbagai metode.",
+    points: [
+      "Paket fleksibel: Free, Basic, School, dan Premium",
+      "Pembayaran otomatis via transfer bank, e-wallet, dan QRIS",
+      "Dashboard langganan: masa aktif, fitur tersedia, statistik penggunaan",
+      "Aktivasi otomatis setelah pembayaran berhasil diverifikasi",
+    ],
+    image: "/images/presentation/ss-dashboard.png",
+    icon: Star,
+    accent: "from-amber-500 to-orange-600",
+    badge: "Subscription",
+  },
 ];
 
 const EXTRA_FEATURES = [
   { icon: Globe, title: "Live Monitor Publik", desc: "Wali murid bisa memantau status kehadiran anak tanpa login via link khusus sekolah.", color: "from-teal-500 to-emerald-500" },
   { icon: Clock, title: "Riwayat Kehadiran", desc: "Rekam jejak lengkap seluruh aktivitas kehadiran yang bisa difilter tanggal, kelas, dan status.", color: "from-blue-500 to-indigo-500" },
   { icon: Bell, title: "Notifikasi WhatsApp", desc: "Notifikasi otomatis ke wali murid setiap kali anak di-scan masuk atau pulang sekolah.", color: "from-green-500 to-emerald-500" },
-  { icon: Shield, title: "Multi-Role & Keamanan", desc: "4 level akses: Super Admin, School Admin, Staff/Operator, dan Wali Kelas dengan RLS.", color: "from-violet-500 to-purple-500" },
+  { icon: Shield, title: "Multi-Role & Keamanan", desc: "3 level akses: School Admin, Staff/Operator, dan Wali Kelas.", color: "from-violet-500 to-purple-500" },
   { icon: Settings, title: "Pengaturan Lengkap", desc: "Konfigurasi jam operasional, logo sekolah, template pesan WhatsApp, dan integrasi gateway.", color: "from-rose-500 to-pink-500" },
   { icon: Smartphone, title: "Responsif & PWA-Ready", desc: "Tampilan optimal di smartphone, tablet, dan desktop tanpa perlu install aplikasi.", color: "from-cyan-500 to-blue-500" },
 ];
 
 const STATS = [
   { value: "< 1 detik", label: "Waktu Scan" },
-  { value: "3 Metode", label: "QR · Face · RFID" },
+  { value: "3 Metode", label: "QR · Face · NIS Manual" },
   { value: "100%", label: "Data Terenkripsi" },
   { value: "Real-Time", label: "Live Monitoring" },
 ];
