@@ -204,12 +204,16 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [showPricing, setShowPricing] = useState(true);
+  const [trustedSchools, setTrustedSchools] = useState<TrustedSchool[]>(DEFAULT_TRUSTED_SCHOOLS);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
 
   useEffect(() => {
     Promise.all([
       supabase.from("landing_content").select("key, value"),
       supabase.from("subscription_plans").select("*").eq("is_active", true).order("sort_order"),
-    ]).then(([contentRes, plansRes]) => {
+      supabase.from("landing_trusted_schools").select("*").eq("is_active", true).order("sort_order"),
+      supabase.from("landing_testimonials").select("*").eq("is_active", true).order("sort_order"),
+    ]).then(([contentRes, plansRes, schoolsRes, testimonialsRes]) => {
       const map: Record<string, string> = {};
       (contentRes.data || []).forEach((item: any) => { map[item.key] = item.value; });
       setContent(map);
@@ -217,6 +221,12 @@ const LandingPage = () => {
       const landingPlans = allPlans.filter((p: any) => p.show_on_landing !== false);
       setPlans(landingPlans as PlanRow[]);
       setShowPricing(landingPlans.length > 0);
+      if (schoolsRes.data && schoolsRes.data.length > 0) {
+        setTrustedSchools(schoolsRes.data as TrustedSchool[]);
+      }
+      if (testimonialsRes.data && testimonialsRes.data.length > 0) {
+        setTestimonials(testimonialsRes.data as Testimonial[]);
+      }
       setLoading(false);
     });
 
