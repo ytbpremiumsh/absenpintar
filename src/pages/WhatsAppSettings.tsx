@@ -263,10 +263,11 @@ const WhatsAppSettings = () => {
 
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="template">Template WA</TabsTrigger>
-            <TabsTrigger value="broadcast">Broadcast Group</TabsTrigger>
-            <TabsTrigger value="history">Riwayat WA</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="template">Template</TabsTrigger>
+            <TabsTrigger value="group-id">Group Kelas</TabsTrigger>
+            <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
+            <TabsTrigger value="history">Riwayat</TabsTrigger>
           </TabsList>
 
           <TabsContent value="template" className="mt-4 space-y-4">
