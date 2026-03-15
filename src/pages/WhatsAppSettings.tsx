@@ -432,6 +432,61 @@ const WhatsAppSettings = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="group-id" className="mt-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Link2 className="h-4 w-4" />
+                  ID Group WhatsApp per Kelas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Masukkan ID Group WhatsApp untuk setiap kelas agar notifikasi absensi dapat dikirim ke group kelas.
+                </p>
+                {classes.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">Belum ada data kelas</div>
+                ) : (
+                  <div className="space-y-3">
+                    {classes.map((cls) => (
+                      <div key={cls.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-sm font-semibold">{cls.name}</span>
+                            {cls.wa_group_id ? (
+                              <Badge className="bg-success/10 text-success border-0 text-[10px] gap-1">
+                                <CheckCircle2 className="h-3 w-3" /> Terhubung
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-muted text-muted-foreground border-0 text-[10px] gap-1">
+                                <AlertCircle className="h-3 w-3" /> Belum diisi
+                              </Badge>
+                            )}
+                          </div>
+                          <Input
+                            placeholder="120363XXXXXXXXX@g.us"
+                            defaultValue={cls.wa_group_id || ""}
+                            onChange={(e) => setEditingGroupIds(prev => ({ ...prev, [cls.id]: e.target.value }))}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shrink-0"
+                          disabled={savingGroupId === cls.id}
+                          onClick={() => handleSaveClassGroupId(cls.id, cls.name)}
+                        >
+                          {savingGroupId === cls.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </PremiumGate>
