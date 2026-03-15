@@ -119,41 +119,7 @@ const Classes = () => {
     fetchData();
   };
 
-  const ensureClassRow = async (className: string) => {
-    if (!profile?.school_id) return null;
 
-    const { data: existing, error: selectError } = await supabase
-      .from("classes")
-      .select("id, name, wa_group_id")
-      .eq("school_id", profile.school_id)
-      .eq("name", className)
-      .maybeSingle();
-
-    if (selectError) throw selectError;
-    if (existing?.id) return existing;
-
-    const { data: created, error: insertError } = await supabase
-      .from("classes")
-      .insert({ school_id: profile.school_id, name: className })
-      .select("id, name, wa_group_id")
-      .single();
-
-    if (insertError) throw insertError;
-    return created;
-  };
-
-  const handleSaveGroupId = async () => {
-    if (!groupIdTarget) return;
-    setSavingGroupId(true);
-    const { error } = await supabase.from("classes").update({ wa_group_id: groupIdValue.trim() || null }).eq("id", groupIdTarget.id);
-    setSavingGroupId(false);
-    if (error) { toast.error("Gagal menyimpan: " + error.message); return; }
-    toast.success(`ID Group WA kelas "${groupIdTarget.name}" berhasil disimpan`);
-    setGroupIdDialogOpen(false);
-    setGroupIdTarget(null);
-    setGroupIdValue("");
-    fetchData();
-  };
 
   const classData = useMemo(() => {
     const groups: Record<string, { id?: string; waGroupId?: string; students: any[]; hadir: number; izin: number; sakit: number; alfa: number }> = {};
