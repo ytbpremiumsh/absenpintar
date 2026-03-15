@@ -5,20 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { GraduationCap, Users, UserCheck, UserX, ChevronRight, Plus, Trash2, Loader2, Clock, AlertTriangle, Pencil, MessageCircle, Lock, CheckCircle2, FileText, Thermometer, XCircle } from "lucide-react";
+import { GraduationCap, Users, UserCheck, UserX, ChevronRight, Plus, Trash2, Loader2, Clock, AlertTriangle, Pencil, CheckCircle2, FileText, Thermometer, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Classes = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const features = useSubscriptionFeatures();
-  const { canWhatsApp, loading: subscriptionLoading } = features;
+  const { loading: subscriptionLoading } = features;
   const [students, setStudents] = useState<any[]>([]);
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
@@ -120,41 +119,7 @@ const Classes = () => {
     fetchData();
   };
 
-  const ensureClassRow = async (className: string) => {
-    if (!profile?.school_id) return null;
 
-    const { data: existing, error: selectError } = await supabase
-      .from("classes")
-      .select("id, name, wa_group_id")
-      .eq("school_id", profile.school_id)
-      .eq("name", className)
-      .maybeSingle();
-
-    if (selectError) throw selectError;
-    if (existing?.id) return existing;
-
-    const { data: created, error: insertError } = await supabase
-      .from("classes")
-      .insert({ school_id: profile.school_id, name: className })
-      .select("id, name, wa_group_id")
-      .single();
-
-    if (insertError) throw insertError;
-    return created;
-  };
-
-  const handleSaveGroupId = async () => {
-    if (!groupIdTarget) return;
-    setSavingGroupId(true);
-    const { error } = await supabase.from("classes").update({ wa_group_id: groupIdValue.trim() || null }).eq("id", groupIdTarget.id);
-    setSavingGroupId(false);
-    if (error) { toast.error("Gagal menyimpan: " + error.message); return; }
-    toast.success(`ID Group WA kelas "${groupIdTarget.name}" berhasil disimpan`);
-    setGroupIdDialogOpen(false);
-    setGroupIdTarget(null);
-    setGroupIdValue("");
-    fetchData();
-  };
 
   const classData = useMemo(() => {
     const groups: Record<string, { id?: string; waGroupId?: string; students: any[]; hadir: number; izin: number; sakit: number; alfa: number }> = {};
@@ -223,23 +188,7 @@ const Classes = () => {
         </DialogContent>
       </Dialog>
 
-      {/* WA Group ID Dialog */}
-      <Dialog open={groupIdDialogOpen} onOpenChange={setGroupIdDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>ID Group WhatsApp — {groupIdTarget?.name}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>ID Group WhatsApp</Label>
-              <Input placeholder="Contoh: 120363XXXXXXXXX@g.us" value={groupIdValue}
-                onChange={(e) => setGroupIdValue(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSaveGroupId()} />
-              <p className="text-xs text-muted-foreground">Masukkan ID Group WA agar notifikasi absensi dikirim ke group kelas ini.</p>
-            </div>
-            <Button onClick={handleSaveGroupId} disabled={savingGroupId} className="w-full gradient-primary hover:opacity-90">
-              {savingGroupId ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -301,52 +250,6 @@ const Classes = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              {subscriptionLoading ? (
-                                <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
-                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                                </Button>
-                              ) : canWhatsApp ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    try {
-                                      const row = info.id
-                                        ? ({ id: info.id, wa_group_id: info.waGroupId || null } as any)
-                                        : await ensureClassRow(cls);
-
-                                      if (!row?.id) return;
-
-                                      setGroupIdTarget({ id: row.id, name: cls, waGroupId: row.wa_group_id || "" });
-                                      setGroupIdValue(row.wa_group_id || "");
-                                      setGroupIdDialogOpen(true);
-                                    } catch (err: any) {
-                                      toast.error("Gagal menyiapkan kelas: " + (err?.message || "Unknown error"));
-                                    }
-                                  }}
-                                >
-                                  <MessageCircle className={`h-4 w-4 ${info.waGroupId ? "text-success" : "text-muted-foreground"}`} />
-                                </Button>
-                              ) : (
-                                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-40 cursor-not-allowed" disabled>
-                                  <Lock className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                              )}
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {subscriptionLoading
-                                ? "Memeriksa paket..."
-                                : canWhatsApp
-                                  ? (info.waGroupId ? "WA Group: Terhubung" : "Atur ID Group WA")
-                                  : "Upgrade paket untuk fitur WA Group"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
                         <Button variant="ghost" size="icon" className="h-8 w-8"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -379,7 +282,7 @@ const Classes = () => {
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       <Badge className="bg-success/10 text-success border-0 text-[10px] gap-1"><CheckCircle2 className="h-3 w-3" /> {info.hadir}</Badge>
                       <Badge className="bg-warning/10 text-warning border-0 text-[10px] gap-1"><FileText className="h-3 w-3" /> {info.izin}</Badge>
-                      <Badge className="bg-info/10 text-info border-0 text-[10px] gap-1"><Thermometer className="h-3 w-3" /> {info.sakit}</Badge>
+                      <Badge className="bg-primary/10 text-primary border-0 text-[10px] gap-1"><Thermometer className="h-3 w-3" /> {info.sakit}</Badge>
                       <Badge className="bg-destructive/10 text-destructive border-0 text-[10px] gap-1"><XCircle className="h-3 w-3" /> {info.alfa}</Badge>
                     </div>
                   </CardContent>

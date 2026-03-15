@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Save, Loader2, Send, History, Users, Power, Clock } from "lucide-react";
+import { MessageSquare, Save, Loader2, Send, History, Users, Power, Clock, Link2, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -74,10 +75,12 @@ const WhatsAppSettings = () => {
   const [waEnabled, setWaEnabled] = useState(true);
   const [deliveryTarget, setDeliveryTarget] = useState("parent_only");
 
-  const [classes, setClasses] = useState<{ name: string; wa_group_id: string | null }[]>([]);
+  const [classes, setClasses] = useState<{ id: string; name: string; wa_group_id: string | null }[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [groupMessage, setGroupMessage] = useState("");
   const [sendingGroup, setSendingGroup] = useState(false);
+  const [editingGroupIds, setEditingGroupIds] = useState<Record<string, string>>({});
+  const [savingGroupId, setSavingGroupId] = useState<string | null>(null);
 
   const [logs, setLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
@@ -95,7 +98,7 @@ const WhatsAppSettings = () => {
           .eq("school_id", schoolId)
           .eq("integration_type", "onesender")
           .maybeSingle(),
-        supabase.from("classes").select("name, wa_group_id").eq("school_id", schoolId).order("name"),
+        supabase.from("classes").select("id, name, wa_group_id").eq("school_id", schoolId).order("name"),
       ]);
 
       if (intRes.data) {
@@ -195,6 +198,16 @@ const WhatsAppSettings = () => {
     }
   };
 
+  const handleSaveClassGroupId = async (classId: string, className: string) => {
+    setSavingGroupId(classId);
+    const newValue = editingGroupIds[classId]?.trim() || null;
+    const { error } = await supabase.from("classes").update({ wa_group_id: newValue }).eq("id", classId);
+    setSavingGroupId(null);
+    if (error) { toast.error("Gagal menyimpan: " + error.message); return; }
+    toast.success(`ID Group WA kelas "${className}" berhasil disimpan`);
+    setClasses(prev => prev.map(c => c.id === classId ? { ...c, wa_group_id: newValue } : c));
+  };
+
   const handleSendToGroup = async () => {
     if (!selectedClass || !groupMessage.trim() || !schoolId) {
       toast.error("Pilih kelas dan isi pesan");
@@ -250,10 +263,11 @@ const WhatsAppSettings = () => {
 
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="template">Template WA</TabsTrigger>
-            <TabsTrigger value="broadcast">Broadcast Group</TabsTrigger>
-            <TabsTrigger value="history">Riwayat WA</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="template">Template</TabsTrigger>
+            <TabsTrigger value="group-id">Group Kelas</TabsTrigger>
+            <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
+            <TabsTrigger value="history">Riwayat</TabsTrigger>
           </TabsList>
 
           <TabsContent value="template" className="mt-4 space-y-4">
@@ -411,6 +425,61 @@ const WhatsAppSettings = () => {
                             {new Date(log.created_at).toLocaleString("id-ID")}
                           </p>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="group-id" className="mt-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Link2 className="h-4 w-4" />
+                  ID Group WhatsApp per Kelas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Masukkan ID Group WhatsApp untuk setiap kelas agar notifikasi absensi dapat dikirim ke group kelas.
+                </p>
+                {classes.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">Belum ada data kelas</div>
+                ) : (
+                  <div className="space-y-3">
+                    {classes.map((cls) => (
+                      <div key={cls.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-sm font-semibold">{cls.name}</span>
+                            {cls.wa_group_id ? (
+                              <Badge className="bg-success/10 text-success border-0 text-[10px] gap-1">
+                                <CheckCircle2 className="h-3 w-3" /> Terhubung
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-muted text-muted-foreground border-0 text-[10px] gap-1">
+                                <AlertCircle className="h-3 w-3" /> Belum diisi
+                              </Badge>
+                            )}
+                          </div>
+                          <Input
+                            placeholder="120363XXXXXXXXX@g.us"
+                            defaultValue={cls.wa_group_id || ""}
+                            onChange={(e) => setEditingGroupIds(prev => ({ ...prev, [cls.id]: e.target.value }))}
+                            className="text-xs h-8"
+                          />
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shrink-0"
+                          disabled={savingGroupId === cls.id}
+                          onClick={() => handleSaveClassGroupId(cls.id, cls.name)}
+                        >
+                          {savingGroupId === cls.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                        </Button>
                       </div>
                     ))}
                   </div>
