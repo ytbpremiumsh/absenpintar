@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Save, Loader2, Send, History, Users, Power, Clock, Link2, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  MessageSquare, Save, Loader2, Send, History, Users, Power, Clock, Link2,
+  CheckCircle2, AlertCircle, FileText, Megaphone,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -47,12 +50,12 @@ const PlaceholderButtons = ({
   placeholders: typeof PLACEHOLDERS;
   onInsert: (key: string) => void;
 }) => (
-  <div className="mt-2 flex flex-wrap gap-1.5">
+  <div className="mt-3 flex flex-wrap gap-1.5">
     {placeholders.map((p) => (
       <button
         key={p.key}
         type="button"
-        className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-foreground transition hover:bg-secondary/80"
+        className="rounded-full bg-primary/5 border border-primary/10 px-2.5 py-1 text-[10px] text-foreground transition hover:bg-primary/10 hover:border-primary/20 font-medium"
         onClick={() => onInsert(p.key)}
       >
         {p.key} <span className="text-muted-foreground">({p.label})</span>
@@ -89,7 +92,6 @@ const WhatsAppSettings = () => {
 
   useEffect(() => {
     if (!schoolId) return;
-
     const fetchData = async () => {
       const [intRes, classRes] = await Promise.all([
         supabase
@@ -115,14 +117,11 @@ const WhatsAppSettings = () => {
       setClasses(classRes.data || []);
       setLoading(false);
     };
-
     fetchData();
   }, [schoolId]);
 
   useEffect(() => {
-    if (activeTab === "history") {
-      void fetchLogs();
-    }
+    if (activeTab === "history") void fetchLogs();
   }, [activeTab]);
 
   const fetchLogs = async () => {
@@ -139,14 +138,9 @@ const WhatsAppSettings = () => {
   };
 
   const handleSaveSettings = async () => {
-    if (!schoolId) {
-      toast.error("School ID tidak ditemukan.");
-      return;
-    }
-
+    if (!schoolId) { toast.error("School ID tidak ditemukan."); return; }
     setSaving(true);
 
-    // Auto-create integration record if it doesn't exist
     if (!integrationId) {
       const { data: newInt, error: createErr } = await supabase
         .from("school_integrations")
@@ -163,11 +157,7 @@ const WhatsAppSettings = () => {
         .select("id")
         .single();
 
-      if (createErr) {
-        setSaving(false);
-        toast.error("Gagal menyimpan: " + createErr.message);
-        return;
-      }
+      if (createErr) { setSaving(false); toast.error("Gagal menyimpan: " + createErr.message); return; }
       setIntegrationId(newInt.id);
       setSaving(false);
       toast.success("Pengaturan WhatsApp berhasil disimpan");
@@ -209,222 +199,209 @@ const WhatsAppSettings = () => {
   };
 
   const handleSendToGroup = async () => {
-    if (!selectedClass || !groupMessage.trim() || !schoolId) {
-      toast.error("Pilih kelas dan isi pesan");
-      return;
-    }
-
+    if (!selectedClass || !groupMessage.trim() || !schoolId) { toast.error("Pilih kelas dan isi pesan"); return; }
     const cls = classes.find((c) => c.name === selectedClass);
-    if (!cls?.wa_group_id) {
-      toast.error("Kelas ini belum memiliki ID Group WhatsApp");
-      return;
-    }
+    if (!cls?.wa_group_id) { toast.error("Kelas ini belum memiliki ID Group WhatsApp"); return; }
 
     setSendingGroup(true);
     try {
       const res = await supabase.functions.invoke("send-whatsapp", {
-        body: {
-          school_id: schoolId,
-          group_id: cls.wa_group_id,
-          message: groupMessage,
-          message_type: "group_broadcast",
-        },
+        body: { school_id: schoolId, group_id: cls.wa_group_id, message: groupMessage, message_type: "group_broadcast" },
       });
-
       const data = res.data as any;
-      if (data?.success) {
-        toast.success(`Pesan berhasil dikirim ke group ${selectedClass}`);
-        setGroupMessage("");
-      } else {
-        toast.error("Gagal: " + (data?.error || "Unknown error"));
-      }
-    } catch (err: any) {
-      toast.error("Gagal: " + err.message);
-    }
+      if (data?.success) { toast.success(`Pesan berhasil dikirim ke group ${selectedClass}`); setGroupMessage(""); }
+      else toast.error("Gagal: " + (data?.error || "Unknown error"));
+    } catch (err: any) { toast.error("Gagal: " + err.message); }
     setSendingGroup(false);
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center py-12 text-muted-foreground">Memuat...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
   }
+
+  const connectedCount = classes.filter(c => c.wa_group_id).length;
 
   return (
     <PremiumGate featureLabel="WhatsApp Gateway" featureKey="canWhatsApp" requiredPlan="School">
       <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
-            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6" />
-            WhatsApp
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-            Template pesan, broadcast group, dan riwayat pengiriman dalam satu halaman.
-          </p>
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-xl gradient-primary flex items-center justify-center shadow-md">
+            <MessageSquare className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">WhatsApp</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Template pesan, broadcast group, dan riwayat pengiriman
+            </p>
+          </div>
         </div>
 
+        {/* Status Card */}
+        <Card className="border-0 shadow-card overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${waEnabled ? "bg-success/10" : "bg-muted"}`}>
+                  <Power className={`h-4 w-4 ${waEnabled ? "text-success" : "text-muted-foreground"}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Status WhatsApp</p>
+                  <p className="text-[10px] text-muted-foreground">Notifikasi otomatis saat scan absensi</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant={waEnabled ? "default" : "secondary"} className={`text-[10px] ${waEnabled ? "bg-success/10 text-success border-success/20" : ""}`}>
+                  {waEnabled ? "Aktif" : "Nonaktif"}
+                </Badge>
+                <Switch checked={waEnabled} onCheckedChange={handleToggleWa} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="template">Template</TabsTrigger>
-            <TabsTrigger value="group-id">Group Kelas</TabsTrigger>
-            <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
-            <TabsTrigger value="history">Riwayat</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 h-11 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger value="template" className="rounded-lg text-xs sm:text-sm gap-1.5 data-[state=active]:shadow-sm">
+              <FileText className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Template</span>
+            </TabsTrigger>
+            <TabsTrigger value="group-id" className="rounded-lg text-xs sm:text-sm gap-1.5 data-[state=active]:shadow-sm">
+              <Link2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Group Kelas</span>
+            </TabsTrigger>
+            <TabsTrigger value="broadcast" className="rounded-lg text-xs sm:text-sm gap-1.5 data-[state=active]:shadow-sm">
+              <Megaphone className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Broadcast</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="rounded-lg text-xs sm:text-sm gap-1.5 data-[state=active]:shadow-sm">
+              <History className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Riwayat</span>
+            </TabsTrigger>
           </TabsList>
 
+          {/* ═══════ TEMPLATE TAB ═══════ */}
           <TabsContent value="template" className="mt-4 space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Pengaturan Notifikasi</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Power className="h-4 w-4" />
-                    <div>
-                      <p className="text-sm font-semibold">Status WhatsApp</p>
-                      <p className="text-xs text-muted-foreground">Aktif/nonaktif untuk notifikasi scan otomatis</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={waEnabled ? "default" : "secondary"} className="text-[10px]">
-                      {waEnabled ? "Aktif" : "Nonaktif"}
-                    </Badge>
-                    <Switch checked={waEnabled} onCheckedChange={handleToggleWa} />
-                  </div>
+            {waEnabled && (
+              <Card className="border-0 shadow-card">
+                <CardContent className="p-4">
+                  <Label className="text-xs font-semibold text-foreground">Target Pengiriman Otomatis</Label>
+                  <p className="text-[10px] text-muted-foreground mb-2">Pilih tujuan pengiriman notifikasi saat scan absensi</p>
+                  <Select value={deliveryTarget} onValueChange={setDeliveryTarget}>
+                    <SelectTrigger className="h-9 bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DELIVERY_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            )}
+
+            {[
+              { title: "Template Datang", subtitle: "Dikirim ke wali murid saat absensi datang", value: arriveTemplate, setter: setArriveTemplate, placeholders: PLACEHOLDERS },
+              { title: "Template Pulang", subtitle: "Dikirim ke wali murid saat absensi pulang", value: departTemplate, setter: setDepartTemplate, placeholders: PLACEHOLDERS },
+              { title: "Template Group Kelas", subtitle: "Dikirim ke group WhatsApp kelas", value: groupTemplate, setter: setGroupTemplate, placeholders: GROUP_PLACEHOLDERS },
+            ].map((tmpl) => (
+              <Card key={tmpl.title} className="border-0 shadow-card overflow-hidden">
+                <div className="px-4 py-3 border-b border-border bg-muted/20">
+                  <h3 className="text-sm font-bold text-foreground">{tmpl.title}</h3>
+                  <p className="text-[10px] text-muted-foreground">{tmpl.subtitle}</p>
                 </div>
+                <CardContent className="p-4">
+                  <Textarea
+                    rows={6}
+                    className="font-mono text-xs bg-muted/30 border-border/50 focus:bg-background transition-colors"
+                    value={tmpl.value}
+                    onChange={(e) => tmpl.setter(e.target.value)}
+                  />
+                  <PlaceholderButtons placeholders={tmpl.placeholders} onInsert={(key) => tmpl.setter((prev: string) => prev + key)} />
+                </CardContent>
+              </Card>
+            ))}
 
-                {waEnabled && (
-                  <div className="space-y-2 border-t pt-3">
-                    <Label className="text-xs font-semibold">Target Pengiriman Otomatis saat Scan</Label>
-                    <Select value={deliveryTarget} onValueChange={setDeliveryTarget}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DELIVERY_OPTIONS.map((o) => (
-                          <SelectItem key={o.value} value={o.value}>
-                            {o.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Template Datang (Wali Murid)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea rows={6} className="font-mono text-xs" value={arriveTemplate} onChange={(e) => setArriveTemplate(e.target.value)} />
-                <PlaceholderButtons placeholders={PLACEHOLDERS} onInsert={(key) => setArriveTemplate((prev) => prev + key)} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Template Pulang (Wali Murid)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea rows={6} className="font-mono text-xs" value={departTemplate} onChange={(e) => setDepartTemplate(e.target.value)} />
-                <PlaceholderButtons placeholders={PLACEHOLDERS} onInsert={(key) => setDepartTemplate((prev) => prev + key)} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Template Group Kelas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea rows={8} className="font-mono text-xs" value={groupTemplate} onChange={(e) => setGroupTemplate(e.target.value)} />
-                <PlaceholderButtons placeholders={GROUP_PLACEHOLDERS} onInsert={(key) => setGroupTemplate((prev) => prev + key)} />
-              </CardContent>
-            </Card>
-
-            <Button onClick={handleSaveSettings} disabled={saving}>
-              {saving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+            <Button onClick={handleSaveSettings} disabled={saving} className="gradient-primary hover:opacity-90 shadow-md h-10 px-6">
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Simpan Pengaturan
             </Button>
           </TabsContent>
 
-          <TabsContent value="broadcast" className="mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Users className="h-4 w-4" />
-                  Kirim Pesan ke Group Kelas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Pilih Kelas</Label>
-                  <Select value={selectedClass} onValueChange={setSelectedClass}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kelas..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classes.map((c) => (
-                        <SelectItem key={c.name} value={c.name}>
-                          {c.name} {c.wa_group_id ? "(Siap)" : "(Belum ada group)"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+          {/* ═══════ GROUP ID TAB ═══════ */}
+          <TabsContent value="group-id" className="mt-4">
+            <Card className="border-0 shadow-card overflow-hidden">
+              <div className="px-4 py-3 border-b border-border bg-muted/20 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Link2 className="h-4 w-4 text-primary" />
+                    ID Group WhatsApp per Kelas
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Masukkan ID Group WhatsApp untuk setiap kelas
+                  </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Isi Pesan</Label>
-                  <Textarea
-                    value={groupMessage}
-                    onChange={(e) => setGroupMessage(e.target.value)}
-                    rows={5}
-                    placeholder="Ketik pesan yang akan dikirim ke group kelas..."
-                  />
-                </div>
-
-                <Button onClick={handleSendToGroup} disabled={sendingGroup || !selectedClass || !groupMessage.trim()}>
-                  {sendingGroup ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />}
-                  Kirim ke Group
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="history" className="mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <History className="h-4 w-4" />
-                  Riwayat Pengiriman
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {logsLoading ? (
-                  <div className="py-8 text-center text-sm text-muted-foreground">Memuat riwayat...</div>
-                ) : logs.length === 0 ? (
-                  <div className="py-8 text-center text-sm text-muted-foreground">Belum ada riwayat pengiriman</div>
+                <Badge variant="secondary" className="text-[10px] gap-1">
+                  <CheckCircle2 className="h-3 w-3 text-success" />
+                  {connectedCount}/{classes.length} terhubung
+                </Badge>
+              </div>
+              <CardContent className="p-4">
+                {classes.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Belum ada data kelas</p>
+                  </div>
                 ) : (
-                  <div className="max-h-[500px] space-y-2 overflow-y-auto">
-                    {logs.map((log: any) => (
-                      <div key={log.id} className="flex items-start gap-3 rounded-lg bg-secondary/30 p-3 text-sm">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                          <MessageSquare className="h-4 w-4" />
+                  <div className="space-y-2.5">
+                    {classes.map((cls) => (
+                      <div
+                        key={cls.id}
+                        className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${
+                          cls.wa_group_id
+                            ? "border-success/20 bg-success/[0.02]"
+                            : "border-border bg-background hover:border-primary/20"
+                        }`}
+                      >
+                        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+                          cls.wa_group_id ? "bg-success/10" : "bg-muted"
+                        }`}>
+                          {cls.wa_group_id ? (
+                            <CheckCircle2 className="h-4 w-4 text-success" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {log.student_name && <span className="text-xs font-semibold">{log.student_name}</span>}
-                            <Badge variant="secondary" className="text-[10px]">{log.message_type}</Badge>
-                            <Badge variant={log.status === "sent" ? "default" : "destructive"} className="text-[10px]">
-                              {log.status === "sent" ? "Terkirim" : "Gagal"}
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-sm font-semibold text-foreground">{cls.name}</span>
+                            <Badge className={`text-[9px] px-1.5 py-0 border-0 ${
+                              cls.wa_group_id ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                            }`}>
+                              {cls.wa_group_id ? "Terhubung" : "Belum diisi"}
                             </Badge>
                           </div>
-                          <p className="mt-0.5 truncate text-xs text-muted-foreground">{log.phone || log.group_id}</p>
-                          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {new Date(log.created_at).toLocaleString("id-ID")}
-                          </p>
+                          <Input
+                            placeholder="120363XXXXXXXXX@g.us"
+                            defaultValue={cls.wa_group_id || ""}
+                            onChange={(e) => setEditingGroupIds(prev => ({ ...prev, [cls.id]: e.target.value }))}
+                            className="text-xs h-8 bg-muted/30 focus:bg-background transition-colors"
+                          />
                         </div>
+                        <Button
+                          size="sm"
+                          variant={cls.wa_group_id ? "outline" : "default"}
+                          className={`shrink-0 h-8 w-8 p-0 ${!cls.wa_group_id ? "gradient-primary hover:opacity-90" : ""}`}
+                          disabled={savingGroupId === cls.id}
+                          onClick={() => handleSaveClassGroupId(cls.id, cls.name)}
+                        >
+                          {savingGroupId === cls.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -433,53 +410,120 @@ const WhatsAppSettings = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="group-id" className="mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Link2 className="h-4 w-4" />
-                  ID Group WhatsApp per Kelas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Masukkan ID Group WhatsApp untuk setiap kelas agar notifikasi absensi dapat dikirim ke group kelas.
-                </p>
-                {classes.length === 0 ? (
-                  <div className="py-8 text-center text-sm text-muted-foreground">Belum ada data kelas</div>
-                ) : (
-                  <div className="space-y-3">
-                    {classes.map((cls) => (
-                      <div key={cls.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-sm font-semibold">{cls.name}</span>
-                            {cls.wa_group_id ? (
-                              <Badge className="bg-success/10 text-success border-0 text-[10px] gap-1">
-                                <CheckCircle2 className="h-3 w-3" /> Terhubung
-                              </Badge>
+          {/* ═══════ BROADCAST TAB ═══════ */}
+          <TabsContent value="broadcast" className="mt-4">
+            <Card className="border-0 shadow-card overflow-hidden">
+              <div className="px-4 py-3 border-b border-border bg-muted/20">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Megaphone className="h-4 w-4 text-primary" />
+                  Kirim Pesan ke Group Kelas
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Broadcast pesan manual ke group WhatsApp kelas</p>
+              </div>
+              <CardContent className="p-4 space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Pilih Kelas</Label>
+                  <Select value={selectedClass} onValueChange={setSelectedClass}>
+                    <SelectTrigger className="h-9 bg-background">
+                      <SelectValue placeholder="Pilih kelas..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((c) => (
+                        <SelectItem key={c.name} value={c.name}>
+                          <span className="flex items-center gap-2">
+                            {c.name}
+                            {c.wa_group_id ? (
+                              <Badge className="bg-success/10 text-success border-0 text-[9px] px-1 py-0">Siap</Badge>
                             ) : (
-                              <Badge className="bg-muted text-muted-foreground border-0 text-[10px] gap-1">
-                                <AlertCircle className="h-3 w-3" /> Belum diisi
-                              </Badge>
+                              <Badge className="bg-muted text-muted-foreground border-0 text-[9px] px-1 py-0">Belum</Badge>
                             )}
-                          </div>
-                          <Input
-                            placeholder="120363XXXXXXXXX@g.us"
-                            defaultValue={cls.wa_group_id || ""}
-                            onChange={(e) => setEditingGroupIds(prev => ({ ...prev, [cls.id]: e.target.value }))}
-                            className="text-xs h-8"
-                          />
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Isi Pesan</Label>
+                  <Textarea
+                    value={groupMessage}
+                    onChange={(e) => setGroupMessage(e.target.value)}
+                    rows={5}
+                    placeholder="Ketik pesan yang akan dikirim ke group kelas..."
+                    className="bg-muted/30 focus:bg-background transition-colors"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleSendToGroup}
+                  disabled={sendingGroup || !selectedClass || !groupMessage.trim()}
+                  className="gradient-primary hover:opacity-90 shadow-md h-10 px-6"
+                >
+                  {sendingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  Kirim ke Group
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ═══════ HISTORY TAB ═══════ */}
+          <TabsContent value="history" className="mt-4">
+            <Card className="border-0 shadow-card overflow-hidden">
+              <div className="px-4 py-3 border-b border-border bg-muted/20">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <History className="h-4 w-4 text-primary" />
+                  Riwayat Pengiriman
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">100 pesan terakhir yang dikirim</p>
+              </div>
+              <CardContent className="p-4">
+                {logsLoading ? (
+                  <div className="py-8 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
+                    <p className="text-xs text-muted-foreground mt-2">Memuat riwayat...</p>
+                  </div>
+                ) : logs.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <MessageSquare className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Belum ada riwayat pengiriman</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[500px] space-y-2 overflow-y-auto">
+                    {logs.map((log: any) => (
+                      <div
+                        key={log.id}
+                        className={`flex items-start gap-3 rounded-xl border p-3 transition-all ${
+                          log.status === "sent"
+                            ? "border-success/15 bg-success/[0.02]"
+                            : "border-destructive/15 bg-destructive/[0.02]"
+                        }`}
+                      >
+                        <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center ${
+                          log.status === "sent" ? "bg-success/10" : "bg-destructive/10"
+                        }`}>
+                          {log.status === "sent" ? (
+                            <CheckCircle2 className="h-4 w-4 text-success" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                          )}
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="shrink-0"
-                          disabled={savingGroupId === cls.id}
-                          onClick={() => handleSaveClassGroupId(cls.id, cls.name)}
-                        >
-                          {savingGroupId === cls.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                        </Button>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {log.student_name && <span className="text-xs font-semibold text-foreground">{log.student_name}</span>}
+                            <Badge variant="secondary" className="text-[9px] px-1.5 py-0">{log.message_type}</Badge>
+                            <Badge className={`text-[9px] px-1.5 py-0 border-0 ${
+                              log.status === "sent" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                            }`}>
+                              {log.status === "sent" ? "Terkirim" : "Gagal"}
+                            </Badge>
+                          </div>
+                          <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{log.phone || log.group_id}</p>
+                          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <Clock className="h-2.5 w-2.5" />
+                            {new Date(log.created_at).toLocaleString("id-ID")}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
