@@ -294,18 +294,20 @@ const PublicAttendanceMonitoring = () => {
                               </div>
                               <p className="text-[9px] text-muted-foreground">{entry.student_class} • {entry.student_id}</p>
                             </div>
-                            <div className="flex flex-col items-end gap-0 shrink-0">
-                              <Badge variant="secondary" className={`text-[8px] px-1 py-0 ${STATUS_BG[entry.status] || ""}`}>
-                                {STATUS_LABELS[entry.status] || entry.status}
-                              </Badge>
-                              {entry.status === "hadir" && (
-                                <Badge variant="outline" className={`text-[7px] px-1 py-0 ${
-                                  (entry as any).attendance_type === "pulang" ? "border-warning/30 text-warning" : "border-success/30 text-success"
-                                }`}>
-                                  {(entry as any).attendance_type === "pulang" ? "Pulang" : "Datang"}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <div className="flex flex-col items-end gap-0.5">
+                                <Badge variant="secondary" className={`text-[8px] px-1.5 py-0 ${STATUS_BG[entry.status] || ""}`}>
+                                  {STATUS_LABELS[entry.status] || entry.status}
                                 </Badge>
-                              )}
-                              <span className="text-[8px] font-mono text-muted-foreground">{entry.time?.slice(0, 5)}</span>
+                                {entry.status === "hadir" && (
+                                  <Badge variant="outline" className={`text-[7px] px-1.5 py-0 ${
+                                    (entry as any).attendance_type === "pulang" ? "border-warning/30 text-warning bg-warning/5" : "border-success/30 text-success bg-success/5"
+                                  }`}>
+                                    {(entry as any).attendance_type === "pulang" ? "↗ Pulang" : "↙ Datang"}
+                                  </Badge>
+                                )}
+                              </div>
+                              <span className="text-[9px] font-mono text-muted-foreground font-semibold min-w-[32px] text-right">{entry.time?.slice(0, 5)}</span>
                             </div>
                           </motion.div>
                         );
