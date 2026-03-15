@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Classes = () => {
   const { profile } = useAuth();
