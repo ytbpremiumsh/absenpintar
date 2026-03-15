@@ -321,22 +321,13 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
             <Badge variant="outline" className="text-[8px] px-1.5 py-0">
               <ScanLine className="h-2.5 w-2.5 mr-0.5" />QR
             </Badge>
-            {canFaceRecognition ? (
+            {canFaceRecognition && (
               <>
                 <Badge variant="outline" className="text-[8px] px-1.5 py-0">
                   <UserCheck className="h-2.5 w-2.5 mr-0.5" />Face
                 </Badge>
                 <Badge variant="outline" className="text-[8px] px-1.5 py-0">
                   <CreditCard className="h-2.5 w-2.5 mr-0.5" />RFID
-                </Badge>
-              </>
-            ) : (
-              <>
-                <Badge variant="outline" className="text-[8px] px-1.5 py-0 opacity-40">
-                  <Lock className="h-2.5 w-2.5 mr-0.5" />Face
-                </Badge>
-                <Badge variant="outline" className="text-[8px] px-1.5 py-0 opacity-40">
-                  <Lock className="h-2.5 w-2.5 mr-0.5" />RFID
                 </Badge>
               </>
             )}
@@ -366,10 +357,8 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                       <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
                       <span className="text-[10px]">
                         <ScanLine className="h-2.5 w-2.5 inline mr-0.5" />QR
-                        {canFaceRecognition ? (
+                        {canFaceRecognition && (
                           <>{" + "}<UserCheck className="h-2.5 w-2.5 inline mx-0.5" />Face + <CreditCard className="h-2.5 w-2.5 inline mx-0.5" />RFID</>
-                        ) : (
-                          <>{" + "}<Lock className="h-2.5 w-2.5 inline mx-0.5 opacity-40" /><span className="opacity-40">Face + RFID</span> <span className="text-[9px] text-amber-600 font-semibold">(Premium)</span></>
                         )}
                       </span>
                     </>
@@ -397,27 +386,15 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
               <p className="text-[10px] text-muted-foreground">
                 {canFaceRecognition ? "Barcode + Face Recognition + RFID" : "Barcode Scan Only"}
               </p>
-              {!canFaceRecognition && (
-                <p className="text-[9px] text-amber-600 dark:text-amber-400 font-medium">
-                  <Crown className="h-3 w-3 inline mr-0.5" />Face Recognition & RFID tersedia di paket Premium
-                </p>
-              )}
             </div>
           )}
 
-          {/* RFID hint */}
-          {canFaceRecognition ? (
+          {/* RFID hint - only show when premium */}
+          {canFaceRecognition && (
             <div className="px-3 py-2 bg-muted/50 border-t border-border flex items-center gap-2">
               <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
               <p className="text-[10px] text-muted-foreground">
                 <strong className="text-foreground">Kartu RFID:</strong> Tap kartu siswa ke reader kapan saja (tanpa kamera)
-              </p>
-            </div>
-          ) : (
-            <div className="px-3 py-2 bg-muted/50 border-t border-border flex items-center gap-2">
-              <Lock className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
-              <p className="text-[10px] text-muted-foreground opacity-60">
-                <strong>RFID & Face Recognition</strong> — Upgrade ke Premium untuk mengaktifkan
               </p>
             </div>
           )}
