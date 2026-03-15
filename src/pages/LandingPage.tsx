@@ -99,6 +99,99 @@ interface PlanRow {
   sort_order: number;
 }
 
+const TestimonialSlider = () => {
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(0);
+
+  const next = useCallback(() => {
+    setDirection(1);
+    setCurrent((prev) => (prev + 1) % TESTIMONIALS.length);
+  }, []);
+
+  const prev = useCallback(() => {
+    setDirection(-1);
+    setCurrent((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(next, 6000);
+    return () => clearInterval(timer);
+  }, [next]);
+
+  const t = TESTIMONIALS[current];
+
+  const variants = {
+    enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
+  };
+
+  return (
+    <section className="py-16 sm:py-24 bg-muted/30 relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-12">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-3 block">Testimoni</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+            Apa Kata Mereka?
+          </h2>
+          <p className="mt-3 text-muted-foreground text-sm max-w-lg mx-auto">Cerita nyata dari pengguna Absensi Pintar di seluruh Indonesia.</p>
+        </motion.div>
+
+        <div className="relative">
+          {/* Nav buttons */}
+          <button onClick={prev} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-6 z-20 h-10 w-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors">
+            <ChevronLeft className="h-5 w-5 text-foreground" />
+          </button>
+          <button onClick={next} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-6 z-20 h-10 w-10 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-muted transition-colors">
+            <ChevronRight className="h-5 w-5 text-foreground" />
+          </button>
+
+          {/* Card */}
+          <div className="overflow-hidden min-h-[260px] flex items-center">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={current}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="w-full"
+              >
+                <div className="bg-card border border-border/50 rounded-2xl p-8 sm:p-10 text-center relative">
+                  <Quote className="h-8 w-8 text-primary/15 absolute top-6 left-6" />
+                  <div className="flex justify-center gap-1 mb-5">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm sm:text-base text-foreground leading-relaxed italic max-w-2xl mx-auto">
+                    "{t.text}"
+                  </p>
+                  <div className="mt-6">
+                    <p className="font-bold text-foreground text-sm">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Dots */}
+          <div className="flex justify-center gap-2 mt-6">
+            {TESTIMONIALS.map((_, i) => (
+              <button key={i} onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i); }}
+                className={`h-2 rounded-full transition-all duration-300 ${i === current ? "w-6 bg-primary" : "w-2 bg-border hover:bg-primary/30"}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const LandingPage = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState<Record<string, string>>({});
