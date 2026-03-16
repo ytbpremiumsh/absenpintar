@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LayoutDashboard, School, CreditCard, Receipt, LogOut, Shield, CalendarCheck, MessageSquare, Building2, Megaphone, LifeBuoy, Globe, Presentation, TrendingUp, MessageSquareQuote, History } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, SidebarHeader, useSidebar,
