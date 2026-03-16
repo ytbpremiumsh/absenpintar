@@ -259,7 +259,7 @@ const ExportHistory = () => {
     doc.text(`Kelas : ${selectedClass}`, 14, 30);
 
     const head = isPulangMode
-      ? [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "✓"]]
+      ? [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "V"]]
       : [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
     const body = activeRows.map((s, i) => {
       const row: (string | number)[] = [i + 1, s.student_id, s.name];
