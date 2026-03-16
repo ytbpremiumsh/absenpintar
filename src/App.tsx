@@ -82,6 +82,7 @@ const App = () => (
               <Route path="/super-admin/presentation" element={<SuperAdminPresentation />} />
               <Route path="/super-admin/business-model" element={<SuperAdminBusinessModel />} />
               <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />
+              <Route path="/super-admin/login-logs" element={<SuperAdminLoginLogs />} />
             </Route>
             {/* School Admin / Staff */}
             <Route element={<AppLayout />}>

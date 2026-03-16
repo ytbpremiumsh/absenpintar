@@ -13,6 +13,7 @@ import { NavLink } from "@/components/NavLink";
 const navItems = [
   { title: "Dashboard", url: "/super-admin", icon: LayoutDashboard, group: "overview" },
   { title: "Sekolah", url: "/super-admin/schools", icon: School, group: "overview" },
+  { title: "Log Login", url: "/super-admin/login-logs", icon: History, group: "overview" },
   { title: "Paket Langganan", url: "/super-admin/plans", icon: CreditCard, group: "billing" },
   { title: "Langganan", url: "/super-admin/subscriptions", icon: CalendarCheck, group: "billing" },
   { title: "Riwayat Pembayaran", url: "/super-admin/payments", icon: Receipt, group: "billing" },
