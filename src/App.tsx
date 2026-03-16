@@ -42,6 +42,7 @@ import SuperAdminRegistrationWA from "./pages/super-admin/SuperAdminRegistration
 import SuperAdminPresentation from "./pages/super-admin/SuperAdminPresentation";
 import SuperAdminBusinessModel from "./pages/super-admin/SuperAdminBusinessModel";
 import SuperAdminTestimonials from "./pages/super-admin/SuperAdminTestimonials";
+import SuperAdminLoginLogs from "./pages/super-admin/SuperAdminLoginLogs";
 import LandingPage from "./pages/LandingPage";
 import Presentation from "./pages/Presentation";
 import BusinessModel from "./pages/BusinessModel";
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="/super-admin/presentation" element={<SuperAdminPresentation />} />
               <Route path="/super-admin/business-model" element={<SuperAdminBusinessModel />} />
               <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />
+              <Route path="/super-admin/login-logs" element={<SuperAdminLoginLogs />} />
             </Route>
             {/* School Admin / Staff */}
             <Route element={<AppLayout />}>

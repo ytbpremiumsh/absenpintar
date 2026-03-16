@@ -225,6 +225,42 @@ export type Database = {
         }
         Relationships: []
       }
+      login_logs: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          ip_address: string | null
+          role: string | null
+          school_name: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          role?: string | null
+          school_name?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          role?: string | null
+          school_name?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
