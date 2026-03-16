@@ -42,6 +42,7 @@ import SuperAdminRegistrationWA from "./pages/super-admin/SuperAdminRegistration
 import SuperAdminPresentation from "./pages/super-admin/SuperAdminPresentation";
 import SuperAdminBusinessModel from "./pages/super-admin/SuperAdminBusinessModel";
 import SuperAdminTestimonials from "./pages/super-admin/SuperAdminTestimonials";
+import SuperAdminLoginLogs from "./pages/super-admin/SuperAdminLoginLogs";
 import LandingPage from "./pages/LandingPage";
 import Presentation from "./pages/Presentation";
 import BusinessModel from "./pages/BusinessModel";
