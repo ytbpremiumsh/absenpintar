@@ -263,7 +263,10 @@ const ExportHistory = () => {
       : [["NO", "NIS", "NAMA", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "H", "S", "I", "A"]];
     const body = activeRows.map((s, i) => {
       const row: (string | number)[] = [i + 1, s.student_id, s.name];
-      for (let d = 1; d <= daysInMonth; d++) row.push(s.days[d] || "");
+      for (let d = 1; d <= daysInMonth; d++) {
+        const val = s.days[d] || "";
+        row.push(val === "✓" ? "V" : val);
+      }
       if (isPulangMode) {
         row.push(s.totals.H);
       } else {
