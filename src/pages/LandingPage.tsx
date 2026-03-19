@@ -289,8 +289,9 @@ const LandingPage = () => {
             </motion.div>
 
             <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-extrabold tracking-tight leading-[1.05]">
-              <span className="text-foreground">ATSkolla — </span>
+              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
+              <span className="text-foreground">ATSkolla</span>
+              <span className="text-foreground"> — </span>
               <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Absensi Digital Sekolah</span>
             </motion.h1>
 
