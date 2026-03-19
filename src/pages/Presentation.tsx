@@ -563,8 +563,8 @@ const Presentation = () => {
             ].map((item, i) => {
               const Icon = item.icon;
               return (
-                <motion.div key={item.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i} className={`rounded-2xl border p-6 text-center transition-all duration-300 ${d ? "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]" : "bg-white border-slate-200 hover:border-indigo-200 hover:shadow-lg"}`}>
-                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 mx-auto mb-4">
+                <motion.div key={item.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i} className={`rounded-2xl border p-6 text-center transition-all duration-300 ${d ? "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]" : "bg-white border-slate-200 hover:border-amber-200 hover:shadow-lg"}`}>
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 mx-auto mb-4">
                     <Icon className="h-5 w-5 text-white" />
                   </div>
                   <h4 className="font-bold text-sm">{item.title}</h4>
