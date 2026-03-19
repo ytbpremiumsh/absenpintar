@@ -548,9 +548,9 @@ const Presentation = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Mengapa{" "}
+               Mengapa{" "}
               <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
-                AbsenPintar?
+                ATSkolla?
               </span>
             </h2>
           </motion.div>
