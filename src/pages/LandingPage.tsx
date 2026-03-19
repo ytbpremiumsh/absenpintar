@@ -289,8 +289,9 @@ const LandingPage = () => {
             </motion.div>
 
             <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-[4.25rem] font-extrabold tracking-tight leading-[1.05]">
-              <span className="text-foreground">ATSkolla — </span>
+              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
+              <span className="text-foreground">ATSkolla</span>
+              <span className="text-foreground"> — </span>
               <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Absensi Digital Sekolah</span>
             </motion.h1>
 
@@ -318,14 +319,16 @@ const LandingPage = () => {
           </div>
 
           {/* Centered Hero Image */}
-          <motion.div initial={{ opacity: 0, y: 40, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 0.9, ease: "easeOut" }}
+          <motion.div initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
             className="mt-14 sm:mt-16 relative mx-auto max-w-5xl">
-            <div className="absolute -inset-6 bg-gradient-to-br from-primary/20 via-primary/8 to-transparent rounded-[2.5rem] blur-3xl" />
+            <div className="absolute -inset-6 bg-gradient-to-br from-primary/20 via-primary/8 to-transparent rounded-[2.5rem] blur-3xl animate-pulse" />
             <div className="absolute -inset-2 bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl" />
-            <img
+            <motion.img
               src={heroDashboard}
               alt="Dashboard ATSkolla"
               className="relative w-full h-auto rounded-2xl border border-border/50 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.3),0_0_50px_-10px_hsl(234_89%_60%/0.18)]"
+              whileHover={{ scale: 1.01, y: -4 }}
+              transition={{ duration: 0.4 }}
             />
           </motion.div>
         </div>
