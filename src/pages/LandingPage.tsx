@@ -324,7 +324,7 @@ const LandingPage = () => {
             <div className="absolute -inset-2 bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl" />
             <img
               src={heroDashboard}
-              alt="Dashboard Absensi Pintar"
+              alt="Dashboard ATSkolla"
               className="relative w-full h-auto rounded-2xl border border-border/50 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.3),0_0_50px_-10px_hsl(234_89%_60%/0.18)]"
             />
           </motion.div>
