@@ -65,10 +65,10 @@ const DEFAULT_TRUSTED_SCHOOLS = [
 ];
 
 const DEFAULT_TESTIMONIALS = [
-  { name: "Ibu Sari Dewi", role: "Kepala Sekolah, SD Negeri 1 Jakarta", text: "Sejak menggunakan Absensi Pintar, proses absensi jadi lebih cepat dan akurat. Guru-guru sangat terbantu karena tidak perlu lagi mencatat manual. Orang tua juga senang karena langsung dapat notifikasi WhatsApp.", rating: 5 },
+  { name: "Ibu Sari Dewi", role: "Kepala Sekolah, SD Negeri 1 Jakarta", text: "Sejak menggunakan ATSkolla, proses absensi jadi lebih cepat dan akurat. Guru-guru sangat terbantu karena tidak perlu lagi mencatat manual. Orang tua juga senang karena langsung dapat notifikasi WhatsApp.", rating: 5 },
   { name: "Pak Ahmad Fauzi", role: "Wakil Kepala Sekolah, SMP Islam Al-Azhar", text: "Sistem yang luar biasa! Dashboard real-time memudahkan kami memantau kehadiran siswa. Rekap otomatis setiap bulan menghemat waktu administrasi hingga 80%. Sangat direkomendasikan!", rating: 5 },
   { name: "Ibu Rina Kartika", role: "Guru Kelas, TK Bunda Mulia", text: "Fitur scan barcode sangat memudahkan. Anak-anak TK yang belum bisa absen sendiri bisa dibantu dengan cepat. Notifikasi ke orang tua juga membuat mereka lebih tenang.", rating: 5 },
-  { name: "Pak Hendra Wijaya", role: "Kepala Sekolah, SD IT Nurul Fikri", text: "Kami sudah mencoba berbagai sistem absensi, tapi Absensi Pintar yang paling cocok untuk kebutuhan sekolah kami. Setup mudah, harga terjangkau, dan support responsif.", rating: 5 },
+  { name: "Pak Hendra Wijaya", role: "Kepala Sekolah, SD IT Nurul Fikri", text: "Kami sudah mencoba berbagai sistem absensi, tapi ATSkolla yang paling cocok untuk kebutuhan sekolah kami. Setup mudah, harga terjangkau, dan support responsif.", rating: 5 },
   { name: "Ibu Linda Kusuma", role: "Wali Murid, SMP Negeri 5 Bandung", text: "Sebagai orang tua, saya sangat apresiasi notifikasi WhatsApp otomatis. Saya bisa tahu kapan anak saya tiba di sekolah tanpa harus menelepon guru setiap hari.", rating: 5 },
 ];
 
