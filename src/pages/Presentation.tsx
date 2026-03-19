@@ -577,18 +577,18 @@ const Presentation = () => {
       </section>
 
       {/* ===== CTA ===== */}
-      <section className={`py-20 sm:py-32 ${d ? "bg-gradient-to-b from-violet-950/20 to-transparent" : "bg-gradient-to-b from-indigo-50/60 to-transparent"}`}>
+      <section className={`py-20 sm:py-32 ${d ? "bg-gradient-to-b from-amber-950/20 to-transparent" : "bg-gradient-to-b from-amber-50/60 to-transparent"}`}>
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
               {ctaTitle ? (
-                <span className={`bg-gradient-to-r ${d ? "from-white via-white to-indigo-300" : "from-slate-900 via-slate-800 to-indigo-600"} bg-clip-text text-transparent`}>
+                <span className={`bg-gradient-to-r ${d ? "from-white via-white to-amber-300" : "from-slate-900 via-slate-800 to-amber-600"} bg-clip-text text-transparent`}>
                   {ctaTitle}
                 </span>
               ) : (
                 <>
                   Siap Memodernisasi{" "}
-                  <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
+                  <span className={`bg-gradient-to-r ${d ? "from-amber-300 to-orange-300" : "from-amber-600 to-orange-500"} bg-clip-text text-transparent`}>
                     Absensi Sekolah Anda?
                   </span>
                 </>
@@ -598,7 +598,7 @@ const Presentation = () => {
               {ctaSubtitle || "Bergabung sekarang dan rasakan kemudahan sistem absensi digital yang aman, cepat, dan transparan."}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-              <a href={ctaBtn1Link} className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all text-sm">
+              <a href={ctaBtn1Link} className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-amber-500/25 hover:shadow-amber-500/40 transition-all text-sm">
                 <Zap className="h-4 w-4" /> {ctaBtn1 || "Daftar Gratis"}
               </a>
               <a href={ctaBtn2Link} className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border ${d ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"}`}>
