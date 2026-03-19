@@ -317,7 +317,7 @@ const Presentation = () => {
       <section className="min-h-screen flex flex-col items-center justify-center relative px-4 text-center pt-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mb-8">
           <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium border ${d ? "bg-white/5 border-white/10 text-indigo-300" : "bg-indigo-50 border-indigo-100 text-indigo-600"}`}>
-            <Sparkles className="h-3.5 w-3.5" /> Sistem Absensi Sekolah #1 di Indonesia
+            <Sparkles className="h-3.5 w-3.5" /> ATSkolla — Absensi Digital Sekolah #1 di Indonesia
           </span>
         </motion.div>
 
