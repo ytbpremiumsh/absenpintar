@@ -251,7 +251,7 @@ const STATS = [
 const BusinessModel = () => {
   const [loading, setLoading] = useState(true);
   const [isPublic, setIsPublic] = useState(false);
-  const [title, setTitle] = useState("Absensi Pintar");
+  const [title, setTitle] = useState("ATSkolla");
   const [subtitle, setSubtitle] = useState("");
   const [dark, setDark] = useState(false);
 
