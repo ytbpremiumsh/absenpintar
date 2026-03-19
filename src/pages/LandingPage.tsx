@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import TypingEffect from "@/components/TypingEffect";
 import {
   ScanLine, Monitor, MessageSquare, FileBarChart,
   ArrowRight, CheckCircle2, Mail, Phone, MapPin,
