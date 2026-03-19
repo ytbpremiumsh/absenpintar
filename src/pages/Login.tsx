@@ -90,10 +90,10 @@ const Login = () => {
           <div className="flex items-center gap-3">
             <img
               src={loginLogo}
-              alt="Absensi Pintar"
+              alt="ATSkolla"
               className="h-10 w-10 rounded-xl shadow-lg"
             />
-            <span className="text-white font-bold text-lg tracking-tight">ABSENSI PINTAR</span>
+            <span className="text-white font-bold text-lg tracking-tight">ATSkolla</span>
           </div>
 
           <div className="space-y-4">
@@ -123,10 +123,10 @@ const Login = () => {
           <div className="lg:hidden flex items-center justify-center gap-3 mb-4">
             <img
               src={loginLogo}
-              alt="Absensi Pintar"
+              alt="ATSkolla"
               className="h-10 w-10 rounded-xl shadow-md"
             />
-            <span className="font-bold text-lg text-foreground tracking-tight">ABSENSI PINTAR</span>
+            <span className="font-bold text-lg text-foreground tracking-tight">ATSkolla</span>
           </div>
 
           <div className="text-center space-y-2">
@@ -204,7 +204,7 @@ const Login = () => {
           </div>
 
           <p className="text-center text-muted-foreground/50 text-xs">
-            © 2026 Absensi Pintar - Smart School Attendance
+            © 2026 ATSkolla - Absensi Digital Sekolah
           </p>
         </div>
       </div>

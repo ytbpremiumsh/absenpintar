@@ -57,7 +57,7 @@ const PROBLEMS = [
 
 
 /* ═══════════════════════════════════════════
-   SOLUSI ABSENSI PINTAR
+   SOLUSI ATSKOLLA
    ═══════════════════════════════════════════ */
 const SOLUTIONS = [
 {
@@ -251,7 +251,7 @@ const STATS = [
 const BusinessModel = () => {
   const [loading, setLoading] = useState(true);
   const [isPublic, setIsPublic] = useState(false);
-  const [title, setTitle] = useState("Absensi Pintar");
+  const [title, setTitle] = useState("ATSkolla");
   const [subtitle, setSubtitle] = useState("");
   const [dark, setDark] = useState(false);
 
@@ -316,7 +316,7 @@ const BusinessModel = () => {
       <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b ${navBg} transition-colors duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/images/logo-absensi-pintar.png" alt="Absensi Pintar" className="h-9 object-contain" />
+            <img src="/images/logo-absensi-pintar.png" alt="ATSkolla" className="h-9 object-contain" />
             
           </div>
           <div className="flex items-center gap-2">
@@ -410,10 +410,10 @@ const BusinessModel = () => {
       <section id="solutions" className="py-20 sm:py-32 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
-            <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-emerald-400" : "text-emerald-600"} mb-4 block`}>Solusi Absensi Pintar</span>
+            <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-emerald-400" : "text-emerald-600"} mb-4 block`}>Solusi ATSkolla</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Solusi untuk Setiap Masalah</h2>
             <p className={`mt-4 ${mutedText} max-w-2xl mx-auto`}>
-              Absensi Pintar hadir sebagai solusi digital yang menjawab setiap permasalahan absensi di sekolah — dari pencatatan hingga pelaporan.
+              ATSkolla hadir sebagai solusi digital yang menjawab setiap permasalahan absensi di sekolah — dari pencatatan hingga pelaporan.
             </p>
           </motion.div>
 
@@ -463,7 +463,7 @@ const BusinessModel = () => {
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
             <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-indigo-400" : "text-indigo-600"} mb-4 block`}>Sumber Pendapatan</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">5 Sumber Pendapatan</h2>
-            <p className={`mt-4 ${mutedText} max-w-2xl mx-auto`}>Absensi Pintar punya beberapa cara menghasilkan uang — tidak hanya dari satu sumber, tapi dari lima pilar yang saling menguatkan.</p>
+            <p className={`mt-4 ${mutedText} max-w-2xl mx-auto`}>ATSkolla punya beberapa cara menghasilkan uang — tidak hanya dari satu sumber, tapi dari lima pilar yang saling menguatkan.</p>
           </motion.div>
 
           {REVENUE_STREAMS.map((stream, idx) =>
@@ -554,7 +554,7 @@ const BusinessModel = () => {
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
             <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-cyan-400" : "text-cyan-600"} mb-4 block`}>Angka-Angka Penting</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Fondasi Bisnis yang Kokoh</h2>
-            <p className={`mt-4 ${mutedText} max-w-xl mx-auto`}>Angka-angka kunci yang membuktikan bisnis Absensi Pintar berkelanjutan dan menguntungkan.</p>
+            <p className={`mt-4 ${mutedText} max-w-xl mx-auto`}>Angka-angka kunci yang membuktikan bisnis ATSkolla berkelanjutan dan menguntungkan.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
@@ -636,7 +636,7 @@ const BusinessModel = () => {
             Siap Bergabung dalam <br className="hidden sm:block" />Revolusi EdTech Indonesia?
           </h2>
           <p className={`${mutedText} text-base sm:text-lg mb-10 max-w-xl mx-auto`}>
-            Pasar besar, bisnis yang sudah terbukti menguntungkan, dan produk yang siap pakai — Absensi Pintar adalah peluang bisnis EdTech yang layak dipertimbangkan.
+            Pasar besar, bisnis yang sudah terbukti menguntungkan, dan produk yang siap pakai — ATSkolla adalah peluang bisnis EdTech yang layak dipertimbangkan.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="/register" className={`inline-flex items-center justify-center gap-2 ${ctaBg} text-white px-10 py-4 rounded-2xl font-bold transition-all shadow-2xl text-base`}>
@@ -652,7 +652,7 @@ const BusinessModel = () => {
 
       {/* Footer */}
       <footer className={`border-t ${footerBg} py-8 px-4 text-center transition-colors duration-300`}>
-        <p className={`${footerText} text-xs`}>© {new Date().getFullYear()} Absensi Pintar — Smart School Attendance System. All rights reserved.</p>
+        <p className={`${footerText} text-xs`}>© {new Date().getFullYear()} ATSkolla — Absensi Digital Sekolah. All rights reserved.</p>
       </footer>
     </div>);
 
