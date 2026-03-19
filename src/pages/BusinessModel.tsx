@@ -554,7 +554,7 @@ const BusinessModel = () => {
           <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-16">
             <span className={`text-[11px] font-bold uppercase tracking-[0.2em] ${dark ? "text-cyan-400" : "text-cyan-600"} mb-4 block`}>Angka-Angka Penting</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">Fondasi Bisnis yang Kokoh</h2>
-            <p className={`mt-4 ${mutedText} max-w-xl mx-auto`}>Angka-angka kunci yang membuktikan bisnis Absensi Pintar berkelanjutan dan menguntungkan.</p>
+            <p className={`mt-4 ${mutedText} max-w-xl mx-auto`}>Angka-angka kunci yang membuktikan bisnis ATSkolla berkelanjutan dan menguntungkan.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
