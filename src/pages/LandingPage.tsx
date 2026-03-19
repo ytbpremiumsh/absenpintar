@@ -648,8 +648,8 @@ const LandingPage = () => {
                   </div>
                 )}
                 <div>
-                  <p className="font-bold text-foreground text-sm">Absensi Pintar</p>
-                  <p className="text-xs text-muted-foreground">by Smart School System</p>
+                  <p className="font-bold text-foreground text-sm">ATSkolla</p>
+                  <p className="text-xs text-muted-foreground">Absensi Digital Sekolah</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
