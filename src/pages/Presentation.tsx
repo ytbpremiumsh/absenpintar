@@ -292,9 +292,9 @@ const Presentation = () => {
     <div className={`min-h-screen ${bg} ${text} overflow-x-hidden transition-colors duration-500`} style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute -top-40 left-1/3 w-[800px] h-[800px] rounded-full blur-[200px] ${d ? "bg-indigo-600/10" : "bg-indigo-200/40"}`} />
-        <div className={`absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full blur-[200px] ${d ? "bg-violet-600/8" : "bg-violet-200/30"}`} />
-        <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[200px] ${d ? "bg-blue-600/6" : "bg-blue-200/20"}`} />
+        <div className={`absolute -top-40 left-1/3 w-[800px] h-[800px] rounded-full blur-[200px] ${d ? "bg-amber-600/10" : "bg-amber-200/40"}`} />
+        <div className={`absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full blur-[200px] ${d ? "bg-orange-600/8" : "bg-orange-200/30"}`} />
+        <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[200px] ${d ? "bg-yellow-600/6" : "bg-yellow-200/20"}`} />
       </div>
 
       {/* Nav */}
