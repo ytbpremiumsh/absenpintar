@@ -90,10 +90,10 @@ const Login = () => {
           <div className="flex items-center gap-3">
             <img
               src={loginLogo}
-              alt="Absensi Pintar"
+              alt="ATSkolla"
               className="h-10 w-10 rounded-xl shadow-lg"
             />
-            <span className="text-white font-bold text-lg tracking-tight">ABSENSI PINTAR</span>
+            <span className="text-white font-bold text-lg tracking-tight">ATSkolla</span>
           </div>
 
           <div className="space-y-4">
