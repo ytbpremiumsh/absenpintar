@@ -343,7 +343,7 @@ const Presentation = () => {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 w-full max-w-3xl">
           {STATS.map((s) => (
             <div key={s.label} className="text-center">
-              <div className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>
+              <div className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-r ${d ? "from-amber-300 to-orange-300" : "from-amber-600 to-orange-500"} bg-clip-text text-transparent`}>
                 {s.value}
               </div>
               <div className={`text-xs mt-1 ${d ? "text-slate-500" : "text-slate-400"}`}>{s.label}</div>
