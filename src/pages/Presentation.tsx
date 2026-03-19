@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Shield, QrCode, Monitor, Users, GraduationCap, BarChart3, Clock, Bell, Globe, FileText, Settings, ChevronRight, CheckCircle2, Zap, Smartphone, Sparkles, Sun, Moon, ArrowDown, Star, TrendingUp, Eye, Download, UserCheck, ScanLine, BookOpen, AlertTriangle, XCircle, ArrowRight, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { Navigate } from "react-router-dom";
+import TypingEffect from "@/components/TypingEffect";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -321,10 +322,8 @@ const Presentation = () => {
           </span>
         </motion.div>
 
-        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.7 }} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter leading-[0.9]">
-          <span className={`bg-gradient-to-b ${d ? "from-white via-white to-white/50" : "from-slate-900 via-slate-800 to-indigo-700"} bg-clip-text text-transparent`}>
-            {title}
-          </span>
+        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.7 }} className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
+          <TypingEffect text={title || "ATSkolla — Absensi Digital Sekolah"} speed={60} className={`bg-gradient-to-b ${d ? "from-white via-white to-white/50" : "from-slate-900 via-slate-800 to-indigo-700"} bg-clip-text text-transparent`} />
         </motion.h1>
 
         <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className={`mt-6 text-base sm:text-lg md:text-xl ${muted} max-w-2xl leading-relaxed`}>

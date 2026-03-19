@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import TypingEffect from "@/components/TypingEffect";
 import {
   ScanLine, Monitor, MessageSquare, FileBarChart,
   ArrowRight, CheckCircle2, Mail, Phone, MapPin,
@@ -289,10 +290,8 @@ const LandingPage = () => {
             </motion.div>
 
             <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
-              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight">
-              <span className="text-foreground">ATSkolla</span>
-              <span className="text-foreground"> — </span>
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Absensi Digital Sekolah</span>
+              className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight">
+              <TypingEffect text="ATSkolla — Absensi Digital Sekolah" speed={60} className="bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent" />
             </motion.h1>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
