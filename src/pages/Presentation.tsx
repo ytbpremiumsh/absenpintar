@@ -432,10 +432,10 @@ const Presentation = () => {
       <section id="features" className="relative py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUp} custom={0} className="text-center mb-16 sm:mb-24">
-            <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-indigo-400" : "text-indigo-500"}`}>Fitur Utama</span>
+            <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-amber-400" : "text-amber-600"}`}>Fitur Utama</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mt-3">
               Semua yang Sekolah Anda <br className="hidden sm:block" />
-              <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-violet-300" : "from-indigo-600 to-violet-500"} bg-clip-text text-transparent`}>Butuhkan</span>
+              <span className={`bg-gradient-to-r ${d ? "from-amber-300 to-orange-300" : "from-amber-600 to-orange-500"} bg-clip-text text-transparent`}>Butuhkan</span>
             </h2>
             <p className={`mt-4 ${muted} max-w-xl mx-auto text-sm sm:text-base`}>
               13 fitur utama yang dirancang untuk mempermudah proses absensi siswa secara digital, aman, dan efisien.
