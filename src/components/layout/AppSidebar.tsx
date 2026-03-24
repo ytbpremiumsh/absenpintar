@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Gift,
 } from "lucide-react";
+import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -80,7 +81,7 @@ export function AppSidebar() {
   }, [profile?.school_id]);
 
   const planColors: Record<string, string> = {
-    Free: "bg-muted text-white",
+    Free: "bg-gray-600 text-white",
     Basic: "bg-blue-500 text-white",
     School: "bg-amber-500 text-white",
     Premium: "bg-gradient-to-r from-purple-500 to-pink-500 text-white",
@@ -122,9 +123,7 @@ export function AppSidebar() {
           {isPremiumBrand && schoolData?.logo ? (
             <img src={schoolData.logo} alt={schoolData.name} className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-md" />
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary shrink-0 shadow-md">
-              <ClipboardCheck className="h-4.5 w-4.5 text-primary-foreground" />
-            </div>
+            <img src={atskollaLogo} alt="ATSkolla" className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-md" />
           )}
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-extrabold text-sidebar-foreground tracking-tight truncate">

@@ -77,6 +77,7 @@ const ReferralDashboard = () => {
   }
 
   return (
+    <PremiumGate featureLabel="Referral & Poin" requiredPlan="Basic">
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -366,6 +367,7 @@ const ReferralDashboard = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </PremiumGate>
   );
 };
 
