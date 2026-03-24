@@ -119,6 +119,7 @@ const Register = () => {
           school_name: schoolData.name,
           school_address: schoolData.address,
           phone,
+          referral_code: refCode || undefined,
         }),
       });
 
