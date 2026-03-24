@@ -44,9 +44,11 @@ import SuperAdminPresentation from "./pages/super-admin/SuperAdminPresentation";
 import SuperAdminBusinessModel from "./pages/super-admin/SuperAdminBusinessModel";
 import SuperAdminTestimonials from "./pages/super-admin/SuperAdminTestimonials";
 import SuperAdminLoginLogs from "./pages/super-admin/SuperAdminLoginLogs";
+import SuperAdminReferral from "./pages/super-admin/SuperAdminReferral";
 import LandingPage from "./pages/LandingPage";
 import Presentation from "./pages/Presentation";
 import BusinessModel from "./pages/BusinessModel";
+import ReferralDashboard from "./pages/ReferralDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +87,7 @@ const App = () => (
               <Route path="/super-admin/business-model" element={<SuperAdminBusinessModel />} />
               <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />
               <Route path="/super-admin/login-logs" element={<SuperAdminLoginLogs />} />
+              <Route path="/super-admin/referral" element={<SuperAdminReferral />} />
             </Route>
             {/* School Admin / Staff */}
             <Route element={<AppLayout />}>
@@ -104,6 +107,7 @@ const App = () => (
               <Route path="/school-settings" element={<SchoolSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />
               <Route path="/support" element={<SupportTickets />} />
+              <Route path="/referral" element={<ReferralDashboard />} />
               <Route path="/whatsapp" element={<WhatsAppSettings />} />
               <Route path="/wa-templates" element={<Navigate to="/whatsapp" replace />} />
               <Route path="/wa-broadcast" element={<Navigate to="/whatsapp" replace />} />
