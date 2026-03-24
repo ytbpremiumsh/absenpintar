@@ -14,6 +14,7 @@ import {
   ClipboardCheck,
   Users2,
   MessageSquare,
+  Gift,
 } from "lucide-react";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { NavLink } from "@/components/NavLink";
@@ -54,6 +55,7 @@ const whatsappNav = [
 ];
 
 const settingsNav = [
+  { title: "Referral & Poin", url: "/referral", icon: Gift },
   { title: "Langganan", url: "/subscription", icon: CreditCard },
   { title: "Bantuan", url: "/support", icon: LifeBuoy },
 ];
