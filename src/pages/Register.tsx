@@ -42,6 +42,7 @@ const Register = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [referralInput, setReferralInput] = useState(refCode);
   const [registering, setRegistering] = useState(false);
 
   const handleNpsnLookup = async () => {
@@ -119,7 +120,7 @@ const Register = () => {
           school_name: schoolData.name,
           school_address: schoolData.address,
           phone,
-          referral_code: refCode || undefined,
+          referral_code: referralInput || undefined,
         }),
       });
 
@@ -380,6 +381,18 @@ const Register = () => {
                     className="h-11"
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="referralCode">Kode Referral <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                  <Input
+                    id="referralCode"
+                    placeholder="Contoh: ATS-X7K29L"
+                    value={referralInput}
+                    onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+                    className="h-11 font-mono tracking-wider"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Masukkan kode referral jika Anda mendapat undangan dari sekolah lain</p>
                 </div>
 
                 <div className="flex gap-2">
