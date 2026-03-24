@@ -492,7 +492,7 @@ const LandingPage = () => {
       <section className="py-20 sm:py-28 bg-slate-50/80 dark:bg-slate-900/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400 mb-3 block">Harga</span>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 mb-3 block">Harga</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Pilih Paket Terbaik</h2>
             <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Harga transparan, tanpa biaya tersembunyi. Mulai gratis, upgrade kapan saja.</p>
           </motion.div>
@@ -506,30 +506,30 @@ const LandingPage = () => {
               <motion.div key={plan.id} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="h-full">
                 <div className={`rounded-2xl p-6 sm:p-7 border transition-all h-full flex flex-col relative overflow-hidden ${
                   isHighlighted 
-                    ? "border-amber-300 dark:border-amber-500/30 bg-white dark:bg-slate-800 shadow-xl shadow-amber-500/10 ring-2 ring-amber-500/20" 
-                    : "border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 hover:border-amber-200 dark:hover:border-amber-500/15 hover:shadow-lg"
+                    ? "border-indigo-300 dark:border-indigo-500/30 bg-white dark:bg-slate-800 shadow-xl shadow-indigo-500/10 ring-2 ring-indigo-500/20" 
+                    : "border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 hover:border-indigo-200 dark:hover:border-indigo-500/15 hover:shadow-lg"
                 }`}>
                   {isHighlighted && (
-                    <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">
+                    <div className="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">
                       ⭐ Rekomendasi
                     </div>
                   )}
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">{plan.description || ""}</p>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{plan.name}</h3>
-                  <p className="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-3">{priceText}<span className="text-xs text-slate-400 font-normal">/bulan</span></p>
+                  <p className="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-3">{priceText}<span className="text-xs text-slate-400 font-normal">/bulan</span></p>
                   {plan.max_students && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Maks. {plan.max_students} siswa</p>}
                   <ul className="mt-6 space-y-2.5 flex-1">
                     {featureList.map((f: string) => (
                       <li key={f} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
                         <span className="text-slate-700 dark:text-slate-200">{f}</span>
                       </li>
                     ))}
                   </ul>
                   <button onClick={() => navigate("/register")} className={`mt-6 w-full py-3 rounded-xl font-bold text-sm transition-all ${
                     isHighlighted 
-                      ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30" 
-                      : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-300 border border-slate-200 dark:border-slate-600"
+                      ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30" 
+                      : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-700 dark:hover:text-indigo-300 border border-slate-200 dark:border-slate-600"
                   }`}>
                     Mulai Sekarang
                   </button>
@@ -541,7 +541,6 @@ const LandingPage = () => {
         </div>
       </section>
       )}
-
       {/* ─── Trusted By Schools ─── */}
       <section className="py-16 sm:py-20 relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
