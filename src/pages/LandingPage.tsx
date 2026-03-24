@@ -240,7 +240,7 @@ const LandingPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 animate-pulse" />
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 animate-pulse" />
           <p className="text-slate-500 text-sm">Memuat...</p>
         </motion.div>
       </div>
