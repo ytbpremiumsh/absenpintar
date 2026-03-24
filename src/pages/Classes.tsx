@@ -35,7 +35,7 @@ const Classes = () => {
   const [savingGroupId, setSavingGroupId] = useState(false);
 
   const fetchData = async () => {
-    if (!profile?.school_id) return;
+    if (!profile?.school_id) { setLoading(false); return; }
     const today = new Date().toISOString().slice(0, 10);
 
     const [studentsRes, logsRes, classesRes] = await Promise.all([

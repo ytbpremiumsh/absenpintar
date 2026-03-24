@@ -50,7 +50,7 @@ const Students = () => {
   }, [searchParams]);
 
   const fetchData = async () => {
-    if (!profile?.school_id) return;
+    if (!profile?.school_id) { setLoading(false); return; }
     const [studentsRes, classesRes, instrRes, schoolRes, waliRes] = await Promise.all([
       supabase.from("students").select("*").eq("school_id", profile.school_id).order("class").order("name"),
       supabase.from("classes").select("*").eq("school_id", profile.school_id).order("name"),
