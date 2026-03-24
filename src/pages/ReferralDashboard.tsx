@@ -14,6 +14,7 @@ import {
   Trophy, Medal, Crown, Sparkles
 } from "lucide-react";
 import { useReferral } from "@/hooks/useReferral";
+import { PremiumGate } from "@/components/PremiumGate";
 import confetti from "canvas-confetti";
 
 const statusColors: Record<string, string> = {
@@ -76,6 +77,7 @@ const ReferralDashboard = () => {
   }
 
   return (
+    <PremiumGate featureLabel="Referral & Poin" requiredPlan="Basic">
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -365,6 +367,7 @@ const ReferralDashboard = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </PremiumGate>
   );
 };
 
