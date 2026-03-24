@@ -47,6 +47,7 @@ import SuperAdminLoginLogs from "./pages/super-admin/SuperAdminLoginLogs";
 import LandingPage from "./pages/LandingPage";
 import Presentation from "./pages/Presentation";
 import BusinessModel from "./pages/BusinessModel";
+import ReferralDashboard from "./pages/ReferralDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -104,6 +105,7 @@ const App = () => (
               <Route path="/school-settings" element={<SchoolSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />
               <Route path="/support" element={<SupportTickets />} />
+              <Route path="/referral" element={<ReferralDashboard />} />
               <Route path="/whatsapp" element={<WhatsAppSettings />} />
               <Route path="/wa-templates" element={<Navigate to="/whatsapp" replace />} />
               <Route path="/wa-broadcast" element={<Navigate to="/whatsapp" replace />} />
