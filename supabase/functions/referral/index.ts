@@ -246,6 +246,23 @@ serve(async (req) => {
     if (action === 'get_stats') {
       if (!userId) throw new Error('Unauthorized');
 
+      // Check if user has a referral code, if not generate one
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('referral_code')
+        .eq('user_id', userId)
+        .single();
+
+      if (existingProfile && !existingProfile.referral_code) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let newCode = 'ATS-';
+        for (let i = 0; i < 6; i++) newCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        await supabaseAdmin
+          .from('profiles')
+          .update({ referral_code: newCode })
+          .eq('user_id', userId);
+      }
+
       const [profileRes, referralsRes, claimsRes, transactionsRes] = await Promise.all([
         supabaseAdmin.from('profiles').select('referral_code, current_points, lifetime_points').eq('user_id', userId).single(),
         supabaseAdmin.from('referrals').select('*, referred_profile:profiles!referrals_referred_user_id_fkey(full_name, school_id)').eq('referrer_id', userId).order('created_at', { ascending: false }),
