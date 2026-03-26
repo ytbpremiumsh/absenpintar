@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, School, CreditCard, Receipt, LogOut, Shield, CalendarCheck, MessageSquare, Building2, Megaphone, LifeBuoy, Globe, Presentation, TrendingUp, MessageSquareQuote, History, Gift, Megaphone as MegaphoneIcon } from "lucide-react";
+import { LayoutDashboard, School, CreditCard, Receipt, LogOut, Shield, CalendarCheck, MessageSquare, Building2, Megaphone, LifeBuoy, Globe, Presentation, TrendingUp, MessageSquareQuote, History, Gift } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
