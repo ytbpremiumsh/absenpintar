@@ -4,9 +4,117 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Loader2, Save, Upload, X, Image as ImageIcon, Globe, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+/* ── Branding Settings (Favicon + Header Logo) ── */
+function BrandingSettings() {
+  const [faviconUrl, setFaviconUrl] = useState("");
+  const [headerLogoUrl, setHeaderLogoUrl] = useState("");
+  const [loginLogoUrl, setLoginLogoUrl] = useState("");
+  const [loginImage, setLoginImage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("platform_settings")
+      .select("key, value")
+      .in("key", ["favicon_url", "header_logo_url", "login_logo_url", "login_sidebar_image"])
+      .then(({ data }) => {
+        if (data) {
+          const m = Object.fromEntries(data.map((d) => [d.key, d.value]));
+          setFaviconUrl(m.favicon_url || "");
+          setHeaderLogoUrl(m.header_logo_url || "");
+          setLoginLogoUrl(m.login_logo_url || "");
+          setLoginImage(m.login_sidebar_image || "");
+        }
+      });
+  }, []);
+
+  const handleUpload = async (key: string, file: File) => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("Maksimal 5MB"); return; }
+    setUploading(key);
+    const ext = file.name.split(".").pop();
+    const path = `branding/${key}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("landing-assets").upload(path, file);
+    if (error) { toast.error("Gagal upload"); setUploading(null); return; }
+    const { data: urlData } = supabase.storage.from("landing-assets").getPublicUrl(path);
+    const url = urlData.publicUrl;
+    if (key === "favicon_url") setFaviconUrl(url);
+    else if (key === "header_logo_url") setHeaderLogoUrl(url);
+    else if (key === "login_logo_url") setLoginLogoUrl(url);
+    else if (key === "login_sidebar_image") setLoginImage(url);
+    setUploading(null);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const rows = [
+      { key: "favicon_url", value: faviconUrl, updated_at: new Date().toISOString() },
+      { key: "header_logo_url", value: headerLogoUrl, updated_at: new Date().toISOString() },
+      { key: "login_logo_url", value: loginLogoUrl, updated_at: new Date().toISOString() },
+      { key: "login_sidebar_image", value: loginImage, updated_at: new Date().toISOString() },
+    ];
+    const { error } = await supabase.from("platform_settings").upsert(rows, { onConflict: "key" });
+    if (error) toast.error("Gagal menyimpan: " + error.message);
+    else {
+      toast.success("Branding berhasil disimpan! Refresh halaman untuk melihat perubahan.");
+      // Update favicon immediately
+      let link = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
+      if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+      if (faviconUrl) link.href = faviconUrl;
+    }
+    setSaving(false);
+  };
+
+  const renderUploadField = (label: string, key: string, value: string, setter: (v: string) => void) => (
+    <div className="space-y-2">
+      <Label className="text-xs font-medium">{label}</Label>
+      {value && (
+        <div className="relative inline-block">
+          <img src={value} alt={label} className="h-16 rounded-lg object-contain bg-muted p-1" />
+          <button onClick={() => setter("")} className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5">
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+      <div className="flex gap-2 items-center">
+        <Input value={value} onChange={(e) => setter(e.target.value)} placeholder="URL gambar atau upload" className="text-xs" />
+        <input type="file" accept="image/*" id={`branding-${key}`} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(key, f); }} />
+        <Button type="button" variant="outline" size="sm" disabled={uploading === key} onClick={() => document.getElementById(`branding-${key}`)?.click()}>
+          {uploading === key ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <Card className="border-0 shadow-card">
+      <CardContent className="p-4 sm:p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            <h3 className="font-bold text-foreground text-sm">Branding & Logo Website</h3>
+          </div>
+          <Button onClick={handleSave} disabled={saving} size="sm" className="gradient-primary text-primary-foreground">
+            {saving ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Save className="h-3 w-3 mr-1" />}
+            Simpan
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">Kelola favicon (icon tab browser), logo header halaman utama, dan logo halaman login.</p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          {renderUploadField("Favicon (Icon Tab Browser)", "favicon_url", faviconUrl, setFaviconUrl)}
+          {renderUploadField("Logo Header Landing Page", "header_logo_url", headerLogoUrl, setHeaderLogoUrl)}
+          {renderUploadField("Logo Halaman Login", "login_logo_url", loginLogoUrl, setLoginLogoUrl)}
+          {renderUploadField("Gambar Sidebar Login", "login_sidebar_image", loginImage, setLoginImage)}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 interface ContentItem {
   id: string;
@@ -150,6 +258,8 @@ const SuperAdminLanding = () => {
 
   return (
     <div className="space-y-6">
+      <BrandingSettings />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Landing Page</h1>
