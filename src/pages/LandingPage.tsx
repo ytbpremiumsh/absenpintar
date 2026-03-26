@@ -205,6 +205,7 @@ const LandingPage = () => {
   const [showPricing, setShowPricing] = useState(true);
   const [trustedSchools, setTrustedSchools] = useState<TrustedSchool[]>(DEFAULT_TRUSTED_SCHOOLS);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
+  const [headerLogo, setHeaderLogo] = useState("/images/logo-atskolla.png");
 
   useEffect(() => {
     Promise.all([
@@ -212,10 +213,15 @@ const LandingPage = () => {
       supabase.from("subscription_plans").select("*").eq("is_active", true).order("sort_order"),
       supabase.from("landing_trusted_schools").select("*").eq("is_active", true).order("sort_order"),
       supabase.from("landing_testimonials").select("*").eq("is_active", true).order("sort_order"),
-    ]).then(([contentRes, plansRes, schoolsRes, testimonialsRes]) => {
+      supabase.from("platform_settings").select("key, value").in("key", ["header_logo_url"]),
+    ]).then(([contentRes, plansRes, schoolsRes, testimonialsRes, settingsRes]) => {
       const map: Record<string, string> = {};
       (contentRes.data || []).forEach((item: any) => { map[item.key] = item.value; });
       setContent(map);
+      if (settingsRes.data) {
+        const sMap = Object.fromEntries(settingsRes.data.map((d: any) => [d.key, d.value]));
+        if (sMap.header_logo_url) setHeaderLogo(sMap.header_logo_url);
+      }
       const allPlans = (plansRes.data || []) as any[];
       const landingPlans = allPlans.filter((p: any) => p.show_on_landing !== false);
       setPlans(landingPlans as PlanRow[]);
@@ -253,7 +259,7 @@ const LandingPage = () => {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl shadow-sm border-b border-slate-200 dark:border-slate-800" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src="/images/logo-atskolla.png" alt="ATSkolla" className="h-9 sm:h-10 object-contain" />
+            <img src={headerLogo} alt="ATSkolla" className="h-9 sm:h-10 object-contain" />
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
