@@ -254,18 +254,20 @@ const BusinessModel = () => {
   const [title, setTitle] = useState("ATSkolla");
   const [subtitle, setSubtitle] = useState("");
   const [dark, setDark] = useState(false);
+  const [headerLogo, setHeaderLogo] = useState("/images/logo-atskolla.png");
 
   useEffect(() => {
     const fetchData = async () => {
       const { data } = await supabase.
       from("platform_settings").
       select("key, value").
-      in("key", ["business_model_is_public", "business_model_title", "business_model_subtitle"]);
+      in("key", ["business_model_is_public", "business_model_title", "business_model_subtitle", "header_logo_url"]);
       if (data) {
         const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
         setIsPublic(map.business_model_is_public === "true");
         if (map.business_model_title) setTitle(map.business_model_title);
         if (map.business_model_subtitle) setSubtitle(map.business_model_subtitle);
+        if (map.header_logo_url) setHeaderLogo(map.header_logo_url);
       }
       setLoading(false);
     };
@@ -316,7 +318,7 @@ const BusinessModel = () => {
       <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b ${navBg} transition-colors duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/images/logo-atskolla.png" alt="ATSkolla" className="h-9 object-contain" />
+            <img src={headerLogo} alt="ATSkolla" className="h-9 object-contain" />
             
           </div>
           <div className="flex items-center gap-2">
