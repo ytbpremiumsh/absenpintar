@@ -10,15 +10,21 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { email, otp_code, new_password } = await req.json();
+    const { email, otp_code, new_password, verify_only } = await req.json();
 
-    if (!email || !otp_code || !new_password) {
-      return new Response(JSON.stringify({ error: 'Email, OTP, dan password baru wajib diisi' }), {
+    if (!email || !otp_code) {
+      return new Response(JSON.stringify({ error: 'Email dan OTP wajib diisi' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    if (new_password.length < 6) {
+    if (!verify_only && !new_password) {
+      return new Response(JSON.stringify({ error: 'Password baru wajib diisi' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (new_password && new_password.length < 6) {
       return new Response(JSON.stringify({ error: 'Password minimal 6 karakter' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -46,6 +52,13 @@ serve(async (req) => {
     if (!otpRecord) {
       return new Response(JSON.stringify({ error: 'Kode OTP tidak valid atau sudah kadaluarsa' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // If verify_only, just confirm OTP is valid without marking as used
+    if (verify_only) {
+      return new Response(JSON.stringify({ success: true, message: 'OTP valid' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
