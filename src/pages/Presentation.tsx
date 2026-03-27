@@ -254,15 +254,22 @@ const Presentation = () => {
   const [ctaBtn1Link, setCtaBtn1Link] = useState("/register");
   const [ctaBtn2Link, setCtaBtn2Link] = useState("/login");
   const [dark, setDark] = useState(false);
+  const [headerLogo, setHeaderLogo] = useState("/images/logo-atskolla.png");
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data } = await supabase
-        .from("platform_settings")
-        .select("key, value")
-        .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle", "presentation_cta_title", "presentation_cta_subtitle", "presentation_cta_btn1", "presentation_cta_btn2", "presentation_cta_btn1_link", "presentation_cta_btn2_link"]);
-      if (data) {
-        const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
+      const [presRes, settingsRes] = await Promise.all([
+        supabase
+          .from("platform_settings")
+          .select("key, value")
+          .in("key", ["presentation_is_public", "presentation_title", "presentation_subtitle", "presentation_cta_title", "presentation_cta_subtitle", "presentation_cta_btn1", "presentation_cta_btn2", "presentation_cta_btn1_link", "presentation_cta_btn2_link"]),
+        supabase
+          .from("platform_settings")
+          .select("key, value")
+          .in("key", ["header_logo_url"]),
+      ]);
+      if (presRes.data) {
+        const map = Object.fromEntries(presRes.data.map((d) => [d.key, d.value]));
         setIsPublic(map.presentation_is_public === "true");
         if (map.presentation_title) setTitle(map.presentation_title);
         if (map.presentation_subtitle) setSubtitle(map.presentation_subtitle);
@@ -273,16 +280,20 @@ const Presentation = () => {
         if (map.presentation_cta_btn1_link) setCtaBtn1Link(map.presentation_cta_btn1_link);
         if (map.presentation_cta_btn2_link) setCtaBtn2Link(map.presentation_cta_btn2_link);
       }
+      if (settingsRes.data) {
+        const sMap = Object.fromEntries(settingsRes.data.map((d) => [d.key, d.value]));
+        if (sMap.header_logo_url) setHeaderLogo(sMap.header_logo_url);
+      }
       setLoading(false);
     };
     fetchData();
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950"><Loader2 className="h-8 w-8 animate-spin text-amber-400" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950"><Loader2 className="h-8 w-8 animate-spin text-emerald-400" /></div>;
   if (!isPublic) return <Navigate to="/" replace />;
 
   const d = dark;
-  const bg = d ? "bg-slate-950" : "bg-white";
+  const bg = d ? "bg-slate-950" : "bg-gradient-to-b from-slate-50 via-white to-slate-50";
   const text = d ? "text-white" : "text-slate-900";
   const muted = d ? "text-slate-400" : "text-slate-500";
   const cardBg = d ? "bg-white/[0.03] border-white/[0.06]" : "bg-white border-slate-200";
@@ -292,22 +303,22 @@ const Presentation = () => {
     <div className={`min-h-screen ${bg} ${text} overflow-x-hidden transition-colors duration-500`} style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className={`absolute -top-40 left-1/3 w-[800px] h-[800px] rounded-full blur-[200px] ${d ? "bg-amber-600/10" : "bg-amber-200/40"}`} />
-        <div className={`absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full blur-[200px] ${d ? "bg-orange-600/8" : "bg-orange-200/30"}`} />
-        <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[200px] ${d ? "bg-yellow-600/6" : "bg-yellow-200/20"}`} />
+        <div className={`absolute -top-40 left-1/3 w-[800px] h-[800px] rounded-full blur-[200px] ${d ? "bg-indigo-600/15" : "bg-indigo-200/40"}`} />
+        <div className={`absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full blur-[200px] ${d ? "bg-emerald-600/10" : "bg-emerald-200/30"}`} />
+        <div className={`absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[200px] ${d ? "bg-blue-600/8" : "bg-blue-200/20"}`} />
       </div>
 
       {/* Nav */}
       <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl border-b ${navBg} transition-colors duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/images/logo-atskolla.png" alt="ATSkolla" className="h-9 object-contain" />
+            <img src={headerLogo} alt="ATSkolla" className="h-9 object-contain" />
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setDark(!d)} className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all ${d ? "bg-white/10 hover:bg-white/15 text-yellow-300" : "bg-slate-100 hover:bg-slate-200 text-slate-600"}`}>
               {d ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <a href="/register" className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all">
+            <a href="/register" className="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all">
               Mulai Sekarang <ChevronRight className="h-3.5 w-3.5" />
             </a>
           </div>
