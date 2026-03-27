@@ -94,17 +94,17 @@ const Monitoring = () => {
     const [studentsRes, logsRes, settingsRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, student_id, photo_url").eq("school_id", schoolId),
       supabase.from("attendance_logs").select("id, student_id, time, status, method, created_at, attendance_type").eq("school_id", schoolId).eq("date", today).order("created_at", { ascending: false }),
-      supabase.from("pickup_settings").select("attendance_end_time").eq("school_id", schoolId).maybeSingle(),
+      supabase.from("pickup_settings").select("attendance_end_time, departure_end_time").eq("school_id", schoolId).maybeSingle(),
     ]);
 
     const allStudents = studentsRes.data || [];
     const logs = logsRes.data || [];
-    const attEnd = (settingsRes.data as any)?.attendance_end_time || "12:00:00";
+    const settings = settingsRes.data as any;
+    const depEnd = settings?.departure_end_time || settings?.attendance_end_time || "17:00:00";
     const jakartaNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-    const currentHour = jakartaNow.getHours();
-    // Auto-alfa only at midnight (24:00) — i.e. the next day when date changes
-    // During the current day, students without attendance stay as "belum"
-    const autoAlfa = false; // Never auto-alfa during the same day; handled by date change
+    const currentTime = jakartaNow.toTimeString().slice(0, 8);
+    // Auto-alfa when current time is past departure end time
+    const autoAlfa = currentTime > depEnd;
 
     const datangLogs = logs.filter((l: any) => (l.attendance_type || "datang") === "datang");
     const mapped: StudentWithStatus[] = allStudents.map((s: any) => {
@@ -112,7 +112,7 @@ const Monitoring = () => {
       return {
         id: s.id, name: s.name, class: s.class,
         parent_name: s.parent_name, student_id: s.student_id, photo_url: s.photo_url,
-        status: log ? (log.status as any) : "belum",
+        status: log ? (log.status as any) : (autoAlfa ? "alfa" : "belum"),
         attendance_time: log?.time,
         log_id: log?.id,
       };

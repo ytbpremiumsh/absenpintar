@@ -21,6 +21,8 @@ const ForgotPassword = () => {
   const [userName, setUserName] = useState("");
   const [schoolId, setSchoolId] = useState("");
   const [maskedPhone, setMaskedPhone] = useState("");
+  const [otpCooldown, setOtpCooldown] = useState(0);
+  const [otpError, setOtpError] = useState("");
 
   const handleCheckEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,16 +57,68 @@ const ForgotPassword = () => {
 
       toast.success("Kode OTP berhasil dikirim ke WhatsApp!");
       setStep("otp");
+      // Start 60s cooldown
+      setOtpCooldown(60);
+      const timer = setInterval(() => {
+        setOtpCooldown((prev) => {
+          if (prev <= 1) { clearInterval(timer); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan");
     }
     setLoading(false);
   };
 
-  const handleVerifyAndReset = async (e: React.FormEvent) => {
+  const handleResendOtp = async () => {
+    if (otpCooldown > 0 || loading) return;
+    setLoading(true);
+    setOtpError("");
+    try {
+      const { data: otpData, error: otpError } = await supabase.functions.invoke("send-otp", {
+        body: { email, school_id: schoolId },
+      });
+      if (otpError) throw otpError;
+      if (otpData.error) { toast.error(otpData.error); setLoading(false); return; }
+      toast.success("Kode OTP baru berhasil dikirim!");
+      setOtp("");
+      setOtpCooldown(60);
+      const timer = setInterval(() => {
+        setOtpCooldown((prev) => {
+          if (prev <= 1) { clearInterval(timer); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengirim ulang OTP");
+    }
+    setLoading(false);
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.length !== 6) { toast.error("Masukkan 6 digit kode OTP"); return; }
-    if (step === "otp") { setStep("new-password"); return; }
+    setLoading(true);
+    setOtpError("");
+    try {
+      // Verify OTP first before allowing password change
+      const { data, error } = await supabase.functions.invoke("verify-otp-reset", {
+        body: { email, otp_code: otp, verify_only: true },
+      });
+      if (error) throw error;
+      if (data.error) { setOtpError(data.error); toast.error(data.error); setLoading(false); return; }
+      toast.success("OTP terverifikasi!");
+      setStep("new-password");
+    } catch (err: any) {
+      setOtpError(err.message || "OTP tidak valid");
+      toast.error(err.message || "OTP tidak valid");
+    }
+    setLoading(false);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (newPassword.length < 6) { toast.error("Password minimal 6 karakter"); return; }
     if (newPassword !== confirmPassword) { toast.error("Password tidak cocok"); return; }
     setLoading(true);
@@ -132,11 +186,11 @@ const ForgotPassword = () => {
 
           {/* Step 2: OTP */}
           {step === "otp" && (
-            <form onSubmit={handleVerifyAndReset} className="space-y-4">
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div className="space-y-3">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Kode OTP (6 digit)</Label>
                 <div className="flex justify-center">
-                  <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                  <InputOTP maxLength={6} value={otp} onChange={(v) => { setOtp(v); setOtpError(""); }}>
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
                       <InputOTPSlot index={1} />
@@ -147,12 +201,16 @@ const ForgotPassword = () => {
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
+                {otpError && <p className="text-xs text-center text-red-500 font-medium">{otpError}</p>}
                 <p className="text-xs text-center text-slate-400">Cek pesan WhatsApp di nomor {maskedPhone}</p>
               </div>
               <Button type="submit" disabled={loading || otp.length !== 6} className="w-full h-12 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verifikasi OTP"}
               </Button>
-              <Button type="button" variant="ghost" onClick={() => { setStep("email"); setOtp(""); }} className="w-full text-sm text-slate-500">
+              <Button type="button" variant="ghost" disabled={otpCooldown > 0 || loading} onClick={handleResendOtp} className="w-full text-sm text-slate-500">
+                {otpCooldown > 0 ? `Kirim ulang OTP (${otpCooldown}s)` : "Kirim Ulang OTP"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => { setStep("email"); setOtp(""); setOtpError(""); }} className="w-full text-sm text-slate-500">
                 <ArrowLeft className="h-4 w-4 mr-1" /> Kembali
               </Button>
             </form>
@@ -160,7 +218,7 @@ const ForgotPassword = () => {
 
           {/* Step 3: New Password */}
           {step === "new-password" && (
-            <form onSubmit={handleVerifyAndReset} className="space-y-4">
+            <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="new-pw" className="text-xs font-semibold uppercase tracking-wider text-slate-500">Password Baru</Label>
                 <div className="relative">
