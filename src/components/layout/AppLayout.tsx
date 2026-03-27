@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ActivePlanBadge } from "@/components/ActivePlanBadge";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -53,6 +54,7 @@ function AppContent() {
             <span className="text-sm font-medium text-muted-foreground hidden sm:inline truncate max-w-[200px]">
               {profile?.full_name || "Dashboard"}
             </span>
+            <ActivePlanBadge />
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <ThemeToggle />

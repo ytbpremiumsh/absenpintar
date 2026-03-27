@@ -442,7 +442,7 @@ const Presentation = () => {
       {/* ===== FEATURES ===== */}
       <section id="features" className="relative py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUp} custom={0} className="text-center mb-16 sm:mb-24">
+          <div className="text-center mb-16 sm:mb-24">
             <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-indigo-400" : "text-indigo-600"}`}>Fitur Utama</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mt-3">
               Semua yang Sekolah Anda <br className="hidden sm:block" />
@@ -451,7 +451,7 @@ const Presentation = () => {
             <p className={`mt-4 ${muted} max-w-xl mx-auto text-sm sm:text-base`}>
               13 fitur utama yang dirancang untuk mempermudah proses absensi siswa secara digital, aman, dan efisien.
             </p>
-          </motion.div>
+          </div>
 
           <div className="space-y-16 sm:space-y-32">
             {FEATURES.map((f, idx) => {
@@ -460,7 +460,7 @@ const Presentation = () => {
               const isLast = idx === FEATURES.length - 1;
 
               const featureNode = isLast ? (
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} custom={1} className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center">
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg`}>
                       <Icon className="h-5 w-5 text-white" />
@@ -470,10 +470,9 @@ const Presentation = () => {
                   <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
                    <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-indigo-400" : "text-indigo-600"}`}>{f.subtitle}</p>
                   <p className={`mt-4 text-sm leading-relaxed max-w-2xl ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
-                  <div className="w-full max-w-5xl relative group my-8">
-                    <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
-                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
-                      <img src={f.image} alt={f.title} className="w-full h-auto scale-[1.004]" loading="lazy" />
+                  <div className="w-full max-w-5xl my-8">
+                    <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
+                      <img src={f.image} alt={f.title} className="w-full h-auto block" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-left max-w-3xl w-full">
@@ -484,13 +483,12 @@ const Presentation = () => {
                       </div>
                     ))}
                   </div>
-                </motion.div>
+                </div>
               ) : (
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} custom={1} className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
-                  <div className="w-full lg:w-[58%] relative group">
-                    <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
-                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
-                      <img src={f.image} alt={f.title} className="w-full h-auto scale-[1.004]" loading="lazy" />
+                <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
+                  <div className="w-full lg:w-[58%]">
+                    <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
+                      <img src={f.image} alt={f.title} className="w-full h-auto block" />
                     </div>
                   </div>
                   <div className="w-full lg:w-[42%]">
@@ -512,7 +510,7 @@ const Presentation = () => {
                       ))}
                     </ul>
                   </div>
-                </motion.div>
+                </div>
               );
 
               return (
