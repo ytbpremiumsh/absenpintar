@@ -460,7 +460,7 @@ const Presentation = () => {
               const isLast = idx === FEATURES.length - 1;
 
               const featureNode = isLast ? (
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} custom={1} className="flex flex-col items-center text-center">
+                <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "200px" }} transition={{ duration: 0.6 }} className="flex flex-col items-center text-center">
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg`}>
                       <Icon className="h-5 w-5 text-white" />
@@ -470,10 +470,10 @@ const Presentation = () => {
                   <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
                    <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-indigo-400" : "text-indigo-600"}`}>{f.subtitle}</p>
                   <p className={`mt-4 text-sm leading-relaxed max-w-2xl ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
-                  <div className="w-full max-w-5xl relative group my-8">
+                  <div className="w-full max-w-5xl relative group my-8 aspect-video">
                     <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
-                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
-                      <img src={f.image} alt={f.title} className="w-full h-auto scale-[1.004]" loading="lazy" />
+                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"} h-full`}>
+                      <img src={f.image} alt={f.title} className="w-full h-full object-cover scale-[1.004]" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-left max-w-3xl w-full">
@@ -486,11 +486,11 @@ const Presentation = () => {
                   </div>
                 </motion.div>
               ) : (
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} custom={1} className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
-                  <div className="w-full lg:w-[58%] relative group">
+                <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "200px" }} transition={{ duration: 0.6 }} className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
+                  <div className="w-full lg:w-[58%] relative group aspect-video">
                     <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
-                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
-                      <img src={f.image} alt={f.title} className="w-full h-auto scale-[1.004]" loading="lazy" />
+                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"} h-full`}>
+                      <img src={f.image} alt={f.title} className="w-full h-full object-cover scale-[1.004]" />
                     </div>
                   </div>
                   <div className="w-full lg:w-[42%]">
