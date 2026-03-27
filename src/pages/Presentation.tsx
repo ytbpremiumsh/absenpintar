@@ -470,10 +470,9 @@ const Presentation = () => {
                   <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
                    <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-indigo-400" : "text-indigo-600"}`}>{f.subtitle}</p>
                   <p className={`mt-4 text-sm leading-relaxed max-w-2xl ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
-                  <div className="w-full max-w-5xl relative group my-8 aspect-video">
-                    <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
-                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"} h-full`}>
-                      <img src={f.image} alt={f.title} className="w-full h-full object-cover scale-[1.004]" />
+                  <div className="w-full max-w-5xl my-8">
+                    <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
+                      <img src={f.image} alt={f.title} className="w-full h-auto block" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-left max-w-3xl w-full">
@@ -487,10 +486,9 @@ const Presentation = () => {
                 </div>
               ) : (
                 <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
-                  <div className="w-full lg:w-[58%] relative group aspect-video">
-                    <div className={`absolute -inset-4 bg-gradient-to-r ${f.accent} rounded-3xl opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700`} />
-                    <div className={`relative rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"} h-full`}>
-                      <img src={f.image} alt={f.title} className="w-full h-full object-cover scale-[1.004]" />
+                  <div className="w-full lg:w-[58%]">
+                    <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
+                      <img src={f.image} alt={f.title} className="w-full h-auto block" />
                     </div>
                   </div>
                   <div className="w-full lg:w-[42%]">
