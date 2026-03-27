@@ -11,8 +11,8 @@ serve(async (req) => {
 
   try {
     const { email, phone, school_id } = await req.json();
-    if (!email || !phone || !school_id) {
-      return new Response(JSON.stringify({ error: 'Email, phone, dan school_id wajib diisi' }), {
+    if (!email || !phone) {
+      return new Response(JSON.stringify({ error: 'Email dan phone wajib diisi' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -41,23 +41,47 @@ serve(async (req) => {
       .eq('email', email.toLowerCase())
       .eq('used', false);
 
-    // Store new OTP (expires in 5 minutes)
+    // Store new OTP
     await supabaseAdmin.from('password_reset_otps').insert({
       email: email.toLowerCase(),
       otp_code: otpCode,
       phone: phone,
     });
 
-    // Get WA integration
-    const { data: integration } = await supabaseAdmin
-      .from('school_integrations')
-      .select('api_url, api_key, is_active')
-      .eq('school_id', school_id)
-      .eq('integration_type', 'onesender')
-      .maybeSingle();
+    // Get WA integration - try specific school first, then fallback to any active
+    let integration = null;
+    let logSchoolId = school_id;
 
-    if (!integration?.is_active || !integration?.api_url || !integration?.api_key) {
-      return new Response(JSON.stringify({ error: 'Integrasi WhatsApp sekolah belum dikonfigurasi atau tidak aktif' }), {
+    if (school_id) {
+      const { data: intData } = await supabaseAdmin
+        .from('school_integrations')
+        .select('api_url, api_key, is_active, school_id')
+        .eq('school_id', school_id)
+        .eq('integration_type', 'onesender')
+        .maybeSingle();
+      if (intData?.is_active && intData?.api_url && intData?.api_key) {
+        integration = intData;
+      }
+    }
+
+    if (!integration) {
+      const { data: fallback } = await supabaseAdmin
+        .from('school_integrations')
+        .select('api_url, api_key, is_active, school_id')
+        .eq('integration_type', 'onesender')
+        .eq('is_active', true)
+        .not('api_url', 'is', null)
+        .not('api_key', 'is', null)
+        .limit(1)
+        .maybeSingle();
+      if (fallback) {
+        integration = fallback;
+        logSchoolId = fallback.school_id;
+      }
+    }
+
+    if (!integration) {
+      return new Response(JSON.stringify({ error: 'Tidak ada integrasi WhatsApp yang aktif' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -94,14 +118,16 @@ serve(async (req) => {
     }
 
     // Log the message
-    await supabaseAdmin.from('wa_message_logs').insert({
-      school_id,
-      phone,
-      message: 'Kode OTP Reset Password',
-      message_type: 'otp',
-      status: 'sent',
-      student_name: null,
-    });
+    if (logSchoolId) {
+      await supabaseAdmin.from('wa_message_logs').insert({
+        school_id: logSchoolId,
+        phone,
+        message: 'Kode OTP Reset Password',
+        message_type: 'otp',
+        status: 'sent',
+        student_name: null,
+      });
+    }
 
     return new Response(JSON.stringify({ success: true, message: 'OTP berhasil dikirim via WhatsApp' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
