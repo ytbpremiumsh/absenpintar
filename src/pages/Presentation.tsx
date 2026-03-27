@@ -328,13 +328,13 @@ const Presentation = () => {
       {/* ===== HERO ===== */}
       <section className="min-h-screen flex flex-col items-center justify-center relative px-4 text-center pt-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mb-8">
-          <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium border ${d ? "bg-white/5 border-white/10 text-amber-300" : "bg-amber-50 border-amber-100 text-amber-700"}`}>
+          <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium border ${d ? "bg-white/5 border-white/10 text-indigo-300" : "bg-indigo-50 border-indigo-100 text-indigo-700"}`}>
             <Sparkles className="h-3.5 w-3.5" /> ATSkolla — Absensi Digital Sekolah #1 di Indonesia
           </span>
         </motion.div>
 
         <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.7 }} className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
-          <TypingEffect texts={[title || "ATSkolla — Absensi Digital Sekolah", "Cepat, Aman & Mudah Digunakan", "Solusi Absensi Modern untuk Sekolah"]} speed={60} className={`bg-gradient-to-b ${d ? "from-white via-white to-white/50" : "from-slate-900 via-slate-800 to-amber-700"} bg-clip-text text-transparent`} />
+          <TypingEffect texts={[title || "ATSkolla — Absensi Digital Sekolah", "Cepat, Aman & Mudah Digunakan", "Solusi Absensi Modern untuk Sekolah"]} speed={60} className={`bg-gradient-to-b ${d ? "from-white via-white to-white/50" : "from-slate-900 via-indigo-900 to-indigo-700"} bg-clip-text text-transparent`} />
         </motion.h1>
 
         <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className={`mt-6 text-base sm:text-lg md:text-xl ${muted} max-w-2xl leading-relaxed`}>
@@ -342,7 +342,7 @@ const Presentation = () => {
         </motion.p>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-10 flex flex-col sm:flex-row gap-3">
-          <a href="/register" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-amber-500/25 hover:shadow-amber-500/40 transition-all text-sm">
+          <a href="/register" className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-8 py-3.5 rounded-2xl font-semibold shadow-2xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all text-sm">
             <Zap className="h-4 w-4" /> Daftar Gratis Sekarang
           </a>
           <a href="#problems" className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold transition-all text-sm border ${d ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700"}`}>
@@ -354,7 +354,7 @@ const Presentation = () => {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 w-full max-w-3xl">
           {STATS.map((s) => (
             <div key={s.label} className="text-center">
-              <div className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-r ${d ? "from-amber-300 to-orange-300" : "from-amber-600 to-orange-500"} bg-clip-text text-transparent`}>
+              <div className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-r ${d ? "from-indigo-300 to-blue-300" : "from-indigo-600 to-blue-500"} bg-clip-text text-transparent`}>
                 {s.value}
               </div>
               <div className={`text-xs mt-1 ${d ? "text-slate-500" : "text-slate-400"}`}>{s.label}</div>
