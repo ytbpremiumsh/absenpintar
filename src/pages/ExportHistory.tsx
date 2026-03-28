@@ -201,8 +201,8 @@ const ExportHistory = () => {
     });
   };
 
-  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs, false), [students, datangLogs]);
-  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs, true), [students, pulangLogs]);
+  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs, false), [students, datangLogs, departureEndTime, currentMonth, daysInMonth]);
+  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs, true), [students, pulangLogs, departureEndTime, currentMonth, daysInMonth]);
   const activeRows = rekapTab === "datang" ? studentRows : pulangRows;
   const isPulangMode = rekapTab === "pulang";
 
