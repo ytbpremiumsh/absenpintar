@@ -74,7 +74,6 @@ export function AppSidebar() {
   const isPremiumBrand = ["School", "Premium"].includes(features.planName);
 
   useEffect(() => {
-    // Fetch platform logo (same as login page)
     supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
       if (data?.value) setPlatformLogo(data.value);
     });
@@ -88,10 +87,10 @@ export function AppSidebar() {
   }, [profile?.school_id]);
 
   const planColors: Record<string, string> = {
-    Free: "bg-gray-600 text-white",
-    Basic: "bg-blue-500 text-white",
-    School: "bg-amber-500 text-white",
-    Premium: "bg-gradient-to-r from-purple-500 to-pink-500 text-white",
+    Free: "bg-muted-foreground/80 text-white",
+    Basic: "bg-blue-500/90 text-white",
+    School: "bg-amber-500/90 text-white",
+    Premium: "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white",
   };
 
   const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
@@ -113,45 +112,49 @@ export function AppSidebar() {
             to={item.url}
             end
             onClick={handleNavClick}
-            className="text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground rounded-xl px-3 py-2.5 transition-all duration-200"
+            className="text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground rounded-xl px-3 py-2.5 transition-all duration-200 group/nav"
             activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm"
           >
-            <item.icon className="h-4 w-4 shrink-0" />
-            <span className="text-sm truncate">{item.title}</span>
+            <item.icon className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover/nav:scale-110" />
+            <span className="text-[13px] truncate">{item.title}</span>
           </NavLink>
         </SidebarMenuButton>
       </SidebarMenuItem>
     ));
 
+  const renderGroupLabel = (label: string) => (
+    <SidebarGroupLabel className="text-sidebar-foreground/35 text-[10px] uppercase tracking-[0.15em] font-bold px-3 mb-1">
+      {label}
+    </SidebarGroupLabel>
+  );
+
   return (
-    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border font-['Nunito',sans-serif]">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border/50 font-['Nunito',sans-serif]">
       <SidebarHeader className="p-4 pb-3">
         <div className="flex items-center gap-3">
           {isPremiumBrand && schoolData?.logo ? (
-            <img src={schoolData.logo} alt={schoolData.name} className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-md" />
+            <img src={schoolData.logo} alt={schoolData.name} className="h-10 w-10 rounded-2xl object-cover shrink-0 shadow-md ring-2 ring-primary/10" />
           ) : platformLogo ? (
-            <img src={platformLogo} alt="ATSkolla" className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-md" />
+            <img src={platformLogo} alt="ATSkolla" className="h-10 w-10 rounded-2xl object-cover shrink-0 shadow-md ring-2 ring-primary/10" />
           ) : (
-            <img src={atskollaLogo} alt="ATSkolla" className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-md" />
+            <img src={atskollaLogo} alt="ATSkolla" className="h-10 w-10 rounded-2xl object-cover shrink-0 shadow-md ring-2 ring-primary/10" />
           )}
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-extrabold text-sidebar-foreground tracking-tight truncate">
               {isPremiumBrand && schoolData ? schoolData.name : "ATSkolla"}
             </span>
-            <Badge className={`w-fit text-[9px] font-bold border-0 px-1.5 py-0 h-4 ${planColors[features.planName] || planColors.Free}`}>
+            <Badge className={`w-fit text-[9px] font-bold border-0 px-2 py-0 h-[18px] rounded-md ${planColors[features.planName] || planColors.Free}`}>
               {features.planName === "Free" ? "Free" : `Paket ${features.planName}`}
             </Badge>
           </div>
         </div>
-        <div className="mt-3 h-px bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
+        <div className="mt-3 h-px bg-gradient-to-r from-transparent via-sidebar-border/60 to-transparent" />
       </SidebarHeader>
 
       <SidebarContent className="px-2 overflow-y-auto overflow-x-hidden">
         {isTeacherOnly ? (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
-              Wali Kelas
-            </SidebarGroupLabel>
+            {renderGroupLabel("Wali Kelas")}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0.5">
                 {renderNavItems([
@@ -163,27 +166,21 @@ export function AppSidebar() {
         ) : (
           <>
             <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
-                Menu Utama
-              </SidebarGroupLabel>
+              {renderGroupLabel("Menu Utama")}
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">{renderNavItems(mainNav)}</SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
-                Data Sekolah
-              </SidebarGroupLabel>
+              {renderGroupLabel("Data Sekolah")}
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">{renderNavItems(dataNav)}</SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
-                Laporan
-              </SidebarGroupLabel>
+              {renderGroupLabel("Laporan")}
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">
                   {renderNavItems([
@@ -195,18 +192,14 @@ export function AppSidebar() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
-                WhatsApp
-              </SidebarGroupLabel>
+              {renderGroupLabel("WhatsApp")}
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">{renderNavItems(whatsappNav)}</SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-3 mb-1">
-                Pengaturan
-              </SidebarGroupLabel>
+              {renderGroupLabel("Pengaturan")}
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">{renderNavItems(settingsNav)}</SidebarMenu>
               </SidebarGroupContent>
@@ -216,16 +209,16 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3">
-        <div className="mb-2 mx-2 h-px bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
+        <div className="mb-2 mx-2 h-px bg-gradient-to-r from-transparent via-sidebar-border/60 to-transparent" />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Logout"
-              className="text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl px-3 py-2.5 transition-all duration-200"
+              className="text-destructive/60 hover:text-destructive hover:bg-destructive/8 rounded-xl px-3 py-2.5 transition-all duration-200"
               onClick={handleLogout}
             >
-              <LogOut className="h-4 w-4 shrink-0" />
-              <span className="text-sm font-medium">Keluar</span>
+              <LogOut className="h-[18px] w-[18px] shrink-0" />
+              <span className="text-[13px] font-medium">Keluar</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

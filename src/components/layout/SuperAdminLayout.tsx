@@ -49,21 +49,21 @@ function SuperAdminSidebar() {
   const isActive = (path: string) => path === "/super-admin" ? location.pathname === "/super-admin" : location.pathname.startsWith(path);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border shadow-sm font-['Nunito',sans-serif]">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border/50 font-['Nunito',sans-serif]">
       <SidebarHeader className="p-5 pb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive shrink-0 shadow-md">
-            <Shield className="h-5 w-5 text-destructive-foreground" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 shrink-0 shadow-md">
+            <Shield className="h-5 w-5 text-white" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-base font-extrabold text-sidebar-foreground tracking-tight">Super Admin</span>
-              <span className="text-[11px] text-sidebar-foreground/50 font-medium">Platform Control</span>
+              <span className="text-[15px] font-extrabold text-sidebar-foreground tracking-tight">Super Admin</span>
+              <span className="text-[11px] text-sidebar-foreground/40 font-medium">Platform Control</span>
             </div>
           )}
         </div>
         {!collapsed && (
-          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
+          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-sidebar-border/60 to-transparent" />
         )}
       </SidebarHeader>
       <SidebarContent className="px-2">
@@ -72,17 +72,17 @@ function SuperAdminSidebar() {
           if (items.length === 0) return null;
           return (
             <SidebarGroup key={group.key}>
-              <SidebarGroupLabel className="text-sidebar-foreground/40 text-xs uppercase tracking-widest font-semibold px-4 mb-1.5">
+              <SidebarGroupLabel className="text-sidebar-foreground/35 text-[10px] uppercase tracking-[0.15em] font-bold px-4 mb-1">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">
+                <SidebarMenu className="space-y-0.5">
                   {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                        <NavLink to={item.url} end={item.url === "/super-admin"} className="text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground rounded-xl px-4 py-3 transition-all duration-200" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm">
-                          <item.icon className="h-4 w-4" />
-                          {!collapsed && <span className="text-sm">{item.title}</span>}
+                        <NavLink to={item.url} end={item.url === "/super-admin"} className="text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground rounded-xl px-3 py-2.5 transition-all duration-200 group/nav" activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm">
+                          <item.icon className="h-[18px] w-[18px] transition-transform duration-200 group-hover/nav:scale-110" />
+                          {!collapsed && <span className="text-[13px]">{item.title}</span>}
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -95,13 +95,13 @@ function SuperAdminSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-3">
         {!collapsed && (
-          <div className="mb-3 mx-2 h-px bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
+          <div className="mb-3 mx-2 h-px bg-gradient-to-r from-transparent via-sidebar-border/60 to-transparent" />
         )}
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Logout" className="text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl px-4 py-3" onClick={async () => { await signOut(); navigate("/login"); }}>
-              <LogOut className="h-4 w-4" />
-              {!collapsed && <span className="text-sm font-medium">Keluar</span>}
+            <SidebarMenuButton tooltip="Logout" className="text-destructive/60 hover:text-destructive hover:bg-destructive/8 rounded-xl px-3 py-2.5 transition-all duration-200" onClick={async () => { await signOut(); navigate("/login"); }}>
+              <LogOut className="h-[18px] w-[18px]" />
+              {!collapsed && <span className="text-[13px] font-medium">Keluar</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -122,18 +122,18 @@ export function SuperAdminLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <SuperAdminSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center justify-between border-b bg-card px-4 sticky top-0 z-30">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <span className="text-sm font-medium text-muted-foreground hidden sm:inline">Super Admin Panel</span>
+          <header className="h-14 flex items-center justify-between glass-subtle border-b border-border/40 px-4 sm:px-5 sticky top-0 z-30">
+            <div className="flex items-center gap-2.5">
+              <SidebarTrigger className="h-8 w-8 rounded-xl hover:bg-secondary/80 transition-colors" />
+              <span className="text-sm font-semibold text-foreground/70 hidden sm:inline">Super Admin Panel</span>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-destructive text-destructive-foreground text-xs font-semibold">{initials}</AvatarFallback>
+              <Avatar className="h-8 w-8 ring-2 ring-destructive/10">
+                <AvatarFallback className="bg-gradient-to-br from-red-500 to-rose-600 text-white text-xs font-bold">{initials}</AvatarFallback>
               </Avatar>
             </div>
           </header>
