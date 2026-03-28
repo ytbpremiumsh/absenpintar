@@ -48,6 +48,7 @@ const ExportHistory = () => {
   const [schoolAddress, setSchoolAddress] = useState("");
   const [waliKelasName, setWaliKelasName] = useState("");
   const [rekapTab, setRekapTab] = useState<"datang" | "pulang">("datang");
+  const [departureEndTime, setDepartureEndTime] = useState("17:00:00");
   const tableRef = useRef<HTMLDivElement>(null);
 
   const isTeacher = roles.includes("teacher");
@@ -82,12 +83,16 @@ const ExportHistory = () => {
     fetchClasses();
   }, [profile?.school_id, user, isTeacher]);
 
-  // Fetch school info
+  // Fetch school info + pickup settings
   useEffect(() => {
     if (!profile?.school_id) return;
     const fetchSchool = async () => {
-      const { data } = await supabase.from("schools").select("name, address").eq("id", profile.school_id).maybeSingle();
-      if (data) { setSchoolName(data.name); setSchoolAddress(data.address || ""); }
+      const [schoolRes, settingsRes] = await Promise.all([
+        supabase.from("schools").select("name, address").eq("id", profile.school_id).maybeSingle(),
+        supabase.from("pickup_settings").select("departure_end_time").eq("school_id", profile.school_id).maybeSingle(),
+      ]);
+      if (schoolRes.data) { setSchoolName(schoolRes.data.name); setSchoolAddress(schoolRes.data.address || ""); }
+      if (settingsRes.data?.departure_end_time) { setDepartureEndTime(settingsRes.data.departure_end_time); }
     };
     fetchSchool();
   }, [profile?.school_id]);
@@ -140,13 +145,21 @@ const ExportHistory = () => {
   const buildStudentRows = (logs: any[], isPulang = false): StudentRow[] => {
     const studentIds = new Set(students.map(s => s.id));
     const filteredLogs = logs.filter(l => studentIds.has(l.student_id));
+
+    // Determine which past days should auto-fill alfa (weekdays that have passed departure_end_time)
+    const now = new Date();
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
+    const todayDate = now.getDate();
+    const currentTimeStr = now.toTimeString().slice(0, 8);
+
     return students.map(s => {
       const days: Record<number, string> = {};
       const totals = { H: 0, S: 0, I: 0, A: 0 };
       filteredLogs.filter(l => l.student_id === s.id).forEach(l => {
         const day = parseInt(l.date.split("-")[2]);
         if (isPulang) {
-          // For pulang, just mark with checkmark
           days[day] = "✓";
           totals.H++;
         } else {
@@ -155,12 +168,41 @@ const ExportHistory = () => {
           if (code in totals) totals[code as keyof typeof totals]++;
         }
       });
+
+      // Auto-fill alfa for past weekdays without any attendance record (datang mode only)
+      if (!isPulang) {
+        for (let d = 1; d <= daysInMonth; d++) {
+          if (days[d]) continue; // already has a record
+          const dateObj = new Date(year, month, d);
+          const dayOfWeek = dateObj.getDay();
+          if (dayOfWeek === 0 || dayOfWeek === 6) continue; // skip weekends
+
+          // Check if this day has already passed departure time
+          let isPastDepartureTime = false;
+          if (isCurrentMonth) {
+            if (d < todayDate) {
+              isPastDepartureTime = true;
+            } else if (d === todayDate && currentTimeStr > departureEndTime) {
+              isPastDepartureTime = true;
+            }
+          } else if (new Date(year, month + 1, 0) < now) {
+            // Past month entirely
+            isPastDepartureTime = true;
+          }
+
+          if (isPastDepartureTime) {
+            days[d] = "A";
+            totals.A++;
+          }
+        }
+      }
+
       return { id: s.id, name: s.name, student_id: s.student_id, days, totals };
     });
   };
 
-  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs, false), [students, datangLogs]);
-  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs, true), [students, pulangLogs]);
+  const studentRows: StudentRow[] = useMemo(() => buildStudentRows(datangLogs, false), [students, datangLogs, departureEndTime, currentMonth, daysInMonth]);
+  const pulangRows: StudentRow[] = useMemo(() => buildStudentRows(pulangLogs, true), [students, pulangLogs, departureEndTime, currentMonth, daysInMonth]);
   const activeRows = rekapTab === "datang" ? studentRows : pulangRows;
   const isPulangMode = rekapTab === "pulang";
 
