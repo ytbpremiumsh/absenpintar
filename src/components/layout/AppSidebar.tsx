@@ -158,7 +158,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0.5">
                 {renderNavItems([
-                  { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutDashboard },
+                  { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutGrid },
                 ])}
               </SidebarMenu>
             </SidebarGroupContent>
