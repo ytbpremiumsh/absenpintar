@@ -130,7 +130,7 @@ const ExportHistory = () => {
       const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`;
 
       const [studentsRes, datangRes, pulangRes] = await Promise.all([
-        supabase.from("students").select("id, name, student_id").eq("school_id", profile.school_id).eq("class", selectedClass).order("name"),
+        supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id).eq("class", selectedClass).order("name"),
         supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate),
         supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id).eq("attendance_type", "pulang").gte("date", startDate).lte("date", endDate),
       ]);
@@ -163,7 +163,7 @@ const ExportHistory = () => {
         }
       });
 
-      return { id: s.id, name: s.name, student_id: s.student_id, days, totals };
+      return { id: s.id, name: s.name, student_id: s.student_id, photo_url: s.photo_url, days, totals };
     });
   };
 
