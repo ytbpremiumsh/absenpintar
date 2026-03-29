@@ -128,6 +128,14 @@ const LABELS: Record<string, string> = {
   hero_subtitle: "Deskripsi Hero",
   hero_image: "Gambar Hero",
   hero_caption: "Caption di bawah Gambar Hero",
+  hero_stat_1_value: "Statistik 1 - Angka (cth: 500+)",
+  hero_stat_1_label: "Statistik 1 - Label (cth: Sekolah Aktif)",
+  hero_stat_2_value: "Statistik 2 - Angka (cth: 120K+)",
+  hero_stat_2_label: "Statistik 2 - Label (cth: Siswa Terdaftar)",
+  hero_stat_3_value: "Statistik 3 - Angka (cth: 99.9%)",
+  hero_stat_3_label: "Statistik 3 - Label (cth: Data Akurat)",
+  hero_stat_4_value: "Statistik 4 - Angka (cth: 34)",
+  hero_stat_4_label: "Statistik 4 - Label (cth: Provinsi)",
   feature_1_title: "Fitur 1 - Judul",
   feature_1_desc: "Fitur 1 - Deskripsi",
   feature_1_icon: "Fitur 1 - Ikon (scan/monitor/message/chart)",
@@ -168,6 +176,7 @@ const LABELS: Record<string, string> = {
 
 const SECTIONS = [
   { title: "Hero Section", keys: ["hero_title", "hero_subtitle", "hero_image", "hero_caption", "cta_text"] },
+  { title: "Statistik Hero Banner", keys: ["hero_stat_1_value", "hero_stat_1_label", "hero_stat_2_value", "hero_stat_2_label", "hero_stat_3_value", "hero_stat_3_label", "hero_stat_4_value", "hero_stat_4_label"] },
   { title: "Fitur 1", keys: ["feature_1_title", "feature_1_desc", "feature_1_icon"] },
   { title: "Fitur 2", keys: ["feature_2_title", "feature_2_desc", "feature_2_icon"] },
   { title: "Fitur 3", keys: ["feature_3_title", "feature_3_desc", "feature_3_icon"] },
