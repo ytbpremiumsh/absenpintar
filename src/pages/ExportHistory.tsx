@@ -384,6 +384,19 @@ const ExportHistory = () => {
   return (
     <PremiumGate featureLabel="Rekap & Export" featureKey="canExportReport" requiredPlan="Basic">
       <div className="space-y-5">
+        {/* Header Title */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-xl bg-[#5B6CF9] flex items-center justify-center shadow-md">
+              <ClipboardList className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Rekap & Export</h1>
+              <p className="text-muted-foreground text-xs sm:text-sm">Rekap kehadiran bulanan & export laporan</p>
+            </div>
+          </div>
+        </div>
+
         {isPremiumFeature && !features.loading && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="border-0 shadow-card bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
