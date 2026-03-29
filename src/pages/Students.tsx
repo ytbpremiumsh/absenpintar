@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, QrCode, Trash2, Loader2, Users, GraduationCap, Phone, ChevronDown, ChevronRight, Eye, Upload, Download, Camera, Lock, ArrowRightLeft } from "lucide-react";
+import {
+  Plus, Search, QrCode, Trash2, Loader2, Users, GraduationCap, Phone, ChevronDown, ChevronRight,
+  Eye, Upload, Download, Camera, Lock, ArrowRightLeft, LayoutGrid, List,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -19,6 +22,29 @@ import * as XLSX from "xlsx";
 import JSZip from "jszip";
 import QRCodeStyling from "qr-code-styling";
 
+const MaleAvatar = ({ name, size = 40 }: { name: string; size?: number }) => (
+  <div className="rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden"
+    style={{ width: size, height: size, fontSize: size * 0.35 }}>
+    {name.charAt(0)}
+  </div>
+);
+
+const FemaleAvatar = ({ name, size = 40 }: { name: string; size?: number }) => (
+  <div className="rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden"
+    style={{ width: size, height: size, fontSize: size * 0.35 }}>
+    {name.charAt(0)}
+  </div>
+);
+
+const GenderAvatar = ({ student, size = 36 }: { student: any; size?: number }) => {
+  if (student.photo_url) {
+    return <img src={student.photo_url} alt={student.name} className="rounded-full object-cover shrink-0" style={{ width: size, height: size }} />;
+  }
+  return student.gender === "P"
+    ? <FemaleAvatar name={student.name} size={size} />
+    : <MaleAvatar name={student.name} size={size} />;
+};
+
 const Students = () => {
   const { profile } = useAuth();
   const features = useSubscriptionFeatures();
@@ -31,7 +57,7 @@ const Students = () => {
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
-  const [form, setForm] = useState({ name: "", class: "", student_id: "", parent_name: "", parent_phone: "" });
+  const [form, setForm] = useState({ name: "", class: "", student_id: "", parent_name: "", parent_phone: "", gender: "L" });
   const [saving, setSaving] = useState(false);
   const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<string>("all");
@@ -41,6 +67,7 @@ const Students = () => {
   const [promoting, setPromoting] = useState(false);
   const [qrInstructions, setQrInstructions] = useState<string[]>([]);
   const [schoolInfo, setSchoolInfo] = useState<{ name?: string; logo?: string }>({});
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -67,7 +94,6 @@ const Students = () => {
       setSchoolInfo({ name: schoolRes.data.name, logo: schoolRes.data.logo || undefined });
     }
 
-    // Build wali kelas map: class_name -> teacher name
     const waliData = waliRes.data || [];
     if (waliData.length > 0) {
       const userIds = [...new Set(waliData.map((w) => w.user_id))];
@@ -92,19 +118,17 @@ const Students = () => {
       toast.error("Nama, Kelas, dan NIS wajib diisi");
       return;
     }
-    if (!profile?.school_id) { toast.error("Data sekolah belum dimuat, silakan tunggu sebentar"); return; }
-    // Check student limit
+    if (!profile?.school_id) { toast.error("Data sekolah belum dimuat"); return; }
     const maxTotal = features.maxStudentsTotal ?? (features.maxClasses >= 999 ? Infinity : features.maxClasses * features.maxStudentsPerClass);
     if (maxTotal !== Infinity && students.length >= maxTotal) {
-      toast.error(`Batas maksimal ${maxTotal} siswa untuk paket ${features.planName}. Silakan upgrade paket untuk menambah siswa.`);
+      toast.error(`Batas maksimal ${maxTotal} siswa untuk paket ${features.planName}`);
       navigate("/subscription");
       return;
     }
-    // Check per-class limit
     if (features.maxStudentsPerClass < 999) {
       const classStudentCount = students.filter(s => s.class === form.class).length;
       if (classStudentCount >= features.maxStudentsPerClass) {
-        toast.error(`Batas maksimal ${features.maxStudentsPerClass} siswa per kelas untuk paket ${features.planName}. Silakan upgrade paket.`);
+        toast.error(`Batas maksimal ${features.maxStudentsPerClass} siswa per kelas`);
         navigate("/subscription");
         return;
       }
@@ -114,13 +138,13 @@ const Students = () => {
       school_id: profile.school_id,
       name: form.name, class: form.class, student_id: form.student_id,
       parent_name: form.parent_name, parent_phone: form.parent_phone,
-      qr_code: form.student_id,
-    });
+      qr_code: form.student_id, gender: form.gender,
+    } as any);
     setSaving(false);
     if (error) { toast.error("Gagal menambah siswa: " + error.message); return; }
     toast.success("Siswa berhasil ditambahkan!");
     setDialogOpen(false);
-    setForm({ name: "", class: "", student_id: "", parent_name: "", parent_phone: "" });
+    setForm({ name: "", class: "", student_id: "", parent_name: "", parent_phone: "", gender: "L" });
     fetchData();
   };
 
@@ -140,7 +164,7 @@ const Students = () => {
     const ext = file.name.split(".").pop();
     const path = `${profile?.school_id}/${studentId}.${ext}`;
     const { error: uploadError } = await supabase.storage.from("student-photos").upload(path, file, { upsert: true });
-    if (uploadError) { toast.error("Gagal upload foto: " + uploadError.message); setPhotoUploading(null); return; }
+    if (uploadError) { toast.error("Gagal upload foto"); setPhotoUploading(null); return; }
     const { data: urlData } = supabase.storage.from("student-photos").getPublicUrl(path);
     const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
     await supabase.from("students").update({ photo_url: newUrl }).eq("id", studentId);
@@ -150,12 +174,10 @@ const Students = () => {
   };
 
   const handleExportExcel = () => {
-    if (!features.canImportExport) {
-      toast.error("Fitur export tersedia di paket Basic ke atas");
-      return;
-    }
+    if (!features.canImportExport) { toast.error("Fitur export tersedia di paket Basic ke atas"); return; }
     const data = students.map((s) => ({
       "Nama Siswa": s.name, "NIS": s.student_id, "Kelas": s.class,
+      "Jenis Kelamin": s.gender === "P" ? "Perempuan" : "Laki-laki",
       "Nama Wali": s.parent_name, "No. HP Wali": s.parent_phone,
     }));
     const ws = XLSX.utils.json_to_sheet(data);
@@ -167,24 +189,20 @@ const Students = () => {
 
   const handleDownloadTemplate = () => {
     const templateData = [
-      { "Nama Siswa": "Ahmad Zaki", "NIS": "STD001", "Kelas": "1-A", "Nama Wali": "Budi Santoso", "No. HP Wali": "081234567890" },
-      { "Nama Siswa": "Siti Aisyah", "NIS": "STD002", "Kelas": "1-A", "Nama Wali": "Dewi Lestari", "No. HP Wali": "082345678901" },
-      { "Nama Siswa": "Muhammad Rizki", "NIS": "STD003", "Kelas": "2-B", "Nama Wali": "Hendra Wijaya", "No. HP Wali": "083456789012" },
+      { "Nama Siswa": "Ahmad Zaki", "NIS": "STD001", "Kelas": "1-A", "Jenis Kelamin": "L", "Nama Wali": "Budi Santoso", "No. HP Wali": "081234567890" },
+      { "Nama Siswa": "Siti Aisyah", "NIS": "STD002", "Kelas": "1-A", "Jenis Kelamin": "P", "Nama Wali": "Dewi Lestari", "No. HP Wali": "082345678901" },
+      { "Nama Siswa": "Muhammad Rizki", "NIS": "STD003", "Kelas": "2-B", "Jenis Kelamin": "L", "Nama Wali": "Hendra Wijaya", "No. HP Wali": "083456789012" },
     ];
     const ws = XLSX.utils.json_to_sheet(templateData);
-    // Set column widths
-    ws["!cols"] = [{ wch: 25 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 18 }];
+    ws["!cols"] = [{ wch: 25 }, { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 25 }, { wch: 18 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template Siswa");
     XLSX.writeFile(wb, "template-import-siswa.xlsx");
-    toast.success("Template berhasil didownload! Isi data lalu import kembali.");
+    toast.success("Template berhasil didownload!");
   };
 
   const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!features.canImportExport) {
-      toast.error("Fitur import tersedia di paket Basic ke atas");
-      return;
-    }
+    if (!features.canImportExport) { toast.error("Fitur import tersedia di paket Basic ke atas"); return; }
     const file = e.target.files?.[0];
     if (!file || !profile?.school_id) return;
 
@@ -194,13 +212,11 @@ const Students = () => {
         const wb = XLSX.read(evt.target?.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows: any[] = XLSX.utils.sheet_to_json(ws);
-
         if (rows.length === 0) { toast.error("File kosong"); return; }
 
-        // Check student limit before import
         const maxTotal = features.maxStudentsTotal ?? (features.maxClasses >= 999 ? Infinity : features.maxClasses * features.maxStudentsPerClass);
         if (maxTotal !== Infinity && (students.length + rows.length) > maxTotal) {
-          toast.error(`Import akan melebihi batas ${maxTotal} siswa untuk paket ${features.planName}. Sisa kuota: ${Math.max(0, maxTotal - students.length)} siswa. Silakan upgrade paket.`);
+          toast.error(`Import akan melebihi batas ${maxTotal} siswa. Sisa kuota: ${Math.max(0, maxTotal - students.length)}`);
           return;
         }
 
@@ -212,15 +228,15 @@ const Students = () => {
           parent_name: row["Nama Wali"] || row["parent_name"] || "",
           parent_phone: String(row["No. HP Wali"] || row["parent_phone"] || ""),
           qr_code: String(row["NIS"] || row["student_id"] || ""),
+          gender: (row["Jenis Kelamin"] || row["gender"] || "L").toString().toUpperCase().startsWith("P") ? "P" : "L",
         })).filter((r) => r.name && r.student_id && r.class);
 
-        if (toInsert.length === 0) { toast.error("Tidak ada data valid. Pastikan kolom: Nama Siswa, NIS, Kelas"); return; }
-
-        const { error } = await supabase.from("students").insert(toInsert);
+        if (toInsert.length === 0) { toast.error("Tidak ada data valid"); return; }
+        const { error } = await supabase.from("students").insert(toInsert as any);
         if (error) { toast.error("Gagal import: " + error.message); return; }
         toast.success(`${toInsert.length} siswa berhasil diimport!`);
         fetchData();
-      } catch (err: any) {
+      } catch {
         toast.error("Gagal membaca file Excel");
       }
     };
@@ -229,34 +245,18 @@ const Students = () => {
   };
 
   const handlePromoteClass = async () => {
-    if (!promoteFrom || !promoteTo || !profile?.school_id) {
-      toast.error("Pilih kelas asal dan kelas tujuan");
-      return;
-    }
-    if (promoteFrom === promoteTo) {
-      toast.error("Kelas asal dan tujuan tidak boleh sama");
-      return;
-    }
+    if (!promoteFrom || !promoteTo || !profile?.school_id) { toast.error("Pilih kelas asal dan tujuan"); return; }
+    if (promoteFrom === promoteTo) { toast.error("Kelas asal dan tujuan tidak boleh sama"); return; }
     setPromoting(true);
     const studentsToPromote = students.filter(s => s.class === promoteFrom);
-    if (studentsToPromote.length === 0) {
-      toast.error("Tidak ada siswa di kelas " + promoteFrom);
-      setPromoting(false);
-      return;
-    }
-
+    if (studentsToPromote.length === 0) { toast.error("Tidak ada siswa di kelas " + promoteFrom); setPromoting(false); return; }
     const ids = studentsToPromote.map(s => s.id);
-    const { error } = await supabase
-      .from("students")
-      .update({ class: promoteTo })
-      .in("id", ids);
-
+    const { error } = await supabase.from("students").update({ class: promoteTo }).in("id", ids);
     setPromoting(false);
     if (error) { toast.error("Gagal naik kelas: " + error.message); return; }
-    toast.success(`${studentsToPromote.length} siswa berhasil dipindahkan dari ${promoteFrom} ke ${promoteTo}!`);
+    toast.success(`${studentsToPromote.length} siswa dipindahkan ke ${promoteTo}!`);
     setPromoteDialogOpen(false);
-    setPromoteFrom("");
-    setPromoteTo("");
+    setPromoteFrom(""); setPromoteTo("");
     fetchData();
   };
 
@@ -371,25 +371,18 @@ const Students = () => {
 
   const handleBulkDownloadQR = async (targetClass?: string) => {
     const targetStudents = targetClass ? students.filter(s => s.class === targetClass) : students;
-    if (targetStudents.length === 0) {
-      toast.error("Tidak ada siswa untuk didownload");
-      return;
-    }
+    if (targetStudents.length === 0) { toast.error("Tidak ada siswa"); return; }
 
     setDownloadingQr(true);
     const toastId = toast.loading(`Membuat ${targetStudents.length} QR Code...`);
-
     try {
       const zip = new JSZip();
       const folder = zip.folder(targetClass ? `QR-Kelas-${targetClass}` : "QR-Semua-Kelas")!;
-
       for (let i = 0; i < targetStudents.length; i++) {
         const student = targetStudents[i];
         toast.loading(`Memproses ${i + 1}/${targetStudents.length}: ${student.name}`, { id: toastId });
-
         const qrCode = new QRCodeStyling({
-          width: 700,
-          height: 700,
+          width: 700, height: 700,
           data: student.qr_code || student.student_id,
           type: "canvas",
           dotsOptions: { color: "hsl(234, 89%, 40%)", type: "rounded" },
@@ -397,21 +390,17 @@ const Students = () => {
           cornersDotOptions: { color: "hsl(260, 80%, 50%)", type: "dot" },
           backgroundOptions: { color: "#ffffff" },
         });
-
         const qrRaw = await qrCode.getRawData("png");
         if (!qrRaw) continue;
         const qrBlob = qrRaw instanceof Blob ? qrRaw : new Blob([new Uint8Array(qrRaw as any)]);
         const qrImg = new Image();
         const qrUrl = URL.createObjectURL(qrBlob);
-
         await new Promise<void>((resolve) => {
           qrImg.onload = async () => {
             const frameBlob = await generateQrFrame(qrImg, student);
             const safeName = student.name.replace(/[^a-zA-Z0-9\s]/g, "").trim();
             const subfolder = targetClass ? "" : `${student.class}/`;
-            if (!targetClass) {
-              folder.folder(student.class);
-            }
+            if (!targetClass) folder.folder(student.class);
             folder.file(`${subfolder}${safeName}-${student.student_id}.png`, frameBlob);
             URL.revokeObjectURL(qrUrl);
             resolve();
@@ -419,7 +408,6 @@ const Students = () => {
           qrImg.src = qrUrl;
         });
       }
-
       toast.loading("Membuat file ZIP...", { id: toastId });
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const link = document.createElement("a");
@@ -427,10 +415,8 @@ const Students = () => {
       link.download = targetClass ? `QR-Kelas-${targetClass}.zip` : "QR-Semua-Kelas.zip";
       link.click();
       URL.revokeObjectURL(link.href);
-
       toast.success(`${targetStudents.length} QR Code berhasil didownload!`, { id: toastId });
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Gagal membuat QR Code", { id: toastId });
     } finally {
       setDownloadingQr(false);
@@ -469,15 +455,22 @@ const Students = () => {
     return Array.from(new Set([...fromTable, ...fromStudents])).sort();
   }, [classes, students]);
 
+  const flatStudents = useMemo(() => Object.values(groupedByClass).flat(), [groupedByClass]);
+
   return (
     <div className="space-y-6">
+      {/* Premium Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Data Siswa</h1>
-          <p className="text-muted-foreground text-sm">Kelola data siswa, QR Code, dan kategori kelas</p>
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-xl bg-[#5B6CF9] flex items-center justify-center shadow-md">
+            <Users className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Data Siswa</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm">Kelola data siswa, QR Code, dan kategori kelas</p>
+          </div>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto">
-          {/* Naik Kelas */}
           <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="shrink-0 text-xs px-2 sm:px-3">
@@ -487,7 +480,7 @@ const Students = () => {
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Naik Kelas / Pindah Kelas</DialogTitle>
-                <DialogDescription>Pindahkan semua siswa dari satu kelas ke kelas lain secara bersamaan</DialogDescription>
+                <DialogDescription>Pindahkan semua siswa dari satu kelas ke kelas lain</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-2">
                 <div className="space-y-2">
@@ -496,49 +489,35 @@ const Students = () => {
                     <SelectTrigger><SelectValue placeholder="Pilih kelas asal" /></SelectTrigger>
                     <SelectContent>
                       {allClasses.map((cls) => (
-                        <SelectItem key={cls} value={cls}>
-                          {cls} ({students.filter(s => s.class === cls).length} siswa)
-                        </SelectItem>
+                        <SelectItem key={cls} value={cls}>{cls} ({students.filter(s => s.class === cls).length} siswa)</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="flex justify-center">
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <ArrowRightLeft className="h-4 w-4 text-primary" />
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <Label>Kelas Tujuan</Label>
                   <Select value={promoteTo} onValueChange={setPromoteTo}>
                     <SelectTrigger><SelectValue placeholder="Pilih kelas tujuan" /></SelectTrigger>
                     <SelectContent>
-                      {classOptions.map((cls) => (
-                        <SelectItem key={cls} value={cls}>{cls}</SelectItem>
-                      ))}
+                      {classOptions.map((cls) => (<SelectItem key={cls} value={cls}>{cls}</SelectItem>))}
                     </SelectContent>
                   </Select>
-                  <p className="text-[10px] text-muted-foreground">Atau ketik nama kelas baru di bawah</p>
-                  <Input
-                    placeholder="Ketik kelas baru, cth: 2-A"
-                    value={promoteTo}
-                    onChange={(e) => setPromoteTo(e.target.value)}
-                    className="h-9 text-sm"
-                  />
+                  <Input placeholder="Atau ketik kelas baru, cth: 2-A" value={promoteTo}
+                    onChange={(e) => setPromoteTo(e.target.value)} className="h-9 text-sm" />
                 </div>
-
                 {promoteFrom && (
                   <div className="bg-secondary/50 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-foreground mb-1">Preview:</p>
                     <p className="text-xs text-muted-foreground">
-                      <strong>{students.filter(s => s.class === promoteFrom).length}</strong> siswa dari kelas <strong>{promoteFrom}</strong> akan dipindahkan ke kelas <strong>{promoteTo || "..."}</strong>
+                      <strong>{students.filter(s => s.class === promoteFrom).length}</strong> siswa dari <strong>{promoteFrom}</strong> → <strong>{promoteTo || "..."}</strong>
                     </p>
                   </div>
                 )}
-
-                <Button onClick={handlePromoteClass} disabled={promoting || !promoteFrom || !promoteTo} className="w-full gradient-primary hover:opacity-90">
+                <Button onClick={handlePromoteClass} disabled={promoting || !promoteFrom || !promoteTo} className="w-full bg-[#5B6CF9] hover:bg-[#5065E8] text-white">
                   {promoting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <ArrowRightLeft className="h-4 w-4 mr-1" />}
                   {promoting ? "Memproses..." : "Pindahkan Semua Siswa"}
                 </Button>
@@ -546,34 +525,32 @@ const Students = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Template Download */}
           <Button variant="outline" size="sm" onClick={handleDownloadTemplate} className="shrink-0 text-xs px-2 sm:px-3">
             <Download className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Template</span>
           </Button>
 
-          {/* Import */}
           <div className="relative shrink-0">
             {features.canImportExport && (
               <input type="file" accept=".xlsx,.xls" onChange={handleImportExcel} className="absolute inset-0 opacity-0 cursor-pointer" />
             )}
             <Button variant="outline" size="sm"
-              onClick={() => { if (!features.canImportExport) toast.error("Fitur Import tersedia di paket Basic ke atas. Silakan upgrade langganan."); }}
+              onClick={() => { if (!features.canImportExport) toast.error("Fitur Import tersedia di paket Basic ke atas"); }}
               className={`text-xs px-2 sm:px-3 ${!features.canImportExport ? "opacity-60 cursor-not-allowed" : ""}`}>
               <Upload className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Import</span>
               {!features.canImportExport && <Lock className="h-3 w-3 ml-1 text-warning" />}
             </Button>
           </div>
-          {/* Export */}
+
           <Button variant="outline" size="sm"
-            onClick={() => { if (features.canImportExport) handleExportExcel(); else toast.error("Fitur Export tersedia di paket Basic ke atas. Silakan upgrade langganan."); }}
+            onClick={() => { if (features.canImportExport) handleExportExcel(); else toast.error("Fitur Export tersedia di paket Basic ke atas"); }}
             className={`shrink-0 text-xs px-2 sm:px-3 ${!features.canImportExport ? "opacity-60 cursor-not-allowed" : ""}`}>
             <Download className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Export</span>
             {!features.canImportExport && <Lock className="h-3 w-3 ml-1 text-warning" />}
           </Button>
-          {/* Add Student */}
+
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gradient-primary hover:opacity-90 h-9 shrink-0 text-xs px-2 sm:px-3">
+              <Button className="bg-[#5B6CF9] hover:bg-[#5065E8] text-white h-9 shrink-0 text-xs px-2 sm:px-3">
                 <Plus className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Tambah Siswa</span>
               </Button>
             </DialogTrigger>
@@ -600,6 +577,16 @@ const Students = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label>Jenis Kelamin</Label>
+                  <Select value={form.gender} onValueChange={(val) => setForm({ ...form, gender: val })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="L">Laki-laki</SelectItem>
+                      <SelectItem value="P">Perempuan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>Nama Wali</Label>
                   <Input placeholder="Nama orang tua/wali" value={form.parent_name} onChange={(e) => setForm({ ...form, parent_name: e.target.value })} />
                 </div>
@@ -607,7 +594,7 @@ const Students = () => {
                   <Label>No. HP Wali</Label>
                   <Input placeholder="08xxxxxxxxxx" value={form.parent_phone} onChange={(e) => setForm({ ...form, parent_phone: e.target.value })} />
                 </div>
-                <Button onClick={handleAdd} disabled={saving} className="w-full gradient-primary hover:opacity-90">
+                <Button onClick={handleAdd} disabled={saving} className="w-full bg-[#5B6CF9] hover:bg-[#5065E8] text-white">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan"}
                 </Button>
               </div>
@@ -616,42 +603,61 @@ const Students = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Select value={activeFilter} onValueChange={setActiveFilter}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Filter Kelas" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua Kelas</SelectItem>
-            {allClasses.map((cls) => (<SelectItem key={cls} value={cls}>Kelas {cls}</SelectItem>))}
-          </SelectContent>
-        </Select>
-        <Badge variant="secondary">{Object.values(groupedByClass).flat().length} siswa</Badge>
+      {/* Filters */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Select value={activeFilter} onValueChange={setActiveFilter}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Filter Kelas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kelas</SelectItem>
+                {allClasses.map((cls) => (<SelectItem key={cls} value={cls}>Kelas {cls}</SelectItem>))}
+              </SelectContent>
+            </Select>
 
-        <div className="ml-auto flex items-center gap-2">
-          <Select onValueChange={(val) => {
-            if (val === "all") handleBulkDownloadQR();
-            else handleBulkDownloadQR(val);
-          }}>
-            <SelectTrigger className="w-auto gap-1.5" disabled={downloadingQr}>
-              {downloadingQr ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
-              <span className="text-xs font-medium">Download QR</span>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">📦 Semua Kelas</SelectItem>
-              {allClasses.map((cls) => (
-                <SelectItem key={cls} value={cls}>📁 Kelas {cls} ({students.filter(s => s.class === cls).length} siswa)</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            <Badge variant="secondary" className="text-xs">{flatStudents.length} siswa</Badge>
 
-      <Card className="shadow-card border-0">
-        <CardHeader className="pb-3">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Cari siswa, kelas, NIS, wali..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
+            {/* View Toggle */}
+            <div className="flex items-center gap-1 ml-auto border rounded-lg p-0.5">
+              <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm"
+                onClick={() => setViewMode("list")}
+                className={`h-8 w-8 p-0 ${viewMode === "list" ? "bg-[#5B6CF9] text-white hover:bg-[#5065E8]" : ""}`}>
+                <List className="h-4 w-4" />
+              </Button>
+              <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm"
+                onClick={() => setViewMode("grid")}
+                className={`h-8 w-8 p-0 ${viewMode === "grid" ? "bg-[#5B6CF9] text-white hover:bg-[#5065E8]" : ""}`}>
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Select onValueChange={(val) => {
+              if (val === "all") handleBulkDownloadQR();
+              else handleBulkDownloadQR(val);
+            }}>
+              <SelectTrigger className="w-auto gap-1.5" disabled={downloadingQr}>
+                {downloadingQr ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
+                <span className="text-xs font-medium">Download QR</span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">📦 Semua Kelas</SelectItem>
+                {allClasses.map((cls) => (
+                  <SelectItem key={cls} value={cls}>📁 Kelas {cls} ({students.filter(s => s.class === cls).length})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardHeader>
+
+          {/* Search */}
+          <div className="relative max-w-sm mt-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Cari siswa, kelas, NIS, wali..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Content */}
+      <Card className="shadow-card border-0">
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
@@ -660,20 +666,56 @@ const Students = () => {
               <Users className="h-10 w-10 mx-auto mb-2 opacity-30" />
               <p className="text-sm">Belum ada data siswa</p>
             </div>
+          ) : viewMode === "grid" ? (
+            /* GRID VIEW */
+            <div className="p-4 space-y-6">
+              {Object.entries(groupedByClass).sort(([a], [b]) => a.localeCompare(b)).map(([cls, classStudents]) => (
+                <div key={cls}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-7 w-7 rounded-lg bg-[#5B6CF9] flex items-center justify-center">
+                      <GraduationCap className="h-3.5 w-3.5 text-white" />
+                    </div>
+                    <span className="font-semibold text-sm">Kelas {cls}</span>
+                    {waliKelasMap[cls] && <span className="text-xs text-muted-foreground">— {waliKelasMap[cls]}</span>}
+                    <Badge variant="secondary" className="text-xs ml-auto">{classStudents.length}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    {classStudents.map((student: any) => (
+                      <Card key={student.id} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                        <CardContent className="p-4 text-center space-y-2.5">
+                          <GenderAvatar student={student} size={56} />
+                          <div>
+                            <p className="font-semibold text-sm truncate">{student.name}</p>
+                            <p className="text-[10px] text-muted-foreground font-mono">{student.student_id}</p>
+                          </div>
+                          <Badge variant="outline" className="text-[10px]">
+                            {student.gender === "P" ? "♀ Perempuan" : "♂ Laki-laki"}
+                          </Badge>
+                          <div className="flex items-center justify-center gap-1 pt-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/students/${student.id}`)}><Eye className="h-3.5 w-3.5 text-primary" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedStudent(student); setQrDialogOpen(true); }}><QrCode className="h-3.5 w-3.5 text-primary" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(student.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
+            /* LIST VIEW */
             <div className="divide-y">
               {Object.entries(groupedByClass).sort(([a], [b]) => a.localeCompare(b)).map(([cls, classStudents]) => (
                 <div key={cls}>
                   <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-left" onClick={() => toggleClass(cls)}>
                     {expandedClasses.has(cls) ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
-                    <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
-                      <GraduationCap className="h-4 w-4 text-primary-foreground" />
+                    <div className="h-8 w-8 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0">
+                      <GraduationCap className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
                       <span className="font-semibold text-sm">Kelas {cls}</span>
-                      {waliKelasMap[cls] && (
-                        <span className="text-xs text-muted-foreground ml-2">— {waliKelasMap[cls]}</span>
-                      )}
+                      {waliKelasMap[cls] && <span className="text-xs text-muted-foreground ml-2">— {waliKelasMap[cls]}</span>}
                     </div>
                     <Badge variant="secondary" className="text-xs">{classStudents.length} siswa</Badge>
                   </button>
@@ -687,6 +729,7 @@ const Students = () => {
                                 <TableHead className="w-12">#</TableHead>
                                 <TableHead>Nama Siswa</TableHead>
                                 <TableHead className="hidden sm:table-cell">NIS</TableHead>
+                                <TableHead className="hidden md:table-cell">J/K</TableHead>
                                 <TableHead className="hidden md:table-cell">Wali</TableHead>
                                 <TableHead className="hidden lg:table-cell">No. HP</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
@@ -698,13 +741,7 @@ const Students = () => {
                                   <TableCell className="font-medium text-muted-foreground text-xs">{i + 1}</TableCell>
                                   <TableCell>
                                     <div className="flex items-center gap-3">
-                                      {student.photo_url ? (
-                                        <img src={student.photo_url} alt={student.name} className="h-9 w-9 rounded-full object-cover shrink-0" />
-                                      ) : (
-                                        <div className="h-9 w-9 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0">
-                                          {student.name.charAt(0)}
-                                        </div>
-                                      )}
+                                      <GenderAvatar student={student} size={36} />
                                       <div>
                                         <p className="font-medium text-sm">{student.name}</p>
                                         <p className="text-xs text-muted-foreground sm:hidden">{student.student_id}</p>
@@ -713,6 +750,11 @@ const Students = () => {
                                   </TableCell>
                                   <TableCell className="hidden sm:table-cell">
                                     <span className="font-mono text-xs bg-secondary px-2 py-0.5 rounded">{student.student_id}</span>
+                                  </TableCell>
+                                  <TableCell className="hidden md:table-cell">
+                                    <Badge variant="outline" className="text-[10px]">
+                                      {student.gender === "P" ? "♀ P" : "♂ L"}
+                                    </Badge>
                                   </TableCell>
                                   <TableCell className="hidden md:table-cell"><p className="text-sm">{student.parent_name}</p></TableCell>
                                   <TableCell className="hidden lg:table-cell">
@@ -724,7 +766,7 @@ const Students = () => {
                                         {features.canUploadPhoto ? (
                                           <>
                                             <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer w-8 h-8" onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(student.id, e.target.files[0]); }} />
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors" disabled={photoUploading === student.id}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" disabled={photoUploading === student.id}>
                                               {photoUploading === student.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4 text-muted-foreground" />}
                                             </Button>
                                           </>
