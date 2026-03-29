@@ -42,7 +42,7 @@ const ExportHistory = () => {
   const [classes, setClasses] = useState<string[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [students, setStudents] = useState<{ id: string; name: string; student_id: string }[]>([]);
+  const [students, setStudents] = useState<{ id: string; name: string; student_id: string; photo_url: string | null }[]>([]);
   const [datangLogs, setDatangLogs] = useState<any[]>([]);
   const [pulangLogs, setPulangLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
