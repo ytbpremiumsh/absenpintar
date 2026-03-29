@@ -213,6 +213,7 @@ const LandingPage = () => {
   const [trustedSchools, setTrustedSchools] = useState<TrustedSchool[]>(DEFAULT_TRUSTED_SCHOOLS);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
   const [headerLogo, setHeaderLogo] = useState("/images/logo-atskolla.png");
+  const [heroStats, setHeroStats] = useState(DEFAULT_HERO_STATS);
 
   useEffect(() => {
     Promise.all([
