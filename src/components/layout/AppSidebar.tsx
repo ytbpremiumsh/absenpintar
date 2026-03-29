@@ -135,11 +135,11 @@ export function AppSidebar() {
       <SidebarHeader className="p-4 pb-3">
         <div className="flex items-center gap-3">
           {isPremiumBrand && schoolData?.logo ? (
-            <img src={schoolData.logo} alt={schoolData.name} className="h-10 w-10 rounded-2xl object-cover shrink-0 shadow-md ring-2 ring-primary/10" />
+            <img src={schoolData.logo} alt={schoolData.name} className="h-10 w-10 object-contain shrink-0" />
           ) : platformLogo ? (
-            <img src={platformLogo} alt="ATSkolla" className="h-10 w-10 rounded-2xl object-cover shrink-0 shadow-md ring-2 ring-primary/10" />
+            <img src={platformLogo} alt="ATSkolla" className="h-10 w-10 object-contain shrink-0" />
           ) : (
-            <img src={atskollaLogo} alt="ATSkolla" className="h-10 w-10 rounded-2xl object-cover shrink-0 shadow-md ring-2 ring-primary/10" />
+            <img src={atskollaLogo} alt="ATSkolla" className="h-10 w-10 object-contain shrink-0" />
           )}
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-extrabold text-sidebar-foreground tracking-tight truncate">
