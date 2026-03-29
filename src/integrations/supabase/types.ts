@@ -934,6 +934,7 @@ export type Database = {
         Row: {
           class: string
           created_at: string
+          gender: string
           id: string
           name: string
           parent_name: string
@@ -946,6 +947,7 @@ export type Database = {
         Insert: {
           class: string
           created_at?: string
+          gender?: string
           id?: string
           name: string
           parent_name: string
@@ -958,6 +960,7 @@ export type Database = {
         Update: {
           class?: string
           created_at?: string
+          gender?: string
           id?: string
           name?: string
           parent_name?: string

@@ -113,8 +113,8 @@ export function AppSidebar() {
             to={item.url}
             end
             onClick={handleNavClick}
-            className="text-sidebar-foreground/60 hover:bg-primary/10 hover:text-primary rounded-xl px-3.5 py-2.5 transition-all duration-200 group/nav gap-3"
-            activeClassName="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl"
+            className="text-muted-foreground hover:bg-muted/50 hover:text-foreground rounded-xl px-3.5 py-2.5 transition-all duration-200 group/nav gap-3"
+            activeClassName="bg-[#5B6CF9] hover:bg-[#5065E8] text-white font-semibold rounded-xl"
           >
             <item.icon className="h-[18px] w-[18px] shrink-0 stroke-[2]" />
             <span className="text-[13.5px] truncate flex-1">{item.title}</span>
