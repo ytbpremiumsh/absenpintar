@@ -22,6 +22,7 @@ interface StudentRow {
   id: string;
   name: string;
   student_id: string;
+  photo_url: string | null;
   days: Record<number, string>;
   totals: { H: number; S: number; I: number; A: number };
 }
