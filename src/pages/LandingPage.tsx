@@ -10,7 +10,7 @@ import {
   UserCheck, BarChart3, Shield, Smartphone, Star, TrendingUp, Lock,
   ChevronRight, Sparkles, Play, ArrowDown,
   AlertTriangle, XCircle, Clock, FileText, Globe, Camera,
-  Quote, ChevronLeft,
+  Quote, ChevronLeft, School,
 } from "lucide-react";
 import heroDashboard from "@/assets/hero-dashboard.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -31,6 +31,13 @@ const FEATURES = [
   { icon: FileBarChart, title: "Rekap & Export", desc: "Rekap otomatis harian, mingguan, bulanan. Export ke Excel & PDF.", color: "from-amber-500 to-orange-600" },
   { icon: Bell, title: "Notifikasi WhatsApp", desc: "Notifikasi otomatis ke orang tua saat anak tercatat hadir.", color: "from-pink-500 to-rose-600" },
   { icon: GraduationCap, title: "Multi Sekolah", desc: "Arsitektur SaaS multi-tenant. Satu platform untuk banyak sekolah.", color: "from-cyan-500 to-blue-600" },
+];
+
+const DEFAULT_HERO_STATS = [
+  { value: "500+", label: "Sekolah Aktif", icon: School },
+  { value: "120K+", label: "Siswa Terdaftar", icon: Users },
+  { value: "99.9%", label: "Data Akurat", icon: Shield },
+  { value: "34", label: "Provinsi", icon: Globe },
 ];
 
 const STATS = [
