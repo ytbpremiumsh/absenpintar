@@ -80,7 +80,7 @@ function SuperAdminSidebar() {
                   {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                        <NavLink to={item.url} end={item.url === "/super-admin"} className="text-sidebar-foreground/55 hover:bg-primary/8 hover:text-sidebar-foreground rounded-2xl px-3.5 py-3 transition-all duration-200 group/nav" activeClassName="bg-primary text-white font-semibold shadow-lg shadow-primary/25">
+                        <NavLink to={item.url} end={item.url === "/super-admin"} className="text-sidebar-foreground/55 hover:bg-primary/8 hover:text-sidebar-foreground rounded-full px-3.5 py-3 transition-all duration-200 group/nav" activeClassName="bg-gradient-to-r from-[#5B6CF9] to-[#7A5AF8] text-white font-semibold shadow-[0_4px_12px_rgba(91,108,249,0.3)]">
                           <item.icon className="h-[18px] w-[18px] stroke-[1.6] transition-transform duration-200 group-hover/nav:scale-105" />
                           {!collapsed && <span className="text-[13.5px] flex-1">{item.title}</span>}
                           {!collapsed && isActive(item.url) && <ChevronRight className="h-4 w-4 stroke-[2] ml-auto" />}
