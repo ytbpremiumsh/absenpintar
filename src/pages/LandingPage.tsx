@@ -10,7 +10,7 @@ import {
   UserCheck, BarChart3, Shield, Smartphone, Star, TrendingUp, Lock,
   ChevronRight, Sparkles, Play, ArrowDown,
   AlertTriangle, XCircle, Clock, FileText, Globe, Camera,
-  Quote, ChevronLeft,
+  Quote, ChevronLeft, School,
 } from "lucide-react";
 import heroDashboard from "@/assets/hero-dashboard.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -31,6 +31,13 @@ const FEATURES = [
   { icon: FileBarChart, title: "Rekap & Export", desc: "Rekap otomatis harian, mingguan, bulanan. Export ke Excel & PDF.", color: "from-amber-500 to-orange-600" },
   { icon: Bell, title: "Notifikasi WhatsApp", desc: "Notifikasi otomatis ke orang tua saat anak tercatat hadir.", color: "from-pink-500 to-rose-600" },
   { icon: GraduationCap, title: "Multi Sekolah", desc: "Arsitektur SaaS multi-tenant. Satu platform untuk banyak sekolah.", color: "from-cyan-500 to-blue-600" },
+];
+
+const DEFAULT_HERO_STATS = [
+  { value: "500+", label: "Sekolah Aktif", icon: School },
+  { value: "120K+", label: "Siswa Terdaftar", icon: Users },
+  { value: "99.9%", label: "Data Akurat", icon: Shield },
+  { value: "34", label: "Provinsi", icon: Globe },
 ];
 
 const STATS = [
@@ -206,6 +213,7 @@ const LandingPage = () => {
   const [trustedSchools, setTrustedSchools] = useState<TrustedSchool[]>(DEFAULT_TRUSTED_SCHOOLS);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
   const [headerLogo, setHeaderLogo] = useState("/images/logo-atskolla.png");
+  const [heroStats, setHeroStats] = useState(DEFAULT_HERO_STATS);
 
   useEffect(() => {
     Promise.all([
@@ -222,6 +230,21 @@ const LandingPage = () => {
         const sMap = Object.fromEntries(settingsRes.data.map((d: any) => [d.key, d.value]));
         if (sMap.header_logo_url) setHeaderLogo(sMap.header_logo_url);
       }
+      // Build hero stats from content if available
+      const ICON_MAP: Record<string, any> = { School, Users, Shield, Globe };
+      const statsKeys = ["hero_stat_1", "hero_stat_2", "hero_stat_3", "hero_stat_4"];
+      const loadedStats = statsKeys.map((k, i) => {
+        const val = map[`${k}_value`];
+        const label = map[`${k}_label`];
+        const iconName = map[`${k}_icon`] || DEFAULT_HERO_STATS[i]?.icon?.name || "Shield";
+        return {
+          value: val || DEFAULT_HERO_STATS[i]?.value || "",
+          label: label || DEFAULT_HERO_STATS[i]?.label || "",
+          icon: ICON_MAP[iconName] || DEFAULT_HERO_STATS[i]?.icon || Shield,
+        };
+      }).filter(s => s.value && s.label);
+      if (loadedStats.length > 0) setHeroStats(loadedStats);
+
       const allPlans = (plansRes.data || []) as any[];
       const landingPlans = allPlans.filter((p: any) => p.show_on_landing !== false);
       setPlans(landingPlans as PlanRow[]);
@@ -331,6 +354,34 @@ const LandingPage = () => {
               transition={{ duration: 0.4 }}
             />
           </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Hero Stats Banner ─── */}
+      <section className="relative bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 py-14 sm:py-16 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-[300px] h-[300px] bg-white/5 rounded-full blur-[80px]" />
+          <div className="absolute bottom-0 right-1/4 w-[250px] h-[250px] bg-indigo-400/10 rounded-full blur-[60px]" />
+        </div>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
+            {heroStats.map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                className="text-center"
+              >
+                <div className="flex justify-center mb-3">
+                  <stat.icon className="h-8 w-8 sm:h-9 sm:w-9 text-white/70" strokeWidth={1.5} />
+                </div>
+                <p className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">{stat.value}</p>
+                <p className="mt-1.5 text-sm sm:text-base text-indigo-100/80 font-medium">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
