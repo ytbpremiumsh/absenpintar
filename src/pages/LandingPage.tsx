@@ -688,54 +688,79 @@ const LandingPage = () => {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 py-16 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="space-y-4">
+      <footer className="relative bg-slate-900 dark:bg-slate-950 text-white overflow-hidden">
+        {/* Top gradient line */}
+        <div className="h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-teal-500" />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {/* Brand Column */}
+            <div className="lg:col-span-1 space-y-5">
               <div className="flex items-center gap-3">
                 {get("footer_logo") ? (
-                  <img src={get("footer_logo")} alt="Logo" className="h-10 w-10 rounded-xl object-cover shadow-md" />
+                  <img src={get("footer_logo")} alt="Logo" className="h-11 w-11 rounded-xl object-cover shadow-lg" />
                 ) : (
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center shadow-md">
+                  <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg">
                     <GraduationCap className="h-5 w-5 text-white" />
                   </div>
                 )}
                 <div>
-                  <p className="font-bold text-slate-900 dark:text-white text-sm">ATSkolla</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Absensi Digital Sekolah</p>
+                  <p className="font-bold text-white text-base">{get("footer_brand_name", "ATSkolla")}</p>
+                  <p className="text-xs text-slate-400">{get("footer_brand_tagline", "Absensi Digital Sekolah")}</p>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Solusi absensi digital #1 untuk sekolah modern. Hemat waktu guru, tingkatkan kedisiplinan siswa, dan beri ketenangan kepada orang tua — semua dalam satu platform.
+              <p className="text-sm text-slate-400 leading-relaxed">
+                {get("footer_description", "Solusi absensi digital #1 untuk sekolah modern. Hemat waktu guru, tingkatkan kedisiplinan siswa, dan beri ketenangan kepada orang tua.")}
               </p>
             </div>
 
-            <div className="space-y-3">
-              <p className="font-bold text-slate-900 dark:text-white text-sm">Kenapa Sekolah Memilih Kami?</p>
-              <ul className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
-                <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-indigo-500 mt-0.5 shrink-0" /> Scan barcode & face recognition — absensi kurang dari 1 detik</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-indigo-500 mt-0.5 shrink-0" /> Notifikasi WhatsApp otomatis langsung ke orang tua</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-indigo-500 mt-0.5 shrink-0" /> Dashboard real-time untuk kepala sekolah & guru</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-indigo-500 mt-0.5 shrink-0" /> Gratis untuk memulai, tanpa biaya setup</li>
+            {/* Product Links */}
+            <div className="space-y-4">
+              <p className="text-sm font-bold text-white uppercase tracking-wider">Produk</p>
+              <ul className="space-y-2.5 text-sm text-slate-400">
+                <li><button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-indigo-400 transition-colors">Fitur Unggulan</button></li>
+                <li><button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-indigo-400 transition-colors">Cara Kerja</button></li>
+                {showPricing && <li><button onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-indigo-400 transition-colors">Harga & Paket</button></li>}
+                <li><button onClick={() => navigate("/register")} className="hover:text-indigo-400 transition-colors">Daftar Gratis</button></li>
               </ul>
             </div>
 
-            <div className="space-y-3">
-              <p className="font-bold text-slate-900 dark:text-white text-sm">Hubungi Kami</p>
-              <div className="flex flex-col gap-2 text-xs text-slate-500 dark:text-slate-400">
-                {get("footer_address") && <span className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" /> {get("footer_address")}</span>}
-                {get("footer_email") && <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 shrink-0" /> {get("footer_email")}</span>}
-                {get("footer_phone") && <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 shrink-0" /> {get("footer_phone")}</span>}
+            {/* Resource Links */}
+            <div className="space-y-4">
+              <p className="text-sm font-bold text-white uppercase tracking-wider">Dukungan</p>
+              <ul className="space-y-2.5 text-sm text-slate-400">
+                <li><button onClick={() => navigate("/login")} className="hover:text-indigo-400 transition-colors">Login</button></li>
+                {get("footer_link_faq") && <li><a href={get("footer_link_faq")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">FAQ</a></li>}
+                {get("footer_link_docs") && <li><a href={get("footer_link_docs")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">Dokumentasi</a></li>}
+                {get("footer_link_privacy") && <li><a href={get("footer_link_privacy")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">Kebijakan Privasi</a></li>}
+                {get("footer_link_terms") && <li><a href={get("footer_link_terms")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">Syarat & Ketentuan</a></li>}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div className="space-y-4">
+              <p className="text-sm font-bold text-white uppercase tracking-wider">Hubungi Kami</p>
+              <div className="flex flex-col gap-3 text-sm text-slate-400">
+                {get("footer_address") && (
+                  <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 text-indigo-400 shrink-0" /> {get("footer_address")}</span>
+                )}
+                {get("footer_email") && (
+                  <a href={`mailto:${get("footer_email")}`} className="flex items-center gap-2 hover:text-indigo-400 transition-colors"><Mail className="h-4 w-4 text-indigo-400 shrink-0" /> {get("footer_email")}</a>
+                )}
+                {get("footer_phone") && (
+                  <a href={`tel:${get("footer_phone")}`} className="flex items-center gap-2 hover:text-indigo-400 transition-colors"><Phone className="h-4 w-4 text-indigo-400 shrink-0" /> {get("footer_phone")}</a>
+                )}
               </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed pt-2">
-                Punya pertanyaan? Tim kami siap membantu Anda kapan saja. Konsultasi gratis untuk kebutuhan sekolah Anda.
-              </p>
+              {get("footer_social_text") && (
+                <p className="text-xs text-slate-500 pt-2">{get("footer_social_text")}</p>
+              )}
             </div>
           </div>
 
-          <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-slate-500 dark:text-slate-400">© {new Date().getFullYear()} ATSkolla — Absensi Digital Sekolah. All rights reserved.</p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">Dipercaya sekolah-sekolah di seluruh Indonesia 🇮🇩</p>
+          {/* Bottom bar */}
+          <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")} — {get("footer_brand_tagline", "Absensi Digital Sekolah")}. All rights reserved.</p>
+            <p className="text-[10px] text-slate-600">Dipercaya sekolah-sekolah di seluruh Indonesia 🇮🇩</p>
           </div>
         </div>
       </footer>
