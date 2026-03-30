@@ -34,10 +34,10 @@ const FEATURES = [
 ];
 
 const DEFAULT_HERO_STATS = [
-  { value: "500+", label: "Sekolah Aktif", icon: School },
-  { value: "120K+", label: "Siswa Terdaftar", icon: Users },
-  { value: "99.9%", label: "Data Akurat", icon: Shield },
-  { value: "34", label: "Provinsi", icon: Globe },
+  { value: "500+", label: "Sekolah Aktif", icon: School, iconColor: "text-emerald-300" },
+  { value: "120K+", label: "Siswa Terdaftar", icon: GraduationCap, iconColor: "text-amber-300" },
+  { value: "99.9%", label: "Data Akurat", icon: Shield, iconColor: "text-cyan-300" },
+  { value: "34", label: "Provinsi", icon: Globe, iconColor: "text-rose-300" },
 ];
 
 const STATS = [
@@ -231,7 +231,8 @@ const LandingPage = () => {
         if (sMap.header_logo_url) setHeaderLogo(sMap.header_logo_url);
       }
       // Build hero stats from content if available
-      const ICON_MAP: Record<string, any> = { School, Users, Shield, Globe };
+      const ICON_MAP: Record<string, any> = { School, Users, Shield, Globe, GraduationCap };
+      const ICON_COLOR_MAP: Record<string, string> = { School: "text-emerald-300", GraduationCap: "text-amber-300", Shield: "text-cyan-300", Globe: "text-rose-300", Users: "text-sky-300" };
       const statsKeys = ["hero_stat_1", "hero_stat_2", "hero_stat_3", "hero_stat_4"];
       const loadedStats = statsKeys.map((k, i) => {
         const val = map[`${k}_value`];
@@ -241,6 +242,7 @@ const LandingPage = () => {
           value: val || DEFAULT_HERO_STATS[i]?.value || "",
           label: label || DEFAULT_HERO_STATS[i]?.label || "",
           icon: ICON_MAP[iconName] || DEFAULT_HERO_STATS[i]?.icon || Shield,
+          iconColor: ICON_COLOR_MAP[iconName] || DEFAULT_HERO_STATS[i]?.iconColor || "text-white/70",
         };
       }).filter(s => s.value && s.label);
       if (loadedStats.length > 0) setHeroStats(loadedStats);
@@ -375,7 +377,9 @@ const LandingPage = () => {
                 className="text-center"
               >
                 <div className="flex justify-center mb-3">
-                  <stat.icon className="h-8 w-8 sm:h-9 sm:w-9 text-white/70" strokeWidth={1.5} />
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                    <stat.icon className={`h-7 w-7 sm:h-8 sm:w-8 ${(stat as any).iconColor || "text-white/70"}`} strokeWidth={1.5} />
+                  </div>
                 </div>
                 <p className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">{stat.value}</p>
                 <p className="mt-1.5 text-sm sm:text-base text-indigo-100/80 font-medium">{stat.label}</p>
