@@ -117,7 +117,7 @@ export function AppSidebar() {
               onClick={handleNavClick}
               className={`relative rounded-xl px-3 py-2.5 transition-all duration-200 group/nav gap-3 ${
                 active
-                  ? "bg-[#5B6CF9] text-white font-semibold shadow-lg shadow-[#5B6CF9]/20"
+                  ? "bg-gradient-to-r " + item.accent + " text-white font-semibold shadow-lg shadow-[#5B6CF9]/20"
                   : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               }`}
               activeClassName=""
