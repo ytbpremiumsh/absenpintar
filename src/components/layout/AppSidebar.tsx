@@ -171,7 +171,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
                 {renderNavItems([
-                  { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutGrid },
+                  { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutGrid, accent: "from-[#5B6CF9] to-indigo-700" },
                 ])}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -197,8 +197,8 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-1">
                   {renderNavItems([
-                    { title: "Rekap & Export", url: "/export-history", icon: BarChart3 },
-                    { title: "Riwayat Absensi", url: "/history", icon: Clock },
+                    { title: "Rekap & Export", url: "/export-history", icon: BarChart3, accent: "from-[#5B6CF9] to-orange-600" },
+                    { title: "Riwayat Absensi", url: "/history", icon: Clock, accent: "from-[#5B6CF9] to-cyan-600" },
                   ])}
                 </SidebarMenu>
               </SidebarGroupContent>
