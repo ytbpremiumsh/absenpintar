@@ -163,12 +163,12 @@ const StudentDetail = () => {
     return { days, totals };
   }, [monthlyLogs]);
 
-  const getCellColor = (code: string) => {
+  const getCellBadge = (code: string) => {
     switch (code) {
-      case "H": return "bg-success/15 text-success";
-      case "S": return "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400";
-      case "I": return "bg-warning/15 text-warning";
-      case "A": return "bg-destructive/15 text-destructive";
+      case "H": return "bg-emerald-500 text-white";
+      case "S": return "bg-violet-500 text-white";
+      case "I": return "bg-amber-400 text-white";
+      case "A": return "bg-red-500 text-white";
       default: return "";
     }
   };
