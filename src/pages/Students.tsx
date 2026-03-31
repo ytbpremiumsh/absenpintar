@@ -592,7 +592,7 @@ const Students = () => {
             </DialogContent>
           </Dialog>
         </div>
-      </div>
+      } />
 
       {/* Filters */}
       <Card className="border-0 shadow-card">

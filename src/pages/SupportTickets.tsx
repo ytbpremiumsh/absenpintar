@@ -155,7 +155,7 @@ const SupportTickets = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      } />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
