@@ -20,6 +20,8 @@ import Teachers from "./pages/Teachers";
 import ManageWaliKelas from "./pages/ManageWaliKelas";
 import ManageStaff from "./pages/ManageStaff";
 import WaliKelasDashboard from "./pages/WaliKelasDashboard";
+import WaliKelasAttendance from "./pages/WaliKelasAttendance";
+import WaliKelasStudents from "./pages/WaliKelasStudents";
 import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import PublicMonitoring from "./pages/PublicMonitoring";
