@@ -75,10 +75,7 @@ const Teachers = () => {
   return (
     <PremiumGate featureLabel="Data Wali Murid" requiredPlan="Basic">
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Data Wali Murid</h1>
-        <p className="text-muted-foreground text-sm">Daftar orang tua/wali beserta anak yang terdaftar</p>
-      </div>
+      <PageHeader icon={Users} title="Data Wali Murid" subtitle="Daftar orang tua/wali beserta anak yang terdaftar" />
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

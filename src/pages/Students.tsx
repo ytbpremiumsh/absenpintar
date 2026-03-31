@@ -460,17 +460,7 @@ const Students = () => {
 
   return (
     <div className="space-y-6">
-      {/* Premium Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-[#5B6CF9] flex items-center justify-center shadow-md">
-            <Users className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Data Siswa</h1>
-            <p className="text-muted-foreground text-xs sm:text-sm">Kelola data siswa, QR Code, dan kategori kelas</p>
-          </div>
-        </div>
+      <PageHeader icon={Users} title="Data Siswa" subtitle="Kelola data siswa, QR Code, dan kategori kelas" actions={
         <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto">
           <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
             <DialogTrigger asChild>
