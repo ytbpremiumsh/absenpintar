@@ -11,12 +11,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 
-const STATUS_ICONS: Record<string, { icon: typeof CheckCircle2; color: string }> = {
-  hadir: { icon: CheckCircle2, color: "text-success" },
-  izin: { icon: FileText, color: "text-warning" },
-  sakit: { icon: Thermometer, color: "text-blue-500" },
-  alfa: { icon: XCircle, color: "text-destructive" },
-};
 
 interface Student {
   id: string;
