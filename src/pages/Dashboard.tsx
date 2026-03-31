@@ -105,6 +105,43 @@ const Dashboard = () => {
     setPeriodLogs(data || []);
   }, [profile?.school_id, chartPeriod]);
 
+  const fetchHistoryLogs = useCallback(async () => {
+    if (!profile?.school_id || !editDate) return;
+    setLoadingHistory(true);
+    const { data } = await supabase
+      .from("attendance_logs")
+      .select("*")
+      .eq("school_id", profile.school_id)
+      .eq("date", editDate)
+      .eq("attendance_type", "datang")
+      .order("created_at", { ascending: true });
+    setHistoryLogs(data || []);
+    setEditChanges({});
+    setLoadingHistory(false);
+  }, [profile?.school_id, editDate]);
+
+  useEffect(() => {
+    if (editHistoryOpen) fetchHistoryLogs();
+  }, [editHistoryOpen, fetchHistoryLogs]);
+
+  const saveHistoryChanges = async () => {
+    if (Object.keys(editChanges).length === 0) return;
+    setSavingHistory(true);
+    try {
+      for (const [logId, newStatus] of Object.entries(editChanges)) {
+        await supabase.from("attendance_logs").update({ status: newStatus }).eq("id", logId);
+      }
+      toast.success(`${Object.keys(editChanges).length} status berhasil diperbarui`);
+      setEditChanges({});
+      fetchHistoryLogs();
+      fetchData();
+      fetchPeriodLogs();
+    } catch {
+      toast.error("Gagal menyimpan perubahan");
+    }
+    setSavingHistory(false);
+  };
+
   useEffect(() => {
     fetchData();
     const channel = supabase
