@@ -668,9 +668,16 @@ const History = () => {
                     {filteredStudentStats.map((s, i) => {
                       const rate = s.total > 0 ? Math.round((s.hadir / s.total) * 100) : 0;
                       return (
-                        <TableRow key={i} className="hover:bg-muted/20">
+                        <TableRow key={i} className="hover:bg-muted/20 cursor-pointer" onClick={() => {
+                          setSelectedStudentId(s.id);
+                          setLoadingStudentLogs(true);
+                          supabase.from("attendance_logs").select("id, date, time, status, method")
+                            .eq("student_id", s.id).gte("date", startDate).lte("date", endDate)
+                            .order("date", { ascending: false })
+                            .then(({ data }) => { setStudentAttLogs(data || []); setLoadingStudentLogs(false); });
+                        }}>
                           <TableCell className="text-center text-xs text-muted-foreground">{i + 1}</TableCell>
-                          <TableCell className="font-medium text-sm">{s.name}</TableCell>
+                          <TableCell className="font-medium text-sm text-primary hover:underline">{s.name}</TableCell>
                           <TableCell><Badge variant="secondary" className="text-[10px]">{s.class}</Badge></TableCell>
                           <TableCell className="text-center text-sm text-success font-medium">{s.hadir}</TableCell>
                           <TableCell className="text-center text-sm text-amber-500 font-medium">{s.izin}</TableCell>
