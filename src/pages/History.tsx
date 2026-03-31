@@ -18,7 +18,7 @@ import {
   XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import {
-  TrendingUp, Users, CheckCircle2, XCircle, FileSpreadsheet,
+  Users, CheckCircle2, XCircle, FileSpreadsheet,
   BarChart3, CalendarDays, Award, Lightbulb, Loader2, GraduationCap, UserCheck,
 } from "lucide-react";
 
