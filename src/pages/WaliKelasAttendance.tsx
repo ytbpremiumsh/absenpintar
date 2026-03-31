@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CalendarDays, Save, Loader2 } from "lucide-react";
+import { Search, CalendarDays, Save, Loader2, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -151,9 +151,18 @@ const WaliKelasAttendance = () => {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">Absensi Manual</h1>
-        <p className="text-muted-foreground text-sm">Kelola absensi siswa kelas yang Anda ampu</p>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] p-5 sm:p-6 text-white shadow-xl">
+        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="h-12 w-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-lg">
+            <ClipboardList className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">Absensi Manual</h1>
+            <p className="text-white/70 text-xs sm:text-sm">Kelola absensi siswa kelas yang Anda ampu</p>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}

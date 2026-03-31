@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -17,7 +18,7 @@ import {
   XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import {
-  TrendingUp, Users, CheckCircle2, XCircle, FileSpreadsheet,
+  Users, CheckCircle2, XCircle, FileSpreadsheet,
   BarChart3, CalendarDays, Award, Lightbulb, Loader2, GraduationCap, UserCheck,
 } from "lucide-react";
 
@@ -38,6 +39,9 @@ const History = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const [teacherClasses, setTeacherClasses] = useState<string[] | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [studentAttLogs, setStudentAttLogs] = useState<any[]>([]);
+  const [loadingStudentLogs, setLoadingStudentLogs] = useState(false);
 
   const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
 
@@ -115,7 +119,7 @@ const History = () => {
     const byDay: Record<number, Record<string, number>> = {};
     const studentAlfa: Record<string, { name: string; class: string; count: number }> = {};
     // Per-student stats
-    const studentStats: Record<string, { name: string; class: string; student_id: string; hadir: number; izin: number; sakit: number; alfa: number; total: number }> = {};
+    const studentStats: Record<string, { id: string; name: string; class: string; student_id: string; hadir: number; izin: number; sakit: number; alfa: number; total: number }> = {};
 
     for (const l of logs) {
       byStatus[l.status] = (byStatus[l.status] || 0) + 1;
@@ -145,7 +149,7 @@ const History = () => {
       // Per student
       const sid = l.student_id;
       if (!studentStats[sid]) studentStats[sid] = {
-        name: l.students?.name || "?", class: l.students?.class || "?",
+        id: sid, name: l.students?.name || "?", class: l.students?.class || "?",
         student_id: l.students?.student_id || "?",
         hadir: 0, izin: 0, sakit: 0, alfa: 0, total: 0,
       };
@@ -664,9 +668,16 @@ const History = () => {
                     {filteredStudentStats.map((s, i) => {
                       const rate = s.total > 0 ? Math.round((s.hadir / s.total) * 100) : 0;
                       return (
-                        <TableRow key={i} className="hover:bg-muted/20">
+                        <TableRow key={i} className="hover:bg-muted/20 cursor-pointer" onClick={() => {
+                          setSelectedStudentId(s.id);
+                          setLoadingStudentLogs(true);
+                          supabase.from("attendance_logs").select("id, date, time, status, method")
+                            .eq("student_id", s.id).gte("date", startDate).lte("date", endDate)
+                            .order("date", { ascending: false })
+                            .then(({ data }) => { setStudentAttLogs(data || []); setLoadingStudentLogs(false); });
+                        }}>
                           <TableCell className="text-center text-xs text-muted-foreground">{i + 1}</TableCell>
-                          <TableCell className="font-medium text-sm">{s.name}</TableCell>
+                          <TableCell className="font-medium text-sm text-primary hover:underline">{s.name}</TableCell>
                           <TableCell><Badge variant="secondary" className="text-[10px]">{s.class}</Badge></TableCell>
                           <TableCell className="text-center text-sm text-success font-medium">{s.hadir}</TableCell>
                           <TableCell className="text-center text-sm text-amber-500 font-medium">{s.izin}</TableCell>
@@ -716,6 +727,60 @@ const History = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Student Attendance Detail Dialog */}
+      <Dialog open={!!selectedStudentId} onOpenChange={(open) => { if (!open) setSelectedStudentId(null); }}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Riwayat Absensi — {filteredStudentStats.find(s => s.id === selectedStudentId)?.name || ""}
+            </DialogTitle>
+          </DialogHeader>
+          {loadingStudentLogs ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">Memuat data...</div>
+          ) : studentAttLogs.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">Tidak ada data absensi</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/20">
+                    <TableHead className="text-xs font-semibold">Tanggal</TableHead>
+                    <TableHead className="text-xs font-semibold">Hari</TableHead>
+                    <TableHead className="text-xs font-semibold">Jam</TableHead>
+                    <TableHead className="text-xs font-semibold">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {studentAttLogs.map((l: any) => {
+                    const d = new Date(l.date);
+                    const dayName = d.toLocaleDateString("id-ID", { weekday: "short" });
+                    const dateStr = d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+                    const statusColors: Record<string, string> = {
+                      hadir: "bg-success/10 text-success border-success/30",
+                      izin: "bg-warning/10 text-warning border-warning/30",
+                      sakit: "bg-blue-100 text-blue-600 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400",
+                      alfa: "bg-destructive/10 text-destructive border-destructive/30",
+                    };
+                    return (
+                      <TableRow key={l.id} className="hover:bg-muted/20">
+                        <TableCell className="text-xs">{dateStr}</TableCell>
+                        <TableCell className="text-xs">{dayName}</TableCell>
+                        <TableCell className="text-xs font-mono">{l.time?.slice(0, 5)}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`text-[10px] ${statusColors[l.status] || ""}`}>
+                            {STATUS_LABELS[l.status] || l.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
