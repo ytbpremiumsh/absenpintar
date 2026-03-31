@@ -149,7 +149,7 @@ const History = () => {
       // Per student
       const sid = l.student_id;
       if (!studentStats[sid]) studentStats[sid] = {
-        name: l.students?.name || "?", class: l.students?.class || "?",
+        id: sid, name: l.students?.name || "?", class: l.students?.class || "?",
         student_id: l.students?.student_id || "?",
         hadir: 0, izin: 0, sakit: 0, alfa: 0, total: 0,
       };
