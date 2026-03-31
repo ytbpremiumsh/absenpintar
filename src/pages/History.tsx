@@ -39,6 +39,9 @@ const History = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const [teacherClasses, setTeacherClasses] = useState<string[] | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [studentAttLogs, setStudentAttLogs] = useState<any[]>([]);
+  const [loadingStudentLogs, setLoadingStudentLogs] = useState(false);
 
   const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
 
