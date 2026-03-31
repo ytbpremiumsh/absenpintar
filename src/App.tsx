@@ -111,6 +111,8 @@ const App = () => (
               <Route path="/wali-kelas" element={<ManageWaliKelas />} />
               <Route path="/staff" element={<ManageStaff />} />
               <Route path="/wali-kelas-dashboard" element={<WaliKelasDashboard />} />
+              <Route path="/wali-kelas-attendance" element={<WaliKelasAttendance />} />
+              <Route path="/wali-kelas-students" element={<WaliKelasStudents />} />
               <Route path="/history" element={<History />} />
               <Route path="/export-history" element={<ExportHistory />} />
               <Route path="/subscription" element={<Subscription />} />

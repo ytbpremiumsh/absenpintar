@@ -174,8 +174,10 @@ export function AppSidebar() {
               {renderGroupLabel("Wali Kelas")}
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-1">
-                  {renderNavItems([
+                   {renderNavItems([
                     { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutGrid, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Absensi Manual", url: "/wali-kelas-attendance", icon: ClipboardList, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Siswa Kelas Saya", url: "/wali-kelas-students", icon: Users, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                   ])}
                 </SidebarMenu>
               </SidebarGroupContent>
