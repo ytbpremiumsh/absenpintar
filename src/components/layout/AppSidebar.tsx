@@ -169,16 +169,29 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2 overflow-y-auto overflow-x-hidden">
         {isTeacherOnly ? (
-          <SidebarGroup>
-            {renderGroupLabel("Wali Kelas")}
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
-                {renderNavItems([
-                  { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutGrid, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-                ])}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <SidebarGroup>
+              {renderGroupLabel("Wali Kelas")}
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">
+                  {renderNavItems([
+                    { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutGrid, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                  ])}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarGroup>
+              {renderGroupLabel("Laporan")}
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-1">
+                  {renderNavItems([
+                    { title: "Rekap Absensi", url: "/export-history", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Analytic Kelas", url: "/history", icon: Clock, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                  ])}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
         ) : (
           <>
             <SidebarGroup>
@@ -200,7 +213,7 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-1">
                   {renderNavItems([
-                    { title: "Rekap & Export", url: "/export-history", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Rekap Absensi", url: "/export-history", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                     { title: "Analytic Kelas", url: "/history", icon: Clock, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                   ])}
                 </SidebarMenu>
