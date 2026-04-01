@@ -51,10 +51,12 @@ function AppContent() {
         <header className="h-14 flex items-center justify-between glass-subtle border-b border-border/40 px-3 sm:px-5 sticky top-0 z-30 shrink-0">
           <div className="flex items-center gap-2.5">
             <SidebarTrigger className="h-8 w-8 rounded-xl hover:bg-secondary/80 transition-colors" />
-            <span className="text-sm font-semibold text-foreground/70 hidden sm:inline truncate max-w-[200px]">
-              {profile?.full_name || "Dashboard"}
-            </span>
-            <ActivePlanBadge />
+            <div className="hidden sm:flex flex-col">
+              <span className="text-sm font-bold text-foreground tracking-tight truncate max-w-[200px]">
+                {profile?.full_name || "Dashboard"}
+              </span>
+              <span className="text-[10px] text-muted-foreground/70 font-medium -mt-0.5">Selamat datang kembali</span>
+            </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <ThemeToggle />
