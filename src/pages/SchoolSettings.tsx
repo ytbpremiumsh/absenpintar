@@ -179,13 +179,29 @@ const SchoolSettings = () => {
       <Card className="border-0 shadow-card">
         <CardHeader><CardTitle className="text-base">Informasi Sekolah</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="school-name">Nama Sekolah</Label>
-            <Input id="school-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama sekolah" />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="school-name">Nama Sekolah</Label>
+              <Input id="school-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama sekolah" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="school-npsn">NPSN</Label>
+              <Input id="school-npsn" value={npsn} onChange={(e) => setNpsn(e.target.value)} placeholder="Nomor Pokok Sekolah Nasional" />
+            </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="school-address">Alamat</Label>
-            <Textarea id="school-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Alamat lengkap sekolah" rows={3} />
+            <Label htmlFor="school-address">Alamat Lengkap</Label>
+            <Textarea id="school-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Jl. Contoh No. 123, Kelurahan, Kecamatan" rows={3} />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="school-city">Kota / Kabupaten</Label>
+              <Input id="school-city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Contoh: Jakarta Selatan" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="school-province">Provinsi</Label>
+              <Input id="school-province" value={province} onChange={(e) => setProvince(e.target.value)} placeholder="Contoh: DKI Jakarta" />
+            </div>
           </div>
 
           {/* Logo */}
