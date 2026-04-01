@@ -679,7 +679,7 @@ const Students = () => {
                             <p className="font-semibold text-sm truncate text-primary hover:underline">{student.name}</p>
                             <p className="text-[10px] text-muted-foreground font-mono">{student.student_id}</p>
                           </div>
-                          <div className="flex items-center justify-center gap-1 pt-1">
+                          <div className="flex items-center justify-center gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
                             <Button variant="outline" size="icon" className="h-7 w-7 border-border/60" onClick={() => navigate(`/students/${student.id}`)}><Eye className="h-3.5 w-3.5 text-[#5B6CF9]" /></Button>
                             <Button variant="outline" size="icon" className="h-7 w-7 border-border/60" onClick={() => { setSelectedStudent(student); setQrDialogOpen(true); }}><QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" /></Button>
                             <Button variant="outline" size="icon" className="h-7 w-7 border-border/60" onClick={() => handleDelete(student.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
