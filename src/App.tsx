@@ -116,6 +116,7 @@ const App = () => (
               <Route path="/wali-kelas-students" element={<WaliKelasStudents />} />
               <Route path="/history" element={<History />} />
               <Route path="/export-history" element={<ExportHistory />} />
+              <Route path="/edit-attendance" element={<EditAttendance />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/school-settings" element={<SchoolSettings />} />
               <Route path="/account-settings" element={<AccountSettings />} />

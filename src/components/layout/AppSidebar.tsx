@@ -17,6 +17,7 @@ import {
   Gift,
   ChevronRight,
   Crown,
+  Pencil,
 } from "lucide-react";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
