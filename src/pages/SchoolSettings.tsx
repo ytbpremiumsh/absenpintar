@@ -48,6 +48,10 @@ const SchoolSettings = () => {
         setName(schoolRes.data.name || "");
         setAddress(schoolRes.data.address || "");
         setLogo(schoolRes.data.logo || "");
+        setNpsn((schoolRes.data as any).npsn || "");
+        setCity((schoolRes.data as any).city || "");
+        setProvince((schoolRes.data as any).province || "");
+        setTimezone((schoolRes.data as any).timezone || "Asia/Jakarta");
       }
       if (settingsRes.data) {
         setStartTime(settingsRes.data.school_start_time?.slice(0, 5) || "07:00");
