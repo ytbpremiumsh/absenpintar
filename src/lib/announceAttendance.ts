@@ -58,9 +58,16 @@ export function announceAttendance(
   announceTimeout = setTimeout(() => {
     window.speechSynthesis.cancel();
 
-    const actionText = attendanceType === "pulang"
-      ? "telah absen pulang"
-      : "telah absen datang";
+    const statusMap: Record<string, string> = {
+      izin: "tercatat izin",
+      sakit: "tercatat sakit",
+      alfa: "tercatat alfa",
+    };
+    const actionText = status && statusMap[status]
+      ? statusMap[status]
+      : attendanceType === "pulang"
+        ? "telah absen pulang"
+        : "telah absen datang";
     const text = `${studentName}, kelas ${className}, ${actionText}.`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
