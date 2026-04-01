@@ -49,6 +49,7 @@ const StudentDetail = () => {
   const [recapMonth, setRecapMonth] = useState(new Date());
   const [monthlyLogs, setMonthlyLogs] = useState<any[]>([]);
   const [waliKelasName, setWaliKelasName] = useState("");
+  const [availableClasses, setAvailableClasses] = useState<string[]>([]);
 
   const fetchData = async () => {
     if (!id || !profile?.school_id) return;
