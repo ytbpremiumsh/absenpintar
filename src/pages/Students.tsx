@@ -725,13 +725,13 @@ const Students = () => {
                             </TableHeader>
                             <TableBody>
                               {classStudents.map((student: any, i: number) => (
-                                <TableRow key={student.id} className="hover:bg-secondary/20">
+                                <TableRow key={student.id} className="hover:bg-secondary/20 cursor-pointer" onClick={() => navigate(`/students/${student.id}`)}>
                                   <TableCell className="font-medium text-muted-foreground text-xs">{i + 1}</TableCell>
                                   <TableCell>
                                     <div className="flex items-center gap-3">
                                       <GenderAvatar student={student} size={36} />
                                       <div>
-                                        <p className="font-medium text-sm">{student.name}</p>
+                                        <p className="font-medium text-sm text-primary hover:underline">{student.name}</p>
                                         <p className="text-xs text-muted-foreground sm:hidden">{student.student_id}</p>
                                       </div>
                                     </div>
