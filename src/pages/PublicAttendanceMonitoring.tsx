@@ -368,15 +368,18 @@ const PublicAttendanceMonitoring = () => {
           {/* Live Feed */}
           <div className={cameraVisible ? "lg:col-span-3" : ""}>
             <div className={`rounded-2xl ${theme.feedBg} ring-1 overflow-hidden h-full`}>
-              <div className={`px-4 py-3 border-b ${darkMode ? "border-slate-800" : "border-border/40"} flex items-center gap-2`}>
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <Activity className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <div className={`px-4 py-3.5 border-b ${darkMode ? "border-slate-800" : "border-border/40"} flex items-center gap-3`}>
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${darkMode ? "bg-emerald-500/15" : "bg-gradient-to-br from-emerald-500 to-emerald-600"}`}>
+                  <Activity className={`h-5 w-5 ${darkMode ? "text-emerald-400" : "text-white"}`} />
                 </div>
                 <div className="flex-1">
-                  <h2 className={`text-sm font-bold ${theme.text}`}>Live Feed</h2>
-                  <p className={`text-[9px] ${theme.textMuted}`}>20 absensi terbaru • realtime</p>
+                  <h2 className={`text-sm font-bold ${theme.text}`}>Live Feed Absensi</h2>
+                  <p className={`text-[9px] ${theme.textMuted}`}>20 absensi terbaru • realtime update</p>
                 </div>
-                <LiveDot />
+                <div className="flex items-center gap-2">
+                  <LiveDot />
+                  <Badge className={`text-[8px] border-0 font-semibold ${darkMode ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-100 text-emerald-700"}`}>LIVE</Badge>
+                </div>
               </div>
               <div className="overflow-y-auto max-h-[400px] lg:max-h-[500px]">
                 {data.liveFeed.length === 0 ? (
