@@ -282,23 +282,57 @@ const PublicAttendanceMonitoring = () => {
       </header>
 
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
+        {/* Premium Title Banner */}
+        <div className={`relative overflow-hidden rounded-2xl p-5 sm:p-6 ${darkMode ? "bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"} text-white shadow-xl`}>
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
+            <div className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`h-12 w-12 rounded-xl ${darkMode ? "bg-white/10" : "bg-white/15"} backdrop-blur-sm flex items-center justify-center border border-white/20`}>
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold">Live Monitoring Absensi</h2>
+                <p className="text-white/70 text-xs sm:text-sm">{currentDate}</p>
+              </div>
+            </div>
+            <div className="text-right hidden sm:block">
+              <p className="text-3xl font-extrabold tabular-nums">{percentage}%</p>
+              <p className="text-[11px] text-white/60">Kehadiran Tercatat</p>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Row */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
-          {statItems.map((stat, i) => (
-            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-              <div className={`rounded-xl ${darkMode ? stat.bg.replace("dark:", "") : stat.bg.split(" ")[0]} ring-1 ${darkMode ? stat.ring.replace("dark:", "") : stat.ring.split(" ")[0]} p-3 sm:p-4`}>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg ${darkMode ? stat.bg.replace("dark:", "") : stat.bg.split(" ")[0]} flex items-center justify-center`}>
-                    <stat.icon className={`h-4 w-4 ${stat.color.split(" ")[darkMode ? 1 : 0]?.replace("dark:", "") || stat.color.split(" ")[0]}`} />
-                  </div>
-                  <div>
-                    <p className={`text-lg sm:text-2xl font-extrabold leading-tight ${stat.color.split(" ")[darkMode ? 1 : 0]?.replace("dark:", "") || stat.color.split(" ")[0]}`}>{stat.value}</p>
-                    <p className={`text-[9px] sm:text-[10px] ${theme.textMuted} font-medium uppercase tracking-wider`}>{stat.label}</p>
+          {statItems.map((stat, i) => {
+            const colorMap: Record<string, { light: string; dark: string; iconLight: string; iconDark: string; bgLight: string; bgDark: string; ringLight: string; ringDark: string }> = {
+              Total: { light: "text-[#5B6CF9]", dark: "text-indigo-400", iconLight: "text-[#5B6CF9]", iconDark: "text-indigo-400", bgLight: "bg-indigo-50", bgDark: "bg-indigo-500/10", ringLight: "ring-indigo-200", ringDark: "ring-indigo-500/20" },
+              Hadir: { light: "text-emerald-600", dark: "text-emerald-400", iconLight: "text-emerald-600", iconDark: "text-emerald-400", bgLight: "bg-emerald-50", bgDark: "bg-emerald-500/10", ringLight: "ring-emerald-200", ringDark: "ring-emerald-500/20" },
+              Izin: { light: "text-amber-600", dark: "text-amber-400", iconLight: "text-amber-600", iconDark: "text-amber-400", bgLight: "bg-amber-50", bgDark: "bg-amber-500/10", ringLight: "ring-amber-200", ringDark: "ring-amber-500/20" },
+              Sakit: { light: "text-sky-600", dark: "text-sky-400", iconLight: "text-sky-600", iconDark: "text-sky-400", bgLight: "bg-sky-50", bgDark: "bg-sky-500/10", ringLight: "ring-sky-200", ringDark: "ring-sky-500/20" },
+              Alfa: { light: "text-red-600", dark: "text-red-400", iconLight: "text-red-600", iconDark: "text-red-400", bgLight: "bg-red-50", bgDark: "bg-red-500/10", ringLight: "ring-red-200", ringDark: "ring-red-500/20" },
+              Belum: { light: "text-slate-500", dark: "text-slate-400", iconLight: "text-slate-500", iconDark: "text-slate-400", bgLight: "bg-slate-100", bgDark: "bg-slate-500/10", ringLight: "ring-slate-200", ringDark: "ring-slate-500/20" },
+            };
+            const c = colorMap[stat.label] || colorMap.Belum;
+            return (
+              <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                <div className={`rounded-xl ${darkMode ? c.bgDark : c.bgLight} ring-1 ${darkMode ? c.ringDark : c.ringLight} p-3 sm:p-4 transition-all hover:scale-[1.02] hover:shadow-md`}>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl ${darkMode ? c.bgDark : c.bgLight} flex items-center justify-center border ${darkMode ? "border-white/5" : "border-black/5"}`}>
+                      <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${darkMode ? c.iconDark : c.iconLight}`} />
+                    </div>
+                    <div>
+                      <p className={`text-xl sm:text-2xl font-extrabold leading-tight ${darkMode ? c.dark : c.light}`}>{stat.value}</p>
+                      <p className={`text-[9px] sm:text-[10px] ${theme.textMuted} font-semibold uppercase tracking-wider`}>{stat.label}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Progress Bar */}
@@ -334,15 +368,18 @@ const PublicAttendanceMonitoring = () => {
           {/* Live Feed */}
           <div className={cameraVisible ? "lg:col-span-3" : ""}>
             <div className={`rounded-2xl ${theme.feedBg} ring-1 overflow-hidden h-full`}>
-              <div className={`px-4 py-3 border-b ${darkMode ? "border-slate-800" : "border-border/40"} flex items-center gap-2`}>
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <Activity className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <div className={`px-4 py-3.5 border-b ${darkMode ? "border-slate-800" : "border-border/40"} flex items-center gap-3`}>
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${darkMode ? "bg-emerald-500/15" : "bg-gradient-to-br from-emerald-500 to-emerald-600"}`}>
+                  <Activity className={`h-5 w-5 ${darkMode ? "text-emerald-400" : "text-white"}`} />
                 </div>
                 <div className="flex-1">
-                  <h2 className={`text-sm font-bold ${theme.text}`}>Live Feed</h2>
-                  <p className={`text-[9px] ${theme.textMuted}`}>20 absensi terbaru • realtime</p>
+                  <h2 className={`text-sm font-bold ${theme.text}`}>Live Feed Absensi</h2>
+                  <p className={`text-[9px] ${theme.textMuted}`}>20 absensi terbaru • realtime update</p>
                 </div>
-                <LiveDot />
+                <div className="flex items-center gap-2">
+                  <LiveDot />
+                  <Badge className={`text-[8px] border-0 font-semibold ${darkMode ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-100 text-emerald-700"}`}>LIVE</Badge>
+                </div>
               </div>
               <div className="overflow-y-auto max-h-[400px] lg:max-h-[500px]">
                 {data.liveFeed.length === 0 ? (
@@ -405,10 +442,15 @@ const PublicAttendanceMonitoring = () => {
 
         {/* Per Class Summary */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <GraduationCap className="h-5 w-5 text-[#5B6CF9]" />
-            <h2 className={`text-base lg:text-lg font-bold ${theme.text}`}>Ringkasan Per Kelas</h2>
-            <Badge variant="secondary" className={`text-[10px] border-0 ${darkMode ? "bg-white/5 text-slate-400" : "bg-muted text-muted-foreground"}`}>{classNames.length} kelas</Badge>
+          <div className={`flex items-center gap-3 mb-4 p-4 rounded-xl ring-1 ${darkMode ? "bg-slate-900/60 ring-slate-800" : "bg-white ring-border/40 shadow-sm"}`}>
+            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${darkMode ? "bg-indigo-500/15" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
+              <GraduationCap className={`h-5 w-5 ${darkMode ? "text-indigo-400" : "text-white"}`} />
+            </div>
+            <div className="flex-1">
+              <h2 className={`text-base font-bold ${theme.text}`}>Ringkasan Per Kelas</h2>
+              <p className={`text-[10px] ${theme.textMuted}`}>Status kehadiran seluruh kelas hari ini</p>
+            </div>
+            <Badge className={`text-[10px] border-0 font-bold ${darkMode ? "bg-indigo-500/15 text-indigo-400" : "bg-[#5B6CF9]/10 text-[#5B6CF9]"}`}>{classNames.length} kelas</Badge>
           </div>
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {classNames.map((cls) => {
@@ -421,12 +463,12 @@ const PublicAttendanceMonitoring = () => {
 
               return (
                 <motion.div key={cls} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  <div className={`rounded-xl ring-1 p-4 transition-all ${allDone ? theme.classDoneBg : theme.classBg}`}>
+              <div className={`rounded-xl ring-1 p-4 transition-all hover:shadow-lg hover:scale-[1.01] ${allDone ? theme.classDoneBg : theme.classBg}`}>
                     <div className="flex items-center gap-3 mb-3">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 border ${
                         allDone
-                          ? darkMode ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-100 text-emerald-600"
-                          : "bg-[#5B6CF9]/10 text-[#5B6CF9]"
+                          ? darkMode ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" : "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-600/20"
+                          : darkMode ? "bg-indigo-500/15 text-indigo-400 border-indigo-500/20" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white border-[#5B6CF9]/20"
                       }`}>
                         <GraduationCap className="h-5 w-5" />
                       </div>
