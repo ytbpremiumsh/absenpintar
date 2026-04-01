@@ -115,10 +115,10 @@ const Dashboard = () => {
   const attendancePercent = totalStudents > 0 ? Math.round((statusCounts.hadir / totalStudents) * 100) : 0;
 
   const statCards = [
-    { label: "TOTAL SISWA", value: totalStudents, desc: "terdaftar di sekolah", icon: Users, iconBg: "bg-indigo-100 dark:bg-indigo-900/40", iconColor: "text-indigo-600 dark:text-indigo-400" },
-    { label: "HADIR", value: statusCounts.hadir, desc: "hadir hari ini", icon: UserCheck, iconBg: "bg-emerald-100 dark:bg-emerald-900/40", iconColor: "text-emerald-600 dark:text-emerald-400" },
-    { label: "IZIN / SAKIT", value: statusCounts.izin + statusCounts.sakit, desc: `${statusCounts.izin} izin, ${statusCounts.sakit} sakit`, icon: FileText, iconBg: "bg-amber-100 dark:bg-amber-900/40", iconColor: "text-amber-600 dark:text-amber-400" },
-    { label: "ALFA / BELUM", value: statusCounts.alfa + belumAbsen, desc: `${statusCounts.alfa} alfa, ${belumAbsen} belum`, icon: AlertTriangle, iconBg: "bg-red-100 dark:bg-red-900/40", iconColor: "text-red-600 dark:text-red-400" },
+    { label: "SEKOLAH AKTIF", value: totalStudents > 0 ? 1 : 0, desc: "sekolah terdaftar", icon: School, iconBg: "bg-gradient-to-br from-indigo-100 to-violet-100 dark:from-indigo-900/40 dark:to-violet-900/40", iconColor: "text-indigo-600 dark:text-indigo-400" },
+    { label: "SISWA TERDAFTAR", value: totalStudents, desc: "total siswa aktif", icon: GraduationCap, iconBg: "bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40", iconColor: "text-emerald-600 dark:text-emerald-400" },
+    { label: "HADIR HARI INI", value: statusCounts.hadir, desc: `${attendancePercent}% kehadiran`, icon: UserCheck, iconBg: "bg-gradient-to-br from-sky-100 to-blue-100 dark:from-sky-900/40 dark:to-blue-900/40", iconColor: "text-sky-600 dark:text-sky-400" },
+    { label: "BELUM / ALFA", value: statusCounts.alfa + belumAbsen, desc: `${statusCounts.alfa} alfa, ${belumAbsen} belum`, icon: AlertTriangle, iconBg: "bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40", iconColor: "text-red-600 dark:text-red-400" },
   ];
 
   const quickActions = [
