@@ -127,7 +127,7 @@ const EditAttendance = () => {
     <div className="space-y-6">
       <PageHeader
         icon={Pencil}
-        title="Edit Riwayat"
+        title="Riwayat Absensi"
         subtitle="Kelola dan perbarui data absensi harian per kelas"
       />
 
@@ -256,10 +256,10 @@ const EditAttendance = () => {
                     </div>
                     <div className="flex gap-1.5 mt-2">
                       {[
-                        { key: "hadir", label: "H", val: classStats.hadir, color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" },
-                        { key: "izin", label: "I", val: classStats.izin, color: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400" },
-                        { key: "sakit", label: "S", val: classStats.sakit, color: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400" },
-                        { key: "alfa", label: "A", val: classStats.alfa, color: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400" },
+                        { key: "hadir", label: "H", val: classStats.hadir, color: "bg-emerald-500 text-white" },
+                        { key: "izin", label: "I", val: classStats.izin, color: "bg-amber-500 text-white" },
+                        { key: "sakit", label: "S", val: classStats.sakit, color: "bg-sky-500 text-white" },
+                        { key: "alfa", label: "A", val: classStats.alfa, color: "bg-red-500 text-white" },
                       ].map(b => (
                         <span key={b.key} className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${b.color}`}>
                           {b.label}:{b.val}
