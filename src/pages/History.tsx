@@ -334,9 +334,6 @@ const History = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => setEditHistoryOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm gap-1.5 text-xs font-semibold h-9 rounded-lg">
-              <Pencil className="h-3.5 w-3.5" /> Edit Riwayat
-            </Button>
             <Button onClick={exportExcel} className="bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm gap-1.5 text-xs font-semibold h-9 rounded-lg">
               <FileSpreadsheet className="h-3.5 w-3.5" /> Export Excel
             </Button>
