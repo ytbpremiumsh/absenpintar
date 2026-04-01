@@ -49,9 +49,16 @@ const PublicAttendanceMonitoring = () => {
   const [cameraVisible, setCameraVisible] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [realtimeClock, setRealtimeClock] = useState(new Date());
   const containerRef = useRef<HTMLDivElement>(null);
   const prevLogIds = useRef<Set<string>>(new Set());
   const initialLoad = useRef(true);
+
+  // Real-time clock - updates every second
+  useEffect(() => {
+    const timer = setInterval(() => setRealtimeClock(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
