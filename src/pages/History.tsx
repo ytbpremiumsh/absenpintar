@@ -29,12 +29,6 @@ const COLORS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa",
 };
-const STATUS_COLORS: Record<string, string> = {
-  hadir: "hsl(152, 69%, 40%)",
-  izin: "hsl(38, 92%, 50%)",
-  sakit: "hsl(210, 70%, 50%)",
-  alfa: "hsl(0, 72%, 51%)",
-};
 const DAY_NAMES = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
 const History = () => {
