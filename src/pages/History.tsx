@@ -329,7 +329,7 @@ const History = () => {
               <BarChart3 className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">Rekap Absensi</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">Analytic Kelas</h1>
               <p className="text-white/70 text-xs sm:text-sm">Analitik & rekap kehadiran dan kepulangan siswa</p>
             </div>
           </div>
