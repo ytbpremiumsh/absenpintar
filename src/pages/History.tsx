@@ -248,13 +248,6 @@ const History = () => {
     toast.success("Data berhasil diexport!");
   };
 
-  const uniqueClasses = classNames;
-  const filteredHistoryLogs = editClassFilter === "all"
-    ? historyLogs
-    : historyLogs.filter(l => {
-        const st = allStudents.find((s: any) => s.id === l.student_id);
-        return st?.class === editClassFilter;
-      });
 
   if (loading) {
     return (
