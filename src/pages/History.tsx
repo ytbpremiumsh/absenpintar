@@ -129,9 +129,11 @@ const History = () => {
       if (l.status === "izin") byClass[cls].izin++;
       if (l.status === "sakit") byClass[cls].sakit++;
 
-      if (!byDate[l.date]) byDate[l.date] = { total: 0, hadir: 0, alfa: 0 };
+      if (!byDate[l.date]) byDate[l.date] = { total: 0, hadir: 0, izin: 0, sakit: 0, alfa: 0 };
       byDate[l.date].total++;
       if (l.status === "hadir") byDate[l.date].hadir++;
+      if (l.status === "izin") byDate[l.date].izin++;
+      if (l.status === "sakit") byDate[l.date].sakit++;
       if (l.status === "alfa") byDate[l.date].alfa++;
 
       const dow = new Date(l.date).getDay();
