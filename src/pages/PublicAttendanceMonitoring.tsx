@@ -113,7 +113,7 @@ const PublicAttendanceMonitoring = () => {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "attendance_logs" }, () => fetchData())
       .subscribe();
     return () => { clearInterval(interval); supabase.removeChannel(channel); };
-  }, [schoolId]);
+  }, [schoolId, fetchData]);
 
   // Theme classes
   const theme = darkMode ? {
