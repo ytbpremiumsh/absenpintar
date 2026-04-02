@@ -84,6 +84,9 @@ const App = () => (
             <Route path="/presentation" element={<Presentation />} />
             <Route path="/business-model" element={<BusinessModel />} />
             <Route path="/penawaran" element={<Penawaran />} />
+            <Route path="/affiliate/register" element={<AffiliateRegister />} />
+            <Route path="/affiliate/login" element={<AffiliateLogin />} />
+            <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
             {/* Super Admin */}
             <Route element={<SuperAdminLayout />}>
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
