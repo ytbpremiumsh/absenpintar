@@ -408,6 +408,8 @@ const History = () => {
                     <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
                     <Line type="monotone" dataKey="% Hadir" stroke="#22c55e" strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="Hadir" stroke="#6366f1" strokeWidth={1.5} dot={false} />
+                    <Line type="monotone" dataKey="Izin" stroke="#f59e0b" strokeWidth={1.5} dot={false} />
+                    <Line type="monotone" dataKey="Sakit" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
                     <Line type="monotone" dataKey="Alfa" stroke="#ef4444" strokeWidth={1.5} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
