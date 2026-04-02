@@ -24,7 +24,7 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
-const FEATURES = [
+const DEFAULT_FEATURES = [
   { icon: QrCode, title: "Scan Barcode", desc: "Absensi instan kurang dari 1 detik dengan scan barcode siswa.", color: "from-blue-500 to-indigo-600" },
   { icon: UserCheck, title: "Face Recognition", desc: "Pengenalan wajah berbasis AI. Tanpa kartu, tanpa sentuhan.", color: "from-violet-500 to-purple-600" },
   { icon: Monitor, title: "Dashboard Real-Time", desc: "Pantau statistik kehadiran secara live dengan grafik interaktif.", color: "from-emerald-500 to-teal-600" },
