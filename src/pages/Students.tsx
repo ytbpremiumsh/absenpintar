@@ -716,8 +716,7 @@ const Students = () => {
                               <TableRow className="bg-secondary/30">
                                 <TableHead className="w-10">#</TableHead>
                                 <TableHead>Nama Siswa</TableHead>
-                                <TableHead className="hidden sm:table-cell w-20">NIS</TableHead>
-                                <TableHead className="hidden md:table-cell w-12 text-center">J/K</TableHead>
+                                <TableHead className="hidden sm:table-cell w-[140px] whitespace-nowrap">NIS</TableHead>
                                 <TableHead className="hidden md:table-cell">Wali</TableHead>
                                 <TableHead className="hidden lg:table-cell">No. HP</TableHead>
                                 <TableHead className="text-right w-[140px]">Aksi</TableHead>
@@ -736,13 +735,8 @@ const Students = () => {
                                       </div>
                                     </div>
                                   </TableCell>
-                                  <TableCell className="hidden sm:table-cell">
+                                  <TableCell className="hidden sm:table-cell whitespace-nowrap">
                                     <span className="font-mono text-xs bg-secondary px-2 py-0.5 rounded">{student.student_id}</span>
-                                  </TableCell>
-                                  <TableCell className="hidden md:table-cell">
-                                    <Badge variant="outline" className="text-[10px]">
-                                      {student.gender === "P" ? "♀ P" : "♂ L"}
-                                    </Badge>
                                   </TableCell>
                                   <TableCell className="hidden md:table-cell"><p className="text-sm">{student.parent_name}</p></TableCell>
                                   <TableCell className="hidden lg:table-cell">
