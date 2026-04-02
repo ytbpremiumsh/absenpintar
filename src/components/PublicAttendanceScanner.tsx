@@ -47,9 +47,9 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
   const streamRef = useRef<MediaStream | null>(null);
   const scanIntervalRef = useRef<number | null>(null);
   const faceIntervalRef = useRef<number | null>(null);
-  const faceTimeoutRef = useRef<number | null>(null);
   const isLookingUp = useRef(false);
   const scanPaused = useRef(false);
+  const mounted = useRef(true);
 
   // RFID keyboard emulation buffer
   const rfidBuffer = useRef("");
