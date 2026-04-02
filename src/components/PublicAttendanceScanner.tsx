@@ -394,7 +394,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                   <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-lg">
                     <ScanLine className="h-3 w-3 text-white/70" />
                     {canFaceRecognition && <UserCheck className="h-3 w-3 text-white/70 ml-0.5" />}
-                    {canFaceRecognition && <CreditCard className="h-3 w-3 text-white/70 ml-0.5" />}
+                    
                   </div>
                 </div>
 
