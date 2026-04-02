@@ -540,17 +540,16 @@ const ScanQR = () => {
       )}
 
       {/* POPUP DIALOG for confirmation - auto-confirm after 3s if valid */}
-      <Dialog open={!!scannedStudent && !confirmed} onOpenChange={(open) => { if (!open) handleCancel(); }}>
-        <AutoConfirmDialog
-          scannedStudent={scannedStudent}
-          alreadyRecorded={alreadyRecorded}
-          processing={processing}
-          currentAttType={currentAttType}
-          scanMethod={scanMethod}
-          onConfirm={handleConfirm}
-          onCancel={handleCancel}
-        />
-      </Dialog>
+      <ConfirmationPopup
+        open={!!scannedStudent && !confirmed}
+        scannedStudent={scannedStudent}
+        alreadyRecorded={alreadyRecorded}
+        processing={processing}
+        currentAttType={currentAttType}
+        scanMethod={scanMethod}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
 
       {/* Success Dialog */}
       <Dialog open={confirmed && !!scannedStudent} onOpenChange={() => {}}>
