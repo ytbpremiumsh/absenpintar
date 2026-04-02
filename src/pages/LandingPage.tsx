@@ -329,7 +329,7 @@ const LandingPage = () => {
               className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => navigate("/register")}
                 className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-7 py-3.5 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] text-sm">
-                <Zap className="h-4 w-4" /> Coba Gratis Sekarang
+                <Zap className="h-4 w-4" /> {get("cta_text", "Coba Gratis Sekarang")}
               </button>
               <a href="#how-it-works"
                 className="inline-flex items-center justify-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-7 py-3.5 rounded-2xl font-semibold transition-all text-sm border border-slate-200 dark:border-slate-700 shadow-sm">
