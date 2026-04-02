@@ -37,7 +37,7 @@ const History = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [allStudents, setAllStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("class-analysis");
   const [attendanceTypeTab, setAttendanceTypeTab] = useState("datang");
   const [selectedClass, setSelectedClass] = useState<string>("all");
   const [teacherClasses, setTeacherClasses] = useState<string[] | null>(null);
