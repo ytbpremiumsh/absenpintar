@@ -539,58 +539,17 @@ const ScanQR = () => {
         </div>
       )}
 
-      {/* POPUP DIALOG for confirmation */}
+      {/* POPUP DIALOG for confirmation - auto-confirm after 3s if valid */}
       <Dialog open={!!scannedStudent && !confirmed} onOpenChange={(open) => { if (!open) handleCancel(); }}>
-        <DialogContent className="max-w-[90vw] sm:max-w-md p-0 overflow-hidden">
-          <div className="gradient-primary p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-primary-foreground">
-              <ShieldCheck className="h-5 w-5" />
-              <DialogTitle className="text-base font-bold text-primary-foreground">Verifikasi Absensi</DialogTitle>
-            </div>
-            <DialogDescription className="text-primary-foreground/70 text-xs mt-1">
-              {scanMethod === "face" ? "Wajah dikenali — konfirmasi kehadiran" : "Konfirmasi kehadiran siswa berikut"}
-            </DialogDescription>
-            <Badge className="mt-2 bg-white/20 text-white border-0">
-              Mode: {currentAttType === "datang" ? "📥 Datang" : "📤 Pulang"}
-            </Badge>
-          </div>
-          {scannedStudent && (
-            <div className="p-5 text-center space-y-4">
-              {scannedStudent.photo_url ? (
-                <img src={scannedStudent.photo_url} alt={scannedStudent.name}
-                  className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover mx-auto shadow-lg border-4 border-primary/20" />
-              ) : (
-                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full gradient-primary flex items-center justify-center text-primary-foreground text-2xl sm:text-3xl font-bold mx-auto shadow-lg">
-                  {scannedStudent.name.charAt(0)}
-                </div>
-              )}
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-foreground">{scannedStudent.name}</h3>
-                <p className="text-sm text-muted-foreground">Kelas: {scannedStudent.class}</p>
-                <p className="text-sm text-muted-foreground">NIS: {scannedStudent.student_id}</p>
-                {scanMethod === "face" && (
-                  <span className="inline-flex items-center gap-1 text-xs text-success font-medium mt-1">
-                    <UserCheck className="h-3 w-3" /> Dikenali via Face Recognition
-                  </span>
-                )}
-              </div>
-
-              {alreadyRecorded && (
-                <div className="bg-warning/10 border border-warning/20 rounded-lg p-2 text-xs text-warning font-medium">
-                  ⚠ Siswa ini sudah tercatat absensi {currentAttType === "datang" ? "Datang" : "Pulang"} hari ini
-                </div>
-              )}
-
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" onClick={handleCancel} className="flex-1 h-11">Batal</Button>
-                <Button onClick={handleConfirm} disabled={processing || alreadyRecorded}
-                  className="flex-1 h-11 bg-success hover:bg-success/90 text-success-foreground font-semibold">
-                  <CheckCircle2 className="h-4 w-4 mr-1" /> {currentAttType === "datang" ? "Hadir ✓" : "Pulang ✓"}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
+        <AutoConfirmDialog
+          scannedStudent={scannedStudent}
+          alreadyRecorded={alreadyRecorded}
+          processing={processing}
+          currentAttType={currentAttType}
+          scanMethod={scanMethod}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
       </Dialog>
 
       {/* Success Dialog */}

@@ -460,15 +460,6 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
             </div>
           )}
 
-          {/* RFID hint - only show when premium */}
-          {canFaceRecognition && (
-            <div className="px-3 py-2 bg-muted/50 border-t border-border flex items-center gap-2">
-              <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
-              <p className="text-[10px] text-muted-foreground">
-                <strong className="text-foreground">Kartu RFID:</strong> Tap kartu siswa ke reader kapan saja (tanpa kamera)
-              </p>
-            </div>
-          )}
         </CardContent>
 
         {/* Manual NIS input - Premium style */}

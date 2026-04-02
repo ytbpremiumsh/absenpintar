@@ -329,11 +329,11 @@ const History = () => {
       {/* Analysis Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-muted/50 rounded-xl p-1">
-          <TabsTrigger value="overview" className="rounded-lg text-xs font-semibold gap-1.5 data-[state=active]:bg-[#5B6CF9] data-[state=active]:text-white">
-            <BarChart3 className="h-3.5 w-3.5" /> Overview {typeLabel}
-          </TabsTrigger>
           <TabsTrigger value="class-analysis" className="rounded-lg text-xs font-semibold gap-1.5 data-[state=active]:bg-[#5B6CF9] data-[state=active]:text-white">
             <GraduationCap className="h-3.5 w-3.5" /> Analisa Kelas
+          </TabsTrigger>
+          <TabsTrigger value="overview" className="rounded-lg text-xs font-semibold gap-1.5 data-[state=active]:bg-[#5B6CF9] data-[state=active]:text-white">
+            <BarChart3 className="h-3.5 w-3.5" /> Overview {typeLabel}
           </TabsTrigger>
         </TabsList>
 
