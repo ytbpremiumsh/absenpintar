@@ -349,7 +349,7 @@ const LandingPage = () => {
             <div className="absolute -inset-6 bg-gradient-to-br from-indigo-500/15 via-blue-500/8 to-teal-500/5 rounded-[2.5rem] blur-3xl animate-pulse" />
             <div className="absolute -inset-2 bg-gradient-to-br from-indigo-500/8 to-blue-500/5 rounded-3xl" />
             <motion.img
-              src={heroDashboard}
+              src={get("hero_image") || heroDashboard}
               alt="Dashboard ATSkolla"
               className="relative w-full h-auto rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.25),0_0_50px_-10px_rgba(99,102,241,0.15)]"
               whileHover={{ scale: 1.01, y: -4 }}
