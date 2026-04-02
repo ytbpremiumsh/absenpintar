@@ -442,14 +442,9 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
                   <ScanLine className="h-3.5 w-3.5 text-[#5B6CF9]" /> Barcode
                 </div>
                 {canFaceRecognition ? (
-                  <>
-                    <div className="flex items-center gap-1 bg-muted/50 px-2.5 py-1 rounded-lg">
-                      <UserCheck className="h-3.5 w-3.5 text-[#5B6CF9]" /> Face
-                    </div>
-                    <div className="flex items-center gap-1 bg-muted/50 px-2.5 py-1 rounded-lg">
-                      <CreditCard className="h-3.5 w-3.5 text-[#5B6CF9]" /> RFID
-                    </div>
-                  </>
+                  <div className="flex items-center gap-1 bg-muted/50 px-2.5 py-1 rounded-lg">
+                    <UserCheck className="h-3.5 w-3.5 text-[#5B6CF9]" /> Face
+                  </div>
                 ) : (
                   <div className="flex items-center gap-1 bg-muted/50 px-2.5 py-1 rounded-lg opacity-60">
                     <Lock className="h-3 w-3" /> Face <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold ml-1">PREMIUM</span>
