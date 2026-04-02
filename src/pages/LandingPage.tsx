@@ -339,7 +339,7 @@ const LandingPage = () => {
 
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
               className="mt-5 text-xs text-slate-400 dark:text-slate-500">
-              ✓ Penggunaan mudah &nbsp;•&nbsp; ✓ Pembayaran instan &nbsp;•&nbsp; ✓ Siap pakai dalam hitungan menit
+              {get("hero_caption", "✓ Penggunaan mudah \u00a0•\u00a0 ✓ Pembayaran instan \u00a0•\u00a0 ✓ Siap pakai dalam hitungan menit")}
             </motion.p>
           </div>
 
