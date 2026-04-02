@@ -322,7 +322,7 @@ const LandingPage = () => {
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
               className="mt-5 text-base sm:text-lg text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
-              Platform absensi modern dengan barcode scan & face recognition AI. Dirancang khusus untuk sekolah Indonesia — cepat, aman, dan mudah digunakan.
+              {get("hero_subtitle", "Platform absensi modern dengan barcode scan & face recognition AI. Dirancang khusus untuk sekolah Indonesia — cepat, aman, dan mudah digunakan.")}
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
