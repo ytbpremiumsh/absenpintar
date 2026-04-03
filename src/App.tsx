@@ -100,7 +100,7 @@ const App = () => (
               <Route path="/super-admin/tickets" element={<SuperAdminTickets />} />
               <Route path="/super-admin/landing" element={<SuperAdminLanding />} />
               <Route path="/super-admin/registration-wa" element={<SuperAdminRegistrationWA />} />
-              <Route path="/super-admin/presentation" element={<SuperAdminPresentation />} />
+              <Route path="/super-admin/fitur" element={<SuperAdminPresentation />} />
               <Route path="/super-admin/business-model" element={<SuperAdminBusinessModel />} />
               <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />
               <Route path="/super-admin/login-logs" element={<SuperAdminLoginLogs />} />
