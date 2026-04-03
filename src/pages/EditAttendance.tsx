@@ -353,9 +353,10 @@ const EditAttendance = () => {
               </TableHeader>
               <TableBody>
                 {mergedData.map(({ student, log }, idx) => {
-                  const currentStatus = log ? (editChanges[log.id] || log.status) : null;
+                  const newStatus = newEntries[student.id];
+                  const currentStatus = newStatus || (log ? (editChanges[log.id] || log.status) : null);
                   const statusColor = currentStatus ? STATUS_COLORS[currentStatus] || STATUS_COLORS.hadir : "";
-                  const isChanged = log && editChanges[log.id] && editChanges[log.id] !== log.status;
+                  const isChanged = (log && editChanges[log.id] && editChanges[log.id] !== log.status) || !!newStatus;
                   return (
                     <TableRow key={student.id} className={`${isChanged ? "bg-[#5B6CF9]/5" : ""} hover:bg-muted/20 transition-colors`}>
                       <TableCell className="text-xs text-muted-foreground py-2.5 w-10">{idx + 1}</TableCell>
@@ -380,32 +381,40 @@ const EditAttendance = () => {
                         )}
                       </TableCell>
                       <TableCell className="py-2.5">
-                        {log ? (
-                          <div className="flex gap-1">
-                            {["hadir", "izin", "sakit", "alfa"].map(s => (
-                              <button
-                                key={s}
-                                onClick={() => {
+                        <div className="flex gap-1">
+                          {["hadir", "izin", "sakit", "alfa"].map(s => (
+                            <button
+                              key={s}
+                              onClick={() => {
+                                if (log) {
+                                  // Has existing log — edit it
                                   setEditChanges(prev => {
                                     const next = { ...prev };
                                     if (s === log.status) { delete next[log.id]; } else { next[log.id] = s; }
                                     return next;
                                   });
-                                }}
-                                className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all ${
-                                  currentStatus === s
-                                    ? "text-white shadow-sm scale-105"
-                                    : "text-muted-foreground hover:bg-muted"
-                                }`}
-                                style={currentStatus === s ? { backgroundColor: STATUS_COLORS[s] } : {}}
-                              >
-                                {s === "hadir" ? "H" : s === "izin" ? "I" : s === "sakit" ? "S" : "A"}
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground italic">Belum scan</span>
-                        )}
+                                  // Clear newEntries for this student if any
+                                  setNewEntries(prev => { const n = { ...prev }; delete n[student.id]; return n; });
+                                } else {
+                                  // No log — create new entry
+                                  setNewEntries(prev => {
+                                    const next = { ...prev };
+                                    if (next[student.id] === s) { delete next[student.id]; } else { next[student.id] = s; }
+                                    return next;
+                                  });
+                                }
+                              }}
+                              className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all ${
+                                currentStatus === s
+                                  ? "text-white shadow-sm scale-105"
+                                  : "text-muted-foreground hover:bg-muted"
+                              }`}
+                              style={currentStatus === s ? { backgroundColor: STATUS_COLORS[s] } : {}}
+                            >
+                              {s === "hadir" ? "H" : s === "izin" ? "I" : s === "sakit" ? "S" : "A"}
+                            </button>
+                          ))}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
