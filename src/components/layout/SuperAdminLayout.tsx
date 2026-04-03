@@ -28,7 +28,7 @@ const navItems = [
   { title: "Multi Cabang", url: "/super-admin/branches", icon: Building2, group: "integration" },
   { title: "Branding & Landing", url: "/super-admin/landing", icon: Palette, group: "content" },
   { title: "Testimoni & Sekolah", url: "/super-admin/testimonials", icon: School, group: "content" },
-  { title: "Presentasi", url: "/super-admin/presentation", icon: Presentation, group: "content" },
+  { title: "Halaman Fitur", url: "/super-admin/fitur", icon: Presentation, group: "content" },
   { title: "Halaman Penawaran", url: "/super-admin/penawaran", icon: Globe, group: "content" },
 ];
 
