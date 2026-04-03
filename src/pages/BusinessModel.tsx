@@ -676,7 +676,7 @@ const BusinessModel = () => {
             <a href="/register" className={`inline-flex items-center justify-center gap-2 ${ctaBg} text-white px-10 py-4 rounded-2xl font-bold transition-all shadow-2xl text-base`}>
               <Zap className="h-5 w-5" /> Mulai Sekarang
             </a>
-            <a href="/presentation" className={`inline-flex items-center justify-center gap-2 ${secondaryBtn} px-10 py-4 rounded-2xl font-bold transition-all text-base border`}>
+            <a href="/fitur" className={`inline-flex items-center justify-center gap-2 ${secondaryBtn} px-10 py-4 rounded-2xl font-bold transition-all text-base border`}>
               Lihat Demo Produk <ArrowUpRight className="h-5 w-5" />
             </a>
           </div>
