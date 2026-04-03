@@ -67,6 +67,7 @@ const EditAttendance = () => {
       .order("created_at", { ascending: true });
     setLogs(data || []);
     setEditChanges({});
+    setNewEntries({});
     setLoading(false);
   }, [profile?.school_id, selectedDate, attendanceType]);
 
