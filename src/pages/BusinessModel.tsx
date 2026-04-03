@@ -328,7 +328,7 @@ const BusinessModel = () => {
               
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <a href="/presentation" className={`inline-flex items-center gap-1.5 ${secondaryBtn} px-4 py-2 rounded-full text-sm font-semibold transition-all border`}>
+            <a href="/fitur" className={`inline-flex items-center gap-1.5 ${secondaryBtn} px-4 py-2 rounded-full text-sm font-semibold transition-all border`}>
               Lihat Produk
             </a>
             <a href="/register" className={`inline-flex items-center gap-1.5 ${ctaBg} text-white px-5 py-2 rounded-full text-sm font-semibold transition-all shadow-lg`}>
