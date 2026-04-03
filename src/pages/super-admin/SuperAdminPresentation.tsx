@@ -130,7 +130,7 @@ const SuperAdminPresentation = () => {
                 <Copy className="h-3.5 w-3.5 mr-1" /> Salin
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <a href="/presentation" target="_blank" rel="noopener noreferrer">
+                <a href="/fitur" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-3.5 w-3.5 mr-1" /> Buka
                 </a>
               </Button>

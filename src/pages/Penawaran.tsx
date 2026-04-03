@@ -128,7 +128,7 @@ const Penawaran = () => {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <Link to="/presentation">
+                <Link to="/fitur">
                   <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6 rounded-xl">
                     Lihat Presentasi
                   </Button>
