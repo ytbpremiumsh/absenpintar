@@ -6,7 +6,7 @@ import {
   Shield, Layers, Rocket, BarChart3, Globe, Building2, Zap,
   CheckCircle2, AlertTriangle, Star, ChevronRight, Smartphone,
   QrCode, Bell, FileCheck, UserCheck, Wifi, Heart, ShieldCheck,
-  Clock, Eye, Download, Award, ClipboardList
+  Eye, Download, Award, ClipboardList
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
