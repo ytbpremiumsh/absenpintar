@@ -52,6 +52,7 @@ import SuperAdminReferral from "./pages/super-admin/SuperAdminReferral";
 import LandingPage from "./pages/LandingPage";
 import Presentation from "./pages/Presentation";
 import BusinessModel from "./pages/BusinessModel";
+import Proposal from "./pages/Proposal";
 import ReferralDashboard from "./pages/ReferralDashboard";
 import NotFound from "./pages/NotFound";
 import Penawaran from "./pages/Penawaran";
