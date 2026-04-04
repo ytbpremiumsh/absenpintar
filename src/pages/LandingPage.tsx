@@ -34,10 +34,10 @@ const DEFAULT_FEATURES = [
 ];
 
 const DEFAULT_HERO_STATS = [
-  { value: "500+", label: "Sekolah Aktif", icon: School, iconColor: "text-emerald-300" },
-  { value: "120K+", label: "Siswa Terdaftar", icon: GraduationCap, iconColor: "text-amber-300" },
-  { value: "99.9%", label: "Data Akurat", icon: Shield, iconColor: "text-cyan-300" },
-  { value: "34", label: "Provinsi", icon: MapPin, iconColor: "text-rose-300" },
+  { value: "500+", label: "Sekolah Aktif", icon: School, iconColor: "text-emerald-300", ringColor: "ring-emerald-400/30", bgGlow: "from-emerald-400/20 to-emerald-600/5" },
+  { value: "120K+", label: "Siswa Terdaftar", icon: Users, iconColor: "text-amber-300", ringColor: "ring-amber-400/30", bgGlow: "from-amber-400/20 to-amber-600/5" },
+  { value: "99.9%", label: "Data Akurat", icon: Shield, iconColor: "text-cyan-300", ringColor: "ring-cyan-400/30", bgGlow: "from-cyan-400/20 to-cyan-600/5" },
+  { value: "34", label: "Provinsi", icon: MapPin, iconColor: "text-rose-300", ringColor: "ring-rose-400/30", bgGlow: "from-rose-400/20 to-rose-600/5" },
 ];
 
 const STATS = [
