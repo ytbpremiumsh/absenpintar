@@ -547,86 +547,111 @@ const Presentation = () => {
         </div>
       </section>
 
-      {/* ===== FEATURES ===== */}
+      {/* ===== SCHOOL FEATURES ===== */}
       <section id="features" className="relative py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16 sm:mb-24">
-            <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-indigo-400" : "text-indigo-600"}`}>Fitur Utama</span>
+            <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-indigo-400" : "text-indigo-600"}`}>Dashboard Sekolah</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mt-3">
-              Semua yang Sekolah Anda <br className="hidden sm:block" />
-              <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-blue-300" : "from-indigo-600 to-blue-500"} bg-clip-text text-transparent`}>Butuhkan</span>
+              Fitur untuk <br className="hidden sm:block" />
+              <span className={`bg-gradient-to-r ${d ? "from-indigo-300 to-blue-300" : "from-indigo-600 to-blue-500"} bg-clip-text text-transparent`}>Admin Sekolah</span>
             </h2>
             <p className={`mt-4 ${muted} max-w-xl mx-auto text-sm sm:text-base`}>
-              13 fitur utama yang dirancang untuk mempermudah proses absensi siswa secara digital, aman, dan efisien.
+              {SCHOOL_FEATURES.length} fitur utama untuk mengelola absensi siswa secara digital, aman, dan efisien dari sisi admin sekolah.
             </p>
           </div>
 
           <div className="space-y-16 sm:space-y-32">
-            {FEATURES.map((f, idx) => {
+            {SCHOOL_FEATURES.map((f, idx) => {
               const isEven = idx % 2 === 0;
               const Icon = f.icon;
-              const isLast = idx === FEATURES.length - 1;
-
-              const featureNode = isLast ? (
-                <div className="flex flex-col items-center text-center">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg`}>
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${d ? "text-slate-500" : "text-slate-400"}`}>{f.badge}</span>
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
-                   <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-indigo-400" : "text-indigo-600"}`}>{f.subtitle}</p>
-                  <p className={`mt-4 text-sm leading-relaxed max-w-2xl ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
-                  <div className="w-full max-w-5xl my-8">
-                    <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
-                      <img src={f.image} alt={f.title} className="w-full h-auto block transition-transform duration-700" style={{ transform: "scale(1.012)" }} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-left max-w-3xl w-full">
-                    {f.points.map((p, i) => (
-                      <div key={i} className="flex items-start gap-2.5">
-                        <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${d ? "text-emerald-400" : "text-emerald-500"}`} />
-                        <span className={`text-sm ${d ? "text-slate-400" : "text-slate-500"}`}>{p}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
-                  <div className="w-full lg:w-[58%]">
-                    <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
-                      <img src={f.image} alt={f.title} className="w-full h-auto block transition-transform duration-700" style={{ transform: "scale(1.012)" }} />
-                    </div>
-                  </div>
-                  <div className="w-full lg:w-[42%]">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg`}>
-                        <Icon className="h-5 w-5 text-white" />
-                      </div>
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${d ? "text-slate-500" : "text-slate-400"}`}>{f.badge}</span>
-                    </div>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
-                    <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-indigo-400" : "text-indigo-600"}`}>{f.subtitle}</p>
-                    <p className={`mt-4 text-sm leading-relaxed ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
-                    <ul className="mt-5 space-y-2.5">
-                      {f.points.map((p, i) => (
-                        <li key={i} className="flex items-start gap-2.5">
-                          <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${d ? "text-emerald-400" : "text-emerald-500"}`} />
-                          <span className={`text-sm ${d ? "text-slate-400" : "text-slate-500"}`}>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              );
-
               return (
                 <div key={f.title}>
                   {idx > 0 && (
                     <div className={`block sm:hidden w-16 h-px mx-auto mb-16 ${d ? "bg-white/10" : "bg-slate-200"}`} />
                   )}
-                  {featureNode}
+                  <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
+                    <div className="w-full lg:w-[58%]">
+                      <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
+                        <img src={f.image} alt={f.title} className="w-full h-auto block transition-transform duration-700" style={{ transform: "scale(1.012)" }} />
+                      </div>
+                    </div>
+                    <div className="w-full lg:w-[42%]">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg`}>
+                          <Icon className="h-5 w-5 text-white" />
+                        </div>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${d ? "text-slate-500" : "text-slate-400"}`}>{f.badge}</span>
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
+                      <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-indigo-400" : "text-indigo-600"}`}>{f.subtitle}</p>
+                      <p className={`mt-4 text-sm leading-relaxed ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
+                      <ul className="mt-5 space-y-2.5">
+                        {f.points.map((p, i) => (
+                          <li key={i} className="flex items-start gap-2.5">
+                            <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${d ? "text-emerald-400" : "text-emerald-500"}`} />
+                            <span className={`text-sm ${d ? "text-slate-400" : "text-slate-500"}`}>{p}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== WALI KELAS FEATURES ===== */}
+      <section className={`relative py-20 sm:py-32 ${d ? "bg-white/[0.01]" : "bg-indigo-50/50"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16 sm:mb-24">
+            <span className={`text-xs font-semibold uppercase tracking-widest ${d ? "text-purple-400" : "text-purple-600"}`}>Dashboard Wali Kelas</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mt-3">
+              Fitur untuk <br className="hidden sm:block" />
+              <span className={`bg-gradient-to-r ${d ? "from-purple-300 to-indigo-300" : "from-purple-600 to-indigo-500"} bg-clip-text text-transparent`}>Wali Kelas</span>
+            </h2>
+            <p className={`mt-4 ${muted} max-w-xl mx-auto text-sm sm:text-base`}>
+              {WALIKELAS_FEATURES.length} fitur khusus yang dirancang untuk membantu wali kelas memantau, mengelola, dan menganalisis kehadiran siswa kelas yang diampu.
+            </p>
+          </div>
+
+          <div className="space-y-16 sm:space-y-32">
+            {WALIKELAS_FEATURES.map((f, idx) => {
+              const isEven = idx % 2 === 0;
+              const Icon = f.icon;
+              return (
+                <div key={f.title}>
+                  {idx > 0 && (
+                    <div className={`block sm:hidden w-16 h-px mx-auto mb-16 ${d ? "bg-white/10" : "bg-slate-200"}`} />
+                  )}
+                  <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 lg:gap-16 items-center`}>
+                    <div className="w-full lg:w-[58%]">
+                      <div className={`rounded-2xl overflow-hidden border ${d ? "border-white/10" : "border-slate-200"} shadow-2xl ${d ? "shadow-black/40" : "shadow-slate-400/30"}`}>
+                        <img src={f.image} alt={f.title} className="w-full h-auto block transition-transform duration-700" style={{ transform: "scale(1.012)" }} />
+                      </div>
+                    </div>
+                    <div className="w-full lg:w-[42%]">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${f.accent} flex items-center justify-center shadow-lg`}>
+                          <Icon className="h-5 w-5 text-white" />
+                        </div>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${d ? "text-slate-500" : "text-slate-400"}`}>{f.badge}</span>
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{f.title}</h3>
+                      <p className={`text-xs uppercase tracking-widest font-semibold mt-1 ${d ? "text-purple-400" : "text-purple-600"}`}>{f.subtitle}</p>
+                      <p className={`mt-4 text-sm leading-relaxed ${d ? "text-slate-300" : "text-slate-600"}`}>{f.desc}</p>
+                      <ul className="mt-5 space-y-2.5">
+                        {f.points.map((p, i) => (
+                          <li key={i} className="flex items-start gap-2.5">
+                            <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${d ? "text-emerald-400" : "text-emerald-500"}`} />
+                            <span className={`text-sm ${d ? "text-slate-400" : "text-slate-500"}`}>{p}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               );
             })}
