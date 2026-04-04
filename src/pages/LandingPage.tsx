@@ -37,7 +37,7 @@ const DEFAULT_HERO_STATS = [
   { value: "500+", label: "Sekolah Aktif", icon: School, iconColor: "text-emerald-300" },
   { value: "120K+", label: "Siswa Terdaftar", icon: GraduationCap, iconColor: "text-amber-300" },
   { value: "99.9%", label: "Data Akurat", icon: Shield, iconColor: "text-cyan-300" },
-  { value: "34", label: "Provinsi", icon: Globe, iconColor: "text-rose-300" },
+  { value: "34", label: "Provinsi", icon: MapPin, iconColor: "text-rose-300" },
 ];
 
 const STATS = [
