@@ -85,6 +85,7 @@ const App = () => (
             <Route path="/fitur" element={<Presentation />} />
             <Route path="/business-model" element={<BusinessModel />} />
             <Route path="/penawaran" element={<Penawaran />} />
+            <Route path="/proposal" element={<Proposal />} />
             <Route path="/affiliate/register" element={<AffiliateRegister />} />
             <Route path="/affiliate/login" element={<AffiliateLogin />} />
             <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
