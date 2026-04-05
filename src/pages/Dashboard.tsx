@@ -56,10 +56,11 @@ const Dashboard = () => {
     const schoolId = profile.school_id;
     const today = new Date().toISOString().slice(0, 10);
 
-    const [studentsRes, logsRes, classesRes] = await Promise.all([
+    const [studentsRes, logsRes, classesRes, waliRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, photo_url").eq("school_id", schoolId),
       supabase.from("attendance_logs").select("*").eq("school_id", schoolId).eq("date", today).eq("attendance_type", "datang").order("created_at", { ascending: false }),
       supabase.from("classes").select("id").eq("school_id", schoolId),
+      supabase.from("class_teachers").select("class_name, user_id").eq("school_id", schoolId),
     ]);
 
     const allStudents = studentsRes.data || [];
@@ -67,6 +68,18 @@ const Dashboard = () => {
     setTotalStudents(allStudents.length);
     setTotalClasses((classesRes.data || []).length);
     setTodayLogs(logsRes.data || []);
+
+    // Fetch wali kelas profiles
+    const waliData = waliRes.data || [];
+    if (waliData.length > 0) {
+      const userIds = waliData.map(w => w.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", userIds);
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p.full_name]));
+      setWaliKelasList(waliData.map(w => ({ name: profileMap.get(w.user_id) || "—", class_name: w.class_name })).sort((a, b) => a.class_name.localeCompare(b.class_name)));
+    } else {
+      setWaliKelasList([]);
+    }
+
     setLoading(false);
   }, [profile?.school_id]);
 
