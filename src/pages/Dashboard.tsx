@@ -41,6 +41,7 @@ const Dashboard = () => {
   const { profile } = useAuth();
   const [totalStudents, setTotalStudents] = useState(0);
   const [totalClasses, setTotalClasses] = useState(0);
+  const [waliKelasList, setWaliKelasList] = useState<{ name: string; class_name: string }[]>([]);
   const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [loading, setLoading] = useState(true);
