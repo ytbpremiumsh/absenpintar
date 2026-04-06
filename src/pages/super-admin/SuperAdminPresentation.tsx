@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, ExternalLink, Copy, Upload, Image } from "lucide-react";
+import { Loader2, Save, ExternalLink, Copy, Upload, Image, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -21,6 +21,7 @@ const KEYS = [
   "presentation_cta_btn2_link",
   "login_sidebar_image",
   "login_logo_url",
+  "hero_shadow_shapes_enabled",
 ];
 
 const SuperAdminPresentation = () => {
@@ -37,6 +38,7 @@ const SuperAdminPresentation = () => {
   const [ctaBtn2Link, setCtaBtn2Link] = useState("");
   const [loginImage, setLoginImage] = useState("");
   const [loginLogo, setLoginLogo] = useState("");
+  const [heroShadowShapes, setHeroShadowShapes] = useState(true);
   const [uploadingSidebar, setUploadingSidebar] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -56,6 +58,7 @@ const SuperAdminPresentation = () => {
         setCtaBtn2Link(map.presentation_cta_btn2_link || "");
         setLoginImage(map.login_sidebar_image || "");
         setLoginLogo(map.login_logo_url || "");
+        setHeroShadowShapes(map.hero_shadow_shapes_enabled !== "false");
       }
       setLoading(false);
     };
@@ -76,6 +79,7 @@ const SuperAdminPresentation = () => {
       { key: "presentation_cta_btn2_link", value: ctaBtn2Link },
       { key: "login_sidebar_image", value: loginImage },
       { key: "login_logo_url", value: loginLogo },
+      { key: "hero_shadow_shapes_enabled", value: heroShadowShapes ? "true" : "false" },
     ].map((r) => ({ ...r, updated_at: new Date().toISOString() }));
 
     const { error } = await supabase
@@ -136,6 +140,40 @@ const SuperAdminPresentation = () => {
               </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Hero Shadow Shapes */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <h3 className="font-bold text-foreground text-sm">Efek Visual Header Hero</h3>
+          <p className="text-xs text-muted-foreground">Kelola efek dekoratif pada header hero di seluruh halaman dashboard</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-foreground">Shadow & Shape Dekoratif</p>
+              <p className="text-xs text-muted-foreground">Tampilkan efek blur lingkaran dekoratif di background header hero</p>
+            </div>
+            <Switch checked={heroShadowShapes} onCheckedChange={setHeroShadowShapes} />
+          </div>
+          <div className="rounded-xl overflow-hidden border border-border">
+            <div className="relative overflow-hidden bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(245,65%,60%)] p-4 text-white">
+              {heroShadowShapes && (
+                <>
+                  <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+                  <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
+                </>
+              )}
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                  <Settings className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">Preview Header</p>
+                  <p className="text-white/70 text-xs">Contoh tampilan header hero</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
