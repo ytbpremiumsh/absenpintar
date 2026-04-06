@@ -305,7 +305,7 @@ const LandingPage = () => {
       </nav>
 
       {/* ─── Hero Section ─── */}
-      <section className="relative pt-28 sm:pt-40 pb-20 sm:pb-32 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
+      <section className="relative pt-20 sm:pt-28 pb-10 sm:pb-16 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-950">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[700px] bg-indigo-500/6 rounded-full blur-[160px]" />
           <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-teal-500/5 rounded-full blur-[100px]" />
@@ -317,13 +317,13 @@ const LandingPage = () => {
           {/* Centered Text Content */}
           <div className="text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <span className="inline-flex items-center gap-2 bg-indigo-500/8 border border-indigo-500/15 rounded-full px-4 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-6">
+              <span className="inline-flex items-center gap-2 bg-indigo-500/8 border border-indigo-500/15 rounded-full px-4 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-4">
                 <Sparkles className="h-3.5 w-3.5" /> Platform Absensi Digital #1 untuk Sekolah Indonesia
               </span>
             </motion.div>
 
             <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.1]">
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-200 bg-clip-text text-transparent">
                 {get("hero_title", "ATSkolla ")}
               </span>
@@ -340,48 +340,32 @@ const LandingPage = () => {
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ delay: 0.8, duration: 0.6, ease: "easeOut" }}
-                  className="absolute -bottom-1 left-0 right-0 h-3 sm:h-4 bg-indigo-500/10 dark:bg-indigo-400/15 rounded-full origin-left -skew-x-3"
+                  className="absolute -bottom-1 left-0 right-0 h-2 sm:h-3 bg-indigo-500/10 dark:bg-indigo-400/15 rounded-full origin-left -skew-x-3"
                 />
               </span>
             </motion.h1>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
-              className="mt-6 text-base sm:text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+              className="mt-4 text-sm sm:text-base text-slate-500 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
               {get("hero_subtitle", "Platform absensi modern dengan barcode scan & face recognition AI. Dirancang khusus untuk sekolah Indonesia — cepat, aman, dan mudah digunakan.")}
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
-              className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+              className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => navigate("/register")}
-                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-7 py-3.5 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] text-sm">
+                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-7 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] text-sm">
                 <Zap className="h-4 w-4" /> {get("cta_text", "Coba Gratis Sekarang")}
               </button>
               <a href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-7 py-3.5 rounded-2xl font-semibold transition-all text-sm border border-slate-200 dark:border-slate-700 shadow-sm">
+                className="inline-flex items-center justify-center gap-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-7 py-3 rounded-2xl font-semibold transition-all text-sm border border-slate-200 dark:border-slate-700 shadow-sm">
                 <Play className="h-4 w-4" /> Cara Kerja
               </a>
-            </motion.div>
-
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-              className="mt-5 text-xs text-slate-400 dark:text-slate-500">
-              {get("hero_caption", "Penggunaan mudah \u00a0\u2022\u00a0 Pembayaran instan \u00a0\u2022\u00a0 Siap pakai dalam hitungan menit")}
-            </motion.p>
-
-            {/* Mini Stats */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}
-              className="mt-8 flex gap-6 sm:gap-10 justify-center">
-              {STATS.map(s => (
-                <div key={s.label} className="text-center">
-                  <p className="text-lg sm:text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{s.value}</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">{s.label}</p>
-                </div>
-              ))}
             </motion.div>
           </div>
 
           {/* Centered Hero Image */}
           <motion.div initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
-            className="relative mt-14 sm:mt-20 max-w-5xl mx-auto">
+            className="relative mt-8 sm:mt-12 max-w-4xl mx-auto">
             <motion.img
               src={get("hero_image") || heroDashboard}
               alt="Dashboard ATSkolla"
@@ -404,6 +388,28 @@ const LandingPage = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {heroStats.map((stat, i) => {
               const extraProps = stat as any;
+              const progressValues: Record<string, number> = {
+                "Sekolah Aktif": 78,
+                "Siswa Terdaftar": 92,
+                "Data Akurat": 99,
+                "Provinsi": 65,
+              };
+              const progressColors: Record<string, string> = {
+                "Sekolah Aktif": "from-emerald-400 to-emerald-500",
+                "Siswa Terdaftar": "from-amber-400 to-amber-500",
+                "Data Akurat": "from-cyan-400 to-cyan-500",
+                "Provinsi": "from-rose-400 to-rose-500",
+              };
+              const progressBg: Record<string, string> = {
+                "Sekolah Aktif": "bg-emerald-500/20",
+                "Siswa Terdaftar": "bg-amber-500/20",
+                "Data Akurat": "bg-cyan-500/20",
+                "Provinsi": "bg-rose-500/20",
+              };
+              const pct = progressValues[stat.label] || 70;
+              const pColor = progressColors[stat.label] || "from-indigo-400 to-indigo-500";
+              const pBg = progressBg[stat.label] || "bg-indigo-500/20";
+
               return (
                 <motion.div
                   key={stat.label}
@@ -413,18 +419,30 @@ const LandingPage = () => {
                   transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
                   className="group"
                 >
-                  <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-2xl p-6 sm:p-8 text-center transition-all duration-500 hover:-translate-y-2 hover:border-white/[0.16] hover:shadow-[0_24px_80px_-12px_rgba(99,102,241,0.25)]">
+                  <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-2xl p-5 sm:p-7 transition-all duration-500 hover:-translate-y-2 hover:border-white/[0.16] hover:shadow-[0_24px_80px_-12px_rgba(99,102,241,0.25)]">
                     <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br ${extraProps.bgGlow || "from-white/10 to-transparent"} blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
                     <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none" />
                     <div className="relative">
-                      <div className="flex justify-center mb-5">
-                        <div className={`h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-gradient-to-br from-white/10 to-white/[0.03] flex items-center justify-center ring-1 ${extraProps.ringColor || "ring-white/10"} group-hover:scale-110 transition-all duration-500 shadow-lg shadow-black/20`}>
-                          <stat.icon className={`h-7 w-7 sm:h-8 sm:w-8 ${extraProps.iconColor || "text-white/70"}`} strokeWidth={1.5} />
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-br from-white/10 to-white/[0.03] flex items-center justify-center ring-1 ${extraProps.ringColor || "ring-white/10"} group-hover:scale-110 transition-all duration-500 shadow-lg shadow-black/20`}>
+                          <stat.icon className={`h-5 w-5 sm:h-5.5 sm:w-5.5 ${extraProps.iconColor || "text-white/70"}`} strokeWidth={1.5} />
+                        </div>
+                        <div className="text-left min-w-0">
+                          <p className="text-xs text-slate-400/80 font-medium truncate">{stat.label}</p>
+                          <p className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">{stat.value}</p>
                         </div>
                       </div>
-                      <p className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm">{stat.value}</p>
-                      <div className="mt-3 h-px w-12 mx-auto bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                      <p className="mt-3 text-sm sm:text-base text-slate-300/80 font-medium tracking-wide">{stat.label}</p>
+                      {/* Progress Bar */}
+                      <div className={`w-full h-2 rounded-full ${pBg} overflow-hidden`}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${pct}%` }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 + i * 0.1, duration: 1.2, ease: "easeOut" }}
+                          className={`h-full rounded-full bg-gradient-to-r ${pColor}`}
+                        />
+                      </div>
+                      <p className="mt-2 text-[10px] text-slate-400/60 font-medium text-right">{pct}% target tercapai</p>
                     </div>
                   </div>
                 </motion.div>
