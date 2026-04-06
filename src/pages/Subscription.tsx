@@ -535,15 +535,18 @@ const Subscription = () => {
                           </p>
                         </div>
 
-                        {/* Features List */}
+                        {/* Features List - All features shown */}
                         <div className="flex-1 mb-4">
-                          <ul className="space-y-1.5">
-                            {plan.features.map((f: string, fi: number) => (
-                              <li key={fi} className="flex items-start gap-2 text-xs">
-                                <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />
-                                <span className="text-foreground">{f}</span>
-                              </li>
-                            ))}
+                          <ul className="space-y-1 sm:space-y-1.5">
+                            {allFeatures.map((f: string, fi: number) => {
+                              const isIncluded = planFeatureSet.has(f);
+                              return (
+                                <li key={fi} className={`flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs ${!isIncluded ? "opacity-40" : ""}`}>
+                                  <Check className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-0.5 ${isIncluded ? "text-success" : "text-muted-foreground"}`} />
+                                  <span className={isIncluded ? "text-foreground" : "text-muted-foreground line-through"}>{f}</span>
+                                </li>
+                              );
+                            })}
                           </ul>
                           {plan.max_students && (
                             <p className="text-[10px] text-muted-foreground mt-2 pl-5">Maks {plan.max_students} siswa</p>
