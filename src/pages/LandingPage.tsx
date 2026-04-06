@@ -21,6 +21,20 @@ const fadeUp = {
 };
 
 const DEFAULT_FEATURES = [
+  { icon: QrCode, title: "Scan Barcode", desc: "Absensi instan kurang dari 1 detik dengan scan barcode siswa.", color: "from-blue-500 to-indigo-600" },
+  { icon: UserCheck, title: "Face Recognition", desc: "Pengenalan wajah berbasis AI. Tanpa kartu, tanpa sentuhan.", color: "from-violet-500 to-purple-600" },
+  { icon: Monitor, title: "Dashboard Real-Time", desc: "Pantau statistik kehadiran secara live dengan grafik interaktif.", color: "from-emerald-500 to-teal-600" },
+  { icon: FileBarChart, title: "Rekap & Export", desc: "Rekap otomatis harian, mingguan, bulanan. Export ke Excel & PDF.", color: "from-amber-500 to-orange-600" },
+  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Notifikasi otomatis ke orang tua saat anak tercatat hadir.", color: "from-pink-500 to-rose-600" },
+  { icon: GraduationCap, title: "Multi Sekolah", desc: "Arsitektur SaaS multi-tenant. Satu platform untuk banyak sekolah.", color: "from-cyan-500 to-blue-600" },
+];
+
+const DEFAULT_HERO_STATS = [
+  { value: "500+", label: "Sekolah Aktif", icon: School, iconColor: "text-emerald-300", ringColor: "ring-emerald-400/30", bgGlow: "from-emerald-400/20 to-emerald-600/5" },
+  { value: "120K+", label: "Siswa Terdaftar", icon: Users, iconColor: "text-amber-300", ringColor: "ring-amber-400/30", bgGlow: "from-amber-400/20 to-amber-600/5" },
+  { value: "99.9%", label: "Data Akurat", icon: Shield, iconColor: "text-cyan-300", ringColor: "ring-cyan-400/30", bgGlow: "from-cyan-400/20 to-cyan-600/5" },
+  { value: "34", label: "Provinsi", icon: MapPin, iconColor: "text-rose-300", ringColor: "ring-rose-400/30", bgGlow: "from-rose-400/20 to-rose-600/5" },
+];
 
 const WHY_ITEMS = [
   { icon: Lock, title: "Keamanan Tingkat Tinggi", desc: "Data terenkripsi end-to-end dengan standar keamanan enterprise." },
