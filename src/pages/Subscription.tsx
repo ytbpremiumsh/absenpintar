@@ -513,9 +513,9 @@ const Subscription = () => {
                         </div>
                       )}
 
-                      <div className="p-4 sm:p-5 flex flex-col flex-1">
+                      <div className="p-3 sm:p-5 flex flex-col flex-1">
                         {/* Plan Icon & Name */}
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                           <div className={`h-9 w-9 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0 ${
                             isCurrent ? "gradient-primary text-primary-foreground" : isPremium ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white" : highlighted ? "bg-primary/10 text-primary" : "bg-secondary text-foreground"
                           }`}>
