@@ -106,9 +106,10 @@ function AppContent() {
             </DropdownMenu>
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-3 sm:p-5 md:p-6">
+        <main className={cn("flex-1 overflow-auto p-3 sm:p-5 md:p-6", isMobileDevice && isDashboard && "pb-24")}>
           <Outlet />
         </main>
+        {isMobileDevice && isDashboard && <MobileFooterNav />}
       </div>
     </>
   );
