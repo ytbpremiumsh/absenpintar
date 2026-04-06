@@ -478,8 +478,13 @@ const Subscription = () => {
               <p className="text-muted-foreground text-xs">Tingkatkan fitur dan kapasitas sekolah Anda</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Collect all unique features across all plans */}
+            {(() => {
+              const allFeatures = Array.from(new Set(plans.flatMap((p: any) => p.features || [])));
+              return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {plans.map((plan, i) => {
+                const planFeatureSet = new Set(plan.features || []);
                 const isCurrent = currentPlan?.id === plan.id || (!currentPlan?.id && plan.price === 0 && (currentPlan?.name === plan.name || (!currentSub && plan.price === 0)));
                 const isLower = currentPlan && plan.price < (currentPlan.price || 0) && !isCurrent;
                 const highlighted = !isCurrent && (plan.name === "School" || plans.filter(p => p.price > (currentPlan?.price || 0)).length === 1 && plan.price > (currentPlan?.price || 0));
@@ -508,37 +513,40 @@ const Subscription = () => {
                         </div>
                       )}
 
-                      <div className="p-4 sm:p-5 flex flex-col flex-1">
+                      <div className="p-3 sm:p-5 flex flex-col flex-1">
                         {/* Plan Icon & Name */}
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                          <div className={`h-9 w-9 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0 ${
                             isCurrent ? "gradient-primary text-primary-foreground" : isPremium ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white" : highlighted ? "bg-primary/10 text-primary" : "bg-secondary text-foreground"
                           }`}>
-                            <PIcon className="h-5 w-5" />
+                            <PIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                           </div>
                           <div className="min-w-0">
-                            <h3 className="text-base font-bold text-foreground">{plan.name}</h3>
+                            <h3 className="text-sm sm:text-base font-bold text-foreground">{plan.name}</h3>
                             {plan.description && <p className="text-[10px] text-muted-foreground truncate">{plan.description}</p>}
                           </div>
                         </div>
 
                         {/* Price */}
-                        <div className="mb-4">
-                          <p className="text-2xl font-extrabold text-foreground">
+                        <div className="mb-3 sm:mb-4">
+                          <p className="text-lg sm:text-2xl font-extrabold text-foreground">
                             {formatRupiah(plan.price)}
-                            {plan.price > 0 && <span className="text-xs text-muted-foreground font-normal ml-1">/ bulan</span>}
+                            {plan.price > 0 && <span className="text-[10px] sm:text-xs text-muted-foreground font-normal ml-1">/ bln</span>}
                           </p>
                         </div>
 
-                        {/* Features List */}
+                        {/* Features List - All features shown */}
                         <div className="flex-1 mb-4">
-                          <ul className="space-y-1.5">
-                            {plan.features.map((f: string, fi: number) => (
-                              <li key={fi} className="flex items-start gap-2 text-xs">
-                                <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />
-                                <span className="text-foreground">{f}</span>
-                              </li>
-                            ))}
+                          <ul className="space-y-1 sm:space-y-1.5">
+                            {allFeatures.map((f: string, fi: number) => {
+                              const isIncluded = planFeatureSet.has(f);
+                              return (
+                                <li key={fi} className={`flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs ${!isIncluded ? "opacity-40" : ""}`}>
+                                  <Check className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 mt-0.5 ${isIncluded ? "text-success" : "text-muted-foreground"}`} />
+                                  <span className={isIncluded ? "text-foreground" : "text-muted-foreground line-through"}>{f}</span>
+                                </li>
+                              );
+                            })}
                           </ul>
                           {plan.max_students && (
                             <p className="text-[10px] text-muted-foreground mt-2 pl-5">Maks {plan.max_students} siswa</p>
@@ -547,7 +555,7 @@ const Subscription = () => {
 
                         {/* CTA Button */}
                         <Button
-                          className={`w-full font-semibold text-sm h-10 ${
+                          className={`w-full font-semibold text-[11px] sm:text-sm h-8 sm:h-10 ${
                             isCurrent
                               ? "bg-secondary text-muted-foreground"
                               : isPremium
@@ -576,6 +584,8 @@ const Subscription = () => {
                 );
               })}
             </div>
+              );
+            })()}
           </div>
         </motion.div>
       )}
