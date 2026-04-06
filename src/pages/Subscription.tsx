@@ -555,7 +555,7 @@ const Subscription = () => {
 
                         {/* CTA Button */}
                         <Button
-                          className={`w-full font-semibold text-sm h-10 ${
+                          className={`w-full font-semibold text-[11px] sm:text-sm h-8 sm:h-10 ${
                             isCurrent
                               ? "bg-secondary text-muted-foreground"
                               : isPremium
