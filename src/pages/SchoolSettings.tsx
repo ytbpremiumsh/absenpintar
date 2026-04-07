@@ -172,6 +172,14 @@ const SchoolSettings = () => {
 
   if (loading) return <div className="flex items-center justify-center py-12 text-muted-foreground">Memuat...</div>;
 
+  if (!profile?.school_id) return (
+    <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
+      <School className="h-12 w-12 text-muted-foreground/30" />
+      <h3 className="text-lg font-semibold text-foreground">Sekolah Belum Terhubung</h3>
+      <p className="text-sm text-muted-foreground max-w-md">Akun Anda belum terhubung ke sekolah. Hubungi administrator untuk menghubungkan akun Anda ke data sekolah.</p>
+    </div>
+  );
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <PageHeader icon={School} title="Identitas Sekolah" subtitle="Kelola informasi dan pengaturan sekolah Anda" />
