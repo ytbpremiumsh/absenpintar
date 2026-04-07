@@ -126,7 +126,7 @@ serve(async (req) => {
         .insert({ user_id: userId, role });
     }
 
-    // Create pickup_settings and auto-assign Trial subscription for new school
+    // Create pickup_settings, auto-assign Trial subscription, and WA gateway for new school
     if (resolvedSchoolId) {
       const { data: existingSettings } = await supabaseAdmin
         .from('pickup_settings')
@@ -152,6 +152,9 @@ serve(async (req) => {
         if (!isNaN(parsed) && parsed > 0) trialDays = parsed;
       }
 
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + trialDays);
+
       // Auto-assign Trial subscription with Premium plan
       const { data: premiumPlan } = await supabaseAdmin
         .from('subscription_plans')
@@ -167,9 +170,6 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!existingSub && premiumPlan) {
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + trialDays);
-
         await supabaseAdmin.from('school_subscriptions').insert({
           school_id: resolvedSchoolId,
           plan_id: premiumPlan.id,
@@ -193,6 +193,25 @@ serve(async (req) => {
             expires_at: null,
           });
         }
+      }
+
+      // Auto-create WhatsApp Gateway (OneSender) integration for trial schools
+      const { data: existingIntegration } = await supabaseAdmin
+        .from('school_integrations')
+        .select('id')
+        .eq('school_id', resolvedSchoolId)
+        .eq('integration_type', 'onesender')
+        .maybeSingle();
+
+      if (!existingIntegration) {
+        await supabaseAdmin.from('school_integrations').insert({
+          school_id: resolvedSchoolId,
+          integration_type: 'onesender',
+          is_active: false,
+          wa_enabled: true,
+          api_url: null,
+          api_key: null,
+        });
       }
     }
 
