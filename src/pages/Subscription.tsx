@@ -487,7 +487,9 @@ const Subscription = () => {
               return (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {plans.map((plan, i) => {
-                const planFeatureSet = new Set(plan.features || []);
+                const planAllFeatures: string[] = plan.features || [];
+                const planLimitFeatures = planAllFeatures.filter((f: string) => isLimitFeature(f));
+                const planFeatureSet = new Set(planAllFeatures.filter((f: string) => !isLimitFeature(f)));
                 const isCurrent = currentPlan?.id === plan.id || (!currentPlan?.id && plan.price === 0 && (currentPlan?.name === plan.name || (!currentSub && plan.price === 0)));
                 const isLower = currentPlan && plan.price < (currentPlan.price || 0) && !isCurrent;
                 const highlighted = !isCurrent && (plan.name === "School" || plans.filter(p => p.price > (currentPlan?.price || 0)).length === 1 && plan.price > (currentPlan?.price || 0));
