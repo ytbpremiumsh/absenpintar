@@ -33,6 +33,7 @@ const SuperAdminPlans = () => {
   const [form, setForm] = useState(emptyPlan);
   const [trialDays, setTrialDays] = useState("14");
   const [trialWarningDays, setTrialWarningDays] = useState("3");
+  const [trialWarningMessage, setTrialWarningMessage] = useState("Masa trial Premium Anda akan berakhir dalam {days} hari. Segera lakukan upgrade agar fitur tidak terbatas dan data tetap aman!");
 
   const fetchPlans = async () => {
     const { data } = await supabase.from("subscription_plans").select("*").order("sort_order");
@@ -52,11 +53,12 @@ const SuperAdminPlans = () => {
   };
 
   const fetchTrialSettings = async () => {
-    const { data } = await supabase.from("platform_settings").select("key, value").in("key", ["trial_days", "trial_warning_days"]);
+    const { data } = await supabase.from("platform_settings").select("key, value").in("key", ["trial_days", "trial_warning_days", "trial_warning_message"]);
     if (data) {
       data.forEach((d: any) => {
         if (d.key === "trial_days") setTrialDays(d.value);
         if (d.key === "trial_warning_days") setTrialWarningDays(d.value);
+        if (d.key === "trial_warning_message") setTrialWarningMessage(d.value);
       });
     }
   };
@@ -65,6 +67,7 @@ const SuperAdminPlans = () => {
     const rows = [
       { key: "trial_days", value: trialDays, updated_at: new Date().toISOString() },
       { key: "trial_warning_days", value: trialWarningDays, updated_at: new Date().toISOString() },
+      { key: "trial_warning_message", value: trialWarningMessage, updated_at: new Date().toISOString() },
     ];
     const { error } = await supabase.from("platform_settings").upsert(rows, { onConflict: "key" });
     if (error) toast.error("Gagal menyimpan: " + error.message);
@@ -132,7 +135,7 @@ const SuperAdminPlans = () => {
           <CardTitle className="text-base">⏱ Pengaturan Trial</CardTitle>
           <p className="text-xs text-muted-foreground">Pendaftar baru otomatis mendapat trial Premium</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1">
               <Label className="text-xs">Durasi Trial (hari)</Label>
@@ -142,8 +145,18 @@ const SuperAdminPlans = () => {
               <Label className="text-xs">Peringatan H- (hari)</Label>
               <Input type="number" className="w-28" value={trialWarningDays} onChange={(e) => setTrialWarningDays(e.target.value)} />
             </div>
-            <Button onClick={saveTrialSettings} size="sm" className="gradient-primary text-primary-foreground">Simpan</Button>
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Teks Peringatan H- (gunakan <code className="text-[10px] bg-muted px-1 py-0.5 rounded">{"{days}"}</code> untuk jumlah hari)</Label>
+            <Textarea
+              value={trialWarningMessage}
+              onChange={(e) => setTrialWarningMessage(e.target.value)}
+              rows={3}
+              placeholder="Masa trial Premium Anda akan berakhir dalam {days} hari..."
+              className="text-sm"
+            />
+          </div>
+          <Button onClick={saveTrialSettings} size="sm" className="gradient-primary text-primary-foreground">Simpan</Button>
         </CardContent>
       </Card>
 
