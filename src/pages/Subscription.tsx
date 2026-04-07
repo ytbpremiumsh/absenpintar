@@ -64,7 +64,8 @@ const Subscription = () => {
           supabase.from("payment_transactions").select("id, amount, status, created_at, paid_at, payment_method, subscription_plans(name)").eq("school_id", profile.school_id).eq("status", "paid").order("created_at", { ascending: false }).limit(20),
         ]);
 
-        const sub = subRes.data;
+        // Also check for trial subscriptions
+        const sub = subRes.data || (await supabase.from("school_subscriptions").select("*, subscription_plans(*)").eq("school_id", profile.school_id).eq("status", "trial").order("created_at", { ascending: false }).limit(1).maybeSingle()).data;
         // Count unique classes from both classes table and student class assignments
         const classTableNames = new Set((classesRes.data || []).map((c: any) => c.name));
         const studentClassNames = new Set((studentRes.data || []).map((s: any) => s.class));
@@ -212,6 +213,7 @@ const Subscription = () => {
   const isFree = !currentSub || currentPlan?.price === 0;
   const hasActiveSub = currentSub && !isExpired;
 
+  const isTrialSub = currentSub?.status === 'trial';
   const daysLeft = currentSub?.expires_at
     ? Math.max(0, Math.ceil((new Date(currentSub.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
@@ -281,8 +283,8 @@ const Subscription = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-lg sm:text-xl font-extrabold text-primary-foreground truncate">Paket {planName}</h2>
-                  <Badge className="bg-white/20 text-primary-foreground border-0 text-[10px]">
-                    {hasActiveSub && !isFree ? "Aktif" : isFree ? "Gratis" : "Expired"}
+                   <Badge className="bg-white/20 text-primary-foreground border-0 text-[10px]">
+                    {isTrialSub ? "🎁 Trial" : hasActiveSub && !isFree ? "Aktif" : isFree ? "Gratis" : "Expired"}
                   </Badge>
                 </div>
                 <p className="text-xl sm:text-2xl font-extrabold text-primary-foreground mt-0.5">
