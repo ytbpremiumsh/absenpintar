@@ -1,23 +1,24 @@
 import { useEffect, useState } from "react";
 import {
-  LayoutGrid,
+  LayoutDashboard,
   Users,
   ScanLine,
   Activity,
-  Clock,
+  History,
   Wallet,
   LogOut,
   GraduationCap,
   UserCheck,
   BarChart3,
   HelpCircle,
-  ClipboardList,
+  ClipboardCheck,
   UsersRound,
-  Send,
+  MessageCircle,
   Gift,
   ChevronRight,
   Crown,
-  Pencil,
+  PenLine,
+  Sparkles,
 } from "lucide-react";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -41,7 +42,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainNav = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutGrid, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Monitoring", url: "/monitoring", icon: Activity, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Scan Absensi", url: "/scan", icon: ScanLine, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
@@ -50,16 +51,16 @@ const dataNav = [
   { title: "Kelas", url: "/classes", icon: GraduationCap, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Siswa", url: "/students", icon: Users, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Wali Murid", url: "/teachers", icon: UserCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  { title: "Wali Kelas", url: "/wali-kelas", icon: ClipboardList, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Wali Kelas", url: "/wali-kelas", icon: ClipboardCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Staff / Operator", url: "/staff", icon: UsersRound, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
 
 const whatsappNav = [
-  { title: "WhatsApp", url: "/whatsapp", icon: Send, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
 
 const settingsNav = [
-  { title: "Langganan", url: "/subscription", icon: Wallet, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Langganan", url: "/subscription", icon: Sparkles, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Bantuan", url: "/support", icon: HelpCircle, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
 
