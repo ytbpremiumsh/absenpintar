@@ -31,6 +31,8 @@ const SuperAdminPlans = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Plan | null>(null);
   const [form, setForm] = useState(emptyPlan);
+  const [trialDays, setTrialDays] = useState("14");
+  const [trialWarningDays, setTrialWarningDays] = useState("3");
 
   const fetchPlans = async () => {
     const { data } = await supabase.from("subscription_plans").select("*").order("sort_order");
@@ -49,7 +51,27 @@ const SuperAdminPlans = () => {
     }
   };
 
-  useEffect(() => { fetchPlans(); }, []);
+  const fetchTrialSettings = async () => {
+    const { data } = await supabase.from("platform_settings").select("key, value").in("key", ["trial_days", "trial_warning_days"]);
+    if (data) {
+      data.forEach((d: any) => {
+        if (d.key === "trial_days") setTrialDays(d.value);
+        if (d.key === "trial_warning_days") setTrialWarningDays(d.value);
+      });
+    }
+  };
+
+  const saveTrialSettings = async () => {
+    const rows = [
+      { key: "trial_days", value: trialDays, updated_at: new Date().toISOString() },
+      { key: "trial_warning_days", value: trialWarningDays, updated_at: new Date().toISOString() },
+    ];
+    const { error } = await supabase.from("platform_settings").upsert(rows, { onConflict: "key" });
+    if (error) toast.error("Gagal menyimpan: " + error.message);
+    else toast.success("Pengaturan trial berhasil disimpan!");
+  };
+
+  useEffect(() => { fetchPlans(); fetchTrialSettings(); }, []);
 
   const openCreate = () => { setEditing(null); setForm(emptyPlan); setDialogOpen(true); };
   const openEdit = (plan: Plan) => {
