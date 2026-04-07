@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UserCheck, Clock, GraduationCap, TrendingUp, AlertTriangle, ChevronRight, QrCode, School, BarChart3, Zap, Users, Crown, X } from "lucide-react";
+import { UserCheck, Clock, GraduationCap, TrendingUp, AlertTriangle, ChevronRight, QrCode, School, BarChart3, Zap, Users, Crown, X, Sparkles } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -264,7 +265,7 @@ const Dashboard = () => {
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
                 <Crown className="h-8 w-8 text-amber-600 dark:text-amber-400" />
               </div>
-              <h3 className="text-xl font-bold text-foreground">🎁 Masa Trial Aktif!</h3>
+              <h3 className="text-xl font-bold text-foreground">Masa Trial Aktif!</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 Anda sedang dalam masa <span className="font-semibold text-primary">Trial Premium</span> selama{" "}
                 <span className="font-bold text-foreground">{subFeatures.trialDaysLeft} hari lagi</span>.
@@ -290,24 +291,7 @@ const Dashboard = () => {
 
       {/* Trial Banner */}
       {subFeatures.isTrial && subFeatures.trialDaysLeft !== null && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className={`border-0 shadow-sm ${subFeatures.trialDaysLeft <= 3 ? "bg-warning/10 border-warning/30" : "bg-primary/5 border-primary/20"}`}>
-            <CardContent className="p-3 flex items-center gap-3">
-              <Crown className={`h-5 w-5 shrink-0 ${subFeatures.trialDaysLeft <= 3 ? "text-warning" : "text-primary"}`} />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-semibold text-foreground">
-                  🎁 Trial Premium — {subFeatures.trialDaysLeft} hari tersisa
-                </p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  {subFeatures.trialDaysLeft <= 3 ? "Segera upgrade agar fitur tetap aktif!" : "Nikmati semua fitur premium secara gratis."}
-                </p>
-              </div>
-              <Button size="sm" variant="outline" className="shrink-0 text-xs h-7" onClick={() => navigate("/subscription")}>
-                Upgrade
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <TrialCountdownBanner trialDaysLeft={subFeatures.trialDaysLeft} expiresAt={subFeatures.trialExpiresAt} onUpgrade={() => navigate("/subscription")} />
       )}
       {/* Header */}
       <PageHeader
