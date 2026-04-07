@@ -64,8 +64,7 @@ const Subscription = () => {
           supabase.from("payment_transactions").select("id, amount, status, created_at, paid_at, payment_method, subscription_plans(name)").eq("school_id", profile.school_id).eq("status", "paid").order("created_at", { ascending: false }).limit(20),
         ]);
 
-        // Also check for trial subscriptions
-        const sub = subRes.data || (await supabase.from("school_subscriptions").select("*, subscription_plans(*)").eq("school_id", profile.school_id).eq("status", "trial").order("created_at", { ascending: false }).limit(1).maybeSingle()).data;
+        const sub = subRes.data;
         // Count unique classes from both classes table and student class assignments
         const classTableNames = new Set((classesRes.data || []).map((c: any) => c.name));
         const studentClassNames = new Set((studentRes.data || []).map((s: any) => s.class));
@@ -267,6 +266,25 @@ const Subscription = () => {
                 </p>
               </div>
               {!paymentSuccess && <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0 ml-auto" />}
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Trial Warning Banner */}
+      {isTrialSub && daysLeft !== null && daysLeft <= 3 && (
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <Card className="border-0 shadow-card bg-warning/10 border-warning/30">
+            <div className="p-4 flex items-center gap-3">
+              <AlertTriangle className="h-6 w-6 shrink-0 text-warning" />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-foreground">
+                  ⏰ Masa Trial Berakhir {daysLeft} Hari Lagi!
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Segera upgrade ke paket berbayar agar fitur premium tetap aktif. Setelah trial berakhir, akun akan otomatis pindah ke paket Free.
+                </p>
+              </div>
             </div>
           </Card>
         </motion.div>
