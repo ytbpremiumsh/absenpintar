@@ -478,9 +478,12 @@ const Subscription = () => {
               <p className="text-muted-foreground text-xs">Tingkatkan fitur dan kapasitas sekolah Anda</p>
             </div>
 
-            {/* Collect all unique features across all plans */}
+            {/* Collect all unique features across all plans, excluding limit-based entries */}
             {(() => {
-              const allFeatures = Array.from(new Set(plans.flatMap((p: any) => p.features || [])));
+              const isLimitFeature = (f: string) => /^(Maks|Kelas unlimited|Siswa unlimited)/i.test(f);
+              const allFeatures = Array.from(new Set(
+                plans.flatMap((p: any) => (p.features || []).filter((f: string) => !isLimitFeature(f)))
+              ));
               return (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {plans.map((plan, i) => {
