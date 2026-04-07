@@ -126,6 +126,27 @@ const SuperAdminPlans = () => {
         <Button onClick={openCreate} className="gradient-primary text-primary-foreground"><Plus className="h-4 w-4 mr-1" /> Tambah Paket</Button>
       </div>
 
+      {/* Trial Settings */}
+      <Card className="border-0 shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">⏱ Pengaturan Trial</CardTitle>
+          <p className="text-xs text-muted-foreground">Pendaftar baru otomatis mendapat trial Premium</p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="space-y-1">
+              <Label className="text-xs">Durasi Trial (hari)</Label>
+              <Input type="number" className="w-28" value={trialDays} onChange={(e) => setTrialDays(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Peringatan H- (hari)</Label>
+              <Input type="number" className="w-28" value={trialWarningDays} onChange={(e) => setTrialWarningDays(e.target.value)} />
+            </div>
+            <Button onClick={saveTrialSettings} size="sm" className="gradient-primary text-primary-foreground">Simpan</Button>
+          </div>
+        </CardContent>
+      </Card>
+
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {plans.map((plan) => (
