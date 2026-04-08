@@ -97,13 +97,13 @@ const WhatsAppSettings = () => {
   const [qrLoading, setQrLoading] = useState(false);
   const [qrData, setQrData] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
-  const [pollingConnection, setPollingConnection] = useState(false);
+  const pollingRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Broadcast to parents
-  const [students, setStudents] = useState<{ id: string; name: string; class: string; parent_phone: string; parent_name: string }[]>([]);
   const [parentBroadcastClass, setParentBroadcastClass] = useState("");
   const [parentMessage, setParentMessage] = useState("");
   const [sendingParent, setSendingParent] = useState(false);
+  const [parentSendProgress, setParentSendProgress] = useState("");
 
   const schoolId = profile?.school_id;
 
