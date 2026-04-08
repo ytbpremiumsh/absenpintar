@@ -27,7 +27,7 @@ serve(async (req) => {
     let finalApiKey = api_key;
     let finalSender = sender;
 
-    // Look up from integration if not provided
+    // Look up from school integration if not provided
     if (!finalApiKey || !finalSender) {
       const { data: integration } = await supabaseAdmin
         .from('school_integrations')
@@ -39,6 +39,21 @@ serve(async (req) => {
       if (integration) {
         finalApiKey = finalApiKey || integration.mpwa_api_key;
         finalSender = finalSender || integration.mpwa_sender;
+      }
+    }
+
+    // Fall back to platform_settings if still not found
+    if (!finalApiKey || !finalSender) {
+      const { data: platformSettings } = await supabaseAdmin
+        .from('platform_settings')
+        .select('key, value')
+        .in('key', ['mpwa_platform_api_key', 'mpwa_platform_sender']);
+
+      if (platformSettings) {
+        for (const s of platformSettings) {
+          if (s.key === 'mpwa_platform_api_key' && !finalApiKey) finalApiKey = s.value;
+          if (s.key === 'mpwa_platform_sender' && !finalSender) finalSender = s.value;
+        }
       }
     }
 
