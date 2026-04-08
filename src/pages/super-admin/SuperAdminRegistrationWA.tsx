@@ -86,23 +86,8 @@ const SuperAdminRegistrationWA = () => {
 
       if (activeTab === "mpwa") {
         body.gateway_type = "mpwa";
-        // For MPWA we send directly via the MPWA API
-        const mpwaRes = await fetch("https://app.ayopintar.com/send-message", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            api_key: settings.mpwa_platform_api_key,
-            sender: settings.mpwa_platform_sender,
-            number: testPhone.replace(/\D/g, ""),
-            message,
-          }),
-        });
-        const mpwaData = await mpwaRes.json();
-        if (mpwaData?.status) {
-          toast.success("Pesan tes MPWA berhasil dikirim!");
-        } else {
-          toast.error("Gagal MPWA: " + (mpwaData?.msg || "Unknown error"));
-        }
+        // For MPWA test, we need a sender - use testPhone as both sender and recipient for testing
+        toast.error("Untuk tes MPWA, gunakan dashboard sekolah yang sudah scan QR. API Key yang disimpan di sini hanya sebagai konfigurasi global.");
         setTesting(false);
         return;
       }
