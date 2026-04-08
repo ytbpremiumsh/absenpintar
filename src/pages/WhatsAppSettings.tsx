@@ -81,6 +81,7 @@ const WhatsAppSettings = () => {
   const [deliveryTarget, setDeliveryTarget] = useState("parent_only");
   const [gatewayType, setGatewayType] = useState("onesender");
   const [mpwaConnected, setMpwaConnected] = useState(false);
+  const [mpwaSenderNumber, setMpwaSenderNumber] = useState("");
 
   const [classes, setClasses] = useState<{ id: string; name: string; wa_group_id: string | null }[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
