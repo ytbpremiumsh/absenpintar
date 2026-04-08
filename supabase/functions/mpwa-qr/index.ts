@@ -27,7 +27,7 @@ serve(async (req) => {
     let finalApiKey = api_key;
     let finalSender = sender;
 
-    // Look up from integration if not provided
+    // Look up from school integration if not provided
     if (!finalApiKey || !finalSender) {
       const { data: integration } = await supabaseAdmin
         .from('school_integrations')
@@ -42,6 +42,21 @@ serve(async (req) => {
       }
     }
 
+    // Fall back to platform_settings if still not found
+    if (!finalApiKey || !finalSender) {
+      const { data: platformSettings } = await supabaseAdmin
+        .from('platform_settings')
+        .select('key, value')
+        .in('key', ['mpwa_platform_api_key', 'mpwa_platform_sender']);
+
+      if (platformSettings) {
+        for (const s of platformSettings) {
+          if (s.key === 'mpwa_platform_api_key' && !finalApiKey) finalApiKey = s.value;
+          if (s.key === 'mpwa_platform_sender' && !finalSender) finalSender = s.value;
+        }
+      }
+    }
+
     if (!finalApiKey || !finalSender) {
       return new Response(JSON.stringify({ error: 'MPWA API Key and Sender are required' }), {
         status: 400,
@@ -49,13 +64,21 @@ serve(async (req) => {
       });
     }
 
+    // Helper to safely parse JSON from external API
+    const safeJson = async (res: Response) => {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        console.error('MPWA API returned non-JSON:', text.substring(0, 200));
+        return { status: false, msg: 'MPWA API returned invalid response', raw: text.substring(0, 200) };
+      }
+    };
+
     if (action === 'generate-qr') {
-      const res = await fetch('https://app.ayopintar.com/generate-qr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ api_key: finalApiKey, device: finalSender }),
-      });
-      const data = await res.json();
+      const qrUrl = `https://app.ayopintar.com/generate-qr?api_key=${encodeURIComponent(finalApiKey)}&device=${encodeURIComponent(finalSender)}`;
+      const res = await fetch(qrUrl, { method: 'GET' });
+      const data = await safeJson(res);
 
       // Update connected status
       if (data.msg === 'Device already connected!' || data.status === true) {
@@ -77,7 +100,7 @@ serve(async (req) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ api_key: finalApiKey, sender: finalSender }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
 
       await supabaseAdmin
         .from('school_integrations')
@@ -97,7 +120,7 @@ serve(async (req) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ api_key: finalApiKey, sender: finalSender, number }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
