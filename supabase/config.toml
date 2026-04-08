@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.trial-check]
 verify_jwt = false
+
+[functions.mpwa-qr]
+verify_jwt = false

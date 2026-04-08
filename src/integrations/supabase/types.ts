@@ -948,10 +948,14 @@ export type Database = {
           attendance_depart_template: string | null
           attendance_group_template: string | null
           created_at: string
+          gateway_type: string
           id: string
           integration_type: string
           is_active: boolean
           message_template: string | null
+          mpwa_api_key: string | null
+          mpwa_connected: boolean
+          mpwa_sender: string | null
           school_id: string
           updated_at: string
           wa_delivery_target: string | null
@@ -964,10 +968,14 @@ export type Database = {
           attendance_depart_template?: string | null
           attendance_group_template?: string | null
           created_at?: string
+          gateway_type?: string
           id?: string
           integration_type?: string
           is_active?: boolean
           message_template?: string | null
+          mpwa_api_key?: string | null
+          mpwa_connected?: boolean
+          mpwa_sender?: string | null
           school_id: string
           updated_at?: string
           wa_delivery_target?: string | null
@@ -980,10 +988,14 @@ export type Database = {
           attendance_depart_template?: string | null
           attendance_group_template?: string | null
           created_at?: string
+          gateway_type?: string
           id?: string
           integration_type?: string
           is_active?: boolean
           message_template?: string | null
+          mpwa_api_key?: string | null
+          mpwa_connected?: boolean
+          mpwa_sender?: string | null
           school_id?: string
           updated_at?: string
           wa_delivery_target?: string | null

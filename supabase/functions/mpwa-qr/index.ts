@@ -1,0 +1,117 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+
+  try {
+    const { action, school_id, api_key, sender } = await req.json();
+
+    if (!action || !school_id) {
+      return new Response(JSON.stringify({ error: 'action and school_id are required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    let finalApiKey = api_key;
+    let finalSender = sender;
+
+    // Look up from integration if not provided
+    if (!finalApiKey || !finalSender) {
+      const { data: integration } = await supabaseAdmin
+        .from('school_integrations')
+        .select('mpwa_api_key, mpwa_sender')
+        .eq('school_id', school_id)
+        .eq('integration_type', 'onesender')
+        .maybeSingle();
+
+      if (integration) {
+        finalApiKey = finalApiKey || integration.mpwa_api_key;
+        finalSender = finalSender || integration.mpwa_sender;
+      }
+    }
+
+    if (!finalApiKey || !finalSender) {
+      return new Response(JSON.stringify({ error: 'MPWA API Key and Sender are required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'generate-qr') {
+      const res = await fetch('https://app.ayopintar.com/generate-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: finalApiKey, device: finalSender }),
+      });
+      const data = await res.json();
+
+      // Update connected status
+      if (data.msg === 'Device already connected!' || data.status === true) {
+        await supabaseAdmin
+          .from('school_integrations')
+          .update({ mpwa_connected: true })
+          .eq('school_id', school_id)
+          .eq('integration_type', 'onesender');
+      }
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'disconnect') {
+      const res = await fetch('https://app.ayopintar.com/logout-device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: finalApiKey, sender: finalSender }),
+      });
+      const data = await res.json();
+
+      await supabaseAdmin
+        .from('school_integrations')
+        .update({ mpwa_connected: false })
+        .eq('school_id', school_id)
+        .eq('integration_type', 'onesender');
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'check-number') {
+      const { number } = await req.json();
+      const res = await fetch('https://app.ayopintar.com/check-number', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: finalApiKey, sender: finalSender, number }),
+      });
+      const data = await res.json();
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unknown action' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('MPWA QR error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

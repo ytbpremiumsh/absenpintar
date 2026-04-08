@@ -10,7 +10,8 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { phone, message, api_url, api_key, school_id, group_id, student_name, message_type } = await req.json();
+    const body = await req.json();
+    const { phone, message, api_url, api_key, school_id, group_id, student_name, message_type, gateway_type: explicitGateway } = body;
 
     if ((!phone && !group_id) || !message) {
       return new Response(JSON.stringify({ error: 'phone or group_id, and message are required' }), {
@@ -26,12 +27,14 @@ serve(async (req) => {
 
     let finalApiUrl = api_url;
     let finalApiKey = api_key;
+    let gatewayType = explicitGateway || 'onesender';
+    let mpwaSender = '';
 
     // If school_id provided, look up integration settings
     if (school_id && (!finalApiUrl || !finalApiKey)) {
       const { data: integration } = await supabaseAdmin
         .from('school_integrations')
-        .select('api_url, api_key, is_active')
+        .select('api_url, api_key, is_active, gateway_type, mpwa_api_key, mpwa_sender')
         .eq('school_id', school_id)
         .eq('integration_type', 'onesender')
         .maybeSingle();
@@ -42,48 +45,109 @@ serve(async (req) => {
         });
       }
 
-      finalApiUrl = integration.api_url;
-      finalApiKey = integration.api_key;
+      gatewayType = integration.gateway_type || 'onesender';
+
+      if (gatewayType === 'mpwa') {
+        finalApiKey = integration.mpwa_api_key;
+        mpwaSender = integration.mpwa_sender || '';
+        finalApiUrl = 'https://app.ayopintar.com/send-message';
+      } else {
+        finalApiUrl = integration.api_url;
+        finalApiKey = integration.api_key;
+      }
     }
 
-    if (!finalApiUrl || !finalApiKey) {
-      return new Response(JSON.stringify({ error: 'API URL and API Key are required' }), {
+    if (!finalApiKey) {
+      return new Response(JSON.stringify({ error: 'API Key is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Build request body based on individual or group
-    const sendRequests = [];
+    const sendRequests: Promise<Response>[] = [];
 
-    if (phone) {
-      let formattedPhone = phone.replace(/\D/g, '');
-      if (formattedPhone.startsWith('0')) {
-        formattedPhone = '62' + formattedPhone.substring(1);
+    if (gatewayType === 'mpwa') {
+      // ═══ MPWA Gateway ═══
+      const mpwaUrl = 'https://app.ayopintar.com/send-message';
+
+      if (phone) {
+        let formattedPhone = phone.replace(/\D/g, '');
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = '62' + formattedPhone.substring(1);
+        }
+        sendRequests.push(
+          fetch(mpwaUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              api_key: finalApiKey,
+              sender: mpwaSender,
+              number: formattedPhone,
+              message: message,
+            }),
+          })
+        );
       }
-      sendRequests.push(
-        fetch(finalApiUrl, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${finalApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ recipient_type: 'individual', to: formattedPhone, type: 'text', text: { body: message } }),
-        })
-      );
-    }
 
-    if (group_id) {
-      sendRequests.push(
-        fetch(finalApiUrl, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${finalApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ recipient_type: 'group', to: group_id, type: 'text', text: { body: message } }),
-        })
-      );
+      if (group_id) {
+        // MPWA sends to group using group number/id
+        sendRequests.push(
+          fetch(mpwaUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              api_key: finalApiKey,
+              sender: mpwaSender,
+              number: group_id,
+              message: message,
+            }),
+          })
+        );
+      }
+    } else {
+      // ═══ OneSender Gateway ═══
+      if (!finalApiUrl) {
+        return new Response(JSON.stringify({ error: 'API URL is required for OneSender' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (phone) {
+        let formattedPhone = phone.replace(/\D/g, '');
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = '62' + formattedPhone.substring(1);
+        }
+        sendRequests.push(
+          fetch(finalApiUrl, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${finalApiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient_type: 'individual', to: formattedPhone, type: 'text', text: { body: message } }),
+          })
+        );
+      }
+
+      if (group_id) {
+        sendRequests.push(
+          fetch(finalApiUrl, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${finalApiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient_type: 'group', to: group_id, type: 'text', text: { body: message } }),
+          })
+        );
+      }
     }
 
     const responses = await Promise.all(sendRequests);
     const results = await Promise.all(responses.map(r => r.json()));
 
-    const hasError = responses.some(r => !r.ok);
+    // For MPWA, check status field; for OneSender, check HTTP status
+    let hasError: boolean;
+    if (gatewayType === 'mpwa') {
+      hasError = results.some((r: any) => r.status === false);
+    } else {
+      hasError = responses.some(r => !r.ok);
+    }
 
     // Log message to wa_message_logs
     if (school_id) {
@@ -101,8 +165,8 @@ serve(async (req) => {
     }
 
     if (hasError) {
-      console.error('OneSender error:', JSON.stringify(results));
-      return new Response(JSON.stringify({ success: false, error: `OneSender error`, details: results }), {
+      console.error(`${gatewayType} error:`, JSON.stringify(results));
+      return new Response(JSON.stringify({ success: false, error: `${gatewayType} error`, details: results }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
