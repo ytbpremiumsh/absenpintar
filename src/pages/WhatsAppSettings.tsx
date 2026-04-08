@@ -124,6 +124,7 @@ const WhatsAppSettings = () => {
         setGroupTemplate(d.attendance_group_template || DEFAULT_GROUP);
         setGatewayType(d.gateway_type || "onesender");
         setMpwaConnected(d.mpwa_connected || false);
+        setMpwaSenderNumber(d.mpwa_sender || "");
       }
 
       setClasses(classRes.data || []);
