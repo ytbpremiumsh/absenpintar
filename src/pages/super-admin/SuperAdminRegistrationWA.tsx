@@ -35,7 +35,7 @@ const SuperAdminRegistrationWA = () => {
       .select("key, value")
       .in("key", [
         "wa_registration_enabled", "wa_api_url", "wa_api_key", "wa_registration_message",
-        "mpwa_platform_api_key", "mpwa_platform_sender",
+        "mpwa_platform_api_key",
       ]);
 
     const map: Record<string, string> = {};
