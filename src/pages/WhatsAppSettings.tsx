@@ -210,22 +210,22 @@ const WhatsAppSettings = () => {
 
   const handleGenerateQr = async () => {
     if (!schoolId) return;
+    if (!mpwaSenderNumber.trim()) {
+      toast.error("Masukkan nomor WhatsApp yang akan digunakan terlebih dahulu");
+      return;
+    }
     setQrLoading(true);
     setQrData(null);
     try {
       const res = await supabase.functions.invoke("mpwa-qr", {
-        body: { action: "generate-qr", school_id: schoolId },
+        body: { action: "generate-qr", school_id: schoolId, sender: mpwaSenderNumber.replace(/\D/g, "") },
       });
       const data = res.data as any;
       if (data?.error) {
-        if (data.error.includes("API Key") || data.error.includes("Sender")) {
-          toast.error("WhatsApp Scan Sendiri belum dikonfigurasi. Hubungi administrator untuk mengatur koneksi.");
-        } else {
-          toast.error(data.error);
-        }
+        toast.error(data.error);
       } else if (data?.qrcode) {
         setQrData(data.qrcode);
-      } else if (data?.msg === "Device already connected!" || data?.status === true) {
+      } else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || data?.status === true) {
         setMpwaConnected(true);
         toast.success("Device sudah terhubung!");
       } else {
