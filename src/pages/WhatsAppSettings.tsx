@@ -372,36 +372,7 @@ const WhatsAppSettings = () => {
               </div>
               <CardContent className="p-4 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* OneSender Option */}
-                  <button
-                    type="button"
-                    onClick={() => handleSwitchGateway("onesender")}
-                    className={`text-left rounded-xl border-2 p-4 transition-all ${
-                      gatewayType === "onesender"
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border bg-background hover:border-primary/30"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                        gatewayType === "onesender" ? "bg-primary/10" : "bg-muted"
-                      }`}>
-                        <MessageSquare className={`h-5 w-5 ${gatewayType === "onesender" ? "text-primary" : "text-muted-foreground"}`} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-foreground">WASkolla</p>
-                        <p className="text-[10px] text-muted-foreground">Sistem ATSkolla</p>
-                      </div>
-                      {gatewayType === "onesender" && (
-                        <CheckCircle2 className="h-5 w-5 text-primary ml-auto" />
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Menggunakan layanan WhatsApp dari sistem ATSkolla. Dikonfigurasi oleh admin, tidak perlu scan QR.
-                    </p>
-                  </button>
-
-                  {/* MPWA Option */}
+                  {/* MPWA / WASkolla Scan Sendiri — FIRST */}
                   <button
                     type="button"
                     onClick={() => handleSwitchGateway("mpwa")}
@@ -427,6 +398,35 @@ const WhatsAppSettings = () => {
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
                       Menggunakan nomor WhatsApp sendiri. Perlu scan QR code untuk menghubungkan device Anda.
+                    </p>
+                  </button>
+
+                  {/* OneSender / WASkolla — SECOND */}
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchGateway("onesender")}
+                    className={`text-left rounded-xl border-2 p-4 transition-all ${
+                      gatewayType === "onesender"
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-border bg-background hover:border-primary/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                        gatewayType === "onesender" ? "bg-primary/10" : "bg-muted"
+                      }`}>
+                        <MessageSquare className={`h-5 w-5 ${gatewayType === "onesender" ? "text-primary" : "text-muted-foreground"}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">WASkolla</p>
+                        <p className="text-[10px] text-muted-foreground">Sistem ATSkolla</p>
+                      </div>
+                      {gatewayType === "onesender" && (
+                        <CheckCircle2 className="h-5 w-5 text-primary ml-auto" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Menggunakan layanan WhatsApp dari sistem ATSkolla. Dikonfigurasi oleh admin, tidak perlu scan QR.
                     </p>
                   </button>
                 </div>
