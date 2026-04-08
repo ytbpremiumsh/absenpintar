@@ -442,10 +442,27 @@ const WhatsAppSettings = () => {
                     Koneksi WhatsApp Anda
                   </h3>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Scan QR code dari WhatsApp Anda untuk menghubungkan device
+                    Masukkan nomor WhatsApp Anda lalu scan QR code untuk menghubungkan
                   </p>
                 </div>
                 <CardContent className="p-4 space-y-4">
+                  {/* Phone Number Input */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Nomor WhatsApp Sekolah</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={mpwaSenderNumber}
+                        onChange={(e) => setMpwaSenderNumber(e.target.value)}
+                        placeholder="628812345678"
+                        className="flex-1 h-10 bg-muted/30 focus:bg-background transition-colors"
+                        disabled={mpwaConnected}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Masukkan nomor WhatsApp dengan format internasional (62xxx). Nomor ini yang akan digunakan untuk mengirim pesan.
+                    </p>
+                  </div>
+
                   {/* Connection Status */}
                   <div className={`flex items-center gap-3 rounded-xl border p-3 ${
                     mpwaConnected
@@ -467,8 +484,8 @@ const WhatsAppSettings = () => {
                       </p>
                       <p className="text-[10px] text-muted-foreground">
                         {mpwaConnected
-                          ? "WhatsApp Anda sudah terhubung dan siap mengirim pesan"
-                          : "Klik tombol di bawah untuk scan QR code"
+                          ? `Nomor ${mpwaSenderNumber} sudah terhubung dan siap mengirim pesan`
+                          : "Masukkan nomor lalu klik Generate QR untuk scan"
                         }
                       </p>
                     </div>
@@ -498,7 +515,11 @@ const WhatsAppSettings = () => {
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-2">
                     {!mpwaConnected ? (
-                      <Button onClick={handleGenerateQr} disabled={qrLoading} className="gradient-primary hover:opacity-90 shadow-md h-10 px-6 gap-2">
+                      <Button
+                        onClick={handleGenerateQr}
+                        disabled={qrLoading || !mpwaSenderNumber.trim()}
+                        className="gradient-primary hover:opacity-90 shadow-md h-10 px-6 gap-2"
+                      >
                         {qrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
                         {qrData ? "Refresh QR Code" : "Generate QR Code"}
                       </Button>
