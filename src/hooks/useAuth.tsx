@@ -30,9 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        // Refresh token failed - clear stale state
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+        setLoading(false);
+        return;
+      }
       if (session?.user) {
         setUser(session.user);
-        // Use setTimeout to avoid potential deadlock with Supabase client
         setTimeout(() => fetchUserData(session.user.id), 0);
       } else {
         setUser(null);
@@ -42,8 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error || !session?.user) {
+        // Handle invalid refresh token / stale session
+        if (error) {
+          console.warn("Session restore failed, clearing state:", error.message);
+          supabase.auth.signOut().catch(() => {});
+        }
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+      } else {
         setUser(session.user);
         fetchUserData(session.user.id);
       }

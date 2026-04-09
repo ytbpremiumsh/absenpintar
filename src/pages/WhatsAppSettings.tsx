@@ -603,13 +603,32 @@ const WhatsAppSettings = () => {
                   <CardContent className="p-4 space-y-3">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-semibold">Nomor WhatsApp Sekolah</Label>
-                      <Input
-                        value={mpwaSenderNumber}
-                        onChange={(e) => setMpwaSenderNumber(e.target.value)}
-                        placeholder="628812345678"
-                        className="h-10 bg-muted/30 focus:bg-background transition-colors"
-                        disabled={mpwaConnected}
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          value={mpwaSenderNumber}
+                          onChange={(e) => setMpwaSenderNumber(e.target.value)}
+                          placeholder="628812345678"
+                          className="h-10 bg-muted/30 focus:bg-background transition-colors flex-1"
+                          disabled={mpwaConnected}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && mpwaSenderNumber.trim() && !mpwaConnected) {
+                              handleGenerateQr();
+                            }
+                          }}
+                        />
+                        {!mpwaConnected && (
+                          <Button
+                            onClick={handleGenerateQr}
+                            disabled={qrLoading || !mpwaSenderNumber.trim()}
+                            size="sm"
+                            className="gradient-primary h-10 px-4 gap-1.5 text-xs shrink-0"
+                          >
+                            {qrLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
+                            Hubungkan
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">Masukkan nomor lalu klik Hubungkan untuk otomatis mendaftarkan device & generate QR</p>
                     </div>
 
                     {mpwaConnected ? (
@@ -643,14 +662,17 @@ const WhatsAppSettings = () => {
                           </div>
                         )}
 
-                        <Button
-                          onClick={handleGenerateQr}
-                          disabled={qrLoading || !mpwaSenderNumber.trim()}
-                          className="gradient-primary hover:opacity-90 shadow-md h-9 px-5 gap-2 w-full text-xs"
-                        >
-                          {qrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
-                          {qrData ? "Refresh QR" : "Generate QR Code"}
-                        </Button>
+                        {qrData && (
+                          <Button
+                            onClick={handleGenerateQr}
+                            disabled={qrLoading}
+                            variant="outline"
+                            className="h-8 px-4 gap-1.5 w-full text-xs"
+                          >
+                            {qrLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
+                            Refresh QR
+                          </Button>
+                        )}
                       </>
                     )}
                   </CardContent>
