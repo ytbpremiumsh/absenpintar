@@ -62,6 +62,7 @@ import AffiliateRegister from "./pages/AffiliateRegister";
 import AffiliateLogin from "./pages/AffiliateLogin";
 import AffiliateDashboard from "./pages/AffiliateDashboard";
 import SuperAdminAffiliate from "./pages/super-admin/SuperAdminAffiliate";
+import SuperAdminBackup from "./pages/super-admin/SuperAdminBackup";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +110,7 @@ const App = () => (
               <Route path="/super-admin/referral" element={<SuperAdminReferral />} />
               <Route path="/super-admin/penawaran" element={<SuperAdminPenawaran />} />
               <Route path="/super-admin/affiliate" element={<SuperAdminAffiliate />} />
+              <Route path="/super-admin/backup" element={<SuperAdminBackup />} />
             </Route>
             {/* School Admin / Staff */}
             <Route element={<AppLayout />}>

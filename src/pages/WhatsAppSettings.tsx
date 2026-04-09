@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MessageSquare, Save, Loader2, Send, History, Users, Power, Clock, Link2,
   AlertCircle, FileText, Megaphone, QrCode, Wifi, WifiOff,
-  Smartphone, Radio, UserCheck, Zap,
+  Smartphone, Radio, UserCheck, Zap, Shield, Signal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -77,7 +77,6 @@ const ConnectedDeviceCard = ({
   handleDisconnect: () => void;
 }) => (
   <div className="rounded-2xl border border-success/20 bg-gradient-to-br from-background via-success/[0.02] to-primary/[0.04] p-5 relative overflow-hidden">
-    {/* Decorative circles */}
     <div className="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-full -translate-y-1/2 translate-x-1/2" />
     <div className="absolute bottom-0 left-0 w-20 h-20 bg-primary/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
@@ -85,7 +84,6 @@ const ConnectedDeviceCard = ({
       {/* Animated barcode icon */}
       <div className="relative">
         <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-success/10 to-primary/10 border border-success/20 flex items-center justify-center">
-          {/* Barcode bars animation */}
           <div className="flex items-end gap-[3px] h-10">
             {[10, 16, 8, 20, 6, 14, 10, 18, 8, 12].map((h, i) => (
               <div
@@ -99,7 +97,6 @@ const ConnectedDeviceCard = ({
             ))}
           </div>
         </div>
-        {/* Live pulse */}
         <div className="absolute -bottom-1 -right-1">
           <span className="relative flex h-5 w-5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-50"></span>
@@ -109,13 +106,11 @@ const ConnectedDeviceCard = ({
       </div>
 
       <div>
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <p className="text-lg font-bold text-foreground">Perangkat Aktif</p>
-          <Badge className="bg-success/10 text-success border-success/20 text-[9px] px-2 py-0.5 font-bold uppercase tracking-widest">
-            Connected
-          </Badge>
-        </div>
-        <p className="font-mono text-base font-semibold text-foreground tracking-wide">{mpwaSenderNumber}</p>
+        <p className="text-lg font-bold text-foreground">Perangkat Aktif</p>
+        <Badge className="bg-success/10 text-success border-success/20 text-[9px] px-2 py-0.5 font-bold uppercase tracking-widest mt-1">
+          Connected
+        </Badge>
+        <p className="font-mono text-base font-semibold text-foreground tracking-wide mt-2">{mpwaSenderNumber}</p>
         <p className="text-xs text-muted-foreground mt-1.5">
           WhatsApp terhubung dan siap mengirim pesan otomatis
         </p>
@@ -130,6 +125,33 @@ const ConnectedDeviceCard = ({
     </div>
   </div>
 );
+
+/* ═══ QR Scanning Animation — Premium waiting UI ═══ */
+const ScanningAnimation = () => {
+  const [dots, setDots] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setDots(d => (d + 1) % 4), 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center gap-3 py-2">
+      {/* Animated scan ring */}
+      <div className="relative h-16 w-16">
+        <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin" style={{ animationDuration: '1.5s' }} />
+        <div className="absolute inset-2 rounded-full border-2 border-transparent border-b-primary/60 animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Signal className="h-5 w-5 text-primary animate-pulse" />
+        </div>
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-semibold text-primary">Menunggu koneksi{'.'.repeat(dots)}</p>
+        <p className="text-[10px] text-muted-foreground mt-0.5">Scan QR code di atas, koneksi akan terdeteksi otomatis</p>
+      </div>
+    </div>
+  );
+};
 
 const WhatsAppSettings = () => {
   const { profile } = useAuth();
@@ -158,13 +180,11 @@ const WhatsAppSettings = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
-  // MPWA QR
   const [qrLoading, setQrLoading] = useState(false);
   const [qrData, setQrData] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Broadcast to parents
   const [parentBroadcastClass, setParentBroadcastClass] = useState("");
   const [parentMessage, setParentMessage] = useState("");
   const [sendingParent, setSendingParent] = useState(false);
@@ -176,12 +196,7 @@ const WhatsAppSettings = () => {
     if (!schoolId) return;
     const fetchData = async () => {
       const [intRes, classRes, platformRes] = await Promise.all([
-        supabase
-          .from("school_integrations")
-          .select("*")
-          .eq("school_id", schoolId)
-          .eq("integration_type", "onesender")
-          .maybeSingle(),
+        supabase.from("school_integrations").select("*").eq("school_id", schoolId).eq("integration_type", "onesender").maybeSingle(),
         supabase.from("classes").select("id, name, wa_group_id").eq("school_id", schoolId).order("name"),
         supabase.from("platform_settings").select("key, value").eq("key", "onesender_enabled").maybeSingle(),
       ]);
@@ -197,13 +212,11 @@ const WhatsAppSettings = () => {
         setArriveTemplate(d.attendance_arrive_template || DEFAULT_ARRIVE);
         setDepartTemplate(d.attendance_depart_template || DEFAULT_DEPART);
         setGroupTemplate(d.attendance_group_template || DEFAULT_GROUP);
-        // If onesender is disabled but school is set to onesender, auto-switch to mpwa
         const gt = d.gateway_type || "onesender";
         setGatewayType(!osEnabled && gt === "onesender" ? "mpwa" : gt);
         setMpwaConnected(d.mpwa_connected || false);
         setMpwaSenderNumber(d.mpwa_sender || "");
       } else {
-        // No integration yet, default to mpwa
         setGatewayType("mpwa");
       }
 
@@ -213,67 +226,35 @@ const WhatsAppSettings = () => {
     fetchData();
   }, [schoolId]);
 
-  // Cleanup polling on unmount
   useEffect(() => {
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-    };
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, []);
 
   const fetchLogs = useCallback(async () => {
     if (!schoolId) return;
     setLogsLoading(true);
-    const { data } = await supabase
-      .from("wa_message_logs" as any)
-      .select("*")
-      .eq("school_id", schoolId)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const { data } = await supabase.from("wa_message_logs" as any).select("*").eq("school_id", schoolId).order("created_at", { ascending: false }).limit(100);
     setLogs(data || []);
     setLogsLoading(false);
   }, [schoolId]);
 
-  useEffect(() => {
-    if (activeTab === "history") void fetchLogs();
-  }, [activeTab, fetchLogs]);
+  useEffect(() => { if (activeTab === "history") void fetchLogs(); }, [activeTab, fetchLogs]);
 
   const handleSaveSettings = async () => {
     if (!schoolId) { toast.error("School ID tidak ditemukan."); return; }
     setSaving(true);
-
     const payload = {
-      wa_enabled: waEnabled,
-      wa_delivery_target: deliveryTarget,
-      attendance_arrive_template: arriveTemplate,
-      attendance_depart_template: departTemplate,
-      attendance_group_template: groupTemplate,
-      gateway_type: gatewayType,
+      wa_enabled: waEnabled, wa_delivery_target: deliveryTarget,
+      attendance_arrive_template: arriveTemplate, attendance_depart_template: departTemplate,
+      attendance_group_template: groupTemplate, gateway_type: gatewayType,
     };
-
     if (!integrationId) {
-      const { data: newInt, error: createErr } = await supabase
-        .from("school_integrations")
-        .insert({
-          school_id: schoolId,
-          integration_type: "onesender",
-          is_active: false,
-          ...payload,
-        })
-        .select("id")
-        .single();
-
+      const { data: newInt, error: createErr } = await supabase.from("school_integrations").insert({ school_id: schoolId, integration_type: "onesender", is_active: false, ...payload }).select("id").single();
       if (createErr) { setSaving(false); toast.error("Gagal menyimpan: " + createErr.message); return; }
       setIntegrationId(newInt.id);
-      setSaving(false);
-      toast.success("Pengaturan WhatsApp berhasil disimpan");
-      return;
+      setSaving(false); toast.success("Pengaturan WhatsApp berhasil disimpan"); return;
     }
-
-    const { error } = await supabase
-      .from("school_integrations" as any)
-      .update(payload)
-      .eq("id", integrationId);
-
+    const { error } = await supabase.from("school_integrations" as any).update(payload).eq("id", integrationId);
     setSaving(false);
     if (error) toast.error("Gagal menyimpan: " + error.message);
     else toast.success("Pengaturan WhatsApp berhasil disimpan");
@@ -295,7 +276,6 @@ const WhatsAppSettings = () => {
     }
   };
 
-  // Start polling for connection status after QR is shown
   const startConnectionPolling = useCallback(() => {
     if (pollingRef.current) clearInterval(pollingRef.current);
     pollingRef.current = setInterval(async () => {
@@ -306,47 +286,30 @@ const WhatsAppSettings = () => {
         });
         const data = res.data as any;
         if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || data?.status === true) {
-          setMpwaConnected(true);
-          setQrData(null);
+          setMpwaConnected(true); setQrData(null);
           toast.success("🎉 Device berhasil terhubung!");
           if (pollingRef.current) clearInterval(pollingRef.current);
         }
-      } catch {
-        // silently retry
-      }
+      } catch { /* silently retry */ }
     }, 5000);
   }, [schoolId, mpwaSenderNumber]);
 
-  // Auto add-device + generate QR
   const handleGenerateQr = async () => {
     if (!schoolId) return;
     const cleanNumber = mpwaSenderNumber.replace(/\D/g, "");
-    if (!cleanNumber) {
-      toast.error("Masukkan nomor WhatsApp yang akan digunakan terlebih dahulu");
-      return;
-    }
-    setQrLoading(true);
-    setQrData(null);
+    if (!cleanNumber) { toast.error("Masukkan nomor WhatsApp terlebih dahulu"); return; }
+    setQrLoading(true); setQrData(null);
     try {
-      // Use combined add-device-and-qr action
       const res = await supabase.functions.invoke("mpwa-qr", {
         body: { action: "add-device-and-qr", school_id: schoolId, sender: cleanNumber },
       });
       const data = res.data as any;
-      if (data?.error) {
-        toast.error(data.error);
-      } else if (data?.qrcode) {
-        setQrData(data.qrcode);
-        startConnectionPolling();
-      } else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || data?.status === true) {
-        setMpwaConnected(true);
-        toast.success("Device sudah terhubung!");
-      } else {
-        toast.error(data?.msg || "Gagal generate QR");
-      }
-    } catch (err: any) {
-      toast.error("Gagal: " + err.message);
-    }
+      if (data?.error) toast.error(data.error);
+      else if (data?.qrcode) { setQrData(data.qrcode); startConnectionPolling(); }
+      else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || data?.status === true) {
+        setMpwaConnected(true); toast.success("Device sudah terhubung!");
+      } else toast.error(data?.msg || "Gagal generate QR");
+    } catch (err: any) { toast.error("Gagal: " + err.message); }
     setQrLoading(false);
   };
 
@@ -355,20 +318,11 @@ const WhatsAppSettings = () => {
     setDisconnecting(true);
     if (pollingRef.current) clearInterval(pollingRef.current);
     try {
-      const res = await supabase.functions.invoke("mpwa-qr", {
-        body: { action: "disconnect", school_id: schoolId },
-      });
+      const res = await supabase.functions.invoke("mpwa-qr", { body: { action: "disconnect", school_id: schoolId } });
       const data = res.data as any;
-      if (data?.status) {
-        setMpwaConnected(false);
-        setQrData(null);
-        toast.success("Device berhasil di-disconnect");
-      } else {
-        toast.error(data?.message || "Gagal disconnect");
-      }
-    } catch (err: any) {
-      toast.error("Gagal: " + err.message);
-    }
+      if (data?.status) { setMpwaConnected(false); setQrData(null); toast.success("Device berhasil di-disconnect"); }
+      else toast.error(data?.message || "Gagal disconnect");
+    } catch (err: any) { toast.error("Gagal: " + err.message); }
     setDisconnecting(false);
   };
 
@@ -386,7 +340,6 @@ const WhatsAppSettings = () => {
     if (!selectedClass || !groupMessage.trim() || !schoolId) { toast.error("Pilih kelas dan isi pesan"); return; }
     const cls = classes.find((c) => c.name === selectedClass);
     if (!cls?.wa_group_id) { toast.error("Kelas ini belum memiliki ID Group WhatsApp"); return; }
-
     setSendingGroup(true);
     try {
       const res = await supabase.functions.invoke("send-whatsapp", {
@@ -400,20 +353,10 @@ const WhatsAppSettings = () => {
   };
 
   const handleSendToParents = async () => {
-    if (!parentBroadcastClass || !parentMessage.trim() || !schoolId) {
-      toast.error("Pilih kelas dan isi pesan");
-      return;
-    }
-    setSendingParent(true);
-    setParentSendProgress("Memuat data siswa...");
-
+    if (!parentBroadcastClass || !parentMessage.trim() || !schoolId) { toast.error("Pilih kelas dan isi pesan"); return; }
+    setSendingParent(true); setParentSendProgress("Memuat data siswa...");
     try {
-      const { data: studentData, error: studentErr } = await supabase
-        .from("students")
-        .select("name, parent_phone, parent_name")
-        .eq("school_id", schoolId)
-        .eq("class", parentBroadcastClass);
-
+      const { data: studentData, error: studentErr } = await supabase.from("students").select("name, parent_phone, parent_name").eq("school_id", schoolId).eq("class", parentBroadcastClass);
       if (studentErr) { toast.error("Gagal memuat data siswa: " + studentErr.message); setSendingParent(false); return; }
       if (!studentData || studentData.length === 0) { toast.error("Tidak ada siswa di kelas ini"); setSendingParent(false); return; }
 
@@ -422,21 +365,13 @@ const WhatsAppSettings = () => {
         if (!s.parent_phone) continue;
         const phone = s.parent_phone.replace(/\D/g, "");
         if (!phone) continue;
-        if (uniqueParents.has(phone)) {
-          uniqueParents.get(phone)!.studentNames.push(s.name);
-        } else {
-          uniqueParents.set(phone, { phone: s.parent_phone, name: s.parent_name, studentNames: [s.name] });
-        }
+        if (uniqueParents.has(phone)) uniqueParents.get(phone)!.studentNames.push(s.name);
+        else uniqueParents.set(phone, { phone: s.parent_phone, name: s.parent_name, studentNames: [s.name] });
       }
 
-      if (uniqueParents.size === 0) {
-        toast.error("Tidak ada wali murid dengan nomor telepon di kelas ini");
-        setSendingParent(false);
-        return;
-      }
+      if (uniqueParents.size === 0) { toast.error("Tidak ada wali murid dengan nomor telepon di kelas ini"); setSendingParent(false); return; }
 
-      let sent = 0;
-      let failed = 0;
+      let sent = 0, failed = 0;
       const total = uniqueParents.size;
 
       for (const [, parent] of uniqueParents) {
@@ -446,22 +381,12 @@ const WhatsAppSettings = () => {
             .replace(/\{parent_name\}/g, parent.name || "Bapak/Ibu")
             .replace(/\{student_name\}/g, parent.studentNames.join(", "))
             .replace(/\{class\}/g, parentBroadcastClass);
-
           const res = await supabase.functions.invoke("send-whatsapp", {
-            body: {
-              school_id: schoolId,
-              phone: parent.phone,
-              message: personalMsg,
-              message_type: "parent_broadcast",
-              student_name: parent.studentNames.join(", "),
-            },
+            body: { school_id: schoolId, phone: parent.phone, message: personalMsg, message_type: "parent_broadcast", student_name: parent.studentNames.join(", ") },
           });
           const data = res.data as any;
-          if (data?.success) sent++;
-          else failed++;
-        } catch {
-          failed++;
-        }
+          if (data?.success) sent++; else failed++;
+        } catch { failed++; }
         await new Promise(r => setTimeout(r, 500));
       }
 
@@ -469,11 +394,8 @@ const WhatsAppSettings = () => {
       if (sent > 0) toast.success(`Berhasil kirim ke ${sent} wali murid${failed > 0 ? `, ${failed} gagal` : ""}`);
       else toast.error(`Gagal mengirim ke semua wali murid (${failed} gagal)`);
       if (sent > 0) setParentMessage("");
-    } catch (err: any) {
-      toast.error("Gagal: " + err.message);
-    }
-    setSendingParent(false);
-    setParentSendProgress("");
+    } catch (err: any) { toast.error("Gagal: " + err.message); }
+    setSendingParent(false); setParentSendProgress("");
   };
 
   if (loading) {
@@ -485,6 +407,7 @@ const WhatsAppSettings = () => {
   }
 
   const connectedCount = classes.filter(c => c.wa_group_id).length;
+  const isMpwaOnly = !onesenderEnabled;
 
   return (
     <PremiumGate featureLabel="WhatsApp Gateway" featureKey="canWhatsApp" requiredPlan="School">
@@ -547,39 +470,129 @@ const WhatsAppSettings = () => {
 
           {/* ═══════ GATEWAY TAB ═══════ */}
           <TabsContent value="gateway" className="mt-4 space-y-4">
-            {/* When onesender disabled: 2-column layout combining gateway + connection */}
-            {!onesenderEnabled && gatewayType === "mpwa" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Gateway Card */}
-                <Card className="border-0 shadow-card overflow-hidden">
-                  <div className="px-4 py-3 border-b border-border bg-muted/20">
-                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <Radio className="h-4 w-4 text-primary" />
-                      WhatsApp Gateway
-                    </h3>
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="rounded-xl border-2 border-primary bg-primary/5 p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Smartphone className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-foreground">WASkolla - Nomor Admin Sekolah</p>
-                          <p className="text-[10px] text-muted-foreground">Gunakan WA Anda</p>
-                        </div>
-                        <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                          <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+            {/* Single unified layout: 2-col when MPWA only, otherwise normal */}
+            <div className={`grid grid-cols-1 ${isMpwaOnly ? "md:grid-cols-2" : ""} gap-4`}>
+              {/* Gateway Card */}
+              <Card className="border-0 shadow-card overflow-hidden">
+                <div className="px-4 py-3 border-b border-border bg-muted/20">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Radio className="h-4 w-4 text-primary" />
+                    {isMpwaOnly ? "WhatsApp Gateway" : "Pilih Gateway WhatsApp"}
+                  </h3>
+                  {!isMpwaOnly && (
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Pilih layanan pengiriman pesan WhatsApp</p>
+                  )}
+                </div>
+                <CardContent className="p-4 space-y-4">
+                  {isMpwaOnly ? (
+                    /* MPWA only — fill card with info + scan steps */
+                    <div className="space-y-4">
+                      <div className="rounded-xl border-2 border-primary bg-primary/5 p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Smartphone className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-foreground">WASkolla - Nomor Admin Sekolah</p>
+                            <p className="text-[10px] text-muted-foreground">Gunakan WhatsApp Anda sendiri</p>
+                          </div>
+                          <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                            <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+                          </div>
                         </div>
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        Menggunakan nomor WhatsApp sendiri. Perlu scan QR code untuk menghubungkan device.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
 
-                {/* Connection Card */}
+                      {/* Scan steps info */}
+                      <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+                        <p className="text-xs font-bold text-foreground flex items-center gap-2">
+                          <QrCode className="h-3.5 w-3.5 text-primary" />
+                          Cara Menghubungkan WhatsApp
+                        </p>
+                        <div className="space-y-2.5">
+                          {[
+                            { step: "1", text: "Masukkan nomor WhatsApp sekolah (format 628xxx)" },
+                            { step: "2", text: 'Klik "Generate QR Code" — device otomatis ditambahkan' },
+                            { step: "3", text: "Buka WhatsApp di HP → Menu (⋮) → Perangkat Tertaut" },
+                            { step: "4", text: "Ketuk Tautkan Perangkat → Scan QR code yang tampil" },
+                            { step: "5", text: "Koneksi akan terdeteksi otomatis dalam beberapa detik" },
+                          ].map((s) => (
+                            <div key={s.step} className="flex items-start gap-2.5">
+                              <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                {s.step}
+                              </span>
+                              <p className="text-[11px] text-muted-foreground leading-relaxed">{s.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 pt-2 border-t border-border/40">
+                          <Shield className="h-3 w-3 text-success" />
+                          <p className="text-[10px] text-muted-foreground">Koneksi end-to-end encrypted oleh WhatsApp</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Normal: gateway selection */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleSwitchGateway("mpwa")}
+                        className={`text-left rounded-xl border-2 p-4 transition-all ${
+                          gatewayType === "mpwa" ? "border-primary bg-primary/5 shadow-md" : "border-border bg-background hover:border-primary/30"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${gatewayType === "mpwa" ? "bg-primary/10" : "bg-muted"}`}>
+                            <Smartphone className={`h-5 w-5 ${gatewayType === "mpwa" ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-foreground">WASkolla - Nomor Admin Sekolah</p>
+                            <p className="text-[10px] text-muted-foreground">Gunakan WA Anda</p>
+                          </div>
+                          {gatewayType === "mpwa" && (
+                            <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                              <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          Menggunakan nomor WhatsApp sendiri. Perlu scan QR code untuk menghubungkan device Anda.
+                        </p>
+                      </button>
+
+                      {onesenderEnabled && (
+                        <button
+                          type="button"
+                          onClick={() => handleSwitchGateway("onesender")}
+                          className={`text-left rounded-xl border-2 p-4 transition-all ${
+                            gatewayType === "onesender" ? "border-primary bg-primary/5 shadow-md" : "border-border bg-background hover:border-primary/30"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${gatewayType === "onesender" ? "bg-primary/10" : "bg-muted"}`}>
+                              <MessageSquare className={`h-5 w-5 ${gatewayType === "onesender" ? "text-primary" : "text-muted-foreground"}`} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-foreground">WASkolla</p>
+                              <p className="text-[10px] text-muted-foreground">Sistem ATSkolla</p>
+                            </div>
+                            {gatewayType === "onesender" && (
+                              <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                                <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            Menggunakan layanan WhatsApp dari sistem ATSkolla. Tidak perlu scan QR.
+                          </p>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Connection Card — only for MPWA, unified (no duplicate) */}
+              {gatewayType === "mpwa" && (
                 <Card className="border-0 shadow-card overflow-hidden">
                   <div className="px-4 py-3 border-b border-border bg-muted/20">
                     <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -598,6 +611,7 @@ const WhatsAppSettings = () => {
                         disabled={mpwaConnected}
                       />
                     </div>
+
                     {mpwaConnected ? (
                       <ConnectedDeviceCard
                         mpwaSenderNumber={mpwaSenderNumber}
@@ -615,17 +629,20 @@ const WhatsAppSettings = () => {
                             <Badge className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/20">Offline</Badge>
                           </div>
                         </div>
+
                         {qrData && (
-                          <div className="flex flex-col items-center gap-2 py-2">
-                            <div className="rounded-xl border-2 border-primary/20 p-2 bg-white">
-                              <img src={qrData} alt="QR Code" className="w-40 h-40" />
+                          <div className="flex flex-col items-center gap-3 py-3">
+                            <div className="rounded-xl border-2 border-primary/20 p-3 bg-white relative overflow-hidden">
+                              {/* Scan line animation overlay */}
+                              <div className="absolute inset-0 pointer-events-none z-10">
+                                <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/60 to-transparent animate-[scanLine_2.5s_ease-in-out_infinite]" />
+                              </div>
+                              <img src={qrData} alt="QR Code" className="w-44 h-44 sm:w-56 sm:h-56 relative z-0" />
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                              <p className="text-[10px] text-primary font-medium">Menunggu koneksi...</p>
-                            </div>
+                            <ScanningAnimation />
                           </div>
                         )}
+
                         <Button
                           onClick={handleGenerateQr}
                           disabled={qrLoading || !mpwaSenderNumber.trim()}
@@ -638,171 +655,8 @@ const WhatsAppSettings = () => {
                     )}
                   </CardContent>
                 </Card>
-              </div>
-            ) : (
-              /* Normal layout with onesender enabled */
-              <Card className="border-0 shadow-card overflow-hidden">
-                <div className="px-4 py-3 border-b border-border bg-muted/20">
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Radio className="h-4 w-4 text-primary" />
-                    Pilih Gateway WhatsApp
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Pilih layanan pengiriman pesan WhatsApp yang ingin digunakan
-                  </p>
-                </div>
-                <CardContent className="p-4 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* WASkolla - Nomor Admin Sekolah — FIRST */}
-                    <button
-                      type="button"
-                      onClick={() => handleSwitchGateway("mpwa")}
-                      className={`text-left rounded-xl border-2 p-4 transition-all ${
-                        gatewayType === "mpwa"
-                          ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border bg-background hover:border-primary/30"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                          gatewayType === "mpwa" ? "bg-primary/10" : "bg-muted"
-                        }`}>
-                          <Smartphone className={`h-5 w-5 ${gatewayType === "mpwa" ? "text-primary" : "text-muted-foreground"}`} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-foreground">WASkolla - Nomor Admin Sekolah</p>
-                          <p className="text-[10px] text-muted-foreground">Gunakan WA Anda</p>
-                        </div>
-                        {gatewayType === "mpwa" && (
-                          <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                            <Zap className="h-3.5 w-3.5 text-primary-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        Menggunakan nomor WhatsApp sendiri. Perlu scan QR code untuk menghubungkan device Anda.
-                      </p>
-                    </button>
-
-                    {/* WASkolla (Sistem) — SECOND */}
-                    {onesenderEnabled && (
-                      <button
-                        type="button"
-                        onClick={() => handleSwitchGateway("onesender")}
-                        className={`text-left rounded-xl border-2 p-4 transition-all ${
-                          gatewayType === "onesender"
-                            ? "border-primary bg-primary/5 shadow-md"
-                            : "border-border bg-background hover:border-primary/30"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                            gatewayType === "onesender" ? "bg-primary/10" : "bg-muted"
-                          }`}>
-                            <MessageSquare className={`h-5 w-5 ${gatewayType === "onesender" ? "text-primary" : "text-muted-foreground"}`} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-foreground">WASkolla</p>
-                            <p className="text-[10px] text-muted-foreground">Sistem ATSkolla</p>
-                          </div>
-                          {gatewayType === "onesender" && (
-                            <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                              <Zap className="h-3.5 w-3.5 text-primary-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed">
-                          Menggunakan layanan WhatsApp dari sistem ATSkolla. Dikonfigurasi oleh admin, tidak perlu scan QR.
-                        </p>
-                      </button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* MPWA QR Scan Section */}
-            {gatewayType === "mpwa" && (
-              <Card className="border-0 shadow-card overflow-hidden">
-                <div className="px-4 py-3 border-b border-border bg-muted/20">
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <QrCode className="h-4 w-4 text-primary" />
-                    Koneksi WhatsApp Anda
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Masukkan nomor WhatsApp lalu scan QR code — device otomatis ditambahkan
-                  </p>
-                </div>
-                <CardContent className="p-4 space-y-4">
-                  {/* Phone Number Input */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Nomor WhatsApp Sekolah</Label>
-                    <Input
-                      value={mpwaSenderNumber}
-                      onChange={(e) => setMpwaSenderNumber(e.target.value)}
-                      placeholder="628812345678"
-                      className="h-10 bg-muted/30 focus:bg-background transition-colors"
-                      disabled={mpwaConnected}
-                    />
-                    <p className="text-[10px] text-muted-foreground">
-                      Masukkan nomor WhatsApp dengan format internasional (62xxx). Device akan otomatis ditambahkan saat generate QR.
-                    </p>
-                  </div>
-
-                  {/* ═══ Connected State — Premium Design ═══ */}
-                  {mpwaConnected ? (
-                    <ConnectedDeviceCard
-                      mpwaSenderNumber={mpwaSenderNumber}
-                      disconnecting={disconnecting}
-                      handleDisconnect={handleDisconnect}
-                    />
-                  ) : (
-                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                          <WifiOff className="h-4 w-4 text-amber-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground">Device Belum Terhubung</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            Masukkan nomor lalu klik Generate QR untuk scan
-                          </p>
-                        </div>
-                        <Badge className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/20">Offline</Badge>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* QR Code Display */}
-                  {qrData && !mpwaConnected && (
-                    <div className="flex flex-col items-center gap-3 py-4">
-                      <div className="rounded-xl border-2 border-primary/20 p-3 bg-white">
-                        <img src={qrData} alt="QR Code" className="w-52 h-52 sm:w-64 sm:h-64" />
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center max-w-xs">
-                        Buka WhatsApp → Menu → Perangkat Tertaut → Tautkan Perangkat → Scan QR di atas
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                        <p className="text-[11px] text-primary font-medium">Menunggu koneksi... (otomatis refresh)</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  {!mpwaConnected && (
-                    <Button
-                      onClick={handleGenerateQr}
-                      disabled={qrLoading || !mpwaSenderNumber.trim()}
-                      className="gradient-primary hover:opacity-90 shadow-md h-10 px-6 gap-2"
-                    >
-                      {qrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
-                      {qrData ? "Refresh QR Code" : "Generate QR Code"}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+              )}
+            </div>
 
             {gatewayType === "onesender" && (
               <Card className="border-0 shadow-card overflow-hidden">
@@ -831,13 +685,9 @@ const WhatsAppSettings = () => {
                   <Label className="text-xs font-semibold text-foreground">Target Pengiriman Otomatis</Label>
                   <p className="text-[10px] text-muted-foreground mb-2">Pilih tujuan pengiriman notifikasi saat scan absensi</p>
                   <Select value={deliveryTarget} onValueChange={setDeliveryTarget}>
-                    <SelectTrigger className="h-9 bg-background">
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger className="h-9 bg-background"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {DELIVERY_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))}
+                      {DELIVERY_OPTIONS.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </CardContent>
@@ -855,12 +705,7 @@ const WhatsAppSettings = () => {
                   <p className="text-[10px] text-muted-foreground">{tmpl.subtitle}</p>
                 </div>
                 <CardContent className="p-4">
-                  <Textarea
-                    rows={6}
-                    className="font-mono text-xs bg-muted/30 border-border/50 focus:bg-background transition-colors"
-                    value={tmpl.value}
-                    onChange={(e) => tmpl.setter(e.target.value)}
-                  />
+                  <Textarea rows={6} className="font-mono text-xs bg-muted/30 border-border/50 focus:bg-background transition-colors" value={tmpl.value} onChange={(e) => tmpl.setter(e.target.value)} />
                   <PlaceholderButtons placeholders={tmpl.placeholders} onInsert={(key) => tmpl.setter((prev: string) => prev + key)} />
                 </CardContent>
               </Card>
@@ -881,9 +726,7 @@ const WhatsAppSettings = () => {
                     <Link2 className="h-4 w-4 text-primary" />
                     ID Group WhatsApp per Kelas
                   </h3>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Masukkan ID Group WhatsApp untuk setiap kelas
-                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Masukkan ID Group WhatsApp untuk setiap kelas</p>
                 </div>
                 <Badge variant="secondary" className="text-[10px] gap-1">
                   <Wifi className="h-3 w-3 text-success" />
@@ -899,46 +742,20 @@ const WhatsAppSettings = () => {
                 ) : (
                   <div className="space-y-2.5">
                     {classes.map((cls) => (
-                      <div
-                        key={cls.id}
-                        className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${
-                          cls.wa_group_id
-                            ? "border-success/20 bg-success/[0.02]"
-                            : "border-border bg-background hover:border-primary/20"
-                        }`}
-                      >
-                        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
-                          cls.wa_group_id ? "bg-success/10" : "bg-muted"
-                        }`}>
-                          {cls.wa_group_id ? (
-                            <Wifi className="h-4 w-4 text-success" />
-                          ) : (
-                            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                          )}
+                      <div key={cls.id} className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${cls.wa_group_id ? "border-success/20 bg-success/[0.02]" : "border-border bg-background hover:border-primary/20"}`}>
+                        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${cls.wa_group_id ? "bg-success/10" : "bg-muted"}`}>
+                          {cls.wa_group_id ? <Wifi className="h-4 w-4 text-success" /> : <AlertCircle className="h-4 w-4 text-muted-foreground" />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="text-sm font-semibold text-foreground">{cls.name}</span>
-                            <Badge className={`text-[9px] px-1.5 py-0 border-0 ${
-                              cls.wa_group_id ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
-                            }`}>
+                            <Badge className={`text-[9px] px-1.5 py-0 border-0 ${cls.wa_group_id ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                               {cls.wa_group_id ? "Terhubung" : "Belum diisi"}
                             </Badge>
                           </div>
-                          <Input
-                            placeholder="120363XXXXXXXXX@g.us"
-                            defaultValue={cls.wa_group_id || ""}
-                            onChange={(e) => setEditingGroupIds(prev => ({ ...prev, [cls.id]: e.target.value }))}
-                            className="text-xs h-8 bg-muted/30 focus:bg-background transition-colors"
-                          />
+                          <Input placeholder="120363XXXXXXXXX@g.us" defaultValue={cls.wa_group_id || ""} onChange={(e) => setEditingGroupIds(prev => ({ ...prev, [cls.id]: e.target.value }))} className="text-xs h-8 bg-muted/30 focus:bg-background transition-colors" />
                         </div>
-                        <Button
-                          size="sm"
-                          variant={cls.wa_group_id ? "outline" : "default"}
-                          className={`shrink-0 h-8 w-8 p-0 ${!cls.wa_group_id ? "gradient-primary hover:opacity-90" : ""}`}
-                          disabled={savingGroupId === cls.id}
-                          onClick={() => handleSaveClassGroupId(cls.id, cls.name)}
-                        >
+                        <Button size="sm" variant={cls.wa_group_id ? "outline" : "default"} className={`shrink-0 h-8 w-8 p-0 ${!cls.wa_group_id ? "gradient-primary hover:opacity-90" : ""}`} disabled={savingGroupId === cls.id} onClick={() => handleSaveClassGroupId(cls.id, cls.name)}>
                           {savingGroupId === cls.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                         </Button>
                       </div>
@@ -951,7 +768,6 @@ const WhatsAppSettings = () => {
 
           {/* ═══════ BROADCAST TAB ═══════ */}
           <TabsContent value="broadcast" className="mt-4 space-y-4">
-            {/* Broadcast to Group */}
             <Card className="border-0 shadow-card overflow-hidden">
               <div className="px-4 py-3 border-b border-border bg-muted/20">
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -964,113 +780,66 @@ const WhatsAppSettings = () => {
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Pilih Kelas</Label>
                   <Select value={selectedClass} onValueChange={setSelectedClass}>
-                    <SelectTrigger className="h-9 bg-background">
-                      <SelectValue placeholder="Pilih kelas..." />
-                    </SelectTrigger>
+                    <SelectTrigger className="h-9 bg-background"><SelectValue placeholder="Pilih kelas..." /></SelectTrigger>
                     <SelectContent>
                       {classes.map((c) => (
                         <SelectItem key={c.name} value={c.name}>
                           <span className="flex items-center gap-2">
                             {c.name}
-                            {c.wa_group_id ? (
-                              <Badge className="bg-success/10 text-success border-0 text-[9px] px-1 py-0">Siap</Badge>
-                            ) : (
-                              <Badge className="bg-muted text-muted-foreground border-0 text-[9px] px-1 py-0">Belum</Badge>
-                            )}
+                            {c.wa_group_id ? <Badge className="bg-success/10 text-success border-0 text-[9px] px-1 py-0">Siap</Badge> : <Badge className="bg-muted text-muted-foreground border-0 text-[9px] px-1 py-0">Belum</Badge>}
                           </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Isi Pesan</Label>
-                  <Textarea
-                    value={groupMessage}
-                    onChange={(e) => setGroupMessage(e.target.value)}
-                    rows={4}
-                    placeholder="Ketik pesan yang akan dikirim ke group kelas..."
-                    className="bg-muted/30 focus:bg-background transition-colors"
-                  />
+                  <Textarea value={groupMessage} onChange={(e) => setGroupMessage(e.target.value)} rows={4} placeholder="Ketik pesan yang akan dikirim ke group kelas..." className="bg-muted/30 focus:bg-background transition-colors" />
                 </div>
-
-                <Button
-                  onClick={handleSendToGroup}
-                  disabled={sendingGroup || !selectedClass || !groupMessage.trim()}
-                  className="gradient-primary hover:opacity-90 shadow-md h-10 px-6"
-                >
+                <Button onClick={handleSendToGroup} disabled={sendingGroup || !selectedClass || !groupMessage.trim()} className="gradient-primary hover:opacity-90 shadow-md h-10 px-6">
                   {sendingGroup ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                   Kirim ke Group
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Broadcast to Parents (Wali Murid) */}
             <Card className="border-0 shadow-card overflow-hidden">
               <div className="px-4 py-3 border-b border-border bg-muted/20">
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <UserCheck className="h-4 w-4 text-primary" />
                   Kirim Pesan ke Wali Murid
                 </h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Broadcast pesan ke semua wali murid per kelas (pesan dikirim satu-satu ke nomor masing-masing)
-                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Broadcast pesan ke semua wali murid per kelas</p>
               </div>
               <CardContent className="p-4 space-y-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Pilih Kelas</Label>
                   <Select value={parentBroadcastClass} onValueChange={setParentBroadcastClass}>
-                    <SelectTrigger className="h-9 bg-background">
-                      <SelectValue placeholder="Pilih kelas..." />
-                    </SelectTrigger>
+                    <SelectTrigger className="h-9 bg-background"><SelectValue placeholder="Pilih kelas..." /></SelectTrigger>
                     <SelectContent>
-                      {classes.map((c) => (
-                        <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                      ))}
+                      {classes.map((c) => (<SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Isi Pesan</Label>
-                  <Textarea
-                    value={parentMessage}
-                    onChange={(e) => setParentMessage(e.target.value)}
-                    rows={4}
-                    placeholder="Ketik pesan untuk wali murid... Gunakan {parent_name} untuk nama wali, {student_name} untuk nama siswa, {class} untuk kelas"
-                    className="bg-muted/30 focus:bg-background transition-colors"
-                  />
+                  <Textarea value={parentMessage} onChange={(e) => setParentMessage(e.target.value)} rows={4} placeholder="Ketik pesan untuk wali murid... Gunakan {parent_name} untuk nama wali, {student_name} untuk nama siswa" className="bg-muted/30 focus:bg-background transition-colors" />
                   <div className="flex flex-wrap gap-1.5 mt-1">
-                    {[
-                      { key: "{parent_name}", label: "Nama Wali" },
-                      { key: "{student_name}", label: "Nama Siswa" },
-                      { key: "{class}", label: "Kelas" },
-                    ].map(p => (
-                      <button
-                        key={p.key}
-                        type="button"
-                        className="rounded-full bg-primary/5 border border-primary/10 px-2.5 py-1 text-[10px] text-foreground transition hover:bg-primary/10 hover:border-primary/20 font-medium"
-                        onClick={() => setParentMessage(prev => prev + p.key)}
-                      >
+                    {[{ key: "{parent_name}", label: "Nama Wali" }, { key: "{student_name}", label: "Nama Siswa" }, { key: "{class}", label: "Kelas" }].map(p => (
+                      <button key={p.key} type="button" className="rounded-full bg-primary/5 border border-primary/10 px-2.5 py-1 text-[10px] text-foreground transition hover:bg-primary/10 hover:border-primary/20 font-medium" onClick={() => setParentMessage(prev => prev + p.key)}>
                         {p.key} <span className="text-muted-foreground">({p.label})</span>
                       </button>
                     ))}
                   </div>
                 </div>
-
                 {parentSendProgress && (
                   <div className="flex items-center gap-2 text-xs text-primary bg-primary/5 rounded-lg p-2">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     {parentSendProgress}
                   </div>
                 )}
-
-                <Button
-                  onClick={handleSendToParents}
-                  disabled={sendingParent || !parentBroadcastClass || !parentMessage.trim()}
-                  className="gradient-primary hover:opacity-90 shadow-md h-10 px-6"
-                >
+                <Button onClick={handleSendToParents} disabled={sendingParent || !parentBroadcastClass || !parentMessage.trim()} className="gradient-primary hover:opacity-90 shadow-md h-10 px-6">
                   {sendingParent ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserCheck className="mr-2 h-4 w-4" />}
                   Kirim ke Wali Murid
                 </Button>
@@ -1102,30 +871,15 @@ const WhatsAppSettings = () => {
                 ) : (
                   <div className="max-h-[500px] space-y-2 overflow-y-auto">
                     {logs.map((log: any) => (
-                      <div
-                        key={log.id}
-                        className={`flex items-start gap-3 rounded-xl border p-3 transition-all ${
-                          log.status === "sent"
-                            ? "border-success/15 bg-success/[0.02]"
-                            : "border-destructive/15 bg-destructive/[0.02]"
-                        }`}
-                      >
-                        <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center ${
-                          log.status === "sent" ? "bg-success/10" : "bg-destructive/10"
-                        }`}>
-                          {log.status === "sent" ? (
-                            <Send className="h-4 w-4 text-success" />
-                          ) : (
-                            <AlertCircle className="h-4 w-4 text-destructive" />
-                          )}
+                      <div key={log.id} className={`flex items-start gap-3 rounded-xl border p-3 transition-all ${log.status === "sent" ? "border-success/15 bg-success/[0.02]" : "border-destructive/15 bg-destructive/[0.02]"}`}>
+                        <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center ${log.status === "sent" ? "bg-success/10" : "bg-destructive/10"}`}>
+                          {log.status === "sent" ? <Send className="h-4 w-4 text-success" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             {log.student_name && <span className="text-xs font-semibold text-foreground">{log.student_name}</span>}
                             <Badge variant="secondary" className="text-[9px] px-1.5 py-0">{log.message_type}</Badge>
-                            <Badge className={`text-[9px] px-1.5 py-0 border-0 ${
-                              log.status === "sent" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                            }`}>
+                            <Badge className={`text-[9px] px-1.5 py-0 border-0 ${log.status === "sent" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
                               {log.status === "sent" ? "Terkirim" : "Gagal"}
                             </Badge>
                           </div>

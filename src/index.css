@@ -151,3 +151,10 @@
   0%, 100% { opacity: 0.4; transform: scaleY(0.7); }
   50% { opacity: 1; transform: scaleY(1); }
 }
+
+@keyframes scanLine {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}

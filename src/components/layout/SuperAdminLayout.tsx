@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings } from "lucide-react";
+import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -33,6 +33,7 @@ const navItems = [
   { title: "Testimoni & Sekolah", url: "/super-admin/testimonials", icon: School, group: "content" },
   { title: "Halaman Fitur", url: "/super-admin/fitur", icon: Presentation, group: "content" },
   { title: "Halaman Penawaran", url: "/super-admin/penawaran", icon: Globe, group: "content" },
+  { title: "Backup & Migrasi", url: "/super-admin/backup", icon: Database, group: "management" },
 ];
 
 const groups = [
