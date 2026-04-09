@@ -70,6 +70,56 @@ serve(async (req) => {
       }
     };
 
+    // ═══ ADD DEVICE + GENERATE QR (combined) ═══
+    if (action === 'add-device-and-qr') {
+      if (!finalSender) {
+        return new Response(JSON.stringify({ error: 'Nomor WhatsApp (sender) harus diisi terlebih dahulu' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Save sender to school_integrations
+      await supabaseAdmin
+        .from('school_integrations')
+        .update({ mpwa_sender: finalSender, gateway_type: 'mpwa' })
+        .eq('school_id', school_id)
+        .eq('integration_type', 'onesender');
+
+      // Step 1: Add device on MPWA
+      console.log(`Adding device: ${finalSender} with api_key: ${finalApiKey.substring(0, 8)}...`);
+      try {
+        const addRes = await fetch('https://app.ayopintar.com/add-device', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: finalApiKey, device: finalSender }),
+        });
+        const addData = await safeJson(addRes);
+        console.log('Add device result:', JSON.stringify(addData));
+      } catch (e) {
+        console.error('Add device error (non-fatal):', e.message);
+        // Continue to generate QR even if add-device fails (device may already exist)
+      }
+
+      // Step 2: Generate QR
+      const qrUrl = `https://app.ayopintar.com/generate-qr?api_key=${encodeURIComponent(finalApiKey)}&device=${encodeURIComponent(finalSender)}`;
+      const res = await fetch(qrUrl, { method: 'GET' });
+      const data = await safeJson(res);
+
+      // Update connected status
+      if (data.msg === 'Device already connected!' || data.msg === 'Perangkat sudah terhubung!' || data.status === true) {
+        await supabaseAdmin
+          .from('school_integrations')
+          .update({ mpwa_connected: true })
+          .eq('school_id', school_id)
+          .eq('integration_type', 'onesender');
+      }
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (action === 'generate-qr') {
       if (!finalSender) {
         return new Response(JSON.stringify({ error: 'Nomor WhatsApp (sender) harus diisi terlebih dahulu' }), {

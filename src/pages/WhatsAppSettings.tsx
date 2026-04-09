@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MessageSquare, Save, Loader2, Send, History, Users, Power, Clock, Link2,
   CheckCircle2, AlertCircle, FileText, Megaphone, QrCode, Wifi, WifiOff,
-  Smartphone, Radio, UserCheck,
+  Smartphone, Radio, UserCheck, Shield, Zap, Signal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -78,9 +78,10 @@ const WhatsAppSettings = () => {
   const [integrationId, setIntegrationId] = useState<string | null>(null);
   const [waEnabled, setWaEnabled] = useState(true);
   const [deliveryTarget, setDeliveryTarget] = useState("parent_only");
-  const [gatewayType, setGatewayType] = useState("onesender");
+  const [gatewayType, setGatewayType] = useState("mpwa");
   const [mpwaConnected, setMpwaConnected] = useState(false);
   const [mpwaSenderNumber, setMpwaSenderNumber] = useState("");
+  const [onesenderEnabled, setOnesenderEnabled] = useState(true);
 
   const [classes, setClasses] = useState<{ id: string; name: string; wa_group_id: string | null }[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -109,7 +110,7 @@ const WhatsAppSettings = () => {
   useEffect(() => {
     if (!schoolId) return;
     const fetchData = async () => {
-      const [intRes, classRes] = await Promise.all([
+      const [intRes, classRes, platformRes] = await Promise.all([
         supabase
           .from("school_integrations")
           .select("*")
@@ -117,7 +118,11 @@ const WhatsAppSettings = () => {
           .eq("integration_type", "onesender")
           .maybeSingle(),
         supabase.from("classes").select("id, name, wa_group_id").eq("school_id", schoolId).order("name"),
+        supabase.from("platform_settings").select("key, value").eq("key", "onesender_enabled").maybeSingle(),
       ]);
+
+      const osEnabled = platformRes.data?.value !== "false";
+      setOnesenderEnabled(osEnabled);
 
       if (intRes.data) {
         const d = intRes.data as any;
@@ -127,9 +132,14 @@ const WhatsAppSettings = () => {
         setArriveTemplate(d.attendance_arrive_template || DEFAULT_ARRIVE);
         setDepartTemplate(d.attendance_depart_template || DEFAULT_DEPART);
         setGroupTemplate(d.attendance_group_template || DEFAULT_GROUP);
-        setGatewayType(d.gateway_type || "onesender");
+        // If onesender is disabled but school is set to onesender, auto-switch to mpwa
+        const gt = d.gateway_type || "onesender";
+        setGatewayType(!osEnabled && gt === "onesender" ? "mpwa" : gt);
         setMpwaConnected(d.mpwa_connected || false);
         setMpwaSenderNumber(d.mpwa_sender || "");
+      } else {
+        // No integration yet, default to mpwa
+        setGatewayType("mpwa");
       }
 
       setClasses(classRes.data || []);
@@ -242,24 +252,26 @@ const WhatsAppSettings = () => {
     }, 5000);
   }, [schoolId, mpwaSenderNumber]);
 
+  // Auto add-device + generate QR
   const handleGenerateQr = async () => {
     if (!schoolId) return;
-    if (!mpwaSenderNumber.trim()) {
+    const cleanNumber = mpwaSenderNumber.replace(/\D/g, "");
+    if (!cleanNumber) {
       toast.error("Masukkan nomor WhatsApp yang akan digunakan terlebih dahulu");
       return;
     }
     setQrLoading(true);
     setQrData(null);
     try {
+      // Use combined add-device-and-qr action
       const res = await supabase.functions.invoke("mpwa-qr", {
-        body: { action: "generate-qr", school_id: schoolId, sender: mpwaSenderNumber.replace(/\D/g, "") },
+        body: { action: "add-device-and-qr", school_id: schoolId, sender: cleanNumber },
       });
       const data = res.data as any;
       if (data?.error) {
         toast.error(data.error);
       } else if (data?.qrcode) {
         setQrData(data.qrcode);
-        // Start auto-polling for connection
         startConnectionPolling();
       } else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || data?.status === true) {
         setMpwaConnected(true);
@@ -331,7 +343,6 @@ const WhatsAppSettings = () => {
     setParentSendProgress("Memuat data siswa...");
 
     try {
-      // Fetch students for the selected class
       const { data: studentData, error: studentErr } = await supabase
         .from("students")
         .select("name, parent_phone, parent_name")
@@ -341,7 +352,6 @@ const WhatsAppSettings = () => {
       if (studentErr) { toast.error("Gagal memuat data siswa: " + studentErr.message); setSendingParent(false); return; }
       if (!studentData || studentData.length === 0) { toast.error("Tidak ada siswa di kelas ini"); setSendingParent(false); return; }
 
-      // Get unique parent phones
       const uniqueParents = new Map<string, { phone: string; name: string; studentNames: string[] }>();
       for (const s of studentData) {
         if (!s.parent_phone) continue;
@@ -387,7 +397,6 @@ const WhatsAppSettings = () => {
         } catch {
           failed++;
         }
-        // Small delay between messages to avoid rate limiting
         await new Promise(r => setTimeout(r, 500));
       }
 
@@ -484,7 +493,7 @@ const WhatsAppSettings = () => {
                 </p>
               </div>
               <CardContent className="p-4 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={`grid grid-cols-1 ${onesenderEnabled ? "sm:grid-cols-2" : ""} gap-3`}>
                   {/* WASkolla Scan Sendiri — FIRST */}
                   <button
                     type="button"
@@ -506,7 +515,9 @@ const WhatsAppSettings = () => {
                         <p className="text-[10px] text-muted-foreground">Gunakan WA Anda</p>
                       </div>
                       {gatewayType === "mpwa" && (
-                        <CheckCircle2 className="h-5 w-5 text-primary ml-auto" />
+                        <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                          <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+                        </div>
                       )}
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -514,34 +525,38 @@ const WhatsAppSettings = () => {
                     </p>
                   </button>
 
-                  {/* WASkolla (Sistem) — SECOND */}
-                  <button
-                    type="button"
-                    onClick={() => handleSwitchGateway("onesender")}
-                    className={`text-left rounded-xl border-2 p-4 transition-all ${
-                      gatewayType === "onesender"
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border bg-background hover:border-primary/30"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                        gatewayType === "onesender" ? "bg-primary/10" : "bg-muted"
-                      }`}>
-                        <MessageSquare className={`h-5 w-5 ${gatewayType === "onesender" ? "text-primary" : "text-muted-foreground"}`} />
+                  {/* WASkolla (Sistem) — SECOND — only show if enabled */}
+                  {onesenderEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchGateway("onesender")}
+                      className={`text-left rounded-xl border-2 p-4 transition-all ${
+                        gatewayType === "onesender"
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border bg-background hover:border-primary/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                          gatewayType === "onesender" ? "bg-primary/10" : "bg-muted"
+                        }`}>
+                          <MessageSquare className={`h-5 w-5 ${gatewayType === "onesender" ? "text-primary" : "text-muted-foreground"}`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-foreground">WASkolla</p>
+                          <p className="text-[10px] text-muted-foreground">Sistem ATSkolla</p>
+                        </div>
+                        {gatewayType === "onesender" && (
+                          <div className="ml-auto h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                            <Zap className="h-3.5 w-3.5 text-primary-foreground" />
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-foreground">WASkolla</p>
-                        <p className="text-[10px] text-muted-foreground">Sistem ATSkolla</p>
-                      </div>
-                      {gatewayType === "onesender" && (
-                        <CheckCircle2 className="h-5 w-5 text-primary ml-auto" />
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Menggunakan layanan WhatsApp dari sistem ATSkolla. Dikonfigurasi oleh admin, tidak perlu scan QR.
-                    </p>
-                  </button>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        Menggunakan layanan WhatsApp dari sistem ATSkolla. Dikonfigurasi oleh admin, tidak perlu scan QR.
+                      </p>
+                    </button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -555,7 +570,7 @@ const WhatsAppSettings = () => {
                     Koneksi WhatsApp Anda
                   </h3>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Masukkan nomor WhatsApp Anda lalu scan QR code untuk menghubungkan
+                    Masukkan nomor WhatsApp lalu scan QR code — device otomatis ditambahkan
                   </p>
                 </div>
                 <CardContent className="p-4 space-y-4">
@@ -570,40 +585,62 @@ const WhatsAppSettings = () => {
                       disabled={mpwaConnected}
                     />
                     <p className="text-[10px] text-muted-foreground">
-                      Masukkan nomor WhatsApp dengan format internasional (62xxx). Nomor ini yang akan digunakan untuk mengirim pesan.
+                      Masukkan nomor WhatsApp dengan format internasional (62xxx). Device akan otomatis ditambahkan saat generate QR.
                     </p>
                   </div>
 
-                  {/* Connection Status — Beautiful Design */}
+                  {/* ═══ Connected State — Premium Design ═══ */}
                   {mpwaConnected ? (
-                    <div className="rounded-2xl border-2 border-success/30 bg-gradient-to-br from-success/5 to-success/10 p-5">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <div className="h-14 w-14 rounded-2xl bg-success/15 flex items-center justify-center">
-                            <Wifi className="h-7 w-7 text-success" />
+                    <div className="rounded-2xl border border-border bg-gradient-to-br from-background via-background to-primary/5 p-5 relative overflow-hidden">
+                      {/* Decorative background elements */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                      <div className="absolute bottom-0 left-0 w-20 h-20 bg-success/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+                      
+                      <div className="relative flex items-start gap-4">
+                        <div className="relative shrink-0">
+                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/10 to-success/10 border border-primary/10 flex items-center justify-center">
+                            <Signal className="h-7 w-7 text-primary" />
                           </div>
-                          <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-success flex items-center justify-center shadow-lg">
-                            <CheckCircle2 className="h-3 w-3 text-white" />
+                          {/* Live pulse indicator */}
+                          <div className="absolute -bottom-0.5 -right-0.5">
+                            <span className="relative flex h-4 w-4">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60"></span>
+                              <span className="relative inline-flex rounded-full h-4 w-4 bg-success border-2 border-background"></span>
+                            </span>
                           </div>
                         </div>
+                        
                         <div className="flex-1 min-w-0">
-                          <p className="text-base font-bold text-foreground">Device Terhubung ✅</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            Nomor <span className="font-semibold text-foreground">{mpwaSenderNumber}</span> sudah aktif dan siap mengirim pesan
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-base font-bold text-foreground">Perangkat Aktif</p>
+                            <Badge className="bg-success/10 text-success border-success/20 text-[9px] px-2 py-0 font-semibold uppercase tracking-wider">
+                              Live
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-mono font-semibold text-foreground">{mpwaSenderNumber}</span>
                           </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="relative flex h-2.5 w-2.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
-                            </span>
-                            <span className="text-[10px] font-semibold text-success uppercase tracking-wider">Online</span>
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            WhatsApp terhubung dan siap mengirim pesan otomatis
+                          </p>
+
+                          <div className="flex items-center gap-4 mt-3">
+                            <div className="flex items-center gap-1.5">
+                              <Shield className="h-3.5 w-3.5 text-primary/60" />
+                              <span className="text-[10px] text-muted-foreground">Terenkripsi</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Zap className="h-3.5 w-3.5 text-primary/60" />
+                              <span className="text-[10px] text-muted-foreground">Siap Kirim</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2 mt-4 pt-4 border-t border-success/20">
-                        <Button variant="destructive" size="sm" onClick={handleDisconnect} disabled={disconnecting} className="gap-1.5">
+
+                      <div className="relative flex gap-2 mt-4 pt-4 border-t border-border/50">
+                        <Button variant="destructive" size="sm" onClick={handleDisconnect} disabled={disconnecting} className="gap-1.5 h-8 text-xs">
                           {disconnecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <WifiOff className="h-3.5 w-3.5" />}
-                          Disconnect
+                          Putuskan Koneksi
                         </Button>
                       </div>
                     </div>
@@ -660,7 +697,7 @@ const WhatsAppSettings = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      <MessageSquare className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground">WASkolla Aktif</p>
@@ -737,7 +774,7 @@ const WhatsAppSettings = () => {
                   </p>
                 </div>
                 <Badge variant="secondary" className="text-[10px] gap-1">
-                  <CheckCircle2 className="h-3 w-3 text-success" />
+                  <Wifi className="h-3 w-3 text-success" />
                   {connectedCount}/{classes.length} terhubung
                 </Badge>
               </div>
@@ -762,7 +799,7 @@ const WhatsAppSettings = () => {
                           cls.wa_group_id ? "bg-success/10" : "bg-muted"
                         }`}>
                           {cls.wa_group_id ? (
-                            <CheckCircle2 className="h-4 w-4 text-success" />
+                            <Wifi className="h-4 w-4 text-success" />
                           ) : (
                             <AlertCircle className="h-4 w-4 text-muted-foreground" />
                           )}
@@ -965,7 +1002,7 @@ const WhatsAppSettings = () => {
                           log.status === "sent" ? "bg-success/10" : "bg-destructive/10"
                         }`}>
                           {log.status === "sent" ? (
-                            <CheckCircle2 className="h-4 w-4 text-success" />
+                            <Send className="h-4 w-4 text-success" />
                           ) : (
                             <AlertCircle className="h-4 w-4 text-destructive" />
                           )}
