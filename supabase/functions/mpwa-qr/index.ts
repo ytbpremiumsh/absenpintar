@@ -6,11 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const MPWA_BASE = 'https://app.ayopintar.com';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { action, school_id, sender, number } = await req.json();
+    const { action, school_id, sender } = await req.json();
 
     if (!action || !school_id) {
       return new Response(JSON.stringify({ error: 'action and school_id are required' }), {
@@ -24,7 +26,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // API Key: first check school_integrations, then platform_settings
+    // Resolve API Key: school_integrations first, then platform_settings
     let finalApiKey = '';
     const { data: integration } = await supabaseAdmin
       .from('school_integrations')
@@ -43,7 +45,6 @@ serve(async (req) => {
         .select('key, value')
         .eq('key', 'mpwa_platform_api_key')
         .maybeSingle();
-
       if (platformSettings?.value) {
         finalApiKey = platformSettings.value;
       }
@@ -56,10 +57,9 @@ serve(async (req) => {
       });
     }
 
-    // Sender: from request body or from school_integrations
-    let finalSender = sender || integration?.mpwa_sender || '';
+    const finalSender = sender || integration?.mpwa_sender || '';
 
-    // Helper to safely parse JSON from external API
+    // Safe JSON parser
     const safeJson = async (res: Response) => {
       const text = await res.text();
       try {
@@ -70,8 +70,14 @@ serve(async (req) => {
       }
     };
 
-    // ═══ ADD DEVICE + GENERATE QR (combined) ═══
-    if (action === 'add-device-and-qr') {
+    // Helper: check if response means "already connected"
+    const isConnected = (data: any) =>
+      data?.msg === 'Device already connected!' ||
+      data?.msg === 'Perangkat sudah terhubung!' ||
+      (data?.status === true && !data?.qrcode);
+
+    // ═══ CONNECT: Register device + Generate QR (one-click) ═══
+    if (action === 'connect') {
       if (!finalSender) {
         return new Response(JSON.stringify({ error: 'Nomor WhatsApp (sender) harus diisi terlebih dahulu' }), {
           status: 400,
@@ -86,28 +92,29 @@ serve(async (req) => {
         .eq('school_id', school_id)
         .eq('integration_type', 'onesender');
 
-      // Step 1: Add device on MPWA
-      console.log(`Adding device: ${finalSender} with api_key: ${finalApiKey.substring(0, 8)}...`);
-      try {
-        const addRes = await fetch('https://app.ayopintar.com/add-device', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ api_key: finalApiKey, device: finalSender }),
-        });
-        const addData = await safeJson(addRes);
-        console.log('Add device result:', JSON.stringify(addData));
-      } catch (e) {
-        console.error('Add device error (non-fatal):', e.message);
-        // Continue to generate QR even if add-device fails (device may already exist)
+      // Step 1: Register device via API (try multiple endpoint patterns)
+      console.log(`Registering device: ${finalSender}`);
+      for (const endpoint of ['/api/add-device', '/add-device']) {
+        try {
+          const addRes = await fetch(`${MPWA_BASE}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: finalApiKey, device: finalSender }),
+          });
+          const addData = await safeJson(addRes);
+          console.log(`${endpoint} result:`, JSON.stringify(addData));
+          if (addData.status !== false) break; // success, stop trying
+        } catch (e) {
+          console.error(`${endpoint} error (non-fatal):`, e.message);
+        }
       }
 
-      // Step 2: Generate QR
-      const qrUrl = `https://app.ayopintar.com/generate-qr?api_key=${encodeURIComponent(finalApiKey)}&device=${encodeURIComponent(finalSender)}`;
+      // Step 2: Generate QR code
+      const qrUrl = `${MPWA_BASE}/generate-qr?api_key=${encodeURIComponent(finalApiKey)}&device=${encodeURIComponent(finalSender)}`;
       const res = await fetch(qrUrl, { method: 'GET' });
       const data = await safeJson(res);
 
-      // Update connected status
-      if (data.msg === 'Device already connected!' || data.msg === 'Perangkat sudah terhubung!' || data.status === true) {
+      if (isConnected(data)) {
         await supabaseAdmin
           .from('school_integrations')
           .update({ mpwa_connected: true })
@@ -120,27 +127,20 @@ serve(async (req) => {
       });
     }
 
-    if (action === 'generate-qr') {
+    // ═══ POLL: Check connection status via QR endpoint ═══
+    if (action === 'poll-status') {
       if (!finalSender) {
-        return new Response(JSON.stringify({ error: 'Nomor WhatsApp (sender) harus diisi terlebih dahulu' }), {
+        return new Response(JSON.stringify({ error: 'Sender tidak ditemukan' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      // Save sender to school_integrations
-      await supabaseAdmin
-        .from('school_integrations')
-        .update({ mpwa_sender: finalSender })
-        .eq('school_id', school_id)
-        .eq('integration_type', 'onesender');
-
-      const qrUrl = `https://app.ayopintar.com/generate-qr?api_key=${encodeURIComponent(finalApiKey)}&device=${encodeURIComponent(finalSender)}`;
+      const qrUrl = `${MPWA_BASE}/generate-qr?api_key=${encodeURIComponent(finalApiKey)}&device=${encodeURIComponent(finalSender)}`;
       const res = await fetch(qrUrl, { method: 'GET' });
       const data = await safeJson(res);
 
-      // Update connected status
-      if (data.msg === 'Device already connected!' || data.msg === 'Perangkat sudah terhubung!' || data.status === true) {
+      if (isConnected(data)) {
         await supabaseAdmin
           .from('school_integrations')
           .update({ mpwa_connected: true })
@@ -153,6 +153,7 @@ serve(async (req) => {
       });
     }
 
+    // ═══ DISCONNECT ═══
     if (action === 'disconnect') {
       if (!finalSender) {
         return new Response(JSON.stringify({ error: 'Sender tidak ditemukan' }), {
@@ -161,7 +162,7 @@ serve(async (req) => {
         });
       }
 
-      const res = await fetch('https://app.ayopintar.com/logout-device', {
+      const res = await fetch(`${MPWA_BASE}/logout-device`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ api_key: finalApiKey, sender: finalSender }),
@@ -174,24 +175,6 @@ serve(async (req) => {
         .eq('school_id', school_id)
         .eq('integration_type', 'onesender');
 
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (action === 'check-number') {
-      if (!finalSender || !number) {
-        return new Response(JSON.stringify({ error: 'sender and number are required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const res = await fetch('https://app.ayopintar.com/check-number', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ api_key: finalApiKey, sender: finalSender, number }),
-      });
-      const data = await safeJson(res);
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
