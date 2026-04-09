@@ -285,7 +285,7 @@ const WhatsAppSettings = () => {
           body: { action: "poll-status", school_id: schoolId, sender: mpwaSenderNumber.replace(/\D/g, "") },
         });
         const data = res.data as any;
-        if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || (data?.status === true && !data?.qrcode)) {
+        if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
           setMpwaConnected(true); setQrData(null);
           toast.success("🎉 Device berhasil terhubung!");
           if (pollingRef.current) clearInterval(pollingRef.current);
@@ -307,11 +307,11 @@ const WhatsAppSettings = () => {
       if (data?.error) { toast.error(data.error); }
       else if (data?.qrcode) { setQrData(data.qrcode); startConnectionPolling(); toast.success("QR Code berhasil dibuat! Scan dengan WhatsApp Anda"); }
       else if (data?.img) { setQrData(data.img); startConnectionPolling(); toast.success("QR Code berhasil dibuat! Scan dengan WhatsApp Anda"); }
-      else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || (data?.status === true && !data?.qrcode)) {
+      else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
         setMpwaConnected(true); toast.success("Device sudah terhubung!");
       } else if (data?.msg === "Perangkat tidak ditemukan!" || data?.msg?.includes("tidak ditemukan")) {
-        toast.error("Perangkat belum terdaftar di sistem MPWA. Pastikan API Key benar dan coba lagi, atau hubungi administrator.");
-      } else { toast.error(data?.msg || "Gagal menghubungkan device. Pastikan API Key dan nomor benar."); }
+        toast.error("Perangkat belum terdaftar di MPWA. Hubungi Super Admin untuk mendaftarkan nomor ini di panel MPWA terlebih dahulu.");
+      } else { toast.error(data?.msg || "Gagal menghubungkan device."); }
     } catch (err: any) { toast.error("Gagal: " + err.message); }
     setQrLoading(false);
   };
