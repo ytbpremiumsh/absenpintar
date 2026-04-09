@@ -662,14 +662,17 @@ const WhatsAppSettings = () => {
                           </div>
                         )}
 
-                        <Button
-                          onClick={handleGenerateQr}
-                          disabled={qrLoading || !mpwaSenderNumber.trim()}
-                          className="gradient-primary hover:opacity-90 shadow-md h-9 px-5 gap-2 w-full text-xs"
-                        >
-                          {qrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
-                          {qrData ? "Refresh QR" : "Generate QR Code"}
-                        </Button>
+                        {qrData && (
+                          <Button
+                            onClick={handleGenerateQr}
+                            disabled={qrLoading}
+                            variant="outline"
+                            className="h-8 px-4 gap-1.5 w-full text-xs"
+                          >
+                            {qrLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
+                            Refresh QR
+                          </Button>
+                        )}
                       </>
                     )}
                   </CardContent>
