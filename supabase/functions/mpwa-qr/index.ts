@@ -62,8 +62,7 @@ serve(async (req) => {
 
     const isConnected = (data: any) =>
       data?.msg === 'Device already connected!' ||
-      data?.msg === 'Perangkat sudah terhubung!' ||
-      (data?.status === true && !data?.qrcode);
+      data?.msg === 'Perangkat sudah terhubung!';
 
     const markConnected = async (connected: boolean) => {
       await supabaseAdmin.from('school_integrations')
