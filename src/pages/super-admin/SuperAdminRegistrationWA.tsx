@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2 } from "lucide-react";
+import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2, Power } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ const SuperAdminRegistrationWA = () => {
     wa_api_key: "",
     wa_registration_message: "",
     mpwa_platform_api_key: "",
+    onesender_enabled: "true",
   });
 
   useEffect(() => {
@@ -35,7 +36,7 @@ const SuperAdminRegistrationWA = () => {
       .select("key, value")
       .in("key", [
         "wa_registration_enabled", "wa_api_url", "wa_api_key", "wa_registration_message",
-        "mpwa_platform_api_key",
+        "mpwa_platform_api_key", "onesender_enabled",
       ]);
 
     const map: Record<string, string> = {};
@@ -85,14 +86,11 @@ const SuperAdminRegistrationWA = () => {
       };
 
       if (activeTab === "mpwa") {
-        body.gateway_type = "mpwa";
-        // For MPWA test, we need a sender - use testPhone as both sender and recipient for testing
         toast.error("Untuk tes MPWA, gunakan dashboard sekolah yang sudah scan QR. API Key yang disimpan di sini hanya sebagai konfigurasi global.");
         setTesting(false);
         return;
       }
 
-      // OneSender
       body.api_url = settings.wa_api_url;
       body.api_key = settings.wa_api_key;
 
@@ -109,9 +107,15 @@ const SuperAdminRegistrationWA = () => {
     setTesting(false);
   };
 
+  const handleToggleOnesender = (val: boolean) => {
+    setSettings(prev => ({ ...prev, onesender_enabled: val ? "true" : "false" }));
+  };
+
   if (loading) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
+
+  const osEnabled = settings.onesender_enabled !== "false";
 
   return (
     <div className="space-y-6">
@@ -129,7 +133,7 @@ const SuperAdminRegistrationWA = () => {
         </Button>
       </div>
 
-      {/* Enable/Disable */}
+      {/* Enable/Disable WA Registrasi */}
       <Card className="border-0 shadow-card">
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
@@ -141,6 +145,33 @@ const SuperAdminRegistrationWA = () => {
               checked={settings.wa_registration_enabled === "true"}
               onCheckedChange={(v) => setSettings({ ...settings, wa_registration_enabled: v ? "true" : "false" })}
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Enable/Disable OneSender for schools */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${osEnabled ? "bg-primary/10" : "bg-muted"}`}>
+                <Power className={`h-4 w-4 ${osEnabled ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-sm">Gateway OneSender (WASkolla Sistem)</h3>
+                <p className="text-xs text-muted-foreground">
+                  {osEnabled
+                    ? "Aktif — sekolah dapat memilih OneSender atau MPWA di dashboard mereka"
+                    : "Nonaktif — sekolah hanya dapat menggunakan MPWA (WASkolla Scan Sendiri)"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge className={`text-[10px] ${osEnabled ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}`}>
+                {osEnabled ? "Aktif" : "Nonaktif"}
+              </Badge>
+              <Switch checked={osEnabled} onCheckedChange={handleToggleOnesender} />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -166,6 +197,11 @@ const SuperAdminRegistrationWA = () => {
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
                 <p className="text-[11px] text-muted-foreground">
                   OneSender digunakan sebagai gateway utama sistem ATSkolla. Konfigurasi ini berlaku untuk notifikasi registrasi platform.
+                  {!osEnabled && (
+                    <span className="block mt-1 text-amber-600 font-semibold">
+                      ⚠️ Gateway OneSender saat ini dinonaktifkan. Sekolah tidak dapat menggunakan OneSender.
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="space-y-1">
