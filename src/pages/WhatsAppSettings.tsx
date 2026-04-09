@@ -282,10 +282,10 @@ const WhatsAppSettings = () => {
       if (!schoolId) return;
       try {
         const res = await supabase.functions.invoke("mpwa-qr", {
-          body: { action: "generate-qr", school_id: schoolId, sender: mpwaSenderNumber.replace(/\D/g, "") },
+          body: { action: "poll-status", school_id: schoolId, sender: mpwaSenderNumber.replace(/\D/g, "") },
         });
         const data = res.data as any;
-        if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || data?.status === true) {
+        if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
           setMpwaConnected(true); setQrData(null);
           toast.success("🎉 Device berhasil terhubung!");
           if (pollingRef.current) clearInterval(pollingRef.current);
@@ -301,14 +301,17 @@ const WhatsAppSettings = () => {
     setQrLoading(true); setQrData(null);
     try {
       const res = await supabase.functions.invoke("mpwa-qr", {
-        body: { action: "add-device-and-qr", school_id: schoolId, sender: cleanNumber },
+        body: { action: "connect", school_id: schoolId, sender: cleanNumber },
       });
       const data = res.data as any;
-      if (data?.error) toast.error(data.error);
-      else if (data?.qrcode) { setQrData(data.qrcode); startConnectionPolling(); }
-      else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!" || data?.status === true) {
+      if (data?.error) { toast.error(data.error); }
+      else if (data?.qrcode) { setQrData(data.qrcode); startConnectionPolling(); toast.success("QR Code berhasil dibuat! Scan dengan WhatsApp Anda"); }
+      else if (data?.img) { setQrData(data.img); startConnectionPolling(); toast.success("QR Code berhasil dibuat! Scan dengan WhatsApp Anda"); }
+      else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
         setMpwaConnected(true); toast.success("Device sudah terhubung!");
-      } else toast.error(data?.msg || "Gagal generate QR");
+      } else if (data?.msg === "Perangkat tidak ditemukan!" || data?.msg?.includes("tidak ditemukan")) {
+        toast.error("Perangkat belum terdaftar di MPWA. Hubungi Super Admin untuk mendaftarkan nomor ini di panel MPWA terlebih dahulu.");
+      } else { toast.error(data?.msg || "Gagal menghubungkan device."); }
     } catch (err: any) { toast.error("Gagal: " + err.message); }
     setQrLoading(false);
   };
