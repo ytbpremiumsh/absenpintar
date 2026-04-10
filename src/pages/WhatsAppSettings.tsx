@@ -147,7 +147,7 @@ const ScanningAnimation = () => {
       </div>
       <div className="text-center">
         <p className="text-sm font-semibold text-primary">Menunggu koneksi{'.'.repeat(dots)}</p>
-        <p className="text-[10px] text-muted-foreground mt-0.5">Scan QR code di atas, lalu klik "Cek Status Koneksi"</p>
+        <p className="text-[10px] text-muted-foreground mt-0.5">Scan QR code di atas, koneksi akan terdeteksi otomatis</p>
       </div>
     </div>
   );
@@ -184,7 +184,6 @@ const WhatsAppSettings = () => {
   const [qrData, setQrData] = useState<string | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const [checkingConnection, setCheckingConnection] = useState(false);
-
 
   const [parentBroadcastClass, setParentBroadcastClass] = useState("");
   const [parentMessage, setParentMessage] = useState("");
@@ -297,24 +296,29 @@ const WhatsAppSettings = () => {
   const handleCheckConnectionStatus = async () => {
     if (!schoolId) return;
     const cleanNumber = mpwaSenderNumber.replace(/\D/g, "");
-    if (!cleanNumber) return;
+    if (!cleanNumber) { toast.error("Masukkan nomor WhatsApp terlebih dahulu"); return; }
+
     setCheckingConnection(true);
     try {
       const res = await supabase.functions.invoke("mpwa-proxy", {
         body: { action: "check-status", school_id: schoolId, number: cleanNumber },
       });
       const data = res.data as any;
+
       if (data?.connected) {
         setMpwaConnected(true);
         setQrData(null);
         toast.success("🎉 Device berhasil terhubung!");
+      } else if (data?.error) {
+        toast.error(data.error);
       } else {
-        toast.info("Device belum terhubung. Pastikan QR sudah di-scan, lalu coba lagi.");
+        toast("QR belum terhubung. Scan dulu lalu klik Cek Status lagi.");
       }
     } catch (err: any) {
       toast.error("Gagal cek status: " + err.message);
+    } finally {
+      setCheckingConnection(false);
     }
-    setCheckingConnection(false);
   };
 
   const handleGenerateQr = async () => {
@@ -335,7 +339,7 @@ const WhatsAppSettings = () => {
         toast.success("Device sudah terhubung!");
       } else if (data?.qrcode) {
         setQrData(data.qrcode);
-        toast.success("QR Code berhasil dibuat! Scan di WhatsApp, lalu klik Cek Status Koneksi.");
+        toast.success("QR Code berhasil dibuat! Scan di WhatsApp lalu klik Cek Status.");
       } else {
         toast.error(data?.error || data?.msg || data?.message || "Gagal generate QR code. Coba lagi.");
       }
@@ -568,7 +572,7 @@ const WhatsAppSettings = () => {
                             { step: "2", text: 'Klik "Hubungkan" untuk membuat QR code WhatsApp' },
                             { step: "3", text: "Buka WhatsApp di HP → Menu (⋮) → Perangkat Tertaut" },
                             { step: "4", text: "Ketuk Tautkan Perangkat → Scan QR code yang tampil" },
-                            { step: "5", text: 'Setelah scan berhasil, klik "Cek Status Koneksi"' },
+                            { step: "5", text: 'Setelah selesai scan, klik "Cek Status Koneksi"' },
                           ].map((s) => (
                             <div key={s.step} className="flex items-start gap-2.5">
                               <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
@@ -717,11 +721,12 @@ const WhatsAppSettings = () => {
                         )}
 
                         {qrData && (
-                          <div className="flex justify-center gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <Button
                               onClick={handleCheckConnectionStatus}
                               disabled={checkingConnection}
-                              className="h-8 px-4 gap-1.5 text-xs"
+                              variant="secondary"
+                              className="h-8 px-4 gap-1.5 w-full text-xs"
                             >
                               {checkingConnection ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wifi className="h-3.5 w-3.5" />}
                               Cek Status Koneksi
@@ -730,7 +735,7 @@ const WhatsAppSettings = () => {
                               onClick={handleGenerateQr}
                               disabled={qrLoading}
                               variant="outline"
-                              className="h-8 px-4 gap-1.5 text-xs"
+                              className="h-8 px-4 gap-1.5 w-full text-xs"
                             >
                               {qrLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
                               Refresh QR

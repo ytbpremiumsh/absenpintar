@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Users, BookOpen, GraduationCap, Mail, Phone, UserCheck } from "lucide-react";
+import { Search, Users, BookOpen, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SchoolData } from "./SchoolCard";
 
@@ -23,13 +23,6 @@ interface ClassData {
   studentCount: number;
 }
 
-interface AdminContact {
-  full_name: string;
-  email: string;
-  phone: string;
-  roles: string[];
-}
-
 interface SchoolDetailDialogProps {
   school: SchoolData | null;
   onClose: () => void;
@@ -39,7 +32,6 @@ interface SchoolDetailDialogProps {
 const SchoolDetailDialog = ({ school, onClose, getStatusBadge }: SchoolDetailDialogProps) => {
   const [students, setStudents] = useState<StudentData[]>([]);
   const [classes, setClasses] = useState<ClassData[]>([]);
-  const [admins, setAdmins] = useState<AdminContact[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
 
@@ -49,28 +41,21 @@ const SchoolDetailDialog = ({ school, onClose, getStatusBadge }: SchoolDetailDia
     } else {
       setStudents([]);
       setClasses([]);
-      setAdmins([]);
       setStudentSearch("");
     }
   }, [school]);
 
   const fetchSchoolDetails = async (schoolId: string) => {
     setLoadingStudents(true);
-    const [studentsRes, adminsRes] = await Promise.all([
-      supabase
-        .from("students")
-        .select("id, name, student_id, class, gender, parent_name, parent_phone")
-        .eq("school_id", schoolId)
-        .order("class")
-        .order("name"),
-      supabase.functions.invoke("get-school-admins", {
-        body: { school_id: schoolId },
-      }),
-    ]);
+    const { data } = await supabase
+      .from("students")
+      .select("id, name, student_id, class, gender, parent_name, parent_phone")
+      .eq("school_id", schoolId)
+      .order("class")
+      .order("name");
 
-    const studentList = studentsRes.data || [];
+    const studentList = data || [];
     setStudents(studentList);
-    setAdmins((adminsRes.data as any)?.admins || []);
 
     // Build class summary
     const classMap: Record<string, number> = {};
@@ -142,39 +127,6 @@ const SchoolDetailDialog = ({ school, onClose, getStatusBadge }: SchoolDetailDia
           </span>
         </div>
 
-        {/* Admin Contacts */}
-        {admins.length > 0 && (
-          <div className="rounded-lg border border-border bg-muted/30 p-3 mb-4">
-            <p className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-2">
-              <UserCheck className="h-3.5 w-3.5 text-primary" />
-              Penanggung Jawab Sekolah
-            </p>
-            <div className="space-y-2">
-              {admins.map((admin, i) => (
-                <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm">
-                  <span className="font-semibold text-foreground min-w-[140px]">{admin.full_name}</span>
-                  {admin.email && (
-                    <a href={`mailto:${admin.email}`} className="flex items-center gap-1 text-xs text-primary hover:underline">
-                      <Mail className="h-3 w-3" />
-                      {admin.email}
-                    </a>
-                  )}
-                  {admin.phone && (
-                    <a href={`https://wa.me/${admin.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-success hover:underline">
-                      <Phone className="h-3 w-3" />
-                      {admin.phone}
-                    </a>
-                  )}
-                  <div className="flex gap-1">
-                    {admin.roles.map(r => (
-                      <Badge key={r} variant="secondary" className="text-[9px]">{r}</Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
         <Tabs defaultValue="students" className="w-full">
           <TabsList className="w-full">
             <TabsTrigger value="students" className="flex-1 gap-1">

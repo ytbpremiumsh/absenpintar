@@ -163,7 +163,7 @@ export function AppSidebar() {
                     <Crown className="h-2.5 w-2.5" />
                   )}
                   {features.isTrial
-                    ? "Trial Premium"
+                    ? `Trial ${features.trialDaysLeft !== null ? `(${features.trialDaysLeft}h)` : ""}`
                     : features.planName === "Free" ? "Free Plan" : `${features.planName}`}
                 </span>
               </div>
