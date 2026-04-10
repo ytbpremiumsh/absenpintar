@@ -321,6 +321,31 @@ const WhatsAppSettings = () => {
     }
   };
 
+  // Auto-poll connection status when QR is displayed
+  useEffect(() => {
+    if (!qrData || mpwaConnected || !schoolId) return;
+    const cleanNumber = mpwaSenderNumber.replace(/\D/g, "");
+    if (!cleanNumber) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await supabase.functions.invoke("mpwa-proxy", {
+          body: { action: "check-status", school_id: schoolId, number: cleanNumber },
+        });
+        const data = res.data as any;
+        if (data?.connected) {
+          setMpwaConnected(true);
+          setQrData(null);
+          toast.success("🎉 Device berhasil terhubung!");
+        }
+      } catch {
+        // silently retry
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [qrData, mpwaConnected, schoolId, mpwaSenderNumber]);
+
   const handleGenerateQr = async () => {
     if (!schoolId) return;
     const cleanNumber = mpwaSenderNumber.replace(/\D/g, "");
@@ -339,7 +364,7 @@ const WhatsAppSettings = () => {
         toast.success("Device sudah terhubung!");
       } else if (data?.qrcode) {
         setQrData(data.qrcode);
-        toast.success("QR Code berhasil dibuat! Scan di WhatsApp lalu klik Cek Status.");
+        toast.success("QR Code berhasil dibuat! Scan di WhatsApp, koneksi akan terdeteksi otomatis.");
       } else {
         toast.error(data?.error || data?.msg || data?.message || "Gagal generate QR code. Coba lagi.");
       }
