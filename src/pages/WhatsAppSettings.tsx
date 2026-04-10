@@ -329,10 +329,12 @@ const WhatsAppSettings = () => {
     setDisconnecting(true);
     if (pollingRef.current) clearInterval(pollingRef.current);
     try {
-      const res = await supabase.functions.invoke("mpwa-qr", { body: { action: "disconnect", school_id: schoolId } });
+      const res = await supabase.functions.invoke("mpwa-proxy", {
+        body: { action: "disconnect", school_id: schoolId, number: mpwaSenderNumber.replace(/\D/g, "") },
+      });
       const data = res.data as any;
-      if (data?.status) { setMpwaConnected(false); setQrData(null); toast.success("Device berhasil di-disconnect"); }
-      else toast.error(data?.message || "Gagal disconnect");
+      if (data?.success) { setMpwaConnected(false); setQrData(null); toast.success("Device berhasil di-disconnect"); }
+      else toast.error(data?.error || data?.message || "Gagal disconnect");
     } catch (err: any) { toast.error("Gagal: " + err.message); }
     setDisconnecting(false);
   };
