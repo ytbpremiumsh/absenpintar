@@ -281,14 +281,17 @@ const WhatsAppSettings = () => {
     pollingRef.current = setInterval(async () => {
       if (!schoolId) return;
       try {
-        const res = await supabase.functions.invoke("mpwa-qr", {
-          body: { action: "poll-status", school_id: schoolId, sender: mpwaSenderNumber.replace(/\D/g, "") },
+        const res = await supabase.functions.invoke("mpwa-proxy", {
+          body: { action: "check-status", school_id: schoolId, number: mpwaSenderNumber.replace(/\D/g, "") },
         });
         const data = res.data as any;
-        if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
+        if (data?.connected) {
           setMpwaConnected(true); setQrData(null);
           toast.success("🎉 Device berhasil terhubung!");
           if (pollingRef.current) clearInterval(pollingRef.current);
+        } else if (data?.qrcode) {
+          // Update QR if a new one is returned
+          setQrData(data.qrcode);
         }
       } catch { /* silently retry */ }
     }, 5000);
@@ -300,18 +303,23 @@ const WhatsAppSettings = () => {
     if (!cleanNumber) { toast.error("Masukkan nomor WhatsApp terlebih dahulu"); return; }
     setQrLoading(true); setQrData(null);
     try {
-      const res = await supabase.functions.invoke("mpwa-qr", {
-        body: { action: "connect", school_id: schoolId, sender: cleanNumber },
+      // mpwa-proxy auto-registers the device in MPWA and generates QR in one step
+      const res = await supabase.functions.invoke("mpwa-proxy", {
+        body: { action: "generate-qr", school_id: schoolId, number: cleanNumber },
       });
       const data = res.data as any;
-      if (data?.error) { toast.error(data.error); }
-      else if (data?.qrcode) { setQrData(data.qrcode); startConnectionPolling(); toast.success("QR Code berhasil dibuat! Scan dengan WhatsApp Anda"); }
-      else if (data?.img) { setQrData(data.img); startConnectionPolling(); toast.success("QR Code berhasil dibuat! Scan dengan WhatsApp Anda"); }
-      else if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
-        setMpwaConnected(true); toast.success("Device sudah terhubung!");
-      } else if (data?.msg === "Perangkat tidak ditemukan!" || data?.msg?.includes("tidak ditemukan")) {
-        toast.error("Perangkat belum terdaftar di MPWA. Hubungi Super Admin untuk mendaftarkan nomor ini di panel MPWA terlebih dahulu.");
-      } else { toast.error(data?.msg || "Gagal menghubungkan device."); }
+      if (data?.error) {
+        toast.error(data.error);
+      } else if (data?.connected) {
+        setMpwaConnected(true);
+        toast.success("Device sudah terhubung!");
+      } else if (data?.qrcode) {
+        setQrData(data.qrcode);
+        startConnectionPolling();
+        toast.success("QR Code berhasil dibuat! Scan dengan WhatsApp Anda");
+      } else {
+        toast.error(data?.message || "Gagal generate QR code. Coba lagi.");
+      }
     } catch (err: any) { toast.error("Gagal: " + err.message); }
     setQrLoading(false);
   };
@@ -321,10 +329,12 @@ const WhatsAppSettings = () => {
     setDisconnecting(true);
     if (pollingRef.current) clearInterval(pollingRef.current);
     try {
-      const res = await supabase.functions.invoke("mpwa-qr", { body: { action: "disconnect", school_id: schoolId } });
+      const res = await supabase.functions.invoke("mpwa-proxy", {
+        body: { action: "disconnect", school_id: schoolId, number: mpwaSenderNumber.replace(/\D/g, "") },
+      });
       const data = res.data as any;
-      if (data?.status) { setMpwaConnected(false); setQrData(null); toast.success("Device berhasil di-disconnect"); }
-      else toast.error(data?.message || "Gagal disconnect");
+      if (data?.success) { setMpwaConnected(false); setQrData(null); toast.success("Device berhasil di-disconnect"); }
+      else toast.error(data?.error || data?.message || "Gagal disconnect");
     } catch (err: any) { toast.error("Gagal: " + err.message); }
     setDisconnecting(false);
   };
