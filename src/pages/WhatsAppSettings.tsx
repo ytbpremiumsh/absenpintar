@@ -569,7 +569,7 @@ const WhatsAppSettings = () => {
                             { step: "2", text: 'Klik "Hubungkan" untuk membuat QR code WhatsApp' },
                             { step: "3", text: "Buka WhatsApp di HP → Menu (⋮) → Perangkat Tertaut" },
                             { step: "4", text: "Ketuk Tautkan Perangkat → Scan QR code yang tampil" },
-                            { step: "5", text: 'Setelah selesai scan, klik "Cek Status Koneksi"' },
+                            { step: "5", text: "Setelah scan berhasil, koneksi akan terdeteksi otomatis" },
                           ].map((s) => (
                             <div key={s.step} className="flex items-start gap-2.5">
                               <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
