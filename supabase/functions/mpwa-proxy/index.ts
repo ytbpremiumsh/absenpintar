@@ -122,13 +122,15 @@ serve(async (req) => {
         });
       }
 
-      // Save sender number to school_integrations
-      if (integration?.id) {
+      // Save sender number
+      if (isPlatform) {
+        await supabaseAdmin.from('platform_settings')
+          .upsert([{ key: 'mpwa_platform_sender', value: cleanNumber, updated_at: new Date().toISOString() }], { onConflict: 'key' });
+      } else if (integration?.id) {
         await supabaseAdmin.from('school_integrations')
           .update({ mpwa_sender: cleanNumber, gateway_type: 'mpwa' })
           .eq('id', integration.id);
-      } else {
-        // Create integration record if not exists
+      } else if (!isPlatform) {
         await supabaseAdmin.from('school_integrations').insert({
           school_id,
           integration_type: 'onesender',
