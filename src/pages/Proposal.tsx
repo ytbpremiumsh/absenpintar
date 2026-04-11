@@ -639,19 +639,18 @@ const Proposal = () => {
                     </p>
                     <p>
                       <strong className="text-foreground">Arus Pendapatan (Revenue Streams):</strong> Pendapatan 
-                      utama bersumber dari tiga pilihan paket berlangganan bulanan, yaitu: paket Basic seharga 
-                      Rp 99.000, paket School seharga Rp 249.000, dan paket Premium seharga Rp 399.000. Selain 
-                      itu, terdapat pendapatan tambahan yang berasal dari jasa implementasi dan kustomisasi 
-                      untuk institusi berskala besar, layanan add-on WhatsApp, serta layanan white-labeling 
-                      bagi yayasan yang menghendaki penggunaan merek sendiri.
+                      utama bersumber dari tiga pilihan paket berlangganan bulanan: Basic (Rp 99.000), School 
+                      (Rp 249.000), dan Premium (Rp 399.000). Pendapatan tambahan dari jasa enterprise meliputi 
+                      setup & konfigurasi sekolah baru, pelatihan & onboarding intensif, dan kustomisasi yayasan 
+                      multi-cabang. Layanan add-on mencakup kuota tambahan WhatsApp broadcast, kartu pelajar 
+                      digital (cetak QR), dan white-label branding bagi yayasan.
                     </p>
                     <p>
                       <strong className="text-foreground">Struktur Biaya (Cost Structure):</strong> Biaya 
-                      operasional terdiri dari infrastruktur cloud (kurang lebih 20%), kompensasi tim pengembang 
-                      dan staf layanan pelanggan (kurang lebih 40%), biaya penggunaan WhatsApp API (kurang lebih 
-                      15%), serta biaya pemasaran dan promosi (kurang lebih 25%). Dengan model bisnis SaaS yang 
-                      diterapkan, diproyeksikan bahwa margin keuntungan kotor dapat mencapai 60% hingga 70% 
-                      setelah tahun pertama operasional.
+                      operasional terdiri dari server cloud Supabase Pro (≈ Rp 400.000/bulan), WhatsApp API MPWA 
+                      (≈ Rp 150.000/bulan/device), kompensasi tim freelance (developer dan CS part-time), serta 
+                      biaya pemasaran digital. Total pengeluaran tahun pertama diproyeksikan hanya Rp 46,7 juta, 
+                      sehingga margin keuntungan dapat mencapai 40-70% sejak tahun pertama.
                     </p>
                   </CardContent>
                 </Card>
