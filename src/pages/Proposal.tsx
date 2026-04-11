@@ -140,9 +140,21 @@ const Proposal = () => {
             <ArrowLeft className="h-4 w-4" /> Kembali
           </Link>
           <h1 className="text-sm font-bold text-foreground">Proposal Bisnis - ATSkolla</h1>
-          <Button variant="outline" size="sm" onClick={handleDownload} className="gap-1.5">
-            <Download className="h-3.5 w-3.5" /> Download
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Download className="h-3.5 w-3.5" /> Download
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={downloadAsPDF} className="gap-2 cursor-pointer">
+                <Download className="h-4 w-4" /> Download PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={downloadAsWord} className="gap-2 cursor-pointer">
+                <Download className="h-4 w-4" /> Download Word (.doc)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -182,9 +194,21 @@ const Proposal = () => {
                   dengan Notifikasi WhatsApp Secara Real-time
                 </p>
                 <div className="mt-6">
-                  <Button onClick={handleDownload} className="gap-2 gradient-primary hover:opacity-90">
-                    <Download className="h-4 w-4" /> Download Proposal Lengkap
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="gap-2 gradient-primary hover:opacity-90">
+                        <Download className="h-4 w-4" /> Download Proposal Lengkap
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={downloadAsPDF} className="gap-2 cursor-pointer">
+                        <Download className="h-4 w-4" /> Download PDF
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={downloadAsWord} className="gap-2 cursor-pointer">
+                        <Download className="h-4 w-4" /> Download Word (.doc)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   {["SaaS Platform", "Face Recognition AI", "WhatsApp API", "Real-time Dashboard"].map((t) => (
