@@ -39,13 +39,9 @@ serve(async (req) => {
       .maybeSingle();
 
     const storedPhone = profile?.phone;
-
-    // Determine which phone to use
-    // If phone is provided from client, validate it matches stored phone
     let targetPhone = storedPhone;
 
     if (phone) {
-      // Normalize both for comparison
       const normalizePhone = (p: string) => {
         let n = p.replace(/\D/g, '');
         if (n.startsWith('62')) n = '0' + n.substring(2);
@@ -85,23 +81,69 @@ serve(async (req) => {
       phone: targetPhone,
     });
 
-    // Get WA integration
-    let integration = null;
-    let logSchoolId = school_id;
+    // Format phone
+    let formattedPhone = targetPhone.replace(/\D/g, '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '62' + formattedPhone.substring(1);
+    }
 
+    const message = `🔐 *Kode OTP Reset Password ATSkolla*\n\nKode OTP Anda: *${otpCode}*\n\nKode ini berlaku selama 5 menit.\n⚠️ Jangan bagikan kode ini kepada siapapun.\n\n_Pesan otomatis dari ATSkolla_`;
+
+    // ═══ Try to find a working gateway ═══
+    let sent = false;
+
+    // 1. Try school-specific integration (OneSender or MPWA)
     if (school_id) {
       const { data: intData } = await supabaseAdmin
         .from('school_integrations')
-        .select('api_url, api_key, is_active, school_id')
+        .select('api_url, api_key, is_active, school_id, gateway_type, mpwa_api_key, mpwa_sender, mpwa_connected')
         .eq('school_id', school_id)
         .eq('integration_type', 'onesender')
         .maybeSingle();
-      if (intData?.is_active && intData?.api_url && intData?.api_key) {
-        integration = intData;
+
+      if (intData?.is_active) {
+        if (intData.gateway_type === 'mpwa' && intData.mpwa_connected && intData.mpwa_sender) {
+          // Use school's MPWA
+          const mpwaApiKey = intData.mpwa_api_key || '';
+          let apiKey = mpwaApiKey;
+          if (!apiKey) {
+            const { data: ps } = await supabaseAdmin.from('platform_settings').select('value').eq('key', 'mpwa_platform_api_key').maybeSingle();
+            if (ps?.value) apiKey = ps.value;
+          }
+          if (apiKey) {
+            sent = await sendViaMPWA(apiKey, intData.mpwa_sender, formattedPhone, message);
+            if (sent) {
+              await logMessage(supabaseAdmin, school_id, targetPhone, sent);
+            }
+          }
+        } else if (intData.api_url && intData.api_key) {
+          // Use school's OneSender
+          sent = await sendViaOneSender(intData.api_url, intData.api_key, formattedPhone, message);
+          if (sent) {
+            await logMessage(supabaseAdmin, school_id, targetPhone, sent);
+          }
+        }
       }
     }
 
-    if (!integration) {
+    // 2. Try platform-level MPWA
+    if (!sent) {
+      const { data: platformSettings } = await supabaseAdmin
+        .from('platform_settings')
+        .select('key, value')
+        .in('key', ['mpwa_platform_api_key', 'mpwa_platform_sender', 'mpwa_platform_connected']);
+
+      const ps: Record<string, string> = {};
+      (platformSettings || []).forEach((s: any) => { ps[s.key] = s.value; });
+
+      if (ps.mpwa_platform_connected === 'true' && ps.mpwa_platform_api_key && ps.mpwa_platform_sender) {
+        console.log('[send-otp] Using platform MPWA sender:', ps.mpwa_platform_sender);
+        sent = await sendViaMPWA(ps.mpwa_platform_api_key, ps.mpwa_platform_sender, formattedPhone, message);
+      }
+    }
+
+    // 3. Fallback: any active OneSender integration
+    if (!sent) {
       const { data: fallback } = await supabaseAdmin
         .from('school_integrations')
         .select('api_url, api_key, is_active, school_id')
@@ -111,57 +153,18 @@ serve(async (req) => {
         .not('api_key', 'is', null)
         .limit(1)
         .maybeSingle();
+
       if (fallback) {
-        integration = fallback;
-        logSchoolId = fallback.school_id;
+        sent = await sendViaOneSender(fallback.api_url, fallback.api_key, formattedPhone, message);
+        if (sent) {
+          await logMessage(supabaseAdmin, fallback.school_id, targetPhone, sent);
+        }
       }
     }
 
-    if (!integration) {
-      return new Response(JSON.stringify({ error: 'Tidak ada integrasi WhatsApp yang aktif' }), {
+    if (!sent) {
+      return new Response(JSON.stringify({ error: 'Tidak ada gateway WhatsApp yang aktif untuk mengirim OTP' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Format phone
-    let formattedPhone = targetPhone.replace(/\D/g, '');
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = '62' + formattedPhone.substring(1);
-    }
-
-    // Send OTP via WhatsApp
-    const message = `🔐 *Kode OTP Reset Password ATSkolla*\n\nKode OTP Anda: *${otpCode}*\n\nKode ini berlaku selama 5 menit.\n⚠️ Jangan bagikan kode ini kepada siapapun.\n\n_Pesan otomatis dari ATSkolla_`;
-
-    const waResponse = await fetch(integration.api_url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${integration.api_key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        recipient_type: 'individual',
-        to: formattedPhone,
-        type: 'text',
-        text: { body: message },
-      }),
-    });
-
-    if (!waResponse.ok) {
-      const errData = await waResponse.json();
-      console.error('WhatsApp send error:', errData);
-      return new Response(JSON.stringify({ error: 'Gagal mengirim OTP via WhatsApp' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (logSchoolId) {
-      await supabaseAdmin.from('wa_message_logs').insert({
-        school_id: logSchoolId,
-        phone: targetPhone,
-        message: 'Kode OTP Reset Password',
-        message_type: 'otp',
-        status: 'sent',
-        student_name: null,
       });
     }
 
@@ -176,3 +179,49 @@ serve(async (req) => {
     });
   }
 });
+
+async function sendViaMPWA(apiKey: string, sender: string, phone: string, message: string): Promise<boolean> {
+  try {
+    console.log(`[send-otp] MPWA sending to ${phone} via sender ${sender}`);
+    const res = await fetch('https://app.ayopintar.com/send-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey, sender, number: phone, message }),
+    });
+    const text = await res.text();
+    let data: any;
+    try { data = JSON.parse(text); } catch { data = { status: false }; }
+    console.log('[send-otp] MPWA response:', JSON.stringify(data).substring(0, 200));
+    return data?.status !== false;
+  } catch (e) {
+    console.error('[send-otp] MPWA error:', e);
+    return false;
+  }
+}
+
+async function sendViaOneSender(apiUrl: string, apiKey: string, phone: string, message: string): Promise<boolean> {
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipient_type: 'individual', to: phone, type: 'text', text: { body: message } }),
+    });
+    return res.ok;
+  } catch (e) {
+    console.error('[send-otp] OneSender error:', e);
+    return false;
+  }
+}
+
+async function logMessage(supabaseAdmin: any, schoolId: string, phone: string, sent: boolean) {
+  try {
+    await supabaseAdmin.from('wa_message_logs').insert({
+      school_id: schoolId,
+      phone,
+      message: 'Kode OTP Reset Password',
+      message_type: 'otp',
+      status: sent ? 'sent' : 'failed',
+      student_name: null,
+    });
+  } catch { /* ignore */ }
+}

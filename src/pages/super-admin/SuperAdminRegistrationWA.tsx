@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,10 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2, Power } from "lucide-react";
+import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2, Power, QrCode, Wifi, WifiOff, RefreshCw, Unplug } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 
 const SuperAdminRegistrationWA = () => {
   const [loading, setLoading] = useState(true);
@@ -23,11 +24,24 @@ const SuperAdminRegistrationWA = () => {
     wa_api_key: "",
     wa_registration_message: "",
     mpwa_platform_api_key: "",
+    mpwa_platform_sender: "",
+    mpwa_platform_connected: "false",
     onesender_enabled: "true",
   });
 
+  // QR state
+  const [mpwaNumber, setMpwaNumber] = useState("");
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const isConnected = settings.mpwa_platform_connected === "true";
+
   useEffect(() => {
     fetchSettings();
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
   const fetchSettings = async () => {
@@ -36,12 +50,13 @@ const SuperAdminRegistrationWA = () => {
       .select("key, value")
       .in("key", [
         "wa_registration_enabled", "wa_api_url", "wa_api_key", "wa_registration_message",
-        "mpwa_platform_api_key", "onesender_enabled",
+        "mpwa_platform_api_key", "mpwa_platform_sender", "mpwa_platform_connected", "onesender_enabled",
       ]);
 
     const map: Record<string, string> = {};
     ((data as any[]) || []).forEach((item) => { map[item.key] = item.value; });
     setSettings((prev) => ({ ...prev, ...map }));
+    if (map.mpwa_platform_sender) setMpwaNumber(map.mpwa_platform_sender);
     setLoading(false);
   };
 
@@ -64,13 +79,151 @@ const SuperAdminRegistrationWA = () => {
     setSaving(false);
   };
 
+  // ═══ MPWA QR Functions ═══
+  const handleGenerateQR = async () => {
+    const cleanNumber = mpwaNumber.replace(/\D/g, "");
+    if (!cleanNumber) { toast.error("Masukkan nomor WhatsApp"); return; }
+    if (!settings.mpwa_platform_api_key) { toast.error("MPWA API Key harus diisi terlebih dahulu"); return; }
+
+    setQrLoading(true);
+    setQrCode(null);
+
+    try {
+      // Save sender number to platform_settings first
+      await supabase.from("platform_settings").upsert([
+        { key: "mpwa_platform_sender", value: cleanNumber, updated_at: new Date().toISOString() },
+      ], { onConflict: "key" });
+      setSettings(prev => ({ ...prev, mpwa_platform_sender: cleanNumber }));
+
+      // Call MPWA generate-qr endpoint directly via POST
+      const res = await fetch("https://app.ayopintar.com/generate-qr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          api_key: settings.mpwa_platform_api_key,
+          device: cleanNumber,
+          force: true,
+        }),
+      });
+
+      const text = await res.text();
+      let data: any;
+      try { data = JSON.parse(text); } catch { data = { status: false, msg: text.substring(0, 200) }; }
+
+      console.log("[SuperAdmin MPWA] generate-qr response:", JSON.stringify(data).substring(0, 300));
+
+      // Check if already connected
+      if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
+        await markPlatformConnected(true);
+        toast.success("Device sudah terhubung!");
+        setQrLoading(false);
+        return;
+      }
+
+      // Extract QR code
+      const qr = data?.qrcode || data?.img || data?.qr || null;
+      if (qr) {
+        setQrCode(qr);
+        startPolling(cleanNumber);
+        toast.info("Scan QR Code dengan WhatsApp Anda");
+      } else {
+        toast.error(data?.msg || data?.message || "Gagal generate QR code");
+      }
+    } catch (err: any) {
+      toast.error("Error: " + (err.message || "Gagal terhubung ke MPWA"));
+    }
+    setQrLoading(false);
+  };
+
+  const startPolling = (deviceNumber: string) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    let attempts = 0;
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      if (attempts > 30) {
+        if (pollRef.current) clearInterval(pollRef.current);
+        setQrCode(null);
+        toast.error("QR Code expired. Silakan generate ulang.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://app.ayopintar.com/generate-qr?api_key=${encodeURIComponent(settings.mpwa_platform_api_key)}&device=${encodeURIComponent(deviceNumber)}`);
+        const text = await res.text();
+        let data: any;
+        try { data = JSON.parse(text); } catch { return; }
+
+        if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          setQrCode(null);
+          await markPlatformConnected(true);
+          toast.success("WhatsApp Platform berhasil terhubung!");
+        }
+      } catch { /* ignore polling errors */ }
+    }, 5000);
+  };
+
+  const handleCheckStatus = async () => {
+    const device = settings.mpwa_platform_sender || mpwaNumber.replace(/\D/g, "");
+    if (!device) { toast.error("Nomor sender belum dikonfigurasi"); return; }
+
+    setCheckingStatus(true);
+    try {
+      const res = await fetch(`https://app.ayopintar.com/generate-qr?api_key=${encodeURIComponent(settings.mpwa_platform_api_key)}&device=${encodeURIComponent(device)}`);
+      const text = await res.text();
+      let data: any;
+      try { data = JSON.parse(text); } catch { data = { status: false, msg: text.substring(0, 200) }; }
+
+      if (data?.msg === "Device already connected!" || data?.msg === "Perangkat sudah terhubung!") {
+        await markPlatformConnected(true);
+        toast.success("Device terhubung!");
+      } else {
+        await markPlatformConnected(false);
+        toast.warning("Device belum terhubung");
+      }
+    } catch (err: any) {
+      toast.error("Gagal cek status: " + err.message);
+    }
+    setCheckingStatus(false);
+  };
+
+  const handleDisconnect = async () => {
+    const device = settings.mpwa_platform_sender;
+    if (!device) return;
+
+    setDisconnecting(true);
+    try {
+      const logoutUrl = `https://app.ayopintar.com/logout-device?api_key=${encodeURIComponent(settings.mpwa_platform_api_key)}&sender=${encodeURIComponent(device)}`;
+      await fetch(logoutUrl);
+      await markPlatformConnected(false);
+      toast.success("Device berhasil di-disconnect");
+    } catch (err: any) {
+      toast.error("Gagal disconnect: " + err.message);
+    }
+    setDisconnecting(false);
+  };
+
+  const markPlatformConnected = async (connected: boolean) => {
+    await supabase.from("platform_settings").upsert([
+      { key: "mpwa_platform_connected", value: connected ? "true" : "false", updated_at: new Date().toISOString() },
+    ], { onConflict: "key" });
+    setSettings(prev => ({ ...prev, mpwa_platform_connected: connected ? "true" : "false" }));
+  };
+
   const handleTest = async () => {
     if (!testPhone.trim()) { toast.error("Masukkan nomor WhatsApp tujuan"); return; }
 
     if (activeTab === "onesender") {
       if (!settings.wa_api_url || !settings.wa_api_key) { toast.error("API URL dan API Key OneSender harus diisi"); return; }
     } else {
-      if (!settings.mpwa_platform_api_key) { toast.error("API Key MPWA harus diisi"); return; }
+      if (!settings.mpwa_platform_api_key || !settings.mpwa_platform_sender) {
+        toast.error("API Key dan Sender MPWA harus dikonfigurasi");
+        return;
+      }
+      if (!isConnected) {
+        toast.error("Device MPWA belum terhubung. Scan QR terlebih dahulu.");
+        return;
+      }
     }
 
     setTesting(true);
@@ -80,26 +233,41 @@ const SuperAdminRegistrationWA = () => {
         .replace(/{school}/g, "Sekolah Test")
         .replace(/{email}/g, "test@sekolah.com") || "✅ Tes koneksi WhatsApp Gateway berhasil!";
 
-      const body: any = {
-        phone: testPhone.replace(/\D/g, ""),
-        message,
-      };
+      let formattedPhone = testPhone.replace(/\D/g, "");
+      if (formattedPhone.startsWith("0")) formattedPhone = "62" + formattedPhone.substring(1);
 
       if (activeTab === "mpwa") {
-        toast.error("Untuk tes MPWA, gunakan dashboard sekolah yang sudah scan QR. API Key yang disimpan di sini hanya sebagai konfigurasi global.");
-        setTesting(false);
-        return;
-      }
-
-      body.api_url = settings.wa_api_url;
-      body.api_key = settings.wa_api_key;
-
-      const res = await supabase.functions.invoke("send-whatsapp", { body });
-      const data = res.data as any;
-      if (data?.success) {
-        toast.success("Pesan tes berhasil dikirim!");
+        // Send directly via MPWA
+        const res = await fetch("https://app.ayopintar.com/send-message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            api_key: settings.mpwa_platform_api_key,
+            sender: settings.mpwa_platform_sender,
+            number: formattedPhone,
+            message,
+          }),
+        });
+        const data = await res.json();
+        if (data?.status === false) {
+          toast.error("Gagal: " + (data?.msg || "Unknown error"));
+        } else {
+          toast.success("Pesan tes MPWA berhasil dikirim!");
+        }
       } else {
-        toast.error("Gagal: " + (data?.error || "Unknown error"));
+        const body = {
+          phone: formattedPhone,
+          message,
+          api_url: settings.wa_api_url,
+          api_key: settings.wa_api_key,
+        };
+        const res = await supabase.functions.invoke("send-whatsapp", { body });
+        const data = res.data as any;
+        if (data?.success) {
+          toast.success("Pesan tes berhasil dikirim!");
+        } else {
+          toast.error("Gagal: " + (data?.error || "Unknown error"));
+        }
       }
     } catch (err: any) {
       toast.error("Gagal: " + (err.message || "Unknown error"));
@@ -226,7 +394,7 @@ const SuperAdminRegistrationWA = () => {
             <TabsContent value="mpwa" className="mt-4 space-y-4">
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
                 <p className="text-[11px] text-muted-foreground">
-                  MPWA memungkinkan setiap sekolah menggunakan nomor WhatsApp sendiri. Cukup masukkan API Key di sini — setiap sekolah akan memasukkan nomor WhatsApp dan scan QR code sendiri di dashboard masing-masing.
+                  MPWA digunakan untuk mengirim pesan platform (registrasi, OTP) dan juga sebagai fallback global untuk sekolah. Hubungkan nomor WhatsApp di bawah ini agar bisa mengirim pesan.
                 </p>
               </div>
               <div className="space-y-1">
@@ -237,10 +405,92 @@ const SuperAdminRegistrationWA = () => {
                   onChange={(e) => setSettings({ ...settings, mpwa_platform_api_key: e.target.value })}
                   placeholder="API Key dari MPWA (app.ayopintar.com)"
                 />
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  API Key ini digunakan untuk semua sekolah yang memilih gateway WASkolla Scan Sendiri. Setiap sekolah akan input nomor WA dan scan QR sendiri.
-                </p>
               </div>
+
+              {/* ═══ MPWA QR Scan Section ═══ */}
+              <Card className="border border-primary/20 bg-primary/5">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <QrCode className="h-4 w-4 text-primary" />
+                      <h4 className="font-bold text-sm text-foreground">Hubungkan WhatsApp Platform</h4>
+                    </div>
+                    <Badge className={`text-[10px] gap-1 ${isConnected ? "bg-success/10 text-success border-success/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}`}>
+                      {isConnected ? <><Wifi className="h-2.5 w-2.5" /> Connected</> : <><WifiOff className="h-2.5 w-2.5" /> Disconnected</>}
+                    </Badge>
+                  </div>
+
+                  {!isConnected && (
+                    <>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Nomor WhatsApp Platform</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={mpwaNumber}
+                            onChange={(e) => setMpwaNumber(e.target.value)}
+                            placeholder="628123456789"
+                            className="flex-1"
+                          />
+                          <Button onClick={handleGenerateQR} disabled={qrLoading} size="sm" className="gradient-primary text-primary-foreground">
+                            {qrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+                            <span className="ml-1.5 hidden sm:inline">Generate QR</span>
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Nomor ini digunakan untuk mengirim OTP, notifikasi registrasi, dan pesan platform lainnya</p>
+                      </div>
+
+                      {qrCode && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex flex-col items-center gap-3 py-4"
+                        >
+                          <div className="bg-white p-4 rounded-xl shadow-lg">
+                            <img
+                              src={qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
+                              alt="QR Code"
+                              className="w-48 h-48 sm:w-56 sm:h-56 object-contain"
+                            />
+                          </div>
+                          <div className="text-center space-y-1">
+                            <p className="text-xs font-semibold text-foreground">Scan QR Code dengan WhatsApp</p>
+                            <p className="text-[10px] text-muted-foreground">Buka WhatsApp → Menu (⋮) → Linked Devices → Link a Device</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                            <span className="text-[10px] text-muted-foreground">Menunggu scan...</span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </>
+                  )}
+
+                  {isConnected && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
+                        <Wifi className="h-5 w-5 text-success" />
+                        <div>
+                          <p className="text-sm font-semibold text-success">WhatsApp Platform Terhubung</p>
+                          <p className="text-[11px] text-muted-foreground">Sender: {settings.mpwa_platform_sender}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleCheckStatus} disabled={checkingStatus} className="text-xs">
+                      {checkingStatus ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1" />}
+                      Cek Status
+                    </Button>
+                    {isConnected && (
+                      <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={disconnecting} className="text-xs text-destructive hover:text-destructive">
+                        {disconnecting ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Unplug className="h-3.5 w-3.5 mr-1" />}
+                        Disconnect
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -280,6 +530,9 @@ const SuperAdminRegistrationWA = () => {
           <h3 className="font-bold text-foreground text-sm">Tes Kirim Pesan</h3>
           <p className="text-[11px] text-muted-foreground">
             Tes menggunakan gateway: <span className="font-semibold">{activeTab === "mpwa" ? "MPWA" : "OneSender"}</span>
+            {activeTab === "mpwa" && !isConnected && (
+              <span className="text-amber-600 ml-1">(Device belum terhubung)</span>
+            )}
           </p>
           <div className="flex gap-2">
             <Input
