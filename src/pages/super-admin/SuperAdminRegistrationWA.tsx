@@ -245,22 +245,21 @@ const SuperAdminRegistrationWA = () => {
       if (formattedPhone.startsWith("0")) formattedPhone = "62" + formattedPhone.substring(1);
 
       if (activeTab === "mpwa") {
-        // Send directly via MPWA
-        const res = await fetch("https://app.ayopintar.com/send-message", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            api_key: settings.mpwa_platform_api_key,
-            sender: settings.mpwa_platform_sender,
-            number: formattedPhone,
+        // Send via edge function to avoid CORS
+        const res = await supabase.functions.invoke("send-whatsapp", {
+          body: {
+            phone: formattedPhone,
             message,
-          }),
+            gateway: "mpwa",
+            mpwa_api_key: settings.mpwa_platform_api_key,
+            mpwa_sender: settings.mpwa_platform_sender,
+          },
         });
-        const data = await res.json();
-        if (data?.status === false) {
-          toast.error("Gagal: " + (data?.msg || "Unknown error"));
-        } else {
+        const data = res.data as any;
+        if (data?.success) {
           toast.success("Pesan tes MPWA berhasil dikirim!");
+        } else {
+          toast.error("Gagal: " + (data?.error || "Unknown error"));
         }
       } else {
         const body = {
