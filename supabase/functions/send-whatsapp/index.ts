@@ -11,7 +11,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { phone, message, api_url, api_key, school_id, group_id, student_name, message_type, gateway_type: explicitGateway } = body;
+    const { phone, message, api_url, api_key, school_id, group_id, student_name, message_type, gateway_type: explicitGateway, gateway, mpwa_api_key, mpwa_sender } = body;
 
     if ((!phone && !group_id) || !message) {
       return new Response(JSON.stringify({ error: 'phone or group_id, and message are required' }), {
@@ -27,8 +27,14 @@ serve(async (req) => {
 
     let finalApiUrl = api_url;
     let finalApiKey = api_key;
-    let gatewayType = explicitGateway || 'onesender';
-    let mpwaSender = '';
+    let gatewayType = gateway || explicitGateway || 'onesender';
+    let mpwaSenderNum = mpwa_sender || '';
+
+    // If direct MPWA params provided (e.g. from Super Admin test)
+    if (gatewayType === 'mpwa' && mpwa_api_key) {
+      finalApiKey = mpwa_api_key;
+      mpwaSenderNum = mpwa_sender || '';
+    }
 
     // If school_id provided, look up integration settings
     if (school_id && (!finalApiUrl || !finalApiKey)) {
