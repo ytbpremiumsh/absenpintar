@@ -6,13 +6,16 @@ import {
   Shield, Layers, Rocket, BarChart3, Globe, Building2, Zap,
   CheckCircle2, AlertTriangle, Star, ChevronRight, Smartphone,
   QrCode, Bell, FileCheck, UserCheck, Wifi, Heart, ShieldCheck,
-  Eye, Download, Award, ClipboardList
+  Eye, Download, Award, ClipboardList, FileText, File
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
