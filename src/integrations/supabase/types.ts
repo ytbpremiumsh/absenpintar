@@ -922,6 +922,63 @@ export type Database = {
         }
         Relationships: []
       }
+      school_addons: {
+        Row: {
+          addon_type: string
+          amount: number
+          created_at: string
+          custom_domain: string | null
+          domain_status: string
+          expires_at: string | null
+          id: string
+          payment_transaction_id: string | null
+          school_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addon_type?: string
+          amount?: number
+          created_at?: string
+          custom_domain?: string | null
+          domain_status?: string
+          expires_at?: string | null
+          id?: string
+          payment_transaction_id?: string | null
+          school_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addon_type?: string
+          amount?: number
+          created_at?: string
+          custom_domain?: string | null
+          domain_status?: string
+          expires_at?: string | null
+          id?: string
+          payment_transaction_id?: string | null
+          school_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_addons_payment_transaction_id_fkey"
+            columns: ["payment_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_addons_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_groups: {
         Row: {
           created_at: string
