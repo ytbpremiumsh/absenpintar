@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   Database, Download, RefreshCw, Shield, Clock, HardDrive, Loader2,
-  CheckCircle, AlertTriangle, Table2, BarChart3, FileDown, Cloud,
+  CheckCircle, Table2, BarChart3, FileDown, Cloud,
   BookOpen, ExternalLink, Key, FolderOpen,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +17,7 @@ interface BackupStats {
   stats: Record<string, number>;
 }
 
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"; // Will be configured via platform_settings
+
 
 const SuperAdminBackup = () => {
   const [loading, setLoading] = useState(true);
@@ -149,7 +149,7 @@ const SuperAdminBackup = () => {
             setLastGdriveBackupAt(data.meta.exported_at);
             setGdriveBackingUp(false);
           }
-        } catch (e) {
+        } catch (_) {
           // Cross-origin error is expected until redirect happens
         }
       }, 1000);
