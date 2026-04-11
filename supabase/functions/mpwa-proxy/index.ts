@@ -103,7 +103,10 @@ serve(async (req) => {
       data?.msg === 'Perangkat sudah terhubung!';
 
     const markConnected = async (connected: boolean) => {
-      if (integration?.id) {
+      if (isPlatform) {
+        await supabaseAdmin.from('platform_settings')
+          .upsert([{ key: 'mpwa_platform_connected', value: connected ? 'true' : 'false', updated_at: new Date().toISOString() }], { onConflict: 'key' });
+      } else if (integration?.id) {
         await supabaseAdmin.from('school_integrations')
           .update({ mpwa_connected: connected })
           .eq('id', integration.id);
