@@ -63,6 +63,8 @@ import AffiliateLogin from "./pages/AffiliateLogin";
 import AffiliateDashboard from "./pages/AffiliateDashboard";
 import SuperAdminAffiliate from "./pages/super-admin/SuperAdminAffiliate";
 import SuperAdminBackup from "./pages/super-admin/SuperAdminBackup";
+import SuperAdminAddons from "./pages/super-admin/SuperAdminAddons";
+import CustomDomain from "./pages/CustomDomain";
 
 const queryClient = new QueryClient();
 
