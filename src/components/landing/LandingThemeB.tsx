@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Monitor, FileBarChart, ArrowRight, CheckCircle2, Mail, Phone, MapPin,
-  Zap, Bell, QrCode, Users, GraduationCap, UserCheck, BarChart3, Shield,
-  Smartphone, Star, TrendingUp, Lock, ChevronRight, Sparkles, Play,
-  Quote, ChevronLeft, School, Code, HeartHandshake, Award,
+  Zap, Bell, QrCode, GraduationCap, UserCheck, Shield,
+  Star, ChevronRight, Sparkles, Play,
+  Quote, ChevronLeft, Code, HeartHandshake, Award,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import heroMockup from "@/assets/hero-mockup-theme2.png";
