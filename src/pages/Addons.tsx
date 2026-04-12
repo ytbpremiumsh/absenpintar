@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, CreditCard, Package, ChevronRight, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Globe, CreditCard, Package, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Addons = () => {
   const { profile } = useAuth();
@@ -29,7 +31,7 @@ const Addons = () => {
       if (profile?.school_id) {
         const [domRes, orderRes] = await Promise.all([
           supabase.from("school_addons").select("*").eq("school_id", profile.school_id).eq("addon_type", "custom_domain").maybeSingle(),
-          supabase.from("id_card_orders").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }).limit(5),
+          supabase.from("id_card_orders").select("*, id_card_designs(name)").eq("school_id", profile.school_id).order("created_at", { ascending: false }).limit(5),
         ]);
         setDomainAddon(domRes.data);
         setIdcardOrders(orderRes.data || []);
@@ -52,83 +54,131 @@ const Addons = () => {
       key: "domain",
       icon: Globe,
       title: "Custom Domain",
-      description: "Gunakan domain pribadi untuk dashboard sekolah Anda",
+      description: "Gunakan domain pribadi untuk dashboard sekolah Anda. Tampil lebih profesional dengan URL khusus.",
       price: "Rp 200.000",
       priceNote: "mengikuti masa aktif langganan",
       status: domainAddon?.status === "active" ? "active" : domainAddon ? "pending" : null,
       statusLabel: domainAddon?.status === "active" ? "Aktif" : domainAddon ? "Proses" : null,
-      color: "from-blue-500 to-indigo-600",
-      bgColor: "bg-blue-500/10",
-      textColor: "text-blue-600",
+      gradient: "from-blue-600 to-indigo-700",
+      bgIcon: "bg-blue-500/10",
+      textIcon: "text-blue-600",
+      features: ["SSL Gratis & HTTPS", "Instant Setup", "Tutorial DNS Lengkap"],
       onClick: () => navigate("/custom-domain"),
     }] : []),
     ...(idcardEnabled ? [{
       key: "idcard",
       icon: CreditCard,
-      title: "ID Card Siswa",
-      description: "Cetak kartu identitas siswa dengan desain profesional & QR Code",
+      title: "Cetak ID Card Siswa",
+      description: "Cetak kartu identitas siswa profesional dengan QR Code unik untuk absensi dan identifikasi.",
       price: "Rp 7.000",
       priceNote: "per kartu",
       status: idcardOrders.length > 0 ? "has_orders" : null,
       statusLabel: idcardOrders.length > 0 ? `${idcardOrders.length} pesanan` : null,
-      color: "from-emerald-500 to-teal-600",
-      bgColor: "bg-emerald-500/10",
-      textColor: "text-emerald-600",
+      gradient: "from-emerald-600 to-teal-700",
+      bgIcon: "bg-emerald-500/10",
+      textIcon: "text-emerald-600",
+      features: ["Pilih Desain Premium", "QR Code Otomatis", "Tracking Pengiriman"],
       onClick: () => navigate("/order-idcard"),
     }] : []),
   ];
 
+  const getProgressLabel = (progress: string) => {
+    const map: Record<string, string> = {
+      waiting_payment: "Menunggu Bayar", paid: "Dibayar", processing: "Diproses",
+      printing: "Dicetak", shipping: "Dikirim", completed: "Selesai",
+    };
+    return map[progress] || progress;
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Package className="h-6 w-6 text-primary" />
-          Add-on
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">Fitur tambahan untuk meningkatkan sistem sekolah Anda</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+              <Package className="h-5 w-5 text-white" />
+            </div>
+            Add-on
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Fitur tambahan untuk meningkatkan sistem sekolah Anda</p>
+        </div>
       </div>
 
       {addons.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Package className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-muted-foreground">Belum ada add-on yang tersedia saat ini</p>
+        <Card className="border-dashed">
+          <CardContent className="p-12 text-center">
+            <Package className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+            <h3 className="font-semibold text-lg mb-1">Belum Ada Add-on Tersedia</h3>
+            <p className="text-muted-foreground text-sm">Add-on akan muncul di sini saat tersedia</p>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {addons.map((addon) => (
-          <Card
+      {/* Add-on Cards */}
+      <div className="grid gap-5 sm:grid-cols-2">
+        {addons.map((addon, idx) => (
+          <motion.div
             key={addon.key}
-            className="cursor-pointer hover:shadow-lg transition-all duration-300 group overflow-hidden border-2 hover:border-primary/20"
-            onClick={addon.onClick}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
           >
-            <CardContent className="p-0">
-              <div className={`h-2 bg-gradient-to-r ${addon.color}`} />
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`h-12 w-12 rounded-xl ${addon.bgColor} flex items-center justify-center`}>
-                    <addon.icon className={`h-6 w-6 ${addon.textColor}`} />
-                  </div>
-                  <div className="flex items-center gap-2">
+            <Card
+              className="cursor-pointer group overflow-hidden border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5"
+              onClick={addon.onClick}
+            >
+              <CardContent className="p-0">
+                {/* Gradient Header */}
+                <div className={`bg-gradient-to-r ${addon.gradient} p-5 text-white`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <addon.icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">{addon.title}</h3>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-xl font-extrabold">{addon.price}</span>
+                          <span className="text-xs text-white/70">/ {addon.priceNote}</span>
+                        </div>
+                      </div>
+                    </div>
                     {addon.statusLabel && (
-                      <Badge variant={addon.status === "active" ? "default" : "secondary"} className="text-[10px]">
+                      <Badge className="bg-white/20 text-white border-white/30 text-[10px]">
                         {addon.statusLabel}
                       </Badge>
                     )}
-                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                 </div>
-                <h3 className="font-bold text-lg text-foreground mb-1">{addon.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{addon.description}</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className={`text-xl font-extrabold ${addon.textColor}`}>{addon.price}</span>
-                  <span className="text-xs text-muted-foreground">/ {addon.priceNote}</span>
+
+                {/* Body */}
+                <div className="p-5 space-y-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{addon.description}</p>
+
+                  {/* Features */}
+                  <div className="space-y-2">
+                    {addon.features.map((f) => (
+                      <div key={f} className="flex items-center gap-2 text-sm">
+                        <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <Sparkles className="h-3 w-3 text-primary" />
+                        </div>
+                        <span className="text-foreground">{f}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className="text-sm font-semibold text-primary group-hover:underline">
+                      {addon.status === "active" ? "Kelola" : addon.status === "has_orders" ? "Lihat Pesanan" : "Mulai Sekarang"}
+                    </span>
+                    <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
@@ -136,34 +186,37 @@ const Addons = () => {
       {idcardEnabled && idcardOrders.length > 0 && (
         <Card>
           <CardContent className="p-5">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-sm flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
                 Pesanan ID Card Terbaru
               </h3>
-              <button onClick={() => navigate("/order-idcard")} className="text-xs text-primary hover:underline">
-                Lihat semua →
-              </button>
+              <Button variant="link" size="sm" className="text-xs h-auto p-0" onClick={() => navigate("/order-idcard")}>
+                Lihat semua <ChevronRight className="h-3 w-3 ml-0.5" />
+              </Button>
             </div>
             <div className="space-y-2">
               {idcardOrders.slice(0, 3).map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50 text-sm">
-                  <div>
-                    <span className="font-medium">{order.total_cards} kartu</span>
-                    <span className="text-muted-foreground ml-2">
-                      Rp {(order.total_amount || 0).toLocaleString("id-ID")}
-                    </span>
+                <div key={order.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50 hover:bg-muted transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <CreditCard className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-sm">{order.total_cards} kartu</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        • {(order as any).id_card_designs?.name || "Desain Default"}
+                      </span>
+                      <p className="text-xs text-muted-foreground">
+                        Rp {(order.total_amount || 0).toLocaleString("id-ID")} • {new Date(order.created_at).toLocaleDateString("id-ID")}
+                      </p>
+                    </div>
                   </div>
                   <Badge
                     variant={order.progress === "completed" ? "default" : "secondary"}
                     className="text-[10px]"
                   >
-                    {order.progress === "waiting_payment" ? "Menunggu Bayar" :
-                     order.progress === "paid" ? "Dibayar" :
-                     order.progress === "processing" ? "Diproses" :
-                     order.progress === "printing" ? "Dicetak" :
-                     order.progress === "shipping" ? "Dikirim" :
-                     order.progress === "completed" ? "Selesai" : order.progress}
+                    {getProgressLabel(order.progress)}
                   </Badge>
                 </div>
               ))}
