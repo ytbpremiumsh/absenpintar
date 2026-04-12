@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Globe, Package, Search, CheckCircle2, Clock, XCircle, ExternalLink, CreditCard, Image, Trash2, Plus, Pencil } from "lucide-react";
+import { Globe, Package, Search, CheckCircle2, Clock, XCircle, ExternalLink, CreditCard, Image, Trash2, Plus, Pencil, Eye, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -36,27 +36,25 @@ const SuperAdminAddons = () => {
   const [editDesign, setEditDesign] = useState<any>(null);
   const [designName, setDesignName] = useState("");
   const [designUrl, setDesignUrl] = useState("");
+  // Order detail
+  const [detailOrder, setDetailOrder] = useState<any>(null);
+  const [detailItems, setDetailItems] = useState<any[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     const [settingRes, addonsRes, ordersRes, designsRes] = await Promise.all([
-      supabase.from("platform_settings").select("key, value").in("key", [
-        "addon_custom_domain_enabled", "addon_idcard_enabled", "idcard_price_per_card",
-      ]),
+      supabase.from("platform_settings").select("key, value").in("key", ["addon_custom_domain_enabled", "addon_idcard_enabled", "idcard_price_per_card"]),
       supabase.from("school_addons").select("*, schools(name)").eq("addon_type", "custom_domain").order("created_at", { ascending: false }),
-      supabase.from("id_card_orders").select("*, schools(name), id_card_designs(name)").order("created_at", { ascending: false }),
+      supabase.from("id_card_orders").select("*, schools(name), id_card_designs(name, preview_url)").order("created_at", { ascending: false }),
       supabase.from("id_card_designs").select("*").order("sort_order"),
     ]);
-
     (settingRes.data || []).forEach((s: any) => {
       if (s.key === "addon_custom_domain_enabled") setDomainEnabled(s.value !== "false");
       if (s.key === "addon_idcard_enabled") setIdcardEnabled(s.value !== "false");
       if (s.key === "idcard_price_per_card") setPricePerCard(s.value || "7000");
     });
-
     setDomainAddons(addonsRes.data || []);
     setIdcardOrders(ordersRes.data || []);
     setDesigns(designsRes.data || []);
@@ -65,9 +63,7 @@ const SuperAdminAddons = () => {
 
   const toggleSetting = async (key: string, enabled: boolean, setter: (v: boolean) => void) => {
     setToggling(true);
-    const { error } = await supabase.from("platform_settings").upsert(
-      { key, value: enabled ? "true" : "false" }, { onConflict: "key" }
-    );
+    const { error } = await supabase.from("platform_settings").upsert({ key, value: enabled ? "true" : "false" }, { onConflict: "key" });
     if (error) toast.error("Gagal mengubah pengaturan");
     else { setter(enabled); toast.success("Pengaturan diperbarui"); }
     setToggling(false);
@@ -87,9 +83,7 @@ const SuperAdminAddons = () => {
   };
 
   const savePricePerCard = async () => {
-    const { error } = await supabase.from("platform_settings").upsert(
-      { key: "idcard_price_per_card", value: pricePerCard }, { onConflict: "key" }
-    );
+    const { error } = await supabase.from("platform_settings").upsert({ key: "idcard_price_per_card", value: pricePerCard }, { onConflict: "key" });
     if (error) toast.error("Gagal simpan harga");
     else toast.success("Harga per kartu diperbarui");
   };
@@ -105,10 +99,7 @@ const SuperAdminAddons = () => {
       if (error) toast.error("Gagal tambah desain");
       else { toast.success("Desain ditambahkan"); setDesigns([...designs, data]); }
     }
-    setDesignDialog(false);
-    setEditDesign(null);
-    setDesignName("");
-    setDesignUrl("");
+    setDesignDialog(false); setEditDesign(null); setDesignName(""); setDesignUrl("");
   };
 
   const deleteDesign = async (id: string) => {
@@ -117,11 +108,18 @@ const SuperAdminAddons = () => {
     else { toast.success("Desain dinonaktifkan"); setDesigns(designs.filter((d) => d.id !== id)); }
   };
 
+  const openOrderDetail = async (order: any) => {
+    setDetailOrder(order);
+    setDetailLoading(true);
+    const { data } = await supabase.from("id_card_order_items").select("*").eq("order_id", order.id).order("student_class").order("student_name");
+    setDetailItems(data || []);
+    setDetailLoading(false);
+  };
+
   const filteredDomain = domainAddons.filter((a) =>
     (a.schools?.name || "").toLowerCase().includes(search.toLowerCase()) ||
     (a.custom_domain || "").toLowerCase().includes(search.toLowerCase())
   );
-
   const filteredOrders = idcardOrders.filter((o) =>
     (o.schools?.name || "").toLowerCase().includes(orderSearch.toLowerCase())
   );
@@ -138,10 +136,12 @@ const SuperAdminAddons = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Package className="h-6 w-6 text-destructive" />
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+            <Package className="h-5 w-5 text-white" />
+          </div>
           Kelola Add-on
         </h1>
-        <p className="text-muted-foreground text-sm">Kelola fitur add-on untuk sekolah</p>
+        <p className="text-muted-foreground text-sm mt-1">Kelola fitur add-on untuk sekolah</p>
       </div>
 
       {/* Toggle Menus */}
@@ -282,21 +282,17 @@ const SuperAdminAddons = () => {
                           <TableCell className="text-xs">{(o as any).id_card_designs?.name || "—"}</TableCell>
                           <TableCell>
                             <Select value={o.progress} onValueChange={(v) => updateOrderProgress(o.id, v)}>
-                              <SelectTrigger className="h-7 w-36 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
+                              <SelectTrigger className="h-7 w-36 text-xs"><SelectValue /></SelectTrigger>
                               <SelectContent>
-                                {PROGRESS_STEPS.map((s) => (
-                                  <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>
-                                ))}
+                                {PROGRESS_STEPS.map((s) => <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>)}
                               </SelectContent>
                             </Select>
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("id-ID")}</TableCell>
                           <TableCell>
-                            <Badge variant={o.progress === "completed" ? "default" : "secondary"} className="text-[10px]">
-                              {PROGRESS_STEPS.find((s) => s.key === o.progress)?.label || o.progress}
-                            </Badge>
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openOrderDetail(o)}>
+                              <Eye className="h-3 w-3 mr-1" /> Detail
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -311,7 +307,6 @@ const SuperAdminAddons = () => {
         {/* Designs & Pricing Tab */}
         <TabsContent value="idcard-designs">
           <div className="space-y-4">
-            {/* Price Setting */}
             <Card>
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -327,8 +322,6 @@ const SuperAdminAddons = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Designs List */}
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -340,7 +333,7 @@ const SuperAdminAddons = () => {
               </CardHeader>
               <CardContent>
                 {designs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Belum ada desain. Tambahkan desain baru untuk sekolah.</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">Belum ada desain.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {designs.map((d) => (
@@ -376,9 +369,7 @@ const SuperAdminAddons = () => {
       {/* Design Dialog */}
       <Dialog open={designDialog} onOpenChange={setDesignDialog}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editDesign ? "Edit Desain" : "Tambah Desain Baru"}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{editDesign ? "Edit Desain" : "Tambah Desain Baru"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">Nama Desain</label>
@@ -394,6 +385,76 @@ const SuperAdminAddons = () => {
             <Button variant="outline" onClick={() => setDesignDialog(false)}>Batal</Button>
             <Button onClick={saveDesign} disabled={!designName}>Simpan</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Order Detail Dialog */}
+      <Dialog open={!!detailOrder} onOpenChange={(open) => !open && setDetailOrder(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-emerald-600" />
+              Detail Pesanan
+            </DialogTitle>
+          </DialogHeader>
+          {detailOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Sekolah</p>
+                  <p className="font-bold">{detailOrder.schools?.name || "—"}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Jumlah Kartu</p>
+                  <p className="font-bold">{detailOrder.total_cards}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Total Biaya</p>
+                  <p className="font-bold">Rp {(detailOrder.total_amount || 0).toLocaleString("id-ID")}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Desain</p>
+                  <p className="font-bold">{(detailOrder as any).id_card_designs?.name || "Default"}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <Badge variant={detailOrder.progress === "completed" ? "default" : "secondary"} className="mt-1">
+                    {PROGRESS_STEPS.find((s) => s.key === detailOrder.progress)?.label || detailOrder.progress}
+                  </Badge>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">Tanggal</p>
+                  <p className="font-bold">{new Date(detailOrder.created_at).toLocaleDateString("id-ID")}</p>
+                </div>
+              </div>
+
+              {(detailOrder as any).id_card_designs?.preview_url && (
+                <img src={(detailOrder as any).id_card_designs.preview_url} alt="Design" className="w-full max-h-32 object-contain rounded-lg border" />
+              )}
+
+              <div>
+                <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                  <Users className="h-4 w-4" /> Daftar Siswa ({detailItems.length})
+                </h4>
+                {detailLoading ? (
+                  <div className="flex justify-center py-4"><div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" /></div>
+                ) : (
+                  <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+                    {detailItems.map((item, i) => (
+                      <div key={item.id} className="flex items-center gap-3 p-2.5 text-sm">
+                        <span className="text-xs text-muted-foreground w-6 text-center">{i + 1}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{item.student_name}</p>
+                          <p className="text-xs text-muted-foreground">{item.student_class}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {detailItems.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Tidak ada data siswa</p>}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
