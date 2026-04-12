@@ -70,7 +70,7 @@ const OrderIdCard = () => {
     load();
   }, [profile?.school_id]);
 
-  const filteredStudents = selectedClass
+  const filteredStudents = selectedClass && selectedClass !== "all"
     ? students.filter((s) => s.class === selectedClass)
     : students;
 
