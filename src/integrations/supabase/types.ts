@@ -284,6 +284,142 @@ export type Database = {
           },
         ]
       }
+      id_card_designs: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          preview_url: string | null
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          preview_url?: string | null
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          preview_url?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      id_card_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          student_class: string
+          student_id: string
+          student_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          student_class: string
+          student_id: string
+          student_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          student_class?: string
+          student_id?: string
+          student_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "id_card_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "id_card_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "id_card_order_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      id_card_orders: {
+        Row: {
+          created_at: string
+          design_id: string | null
+          id: string
+          notes: string | null
+          payment_transaction_id: string | null
+          price_per_card: number
+          progress: string
+          school_id: string
+          status: string
+          total_amount: number
+          total_cards: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          design_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_transaction_id?: string | null
+          price_per_card?: number
+          progress?: string
+          school_id: string
+          status?: string
+          total_amount?: number
+          total_cards?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          design_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_transaction_id?: string | null
+          price_per_card?: number
+          progress?: string
+          school_id?: string
+          status?: string
+          total_amount?: number
+          total_cards?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "id_card_orders_design_id_fkey"
+            columns: ["design_id"]
+            isOneToOne: false
+            referencedRelation: "id_card_designs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "id_card_orders_payment_transaction_id_fkey"
+            columns: ["payment_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "id_card_orders_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       landing_content: {
         Row: {
           created_at: string

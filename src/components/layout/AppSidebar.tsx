@@ -16,7 +16,7 @@ import {
   Crown,
   PenLine,
   Sparkles,
-  Globe,
+  Package,
 } from "lucide-react";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -59,7 +59,7 @@ const whatsappNav = [
 
 const settingsNav = [
   { title: "Langganan", url: "/subscription", icon: Sparkles, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  { title: "Custom Domain", url: "/custom-domain", icon: Globe, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Add-on", url: "/addons", icon: Package, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Bantuan", url: "/support", icon: HelpCircle, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
 
@@ -73,15 +73,14 @@ export function AppSidebar() {
 
   const [schoolData, setSchoolData] = useState<{ name: string; logo: string | null } | null>(null);
   const [platformLogo, setPlatformLogo] = useState<string | null>(null);
-  const [domainAddonEnabled, setDomainAddonEnabled] = useState(true);
+  
 
   const isPremiumBrand = ["School", "Premium"].includes(features.planName);
 
   useEffect(() => {
-    supabase.from("platform_settings").select("key, value").in("key", ["login_logo_url", "addon_custom_domain_enabled"]).then(({ data }) => {
+    supabase.from("platform_settings").select("key, value").in("key", ["login_logo_url"]).then(({ data }) => {
       (data || []).forEach((d: any) => {
         if (d.key === "login_logo_url" && d.value) setPlatformLogo(d.value);
-        if (d.key === "addon_custom_domain_enabled" && d.value === "false") setDomainAddonEnabled(false);
       });
     });
   }, []);
@@ -244,7 +243,7 @@ export function AppSidebar() {
             <SidebarGroup>
               {renderGroupLabel("Pengaturan")}
               <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">{renderNavItems(settingsNav.filter(i => i.url !== "/custom-domain" || domainAddonEnabled))}</SidebarMenu>
+                <SidebarMenu className="space-y-1">{renderNavItems(settingsNav)}</SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </>
