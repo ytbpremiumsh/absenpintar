@@ -59,7 +59,7 @@ const whatsappNav = [
 
 const settingsNav = [
   { title: "Langganan", url: "/subscription", icon: Sparkles, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  { title: "Custom Domain", url: "/custom-domain", icon: Globe, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Add-on", url: "/addons", icon: Package, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Bantuan", url: "/support", icon: HelpCircle, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
 

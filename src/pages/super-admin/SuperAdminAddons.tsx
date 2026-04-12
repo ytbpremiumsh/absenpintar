@@ -11,11 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Globe, Package, Search, CheckCircle2, Clock, XCircle, ExternalLink, CreditCard, Image, Trash2, Plus, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
-
-import idcardDesign1 from "@/assets/idcard-design-1.png";
-import idcardDesign2 from "@/assets/idcard-design-2.png";
-import idcardDesign3 from "@/assets/idcard-design-3.png";
 
 const PROGRESS_STEPS = [
   { key: "waiting_payment", label: "Menunggu Bayar" },

@@ -66,6 +66,8 @@ import SuperAdminAffiliate from "./pages/super-admin/SuperAdminAffiliate";
 import SuperAdminBackup from "./pages/super-admin/SuperAdminBackup";
 import SuperAdminAddons from "./pages/super-admin/SuperAdminAddons";
 import CustomDomain from "./pages/CustomDomain";
+import Addons from "./pages/Addons";
+import OrderIdCard from "./pages/OrderIdCard";
 
 const queryClient = new QueryClient();
 
@@ -140,7 +142,9 @@ const App = () => (
               <Route path="/support" element={<SupportTickets />} />
               <Route path="/referral" element={<ReferralDashboard />} />
               <Route path="/whatsapp" element={<WhatsAppSettings />} />
+              <Route path="/addons" element={<Addons />} />
               <Route path="/custom-domain" element={<CustomDomain />} />
+              <Route path="/order-idcard" element={<OrderIdCard />} />
               <Route path="/wa-templates" element={<Navigate to="/whatsapp" replace />} />
               <Route path="/wa-broadcast" element={<Navigate to="/whatsapp" replace />} />
               <Route path="/wa-history" element={<Navigate to="/whatsapp" replace />} />
