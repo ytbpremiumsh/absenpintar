@@ -62,30 +62,39 @@ const sendMpwaGroupMessage = async ({
   message: string;
 }) => {
   const candidates = normalizeGroupCandidates(groupId);
-  const attempts = candidates.flatMap((candidate) => ([
-    { label: `number:${candidate}`, payload: { api_key: apiKey, sender, number: candidate, message } },
-    { label: `group_id:${candidate}`, payload: { api_key: apiKey, sender, group_id: candidate, message } },
-  ]));
 
-  console.log(`MPWA sending to group: ${groupId}, sender: ${sender}, attempts: ${attempts.map((attempt) => attempt.label).join(', ')}`);
+  // Build attempts: for each candidate, try POST then GET
+  const attempts: { label: string; method: 'POST' | 'GET'; payload: Record<string, string> }[] = [];
+  for (const candidate of candidates) {
+    attempts.push({ label: `POST:number:${candidate}`, method: 'POST', payload: { api_key: apiKey, sender, number: candidate, message } });
+    attempts.push({ label: `GET:number:${candidate}`, method: 'GET', payload: { api_key: apiKey, sender, number: candidate, message } });
+  }
+
+  console.log(`MPWA sending to group: ${groupId}, sender: ${sender}, attempts: ${attempts.map((a) => a.label).join(', ')}`);
 
   let lastResponse: Response | null = null;
 
   for (const attempt of attempts) {
-    const { response, parsed } = await toReplayableResponse(
-      await fetch(url, {
+    let rawResponse: Response;
+    if (attempt.method === 'GET') {
+      const params = new URLSearchParams(attempt.payload);
+      rawResponse = await fetch(`${url}?${params.toString()}`);
+    } else {
+      rawResponse = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(attempt.payload),
-      })
-    );
+      });
+    }
+
+    const { response, parsed } = await toReplayableResponse(rawResponse);
 
     if (response.ok && parsed?.status !== false) {
-      console.log(`MPWA group send succeeded with payload ${attempt.label}`);
+      console.log(`MPWA group send succeeded with ${attempt.label}`);
       return response;
     }
 
-    console.warn(`MPWA group send failed with payload ${attempt.label}: ${JSON.stringify(parsed).substring(0, 200)}`);
+    console.warn(`MPWA group send failed with ${attempt.label}: ${JSON.stringify(parsed).substring(0, 200)}`);
     lastResponse = response;
   }
 
