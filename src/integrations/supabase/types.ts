@@ -1494,6 +1494,44 @@ export type Database = {
         }
         Relationships: []
       }
+      wa_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          school_id: string
+          total_purchased: number
+          total_used: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          school_id: string
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          school_id?: string
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_credits_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wa_message_logs: {
         Row: {
           created_at: string
