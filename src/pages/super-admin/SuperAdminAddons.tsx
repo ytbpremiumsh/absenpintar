@@ -322,7 +322,7 @@ const SuperAdminAddons = () => {
                           <TableCell className="font-medium text-sm">{o.schools?.name || "—"}</TableCell>
                           <TableCell>{o.total_cards} kartu</TableCell>
                           <TableCell>Rp {(o.total_amount || 0).toLocaleString("id-ID")}</TableCell>
-                          <TableCell className="text-xs">{(o as any).id_card_designs?.name || "—"}</TableCell>
+                          <TableCell className="text-xs">{(o as any).id_card_designs?.name || (o.notes?.startsWith("Desain:") ? o.notes.replace("Desain: ", "") : "—")}</TableCell>
                           <TableCell>
                             <Select value={o.progress} onValueChange={(v) => updateOrderProgress(o.id, v)}>
                               <SelectTrigger className="h-7 w-36 text-xs"><SelectValue /></SelectTrigger>
