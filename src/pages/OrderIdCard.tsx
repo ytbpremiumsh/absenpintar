@@ -311,21 +311,21 @@ const OrderIdCard = () => {
         </Card>
       )}
 
-      {/* Design Selection */}
+      {/* Design Selection - Portrait */}
       {step === "design" && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2"><Image className="h-4 w-4" /> Pilih Desain Kartu</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {designs.map((d) => (
                 <div
                   key={d.id}
                   className={`relative border-2 rounded-xl overflow-hidden cursor-pointer transition-all ${selectedDesign === d.id ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border hover:border-primary/40"}`}
                   onClick={() => setSelectedDesign(d.id)}
                 >
-                  {d.preview_url && <img src={d.preview_url} alt={d.name} className="w-full h-40 object-cover" loading="lazy" />}
+                  {d.preview_url && <img src={d.preview_url} alt={d.name} className="w-full aspect-[2/3] object-cover" loading="lazy" />}
                   <div className="p-3 flex items-center justify-between">
                     <span className="text-sm font-semibold">{d.name}</span>
                     {selectedDesign === d.id && <CheckCircle2 className="h-5 w-5 text-primary" />}
