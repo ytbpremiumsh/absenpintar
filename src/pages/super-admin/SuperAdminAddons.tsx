@@ -129,24 +129,12 @@ const SuperAdminAddons = () => {
   const openOrderDetail = async (order: any) => {
     setDetailOrder(order);
     setDetailLoading(true);
+    setViewBarcodeStudent(null);
     const { data } = await supabase.from("id_card_order_items")
-      .select("*, students(qr_code, student_id)")
+      .select("*, students(qr_code, student_id, name, class)")
       .eq("order_id", order.id).order("student_class").order("student_name");
     setDetailItems(data || []);
     setDetailLoading(false);
-  };
-
-  const downloadOrderCSV = (order: any, items: any[]) => {
-    const lines = ["No,Nama Siswa,Kelas,NIS,QR/Barcode"];
-    items.forEach((item, i) => {
-      lines.push(`${i + 1},"${item.student_name}","${item.student_class}","${(item as any).students?.student_id || ""}","${(item as any).students?.qr_code || ""}"`);
-    });
-    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `order-idcard-${order.id.slice(0, 8)}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    toast.success("Data siswa + barcode berhasil didownload");
   };
 
   const filteredDomain = domainAddons.filter((a) =>
