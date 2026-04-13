@@ -101,14 +101,17 @@ const OrderIdCard = () => {
     if (!profile?.school_id || selectedStudents.size === 0 || !selectedDesign) return;
     setSubmitting(true);
     try {
+      const isFallback = selectedDesign.startsWith("fallback");
+      const chosenDesign = designs.find((d) => d.id === selectedDesign);
       const { data: order, error } = await supabase.from("id_card_orders").insert({
         school_id: profile.school_id,
-        design_id: selectedDesign.startsWith("fallback") ? null : selectedDesign,
+        design_id: isFallback ? null : selectedDesign,
         total_cards: selectedStudents.size,
         price_per_card: pricePerCard,
         total_amount: totalAmount,
         status: "pending",
         progress: "waiting_payment",
+        notes: isFallback ? `Desain: ${chosenDesign?.name || selectedDesign}` : null,
       }).select("id").single();
       if (error) throw error;
 

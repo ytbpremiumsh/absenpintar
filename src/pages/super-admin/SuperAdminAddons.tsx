@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Globe, Package, Search, CheckCircle2, Clock, XCircle, ExternalLink, CreditCard, Image, Trash2, Plus, Pencil, Eye, Users, MessageSquare } from "lucide-react";
+import { Globe, Package, Search, CheckCircle2, Clock, XCircle, ExternalLink, CreditCard, Image, Trash2, Plus, Pencil, Eye, Users, Download, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
@@ -322,7 +322,7 @@ const SuperAdminAddons = () => {
                           <TableCell className="font-medium text-sm">{o.schools?.name || "—"}</TableCell>
                           <TableCell>{o.total_cards} kartu</TableCell>
                           <TableCell>Rp {(o.total_amount || 0).toLocaleString("id-ID")}</TableCell>
-                          <TableCell className="text-xs">{(o as any).id_card_designs?.name || "—"}</TableCell>
+                          <TableCell className="text-xs">{(o as any).id_card_designs?.name || (o.notes?.startsWith("Desain:") ? o.notes.replace("Desain: ", "") : "—")}</TableCell>
                           <TableCell>
                             <Select value={o.progress} onValueChange={(v) => updateOrderProgress(o.id, v)}>
                               <SelectTrigger className="h-7 w-36 text-xs"><SelectValue /></SelectTrigger>
@@ -542,7 +542,10 @@ const SuperAdminAddons = () => {
                     </div>
                   )}
                   <div>
-                    <p className="font-bold text-lg">{(detailOrder as any).id_card_designs?.name || "Desain Default"}</p>
+                    <p className="font-bold text-lg">
+                      {(detailOrder as any).id_card_designs?.name
+                        || (detailOrder.notes?.startsWith("Desain:") ? detailOrder.notes.replace("Desain: ", "") : "Desain Default")}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">Desain kartu identitas yang dipilih sekolah untuk pesanan ini</p>
                     <p className="text-sm font-semibold mt-2 text-emerald-700 dark:text-emerald-400">Rp {(detailOrder.price_per_card || 7000).toLocaleString("id-ID")} / kartu</p>
                   </div>
@@ -551,46 +554,66 @@ const SuperAdminAddons = () => {
 
               {/* Student list with barcode view */}
               <div>
-                <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                  <Users className="h-4 w-4" /> Daftar Siswa ({detailItems.length})
-                </h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Users className="h-4 w-4" /> Daftar Siswa ({detailItems.length})
+                  </h4>
+                  {detailItems.length > 0 && (
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white"
+                      onClick={() => {
+                        // Open all barcodes
+                        if (viewBarcodeStudent === "all") {
+                          setViewBarcodeStudent(null);
+                        } else {
+                          setViewBarcodeStudent("all");
+                        }
+                      }}
+                    >
+                      <Download className="h-3 w-3 mr-1" /> {viewBarcodeStudent === "all" ? "Tutup Semua" : "Lihat & Download Semua Barcode"}
+                    </Button>
+                  )}
+                </div>
                 {detailLoading ? (
                   <div className="flex justify-center py-4"><div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" /></div>
                 ) : (
-                  <div className="max-h-64 overflow-y-auto border rounded-lg divide-y">
-                    {detailItems.map((item, i) => (
-                      <div key={item.id} className="p-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-muted-foreground w-6 text-center font-bold">{i + 1}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{item.student_name}</p>
-                            <p className="text-xs text-muted-foreground">{item.student_class} • NIS: {(item as any).students?.student_id || "-"}</p>
+                  <div className="border rounded-lg divide-y">
+                    {detailItems.map((item, i) => {
+                      const showBarcode = viewBarcodeStudent === "all" || viewBarcodeStudent?.id === item.id;
+                      return (
+                        <div key={item.id} className="p-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground w-6 text-center font-bold">{i + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{item.student_name}</p>
+                              <p className="text-xs text-muted-foreground">{item.student_class} • NIS: {(item as any).students?.student_id || "-"}</p>
+                            </div>
+                            {(item as any).students?.qr_code && viewBarcodeStudent !== "all" && (
+                              <Button
+                                size="sm"
+                                className="h-7 text-xs bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white shrink-0"
+                                onClick={() => setViewBarcodeStudent(showBarcode ? null : { id: item.id, name: item.student_name, class: item.student_class, qr_code: (item as any).students.qr_code })}
+                              >
+                                <Eye className="h-3 w-3 mr-1" /> {showBarcode ? "Tutup" : "Lihat Barcode"}
+                              </Button>
+                            )}
                           </div>
-                          {(item as any).students?.qr_code && (
-                            <Button
-                              size="sm"
-                              className="h-7 text-xs bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white shrink-0"
-                              onClick={() => setViewBarcodeStudent(viewBarcodeStudent?.id === item.id ? null : { id: item.id, name: item.student_name, class: item.student_class, qr_code: (item as any).students.qr_code, student_id: (item as any).students.student_id })}
-                            >
-                              <Eye className="h-3 w-3 mr-1" /> {viewBarcodeStudent?.id === item.id ? "Tutup" : "Lihat Barcode"}
-                            </Button>
+                          {showBarcode && (item as any).students?.qr_code && (
+                            <div className="mt-3 p-4 bg-white dark:bg-gray-900 rounded-lg border flex flex-col items-center">
+                              <QRCodeDisplay
+                                data={(item as any).students.qr_code}
+                                size={160}
+                                studentName={item.student_name}
+                                studentClass={item.student_class}
+                                schoolName={detailOrder.schools?.name}
+                                autoFrame={true}
+                              />
+                            </div>
                           )}
                         </div>
-                        {/* Inline barcode preview */}
-                        {viewBarcodeStudent?.id === item.id && (
-                          <div className="mt-3 p-4 bg-white dark:bg-gray-900 rounded-lg border flex flex-col items-center">
-                            <QRCodeDisplay
-                              data={viewBarcodeStudent.qr_code}
-                              size={160}
-                              studentName={viewBarcodeStudent.name}
-                              studentClass={viewBarcodeStudent.class}
-                              schoolName={detailOrder.schools?.name}
-                              autoFrame={true}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                     {detailItems.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Tidak ada data siswa</p>}
                   </div>
                 )}
