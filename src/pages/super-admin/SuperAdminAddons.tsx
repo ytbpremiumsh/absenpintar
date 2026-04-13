@@ -279,10 +279,12 @@ const SuperAdminAddons = () => {
                           {a.domain_status}
                         </Badge>
                         {a.domain_status === "pending" && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => updateDomainStatus(a.id, "active")}>Verifikasi</Button>
+                          <Button size="sm" className="h-7 text-xs bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={() => updateDomainStatus(a.id, "active")}>
+                            <CheckCircle2 className="h-3 w-3 mr-1" /> Verifikasi
+                          </Button>
                         )}
                         {a.domain_status === "active" && (
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => window.open(`https://${a.custom_domain}`, "_blank")}>
+                          <Button size="sm" className="h-7 text-xs bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={() => window.open(`https://${a.custom_domain}`, "_blank")}>
                             <ExternalLink className="h-3 w-3 mr-1" /> Buka
                           </Button>
                         )}
@@ -341,7 +343,7 @@ const SuperAdminAddons = () => {
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("id-ID")}</TableCell>
                           <TableCell>
-                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openOrderDetail(o)}>
+                            <Button size="sm" className="h-7 text-xs bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={() => openOrderDetail(o)}>
                               <Eye className="h-3 w-3 mr-1" /> Detail
                             </Button>
                           </TableCell>
@@ -368,7 +370,7 @@ const SuperAdminAddons = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Rp</span>
                     <Input type="number" className="w-32" value={pricePerCard} onChange={(e) => setPricePerCard(e.target.value)} />
-                    <Button size="sm" onClick={savePricePerCard}>Simpan</Button>
+                    <Button size="sm" className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={savePricePerCard}>Simpan</Button>
                   </div>
                 </div>
               </CardContent>
@@ -377,8 +379,8 @@ const SuperAdminAddons = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">Desain ID Card ({designs.length})</CardTitle>
-                  <Button size="sm" onClick={() => { setEditDesign(null); setDesignName(""); setDesignUrl(""); setDesignDialog(true); }}>
-                    <Plus className="h-3.5 w-3.5 mr-1" /> Tambah Desain
+                   <Button size="sm" className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={() => { setEditDesign(null); setDesignName(""); setDesignUrl(""); setDesignDialog(true); }}>
+                     <Plus className="h-3.5 w-3.5 mr-1" /> Tambah Desain
                   </Button>
                 </div>
               </CardHeader>
@@ -435,7 +437,7 @@ const SuperAdminAddons = () => {
                       </div>
                     </div>
                   </div>
-                  <Button size="sm" onClick={saveWaCreditSettings}>Simpan</Button>
+                  <Button size="sm" className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={saveWaCreditSettings}>Simpan</Button>
                 </div>
               </CardContent>
             </Card>
@@ -494,8 +496,8 @@ const SuperAdminAddons = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDesignDialog(false)}>Batal</Button>
-            <Button onClick={saveDesign} disabled={!designName}>Simpan</Button>
+             <Button variant="outline" onClick={() => setDesignDialog(false)}>Batal</Button>
+             <Button className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={saveDesign} disabled={!designName}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -553,10 +555,10 @@ const SuperAdminAddons = () => {
                   <h4 className="font-semibold text-sm flex items-center gap-2">
                     <Users className="h-4 w-4" /> Daftar Siswa + Barcode ({detailItems.length})
                   </h4>
-                  {detailItems.length > 0 && (
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => downloadOrderCSV(detailOrder, detailItems)}>
-                      <Download className="h-3 w-3 mr-1" /> Download CSV
-                    </Button>
+                   {detailItems.length > 0 && (
+                     <Button size="sm" className="h-7 text-xs bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:from-[#4c5ded] hover:to-[#3d4ede] text-white" onClick={() => downloadOrderCSV(detailOrder, detailItems)}>
+                       <Download className="h-3 w-3 mr-1" /> Download CSV
+                     </Button>
                   )}
                 </div>
                 {detailLoading ? (
