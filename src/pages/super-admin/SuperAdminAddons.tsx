@@ -542,7 +542,10 @@ const SuperAdminAddons = () => {
                     </div>
                   )}
                   <div>
-                    <p className="font-bold text-lg">{(detailOrder as any).id_card_designs?.name || "Desain Default"}</p>
+                    <p className="font-bold text-lg">
+                      {(detailOrder as any).id_card_designs?.name
+                        || (detailOrder.notes?.startsWith("Desain:") ? detailOrder.notes.replace("Desain: ", "") : "Desain Default")}
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">Desain kartu identitas yang dipilih sekolah untuk pesanan ini</p>
                     <p className="text-sm font-semibold mt-2 text-emerald-700 dark:text-emerald-400">Rp {(detailOrder.price_per_card || 7000).toLocaleString("id-ID")} / kartu</p>
                   </div>
