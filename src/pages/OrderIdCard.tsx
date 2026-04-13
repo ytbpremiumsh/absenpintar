@@ -390,7 +390,7 @@ const OrderIdCard = () => {
 
       {/* Detail Dialog */}
       <Dialog open={!!detailOrder} onOpenChange={(open) => !open && setDetailOrder(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-emerald-600" />
@@ -420,8 +420,12 @@ const OrderIdCard = () => {
                 </div>
               </div>
 
+              {/* Design Preview */}
               {(detailOrder as any).id_card_designs?.preview_url && (
-                <img src={(detailOrder as any).id_card_designs.preview_url} alt="Design" className="w-full max-h-32 object-contain rounded-lg border" />
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Preview Desain</p>
+                  <img src={(detailOrder as any).id_card_designs.preview_url} alt="Design" className="mx-auto max-w-[200px] aspect-[2/3] object-cover rounded-lg border shadow-sm" />
+                </div>
               )}
 
               <div>
@@ -437,8 +441,11 @@ const OrderIdCard = () => {
                         <span className="text-xs text-muted-foreground w-6 text-center">{i + 1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{item.student_name}</p>
-                          <p className="text-xs text-muted-foreground">{item.student_class}</p>
+                          <p className="text-xs text-muted-foreground">{item.student_class} • NIS: {(item as any).students?.student_id || "-"}</p>
                         </div>
+                        {(item as any).students?.qr_code && (
+                          <code className="text-[9px] bg-muted px-1.5 py-0.5 rounded font-mono text-muted-foreground">{(item as any).students.qr_code}</code>
+                        )}
                       </div>
                     ))}
                   </div>
