@@ -27,7 +27,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Try multiple ID fields from Mayar webhook payload
     const transactionId = data?.id || data?.transaction_id || data?.transactionId;
     const productId = data?.productId;
     
@@ -38,33 +37,31 @@ serve(async (req) => {
       });
     }
 
-    // Find the payment transaction - try transaction ID first, then product ID (payment link ID)
+    // Find the payment transaction
     let payment = null;
     
     if (transactionId) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount')
+        .select('id, school_id, plan_id, status, amount, payment_method')
         .eq('mayar_transaction_id', transactionId)
         .maybeSingle();
       payment = found;
     }
     
-    // Fallback: productId is the payment link ID which is what we store as mayar_transaction_id
     if (!payment && productId) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount')
+        .select('id, school_id, plan_id, status, amount, payment_method')
         .eq('mayar_transaction_id', productId)
         .maybeSingle();
       payment = found;
     }
     
-    // Last fallback: find most recent pending payment matching the amount and email
     if (!payment && data?.amount) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount')
+        .select('id, school_id, plan_id, status, amount, payment_method')
         .eq('status', 'pending')
         .eq('amount', data.amount)
         .order('created_at', { ascending: false })
@@ -80,7 +77,6 @@ serve(async (req) => {
       });
     }
 
-    // Skip if already paid (idempotency)
     if (payment.status === 'paid') {
       console.log('Payment already processed:', payment.id);
       return new Response(JSON.stringify({ message: 'Already processed' }), {
@@ -88,24 +84,115 @@ serve(async (req) => {
       });
     }
 
-    // Update payment status to paid + store actual Mayar transaction ID
+    // Update payment status to paid
     await supabaseAdmin
       .from('payment_transactions')
       .update({ 
         status: 'paid', 
         paid_at: new Date().toISOString(), 
-        payment_method: data?.paymentMethod || 'mayar',
+        payment_method: payment.payment_method || data?.paymentMethod || 'mayar',
         mayar_transaction_id: transactionId || payment.mayar_transaction_id,
       })
       .eq('id', payment.id);
 
-    // Get plan and school info for notifications
-    const [planRes, schoolRes] = await Promise.all([
-      supabaseAdmin.from('subscription_plans').select('name').eq('id', payment.plan_id).single(),
-      supabaseAdmin.from('schools').select('name').eq('id', payment.school_id).single(),
-    ]);
-    const planName = planRes.data?.name || 'Unknown';
-    const schoolName = schoolRes.data?.name || 'Sekolah';
+    const { data: schoolRes } = await supabaseAdmin.from('schools').select('name').eq('id', payment.school_id).single();
+    const schoolName = schoolRes?.name || 'Sekolah';
+    const amountFormatted = `Rp ${(payment.amount || 0).toLocaleString('id-ID')}`;
+    const paymentMethod = payment.payment_method || '';
+
+    // ═══════════════════════════════════════════
+    // ADDON: ID Card Order — auto confirm
+    // ═══════════════════════════════════════════
+    if (paymentMethod === 'addon_idcard') {
+      // Find the order linked to this payment
+      const { data: order } = await supabaseAdmin
+        .from('id_card_orders')
+        .select('id, total_cards')
+        .eq('payment_transaction_id', payment.id)
+        .maybeSingle();
+
+      if (order) {
+        await supabaseAdmin.from('id_card_orders')
+          .update({ progress: 'paid', status: 'paid' })
+          .eq('id', order.id);
+        console.log(`ID Card order ${order.id} auto-confirmed (${order.total_cards} cards)`);
+      }
+
+      await supabaseAdmin.from('notifications').insert({
+        school_id: payment.school_id,
+        title: 'Pembayaran ID Card Berhasil',
+        message: `Pesanan cetak ${order?.total_cards || ''} ID Card sebesar ${amountFormatted} telah dibayar. Pesanan sedang diproses.`,
+        type: 'success',
+      });
+      await supabaseAdmin.from('notifications').insert({
+        school_id: null,
+        title: 'Pembayaran ID Card Masuk',
+        message: `${schoolName} membayar pesanan ID Card sebesar ${amountFormatted}. Pesanan otomatis dikonfirmasi.`,
+        type: 'info',
+      });
+
+      return new Response(JSON.stringify({ success: true, type: 'idcard' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ═══════════════════════════════════════════
+    // ADDON: WA Credit Top-up — auto confirm
+    // ═══════════════════════════════════════════
+    if (paymentMethod === 'addon_wa_credit') {
+      // Calculate credits from amount
+      const { data: priceSetting } = await supabaseAdmin.from('platform_settings').select('value').eq('key', 'wa_credit_price').maybeSingle();
+      const { data: creditSetting } = await supabaseAdmin.from('platform_settings').select('value').eq('key', 'wa_credit_per_pack').maybeSingle();
+      const pricePerPack = parseInt(priceSetting?.value || '50000');
+      const creditsPerPack = parseInt(creditSetting?.value || '1000');
+      const packs = Math.max(1, Math.round(payment.amount / pricePerPack));
+      const totalCredits = packs * creditsPerPack;
+
+      // Upsert wa_credits
+      const { data: existing } = await supabaseAdmin.from('wa_credits')
+        .select('id, balance, total_purchased')
+        .eq('school_id', payment.school_id)
+        .maybeSingle();
+
+      if (existing) {
+        await supabaseAdmin.from('wa_credits').update({
+          balance: existing.balance + totalCredits,
+          total_purchased: existing.total_purchased + totalCredits,
+        }).eq('id', existing.id);
+      } else {
+        await supabaseAdmin.from('wa_credits').insert({
+          school_id: payment.school_id,
+          balance: totalCredits,
+          total_purchased: totalCredits,
+          total_used: 0,
+        });
+      }
+
+      console.log(`WA Credit ${totalCredits} added for school ${payment.school_id}`);
+
+      await supabaseAdmin.from('notifications').insert({
+        school_id: payment.school_id,
+        title: 'Top-up Kredit WA Berhasil',
+        message: `${totalCredits.toLocaleString('id-ID')} kredit pesan WhatsApp telah ditambahkan. Pembayaran sebesar ${amountFormatted}.`,
+        type: 'success',
+      });
+      await supabaseAdmin.from('notifications').insert({
+        school_id: null,
+        title: 'Top-up Kredit WA Masuk',
+        message: `${schoolName} top-up ${totalCredits.toLocaleString('id-ID')} kredit WA sebesar ${amountFormatted}.`,
+        type: 'info',
+      });
+
+      return new Response(JSON.stringify({ success: true, type: 'wa_credit', credits_added: totalCredits }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ═══════════════════════════════════════════
+    // SUBSCRIPTION Payment — existing logic
+    // ═══════════════════════════════════════════
+    const { data: planRes } = await supabaseAdmin.from('subscription_plans').select('name').eq('id', payment.plan_id).single();
+    const planName = planRes?.name || 'Unknown';
 
     // Create or extend school subscription
     const { data: existingSub } = await supabaseAdmin
@@ -143,7 +230,6 @@ serve(async (req) => {
     }
 
     const expiresFormatted = expiresAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    const amountFormatted = `Rp ${(payment.amount || 0).toLocaleString('id-ID')}`;
 
     // Auto-provision WhatsApp integration for School/Premium plans
     if (['School', 'Premium'].includes(planName)) {
@@ -155,7 +241,6 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!existingInt) {
-        // Copy API credentials from any existing school integration
         const { data: refInt } = await supabaseAdmin
           .from('school_integrations')
           .select('api_key, api_url')
@@ -173,17 +258,30 @@ serve(async (req) => {
             is_active: true,
             wa_enabled: true,
           });
-          console.log(`WhatsApp integration auto-provisioned for school ${payment.school_id}`);
         }
       } else {
-        // Activate existing integration
         await supabaseAdmin.from('school_integrations')
           .update({ is_active: true })
           .eq('id', existingInt.id);
       }
+
+      // Auto-provision 5000 WA credits for School/Premium
+      const { data: existingCredits } = await supabaseAdmin.from('wa_credits')
+        .select('id')
+        .eq('school_id', payment.school_id)
+        .maybeSingle();
+
+      if (!existingCredits) {
+        await supabaseAdmin.from('wa_credits').insert({
+          school_id: payment.school_id,
+          balance: 5000,
+          total_purchased: 5000,
+          total_used: 0,
+        });
+        console.log(`WA Credits 5000 auto-provisioned for school ${payment.school_id}`);
+      }
     }
 
-    // Notification for the school (user sees this)
     await supabaseAdmin.from('notifications').insert({
       school_id: payment.school_id,
       title: 'Pembayaran Berhasil — Upgrade Sukses',
@@ -191,7 +289,6 @@ serve(async (req) => {
       type: 'success',
     });
 
-    // Notification for super admin
     await supabaseAdmin.from('notifications').insert({
       school_id: null,
       title: 'Pembayaran Masuk — Auto Approved',
