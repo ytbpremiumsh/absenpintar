@@ -160,7 +160,9 @@ const OrderIdCard = () => {
   const openDetail = async (order: any) => {
     setDetailOrder(order);
     setDetailLoading(true);
-    const { data } = await supabase.from("id_card_order_items").select("*").eq("order_id", order.id).order("student_class").order("student_name");
+    const { data } = await supabase.from("id_card_order_items")
+      .select("*, students(qr_code, student_id)")
+      .eq("order_id", order.id).order("student_class").order("student_name");
     setDetailItems(data || []);
     setDetailLoading(false);
   };
@@ -311,21 +313,21 @@ const OrderIdCard = () => {
         </Card>
       )}
 
-      {/* Design Selection */}
+      {/* Design Selection - Portrait */}
       {step === "design" && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2"><Image className="h-4 w-4" /> Pilih Desain Kartu</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {designs.map((d) => (
                 <div
                   key={d.id}
                   className={`relative border-2 rounded-xl overflow-hidden cursor-pointer transition-all ${selectedDesign === d.id ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border hover:border-primary/40"}`}
                   onClick={() => setSelectedDesign(d.id)}
                 >
-                  {d.preview_url && <img src={d.preview_url} alt={d.name} className="w-full h-40 object-cover" loading="lazy" />}
+                  {d.preview_url && <img src={d.preview_url} alt={d.name} className="w-full aspect-[2/3] object-cover" loading="lazy" />}
                   <div className="p-3 flex items-center justify-between">
                     <span className="text-sm font-semibold">{d.name}</span>
                     {selectedDesign === d.id && <CheckCircle2 className="h-5 w-5 text-primary" />}
@@ -388,7 +390,7 @@ const OrderIdCard = () => {
 
       {/* Detail Dialog */}
       <Dialog open={!!detailOrder} onOpenChange={(open) => !open && setDetailOrder(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-emerald-600" />
@@ -418,8 +420,12 @@ const OrderIdCard = () => {
                 </div>
               </div>
 
+              {/* Design Preview */}
               {(detailOrder as any).id_card_designs?.preview_url && (
-                <img src={(detailOrder as any).id_card_designs.preview_url} alt="Design" className="w-full max-h-32 object-contain rounded-lg border" />
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Preview Desain</p>
+                  <img src={(detailOrder as any).id_card_designs.preview_url} alt="Design" className="mx-auto max-w-[200px] aspect-[2/3] object-cover rounded-lg border shadow-sm" />
+                </div>
               )}
 
               <div>
@@ -435,8 +441,11 @@ const OrderIdCard = () => {
                         <span className="text-xs text-muted-foreground w-6 text-center">{i + 1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{item.student_name}</p>
-                          <p className="text-xs text-muted-foreground">{item.student_class}</p>
+                          <p className="text-xs text-muted-foreground">{item.student_class} • NIS: {(item as any).students?.student_id || "-"}</p>
                         </div>
+                        {(item as any).students?.qr_code && (
+                          <code className="text-[9px] bg-muted px-1.5 py-0.5 rounded font-mono text-muted-foreground">{(item as any).students.qr_code}</code>
+                        )}
                       </div>
                     ))}
                   </div>

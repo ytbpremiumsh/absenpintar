@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Check, Star, Zap, Crown, Loader2, Shield, Calendar, Clock,
-  GraduationCap, AlertTriangle, CheckCircle2, CreditCard,
+  GraduationCap, AlertTriangle, CheckCircle2, CreditCard, MessageSquare,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +42,7 @@ const Subscription = () => {
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const [usage, setUsage] = useState<UsageStats>({ classCount: 0, studentCount: 0, maxClasses: 2, maxStudentsPerClass: 10, maxStudentsTotal: 20 });
   const [subscriptionHistory, setSubscriptionHistory] = useState<any[]>([]);
+  const [waCredits, setWaCredits] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,12 +58,14 @@ const Subscription = () => {
       setPlans(parsed);
 
       if (profile?.school_id) {
-        const [subRes, classesRes, studentRes, historyRes] = await Promise.all([
+        const [subRes, classesRes, studentRes, historyRes, creditRes] = await Promise.all([
           supabase.from("school_subscriptions").select("*, subscription_plans(*)").eq("school_id", profile.school_id).in("status", ["active", "trial"]).order("created_at", { ascending: false }).limit(1).maybeSingle(),
           supabase.from("classes").select("name").eq("school_id", profile.school_id),
           supabase.from("students").select("id, class").eq("school_id", profile.school_id),
           supabase.from("payment_transactions").select("id, amount, status, created_at, paid_at, payment_method, subscription_plans(name)").eq("school_id", profile.school_id).eq("status", "paid").order("created_at", { ascending: false }).limit(20),
+          supabase.from("wa_credits").select("*").eq("school_id", profile.school_id).maybeSingle(),
         ]);
+        setWaCredits(creditRes.data);
 
         const sub = subRes.data;
         // Count unique classes from both classes table and student class assignments
@@ -342,6 +345,39 @@ const Subscription = () => {
                   </span>
                   <span className="text-[10px] text-muted-foreground">
                     {new Date(currentSub.expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* WA Credits Progress */}
+            {waCredits && (
+              <div className="mb-4 p-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5 text-violet-600" /> Kredit Pesan WA
+                  </span>
+                  <span className={`text-xs font-bold ${waCredits.balance < 100 ? "text-warning" : "text-violet-600"}`}>
+                    {waCredits.balance.toLocaleString("id-ID")} pesan
+                  </span>
+                </div>
+                <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${waCredits.balance < 100 ? "bg-gradient-to-r from-warning to-destructive" : "bg-gradient-to-r from-violet-500 to-purple-500"}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, waCredits.total_purchased > 0 ? (waCredits.balance / waCredits.total_purchased) * 100 : 0)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] text-muted-foreground">
+                    Terpakai: {waCredits.total_used.toLocaleString("id-ID")}
+                  </span>
+                  <span className={`text-[10px] font-medium ${waCredits.balance < 100 ? "text-warning" : "text-muted-foreground"}`}>
+                    {waCredits.balance < 100 ? "⚠ Kredit hampir habis" : `Sisa ${Math.round(waCredits.total_purchased > 0 ? (waCredits.balance / waCredits.total_purchased) * 100 : 0)}%`}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    Total: {waCredits.total_purchased.toLocaleString("id-ID")}
                   </span>
                 </div>
               </div>
