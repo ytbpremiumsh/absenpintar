@@ -462,6 +462,11 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Live Schedule Widget */}
+        {profile?.school_id && (
+          <LiveScheduleWidget schoolId={profile.school_id} />
+        )}
       </div>
 
       {/* Quick Actions */}
