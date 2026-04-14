@@ -72,6 +72,7 @@ import OrderIdCard from "./pages/OrderIdCard";
 import WaCredit from "./pages/WaCredit";
 import TeachingSchedule from "./pages/TeachingSchedule";
 import LiveSchedule from "./pages/LiveSchedule";
+import TeacherDashboard from "./pages/TeacherDashboard";
 
 const queryClient = new QueryClient();
 
