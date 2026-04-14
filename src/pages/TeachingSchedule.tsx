@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Plus, Pencil, Trash2, BookOpen, Clock, Users as UsersIcon, Calendar, Search, GraduationCap } from "lucide-react";
+import { Plus, Pencil, Trash2, BookOpen, Clock, Users as UsersIcon, Calendar, Search, GraduationCap, CalendarDays } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
@@ -214,7 +214,7 @@ export default function TeachingSchedule() {
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-4">
-        <PageHeader title="Jadwal Mengajar" />
+        <PageHeader icon={CalendarDays} title="Jadwal Mengajar" subtitle="Memuat data..." />
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
@@ -224,7 +224,7 @@ export default function TeachingSchedule() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <PageHeader title="Jadwal Mengajar" subtitle="Kelola jadwal mengajar guru dan mata pelajaran" />
+      <PageHeader icon={CalendarDays} title="Jadwal Mengajar" subtitle="Kelola jadwal mengajar guru dan mata pelajaran" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-2 w-full max-w-md">

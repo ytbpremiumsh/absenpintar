@@ -5,10 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/PageHeader";
-import { Clock, BookOpen, Users, MapPin, CheckCircle2, PlayCircle, Timer, Coffee } from "lucide-react";
+import { Clock, BookOpen, Users, MapPin, CheckCircle2, PlayCircle, Timer, Coffee, Radio } from "lucide-react";
 
 const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-const DAYS_SCHEDULE = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
 interface Schedule {
   id: string;
@@ -133,7 +132,7 @@ export default function LiveSchedule() {
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-4">
-        <PageHeader title="Jadwal Live" />
+        <PageHeader icon={Radio} title="Jadwal Live" subtitle="Memuat data..." />
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
@@ -143,7 +142,7 @@ export default function LiveSchedule() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <PageHeader title="📡 Jadwal Live Hari Ini" subtitle={`${DAYS[jsDay]}, ${now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} — ${now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`} />
+      <PageHeader icon={Radio} title="Jadwal Live Hari Ini" subtitle={`${DAYS[jsDay]}, ${now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} — ${now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`} />
 
       {/* Live stats */}
       <div className="grid grid-cols-3 gap-3">
@@ -197,7 +196,7 @@ export default function LiveSchedule() {
         </CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {todaySchedules.map((s, idx) => {
+          {todaySchedules.map((s) => {
             const status = getStatus(s.start_time, s.end_time, now);
             const isActive = status === "active";
             return (
