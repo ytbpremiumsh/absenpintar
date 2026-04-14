@@ -210,10 +210,57 @@ const LandingThemeB = () => {
 
       {/* ─── Hero Section (1 screen) ─── */}
       <section className="relative min-h-screen flex flex-col overflow-visible bg-[#5B6CF9]">
-        {/* Premium grid texture */}
-        <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-        {/* Subtle radial glow */}
+        {/* Digital grid texture */}
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+        {/* Animated digital nodes */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Floating circuit dots */}
+          {[
+            { top: '12%', left: '8%', size: 4, delay: 0 },
+            { top: '25%', left: '85%', size: 3, delay: 1.2 },
+            { top: '60%', left: '15%', size: 5, delay: 0.6 },
+            { top: '35%', left: '72%', size: 3, delay: 1.8 },
+            { top: '70%', left: '90%', size: 4, delay: 0.3 },
+            { top: '18%', left: '45%', size: 3, delay: 2.1 },
+            { top: '80%', left: '55%', size: 4, delay: 1.5 },
+            { top: '45%', left: '5%', size: 3, delay: 0.9 },
+          ].map((dot, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{ top: dot.top, left: dot.left, width: dot.size, height: dot.size }}
+              animate={{ opacity: [0.1, 0.5, 0.1], scale: [1, 1.8, 1] }}
+              transition={{ duration: 3, repeat: Infinity, delay: dot.delay, ease: 'easeInOut' }}
+            />
+          ))}
+          {/* Horizontal scan lines */}
+          <motion.div
+            className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            animate={{ top: ['0%', '100%'] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+          />
+          <motion.div
+            className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+            animate={{ top: ['100%', '0%'] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+          />
+          {/* Corner accent shapes */}
+          <div className="absolute top-16 left-8 w-24 h-24 border border-white/[0.07] rounded-lg rotate-12" />
+          <div className="absolute top-32 right-12 w-16 h-16 border border-white/[0.05] rounded-full" />
+          <div className="absolute bottom-1/3 left-16 w-20 h-20 border border-white/[0.06] rounded-lg -rotate-6" />
+          <div className="absolute top-1/4 right-1/4 w-32 h-32 border border-white/[0.04] rounded-2xl rotate-45" />
+          {/* Data stream lines */}
+          <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+            <line x1="10%" y1="0" x2="30%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="6 12" />
+            <line x1="50%" y1="0" x2="70%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="4 16" />
+            <line x1="80%" y1="0" x2="60%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="8 14" />
+            <line x1="25%" y1="0" x2="45%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="3 18" />
+          </svg>
+        </div>
+        {/* Radial glow accents */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-white/[0.04] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 -left-32 w-[400px] h-[400px] bg-indigo-400/[0.08] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 -right-32 w-[350px] h-[350px] bg-violet-400/[0.06] rounded-full blur-3xl pointer-events-none" />
 
         {/* Text content */}
         <div className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-4 flex-shrink-0">
