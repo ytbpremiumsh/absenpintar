@@ -318,68 +318,69 @@ const LandingPage = () => {
       </nav>
 
       {/* ─── Hero Section ─── */}
-      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[#5B6CF9] dark:bg-[#4a59d4] rounded-b-[2.5rem] sm:rounded-b-[3.5rem]">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-white/5 rounded-full blur-[160px]" />
-          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-800/20 rounded-full blur-[100px]" />
+      <section className="relative min-h-screen flex flex-col overflow-hidden bg-[#5B6CF9]">
+        {/* Subtle dot pattern */}
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '28px 28px' }} />
+
+        {/* Main content - takes full screen, text centered */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            className="text-center">
+            <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-xs font-bold text-white/90 mb-6">
+              <Sparkles className="h-3.5 w-3.5" /> Platform Absensi Digital #1
+            </span>
+          </motion.div>
+
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
+            className="text-center text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight leading-[1.1] max-w-4xl">
+            <span className="block text-white mb-3">
+              {get("hero_title", "ATSkolla")}
+            </span>
+            <span className="block min-h-[1.2em]">
+              <TypingEffect
+                texts={["Absensi Digital Sekolah", "Cepat, Aman & Modern", "Scan Barcode & Face AI"]}
+                speed={60}
+                deleteSpeed={35}
+                pauseTime={2500}
+                className="text-white/75"
+              />
+            </span>
+          </motion.h1>
+
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
+            className="mt-5 text-sm sm:text-base text-white/60 max-w-xl mx-auto leading-relaxed text-center">
+            {get("hero_subtitle", "Platform absensi modern dengan barcode scan & face recognition AI. Dirancang khusus untuk sekolah Indonesia.")}
+          </motion.p>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
+            className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
+            <button onClick={() => navigate("/register")}
+              className="inline-flex items-center justify-center gap-2 bg-white text-[#5B6CF9] px-7 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-black/10 hover:shadow-black/20 hover:scale-[1.02] active:scale-[0.98] text-sm">
+              <Zap className="h-4 w-4" /> {get("cta_text", "Coba Gratis Sekarang")}
+            </button>
+            <a href="#how-it-works"
+              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white px-7 py-3 rounded-2xl font-semibold transition-all text-sm border border-white/15">
+              <Play className="h-4 w-4" /> Cara Kerja
+            </a>
+          </motion.div>
         </div>
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-24 pb-10">
-          {/* Centered Text Content - vertical layout */}
-          <div className="text-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-bold text-white/90 mb-5">
-                <Sparkles className="h-3.5 w-3.5" /> Platform Absensi Digital #1 untuk Sekolah Indonesia
-              </span>
-            </motion.div>
-
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.15]">
-              <span className="block text-white mb-2">
-                {get("hero_title", "ATSkolla")}
-              </span>
-              <span className="block">
-                <TypingEffect
-                  texts={["Absensi Digital Sekolah", "Cepat, Aman & Modern", "Scan Barcode & Face AI"]}
-                  speed={60}
-                  deleteSpeed={35}
-                  pauseTime={2500}
-                  className="text-white/80"
-                />
-              </span>
-            </motion.h1>
-
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
-              className="mt-5 text-sm sm:text-base text-white/70 max-w-2xl mx-auto leading-relaxed">
-              {get("hero_subtitle", "Platform absensi modern dengan barcode scan & face recognition AI. Dirancang khusus untuk sekolah Indonesia — cepat, aman, dan mudah digunakan.")}
-            </motion.p>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
-              className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
-              <button onClick={() => navigate("/register")}
-                className="inline-flex items-center justify-center gap-2 bg-white text-[#5B6CF9] px-7 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-black/10 hover:shadow-black/20 hover:scale-[1.02] active:scale-[0.98] text-sm">
-                <Zap className="h-4 w-4" /> {get("cta_text", "Coba Gratis Sekarang")}
-              </button>
-              <a href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white px-7 py-3 rounded-2xl font-semibold transition-all text-sm border border-white/20">
-                <Play className="h-4 w-4" /> Cara Kerja
-              </a>
-            </motion.div>
-          </div>
-
-          {/* Centered Hero Image */}
-          <motion.div initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
-            className="relative mt-10 max-w-4xl mx-auto">
+        {/* Hero image at bottom center, overlapping the rounded edge */}
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 pb-0">
+          <motion.div initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
+            className="max-w-4xl mx-auto">
             <motion.img
               src={get("hero_image") || heroDashboard}
               alt="Dashboard ATSkolla"
-              className="relative w-full h-auto rounded-2xl border border-white/20 shadow-2xl shadow-black/20"
-              whileHover={{ scale: 1.01, y: -4 }}
+              className="w-full h-auto rounded-t-2xl border border-white/15 border-b-0 shadow-2xl shadow-black/20"
+              whileHover={{ scale: 1.01 }}
               transition={{ duration: 0.4 }}
             />
           </motion.div>
         </div>
+
+        {/* Rounded bottom edge - solid color transition */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 sm:h-16 bg-white dark:bg-slate-950 rounded-t-[2rem] sm:rounded-t-[3rem] z-[5]" />
       </section>
 
       {/* ─── Hero Stats Banner ─── */}
