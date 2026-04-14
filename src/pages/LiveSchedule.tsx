@@ -1,13 +1,16 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/PageHeader";
-import { Clock, BookOpen, Users, MapPin, CheckCircle2, PlayCircle, Timer, Coffee, Radio } from "lucide-react";
+import { Clock, BookOpen, Users, MapPin, CheckCircle2, PlayCircle, Timer, Coffee, Radio, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+const DAYS_SHORT = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 interface Schedule {
   id: string;
@@ -33,26 +36,26 @@ function formatTime(t: string) {
   return t.slice(0, 5);
 }
 
-type ScheduleStatus = "upcoming" | "active" | "done" | "break";
+type ScheduleStatus = "upcoming" | "active" | "done";
 
-function getStatus(startTime: string, endTime: string, now: Date): ScheduleStatus {
+function getStatus(startTime: string, endTime: string, now: Date, isToday: boolean): ScheduleStatus {
+  if (!isToday) return "upcoming";
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const start = timeToMinutes(startTime);
   const end = timeToMinutes(endTime);
-  if (currentMinutes < start - 10) return "upcoming";
-  if (currentMinutes >= start - 10 && currentMinutes < start) return "upcoming"; // Almost starting
   if (currentMinutes >= start && currentMinutes < end) return "active";
-  return "done";
+  if (currentMinutes >= end) return "done";
+  return "upcoming";
 }
 
-function StatusBadge({ status, startTime, now }: { status: ScheduleStatus; startTime: string; now: Date }) {
+function StatusBadge({ status, startTime, now, isToday }: { status: ScheduleStatus; startTime: string; now: Date; isToday: boolean }) {
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const start = timeToMinutes(startTime);
   const minutesUntil = start - currentMinutes;
 
   if (status === "active") return (
     <Badge className="bg-green-500/15 text-green-600 border-green-500/30 gap-1 animate-pulse">
-      <PlayCircle className="h-3 w-3" />Sedang Berlangsung
+      <PlayCircle className="h-3 w-3" />Berlangsung
     </Badge>
   );
   if (status === "done") return (
@@ -60,7 +63,7 @@ function StatusBadge({ status, startTime, now }: { status: ScheduleStatus; start
       <CheckCircle2 className="h-3 w-3" />Selesai
     </Badge>
   );
-  if (minutesUntil <= 15 && minutesUntil > 0) return (
+  if (isToday && minutesUntil <= 15 && minutesUntil > 0) return (
     <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1">
       <Timer className="h-3 w-3" />{minutesUntil} menit lagi
     </Badge>
@@ -84,7 +87,13 @@ export default function LiveSchedule() {
   const [filterTeacher, setFilterTeacher] = useState<string>("all");
   const [filterClass, setFilterClass] = useState<string>("all");
 
-  // Auto-refresh every 30s
+  // Selected day index (0=Monday ... 6=Sunday in our system)
+  const jsDay = now.getDay();
+  const todayIdx = jsDay === 0 ? 6 : jsDay - 1;
+  const [selectedDay, setSelectedDay] = useState(todayIdx);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(interval);
@@ -109,25 +118,32 @@ export default function LiveSchedule() {
     load();
   }, [schoolId]);
 
-  const jsDay = now.getDay(); // 0=Sunday
-  // Map JS day to our schedule day_of_week (0=Monday)
-  const todayIdx = jsDay === 0 ? 6 : jsDay - 1;
-
   const getTeacherName = (id: string) => teachers.find((t) => t.user_id === id)?.full_name || "—";
   const getSubjectName = (id: string) => subjects.find((s) => s.id === id)?.name || "—";
   const getSubjectColor = (id: string) => subjects.find((s) => s.id === id)?.color || "#3B82F6";
   const getClassName = (id: string) => classes.find((c) => c.id === id)?.name || "—";
 
-  const todaySchedules = useMemo(() => {
-    let filtered = schedules.filter((s) => s.day_of_week === todayIdx);
+  const isToday = selectedDay === todayIdx;
+
+  const daySchedules = useMemo(() => {
+    let filtered = schedules.filter((s) => s.day_of_week === selectedDay);
     if (filterTeacher !== "all") filtered = filtered.filter((s) => s.teacher_id === filterTeacher);
     if (filterClass !== "all") filtered = filtered.filter((s) => s.class_id === filterClass);
     return filtered.sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time));
-  }, [schedules, todayIdx, filterTeacher, filterClass]);
+  }, [schedules, selectedDay, filterTeacher, filterClass]);
 
-  const activeCount = todaySchedules.filter((s) => getStatus(s.start_time, s.end_time, now) === "active").length;
-  const doneCount = todaySchedules.filter((s) => getStatus(s.start_time, s.end_time, now) === "done").length;
-  const upcomingCount = todaySchedules.filter((s) => getStatus(s.start_time, s.end_time, now) === "upcoming").length;
+  const activeCount = daySchedules.filter((s) => getStatus(s.start_time, s.end_time, now, isToday) === "active").length;
+  const doneCount = daySchedules.filter((s) => getStatus(s.start_time, s.end_time, now, isToday) === "done").length;
+  const upcomingCount = daySchedules.filter((s) => getStatus(s.start_time, s.end_time, now, isToday) === "upcoming").length;
+
+  // Day counts for badges
+  const dayCounts = useMemo(() => {
+    const counts: Record<number, number> = {};
+    for (let d = 0; d < 7; d++) {
+      counts[d] = schedules.filter((s) => s.day_of_week === d).length;
+    }
+    return counts;
+  }, [schedules]);
 
   if (loading) {
     return (
@@ -142,31 +158,90 @@ export default function LiveSchedule() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <PageHeader icon={Radio} title="Jadwal Live Hari Ini" subtitle={`${DAYS[jsDay]}, ${now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} — ${now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`} />
+      <PageHeader icon={Radio} title="Jadwal Live" subtitle={`${now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} — ${now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`} />
 
-      {/* Live stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="border-green-500/30 bg-green-500/5">
+      {/* Day selector - swipeable */}
+      <div className="relative">
+        <div
+          ref={scrollRef}
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {DAYS.map((day, idx) => (
+            <button
+              key={idx}
+              onClick={() => setSelectedDay(idx)}
+              className={cn(
+                "snap-start shrink-0 flex flex-col items-center gap-1 px-4 py-2.5 rounded-xl border transition-all min-w-[72px]",
+                selectedDay === idx
+                  ? "bg-primary text-primary-foreground border-primary shadow-md"
+                  : idx === todayIdx
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "bg-card border-border hover:bg-accent"
+              )}
+            >
+              <span className="text-xs font-medium">{DAYS_SHORT[idx]}</span>
+              <span className="text-lg font-bold">{dayCounts[idx]}</span>
+              <span className="text-[10px] opacity-70">mapel</span>
+              {idx === todayIdx && selectedDay !== idx && (
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats cards - horizontal scroll */}
+      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+        <Card className="border-green-500/30 bg-green-500/5 shrink-0 min-w-[120px] flex-1">
           <CardContent className="p-3 text-center">
-            <PlayCircle className="h-6 w-6 mx-auto text-green-500 mb-1" />
+            <PlayCircle className="h-5 w-5 mx-auto text-green-500 mb-1" />
             <p className="text-2xl font-bold text-green-600">{activeCount}</p>
             <p className="text-[11px] text-muted-foreground">Berlangsung</p>
           </CardContent>
         </Card>
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-amber-500/30 bg-amber-500/5 shrink-0 min-w-[120px] flex-1">
           <CardContent className="p-3 text-center">
-            <Timer className="h-6 w-6 mx-auto text-amber-500 mb-1" />
+            <Timer className="h-5 w-5 mx-auto text-amber-500 mb-1" />
             <p className="text-2xl font-bold text-amber-600">{upcomingCount}</p>
             <p className="text-[11px] text-muted-foreground">Akan Datang</p>
           </CardContent>
         </Card>
-        <Card className="border-muted bg-muted/30">
+        <Card className="border-muted bg-muted/30 shrink-0 min-w-[120px] flex-1">
           <CardContent className="p-3 text-center">
-            <CheckCircle2 className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+            <CheckCircle2 className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
             <p className="text-2xl font-bold">{doneCount}</p>
             <p className="text-[11px] text-muted-foreground">Selesai</p>
           </CardContent>
         </Card>
+        <Card className="border-primary/30 bg-primary/5 shrink-0 min-w-[120px] flex-1">
+          <CardContent className="p-3 text-center">
+            <BookOpen className="h-5 w-5 mx-auto text-primary mb-1" />
+            <p className="text-2xl font-bold text-primary">{daySchedules.length}</p>
+            <p className="text-[11px] text-muted-foreground">Total</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Header for selected day */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDay((p) => (p === 0 ? 6 : p - 1))}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h3 className="font-semibold text-lg">
+            {DAYS[selectedDay]}
+            {isToday && <Badge variant="outline" className="ml-2 text-[10px]">Hari Ini</Badge>}
+          </h3>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDay((p) => (p === 6 ? 0 : p + 1))}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        {!isToday && (
+          <Button variant="outline" size="sm" onClick={() => setSelectedDay(todayIdx)} className="text-xs">
+            Kembali ke Hari Ini
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -188,42 +263,41 @@ export default function LiveSchedule() {
       </div>
 
       {/* Timeline */}
-      {todaySchedules.length === 0 ? (
+      {daySchedules.length === 0 ? (
         <Card><CardContent className="p-8 text-center text-muted-foreground">
           <Coffee className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">Tidak ada jadwal hari ini</p>
+          <p className="font-medium">Tidak ada jadwal di hari {DAYS[selectedDay]}</p>
           <p className="text-sm">Hari libur atau tidak ada jadwal yang terdaftar</p>
         </CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {todaySchedules.map((s) => {
-            const status = getStatus(s.start_time, s.end_time, now);
+          {daySchedules.map((s) => {
+            const status = getStatus(s.start_time, s.end_time, now, isToday);
             const isActive = status === "active";
             return (
-              <Card key={s.id} className={`transition-all duration-300 ${
-                isActive ? "ring-2 ring-green-500/50 shadow-lg shadow-green-500/10 border-green-500/30" : 
-                status === "done" ? "opacity-50" : ""
-              }`}>
+              <Card key={s.id} className={cn(
+                "transition-all duration-300",
+                isActive && "ring-2 ring-green-500/50 shadow-lg shadow-green-500/10 border-green-500/30",
+                status === "done" && "opacity-50"
+              )}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
-                    {/* Time column */}
                     <div className="flex flex-col items-center shrink-0">
-                      <div className={`text-lg font-bold font-mono ${isActive ? "text-green-600" : "text-foreground"}`}>
+                      <div className={cn("text-lg font-bold font-mono", isActive ? "text-green-600" : "text-foreground")}>
                         {formatTime(s.start_time)}
                       </div>
                       <div className="h-6 w-px bg-border my-1" />
                       <div className="text-sm font-mono text-muted-foreground">{formatTime(s.end_time)}</div>
                     </div>
-                    {/* Content */}
                     <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2">
                           <div className="h-4 w-4 rounded-full shrink-0" style={{ backgroundColor: getSubjectColor(s.subject_id) }} />
-                          <h4 className={`font-bold text-base ${isActive ? "text-green-700 dark:text-green-400" : ""}`}>
+                          <h4 className={cn("font-bold text-base", isActive && "text-green-700 dark:text-green-400")}>
                             {getSubjectName(s.subject_id)}
                           </h4>
                         </div>
-                        <StatusBadge status={status} startTime={s.start_time} now={now} />
+                        <StatusBadge status={status} startTime={s.start_time} now={now} isToday={isToday} />
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1.5">
@@ -240,7 +314,6 @@ export default function LiveSchedule() {
                       </div>
                     </div>
                   </div>
-                  {/* Progress bar for active */}
                   {isActive && (() => {
                     const currentMin = now.getHours() * 60 + now.getMinutes();
                     const start = timeToMinutes(s.start_time);
