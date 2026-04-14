@@ -292,7 +292,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Trial Popup */}
+      <ProductTour />
       <AnimatePresence>
         {showTrialPopup && subFeatures.isTrial && subFeatures.trialDaysLeft !== null && (
           <motion.div
