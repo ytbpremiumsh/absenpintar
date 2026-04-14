@@ -36,51 +36,60 @@ const sendMpwaMessage = async (
   message: string,
   isGroup: boolean = false,
 ): Promise<{ ok: boolean; data: any }> => {
-  // For group messages, MPWA uses 'chatId' parameter instead of 'number'
-  const payload: Record<string, any> = { api_key: apiKey, sender, message };
-  if (isGroup) {
-    payload.chatId = recipient;
-  } else {
-    payload.number = recipient;
-  }
+  console.log(`MPWA send | sender: ${sender} | recipient: ${recipient} | isGroup: ${isGroup} | msg_len: ${message.length}`);
 
-  console.log(`MPWA POST to ${MPWA_SEND_URL} | sender: ${sender} | ${isGroup ? 'chatId' : 'number'}: ${recipient} | isGroup: ${isGroup} | msg_len: ${message.length}`);
+  const tryPost = async (payload: Record<string, any>): Promise<{ ok: boolean; data: any; status: number }> => {
+    try {
+      const response = await fetch(MPWA_SEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const text = await response.text();
+      const parsed = parseJsonSafely(text);
+      console.log(`MPWA POST response: status=${response.status} body=${text.substring(0, 300)}`);
+      return { ok: response.ok && parsed?.status !== false, data: parsed, status: response.status };
+    } catch (err) {
+      return { ok: false, data: { status: false, msg: String(err) }, status: 0 };
+    }
+  };
 
   try {
-    const response = await fetch(MPWA_SEND_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const text = await response.text();
-    const parsed = parseJsonSafely(text);
-
-    console.log(`MPWA POST response: status=${response.status} body=${text.substring(0, 300)}`);
-
-    if (response.ok && parsed?.status !== false) {
-      return { ok: true, data: parsed };
-    }
-
-    // Fallback: try GET method
-    console.log(`MPWA POST failed, trying GET fallback`);
-    const params = new URLSearchParams({ api_key: apiKey, sender, message });
     if (isGroup) {
-      params.set('chatId', recipient);
+      // Strategy 1: Use 'number' param with group JID (standard approach)
+      const r1 = await tryPost({ api_key: apiKey, sender, number: recipient, message });
+      if (r1.ok) return { ok: true, data: r1.data };
+
+      // Strategy 2: Use 'chatId' param for group
+      console.log('MPWA: trying chatId param for group');
+      const r2 = await tryPost({ api_key: apiKey, sender, chatId: recipient, message });
+      if (r2.ok) return { ok: true, data: r2.data };
+
+      // Strategy 3: Use 'number' with 'full' flag
+      console.log('MPWA: trying number + full=1 for group');
+      const r3 = await tryPost({ api_key: apiKey, sender, number: recipient, message, full: 1 });
+      if (r3.ok) return { ok: true, data: r3.data };
+
+      return { ok: false, data: r1.data };
     } else {
-      params.set('number', recipient);
+      // Individual message: standard 'number' param
+      const result = await tryPost({ api_key: apiKey, sender, number: recipient, message });
+      if (result.ok) return { ok: true, data: result.data };
+
+      // GET fallback for individual
+      console.log('MPWA: trying GET fallback for individual');
+      const params = new URLSearchParams({ api_key: apiKey, sender, number: recipient, message });
+      const getResponse = await fetch(`${MPWA_SEND_URL}?${params.toString()}`);
+      const getText = await getResponse.text();
+      const getParsed = parseJsonSafely(getText);
+      console.log(`MPWA GET response: status=${getResponse.status} body=${getText.substring(0, 300)}`);
+
+      if (getResponse.ok && getParsed?.status !== false) {
+        return { ok: true, data: getParsed };
+      }
+
+      return { ok: false, data: getParsed };
     }
-    const getResponse = await fetch(`${MPWA_SEND_URL}?${params.toString()}`);
-    const getText = await getResponse.text();
-    const getParsed = parseJsonSafely(getText);
-
-    console.log(`MPWA GET response: status=${getResponse.status} body=${getText.substring(0, 300)}`);
-
-    if (getResponse.ok && getParsed?.status !== false) {
-      return { ok: true, data: getParsed };
-    }
-
-    return { ok: false, data: getParsed };
   } catch (err) {
     console.error(`MPWA send error for ${recipient}:`, err);
     return { ok: false, data: { status: false, msg: String(err) } };
