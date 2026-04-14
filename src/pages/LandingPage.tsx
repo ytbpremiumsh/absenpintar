@@ -289,7 +289,7 @@ const LandingPage = () => {
         "fixed top-3 left-3 right-3 z-50 transition-all duration-300 rounded-2xl",
         scrolled
           ? "bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg border border-slate-200/80 dark:border-slate-700/50"
-          : "bg-white/70 dark:bg-slate-900/60 backdrop-blur-lg border border-slate-200/50 dark:border-slate-700/30"
+          : "bg-white/10 backdrop-blur-lg border border-white/20"
       )}>
         <div className="px-4 sm:px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -297,10 +297,20 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <button onClick={() => navigate("/login")} className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+            <button onClick={() => navigate("/login")} className={cn(
+              "text-xs sm:text-sm font-semibold px-3 py-1.5 transition-colors rounded-lg",
+              scrolled
+                ? "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                : "text-white/80 hover:text-white hover:bg-white/10"
+            )}>
               Masuk
             </button>
-            <button onClick={() => navigate("/register")} className="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
+            <button onClick={() => navigate("/register")} className={cn(
+              "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98]",
+              scrolled
+                ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40"
+                : "bg-white text-[#5B6CF9] shadow-lg shadow-black/10"
+            )}>
               Mulai Gratis <ArrowRight className="h-3 w-3" />
             </button>
           </div>
