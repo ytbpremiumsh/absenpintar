@@ -189,8 +189,8 @@ serve(async (req) => {
       }
 
       if (group_id) {
-        // Send to group using the same /send-message endpoint with group JID as number
-        const result = await sendMpwaMessage(finalApiKey, mpwaSenderNum, group_id, message);
+        // Send to group using the same /send-message endpoint with isGroup flag
+        const result = await sendMpwaMessage(finalApiKey, mpwaSenderNum, group_id, message, true);
         results.push({ target: `group:${group_id}`, ...result });
       }
     } else {
