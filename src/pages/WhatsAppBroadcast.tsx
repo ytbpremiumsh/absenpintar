@@ -49,7 +49,12 @@ const WhatsAppBroadcast = () => {
         toast.success(`Pesan berhasil dikirim ke grup ${selectedClass}`);
         setGroupMessage("");
       } else {
-        toast.error("Gagal: " + (data?.error || "Unknown error"));
+        const errMsg = data?.error || data?.details?.[0]?.data?.msg || data?.details?.[0]?.data?.message || "Gagal mengirim";
+        if (errMsg.toLowerCase().includes("connection") || errMsg.toLowerCase().includes("koneksi")) {
+          toast.error("Koneksi WhatsApp terputus. Silakan scan ulang QR di halaman Pengaturan WhatsApp.");
+        } else {
+          toast.error("Gagal kirim ke grup: " + errMsg);
+        }
       }
     } catch (err: any) {
       toast.error("Gagal: " + err.message);
