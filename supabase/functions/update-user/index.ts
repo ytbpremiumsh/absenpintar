@@ -46,7 +46,16 @@ serve(async (req) => {
     const authUpdate: any = {};
     if (email) authUpdate.email = email;
     if (password && password.length >= 6) authUpdate.password = password;
-    if (phone) authUpdate.phone = phone;
+    if (phone) {
+      let formattedPhone = phone.replace(/\D/g, '');
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '62' + formattedPhone.substring(1);
+      }
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
+      }
+      authUpdate.phone = formattedPhone;
+    }
 
     if (Object.keys(authUpdate).length > 0) {
       if (email) authUpdate.email_confirm = true;
