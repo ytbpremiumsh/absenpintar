@@ -64,17 +64,32 @@ const ExportHistory = () => {
   useEffect(() => {
     if (!profile?.school_id) { setLoading(false); return; }
     const fetchClasses = async () => {
-      if (isTeacher && user) {
-        const { data } = await supabase
-          .from("class_teachers")
-          .select("class_name")
-          .eq("user_id", user.id)
-          .eq("school_id", profile.school_id);
-        const names = (data || []).map(d => d.class_name);
-        setClasses(names);
-        if (names.length > 0) setSelectedClass(names[0]);
+      if (isTeacherOnly && user) {
+        // For teachers: fetch classes they teach from teaching_schedules
+        const [schedulesRes, classesRes, subjectsRes] = await Promise.all([
+          supabase.from("teaching_schedules").select("id, class_id, subject_id").eq("school_id", profile.school_id).eq("teacher_id", user.id).eq("is_active", true),
+          supabase.from("classes").select("id, name").eq("school_id", profile.school_id),
+          supabase.from("subjects").select("id, name").eq("school_id", profile.school_id),
+        ]);
+        const classMap = Object.fromEntries((classesRes.data || []).map(c => [c.id, c.name]));
+        const subjectMap = Object.fromEntries((subjectsRes.data || []).map(s => [s.id, s.name]));
+        const schedules = (schedulesRes.data || []).map(s => ({
+          id: s.id,
+          class_name: classMap[s.class_id] || "-",
+          subject_name: subjectMap[s.subject_id] || "-",
+          label: `${classMap[s.class_id] || "-"} - ${subjectMap[s.subject_id] || "-"}`,
+        }));
+        // Deduplicate by label
+        const uniqueSchedules = schedules.filter((s, i, arr) => arr.findIndex(x => x.label === s.label) === i);
+        setTeacherSchedules(uniqueSchedules);
+        // Use class names as "classes" for teacher
+        const uniqueClasses = [...new Set(uniqueSchedules.map(s => s.class_name))].sort();
+        setClasses(uniqueClasses);
+        if (uniqueSchedules.length > 0) {
+          setSelectedScheduleId(uniqueSchedules[0].id);
+          setSelectedClass(uniqueSchedules[0].class_name);
+        }
       } else {
-        // Fetch from classes table AND distinct student classes, merge unique
         const [classesRes, studentsRes] = await Promise.all([
           supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
           supabase.from("students").select("class").eq("school_id", profile.school_id),
@@ -87,7 +102,7 @@ const ExportHistory = () => {
       }
     };
     fetchClasses();
-  }, [profile?.school_id, user, isTeacher]);
+  }, [profile?.school_id, user, isTeacherOnly]);
 
   // Fetch school info + pickup settings
   useEffect(() => {
