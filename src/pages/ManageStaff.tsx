@@ -191,7 +191,7 @@ const ManageStaff = () => {
   return (
     <PremiumGate featureLabel="Kelola Guru & Staff" featureKey="canMultiStaff" requiredPlan="School">
     <div className="space-y-6">
-      <PageHeader icon={Shield} title="Guru dan Staff" subtitle="Tambah dan kelola akun guru dan staff/operator" actions={
+      <PageHeader icon={Shield} title="Guru & Staff" subtitle="Tambah dan kelola akun guru dan staff/operator" actions={
         <Button onClick={() => setShowDialog(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
           <Plus className="h-4 w-4 mr-2" /> Tambah Akun
         </Button>

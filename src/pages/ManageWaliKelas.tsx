@@ -218,7 +218,7 @@ const ManageWaliKelas = () => {
           <CardContent className="p-10 text-center">
             <UserCheck className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-muted-foreground">Belum ada wali kelas yang ditugaskan</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">Pilih dari daftar guru yang sudah terdaftar di halaman Guru dan Staff</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Pilih dari daftar guru yang sudah terdaftar di halaman Guru & Staff</p>
             <Button variant="outline" className="mt-4" onClick={() => setShowDialog(true)}>
               <Plus className="h-4 w-4 mr-2" /> Tugaskan Wali Kelas
             </Button>
@@ -275,7 +275,7 @@ const ManageWaliKelas = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Tugaskan Wali Kelas</DialogTitle>
-            <DialogDescription>Pilih guru dari daftar yang sudah terdaftar di halaman Guru dan Staff</DialogDescription>
+            <DialogDescription>Pilih guru dari daftar yang sudah terdaftar di halaman Guru & Staff</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
@@ -285,7 +285,7 @@ const ManageWaliKelas = () => {
                 <SelectContent>
                   {teacherOptions.length === 0 ? (
                     <div className="p-3 text-center text-sm text-muted-foreground">
-                      Belum ada guru. Tambahkan di halaman Guru dan Staff terlebih dahulu.
+                      Belum ada guru. Tambahkan di halaman Guru & Staff terlebih dahulu.
                     </div>
                   ) : (
                     teacherOptions.map((t) => (
