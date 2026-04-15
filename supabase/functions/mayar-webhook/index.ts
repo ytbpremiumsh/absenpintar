@@ -30,6 +30,7 @@ serve(async (req) => {
 
     const transactionId = data?.id || data?.transaction_id || data?.transactionId;
     const productId = data?.productId;
+    const paymentUrl = data?.paymentUrl;
     
     if (!transactionId && !productId) {
       return new Response(JSON.stringify({ error: 'No transaction ID' }), {
@@ -38,9 +39,10 @@ serve(async (req) => {
       });
     }
 
-    // Find the payment transaction
+    // Find the payment transaction — try multiple matching strategies
     let payment = null;
     
+    // 1. Match by transactionId
     if (transactionId) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
@@ -50,6 +52,7 @@ serve(async (req) => {
       payment = found;
     }
     
+    // 2. Match by productId
     if (!payment && productId) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
@@ -58,7 +61,19 @@ serve(async (req) => {
         .maybeSingle();
       payment = found;
     }
+
+    // 3. Match by payment URL
+    if (!payment && paymentUrl) {
+      const { data: found } = await supabaseAdmin
+        .from('payment_transactions')
+        .select('id, school_id, plan_id, status, amount, payment_method')
+        .eq('mayar_payment_url', paymentUrl)
+        .eq('status', 'pending')
+        .maybeSingle();
+      payment = found;
+    }
     
+    // 4. Fallback: match by amount + pending status
     if (!payment && data?.amount) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
