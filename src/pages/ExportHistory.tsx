@@ -53,24 +53,43 @@ const ExportHistory = () => {
   const [departureEndTime, setDepartureEndTime] = useState("17:00:00");
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const isTeacher = roles.includes("teacher");
+  const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
   const isPremiumFeature = !features.canExportReport;
+
+  // Teacher subject schedule options
+  const [teacherSchedules, setTeacherSchedules] = useState<{ id: string; class_name: string; subject_name: string; label: string }[]>([]);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
 
   // Fetch classes - merge from classes table + distinct student classes
   useEffect(() => {
     if (!profile?.school_id) { setLoading(false); return; }
     const fetchClasses = async () => {
-      if (isTeacher && user) {
-        const { data } = await supabase
-          .from("class_teachers")
-          .select("class_name")
-          .eq("user_id", user.id)
-          .eq("school_id", profile.school_id);
-        const names = (data || []).map(d => d.class_name);
-        setClasses(names);
-        if (names.length > 0) setSelectedClass(names[0]);
+      if (isTeacherOnly && user) {
+        // For teachers: fetch classes they teach from teaching_schedules
+        const [schedulesRes, classesRes, subjectsRes] = await Promise.all([
+          supabase.from("teaching_schedules").select("id, class_id, subject_id").eq("school_id", profile.school_id).eq("teacher_id", user.id).eq("is_active", true),
+          supabase.from("classes").select("id, name").eq("school_id", profile.school_id),
+          supabase.from("subjects").select("id, name").eq("school_id", profile.school_id),
+        ]);
+        const classMap = Object.fromEntries((classesRes.data || []).map(c => [c.id, c.name]));
+        const subjectMap = Object.fromEntries((subjectsRes.data || []).map(s => [s.id, s.name]));
+        const schedules = (schedulesRes.data || []).map(s => ({
+          id: s.id,
+          class_name: classMap[s.class_id] || "-",
+          subject_name: subjectMap[s.subject_id] || "-",
+          label: `${classMap[s.class_id] || "-"} - ${subjectMap[s.subject_id] || "-"}`,
+        }));
+        // Deduplicate by label
+        const uniqueSchedules = schedules.filter((s, i, arr) => arr.findIndex(x => x.label === s.label) === i);
+        setTeacherSchedules(uniqueSchedules);
+        // Use class names as "classes" for teacher
+        const uniqueClasses = [...new Set(uniqueSchedules.map(s => s.class_name))].sort();
+        setClasses(uniqueClasses);
+        if (uniqueSchedules.length > 0) {
+          setSelectedScheduleId(uniqueSchedules[0].id);
+          setSelectedClass(uniqueSchedules[0].class_name);
+        }
       } else {
-        // Fetch from classes table AND distinct student classes, merge unique
         const [classesRes, studentsRes] = await Promise.all([
           supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
           supabase.from("students").select("class").eq("school_id", profile.school_id),
@@ -83,7 +102,7 @@ const ExportHistory = () => {
       }
     };
     fetchClasses();
-  }, [profile?.school_id, user, isTeacher]);
+  }, [profile?.school_id, user, isTeacherOnly]);
 
   // Fetch school info + pickup settings
   useEffect(() => {
@@ -129,18 +148,34 @@ const ExportHistory = () => {
       const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
       const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`;
 
-      const [studentsRes, datangRes, pulangRes] = await Promise.all([
-        supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id).eq("class", selectedClass).order("name"),
-        supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate),
-        supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id).eq("attendance_type", "pulang").gte("date", startDate).lte("date", endDate),
-      ]);
+      const studentsRes = await supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id).eq("class", selectedClass).order("name");
       setStudents(studentsRes.data || []);
-      setDatangLogs(datangRes.data || []);
-      setPulangLogs(pulangRes.data || []);
+
+      if (isTeacherOnly && user) {
+        // For teachers: use subject_attendance data
+        const { data: subjectLogs } = await supabase
+          .from("subject_attendance")
+          .select("student_id, date, status")
+          .eq("school_id", profile.school_id)
+          .eq("teacher_id", user.id)
+          .gte("date", startDate)
+          .lte("date", endDate);
+        // Map subject_attendance to the same format as attendance_logs
+        const mapped = (subjectLogs || []).map(l => ({ ...l, attendance_type: "datang" }));
+        setDatangLogs(mapped);
+        setPulangLogs([]);
+      } else {
+        const [datangRes, pulangRes] = await Promise.all([
+          supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate),
+          supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id).eq("attendance_type", "pulang").gte("date", startDate).lte("date", endDate),
+        ]);
+        setDatangLogs(datangRes.data || []);
+        setPulangLogs(pulangRes.data || []);
+      }
       setLoading(false);
     };
     fetchData();
-  }, [profile?.school_id, selectedClass, currentMonth]);
+  }, [profile?.school_id, selectedClass, currentMonth, isTeacherOnly, user]);
 
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
 

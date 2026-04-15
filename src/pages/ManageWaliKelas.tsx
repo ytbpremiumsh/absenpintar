@@ -26,8 +26,12 @@ interface ClassTeacher {
   class_name: string;
   school_id: string;
   created_at: string;
-  user_email?: string;
   user_name?: string;
+}
+
+interface TeacherOption {
+  user_id: string;
+  full_name: string;
 }
 
 const ManageWaliKelas = () => {
@@ -38,16 +42,15 @@ const ManageWaliKelas = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const [formName, setFormName] = useState("");
-  const [formEmail, setFormEmail] = useState("");
-  const [formPassword, setFormPassword] = useState("");
+  // Assign existing teacher
+  const [teacherOptions, setTeacherOptions] = useState<TeacherOption[]>([]);
+  const [formTeacherId, setFormTeacherId] = useState("");
   const [formClass, setFormClass] = useState("");
-  const [formPhone, setFormPhone] = useState("");
 
   // Edit/Detail
   const [detailDialog, setDetailDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState<{ user_id: string; name: string; email: string; phone: string; assignments: ClassTeacher[] } | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<{ user_id: string; name: string; assignments: ClassTeacher[] } | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
@@ -60,26 +63,45 @@ const ManageWaliKelas = () => {
   const fetchData = async () => {
     if (!schoolId) { setLoading(false); return; }
 
-    const [assignmentsRes, classesRes, studentsRes] = await Promise.all([
+    const [assignmentsRes, classesRes, studentsRes, rolesRes] = await Promise.all([
       supabase.from("class_teachers").select("*").eq("school_id", schoolId),
       supabase.from("classes").select("name").eq("school_id", schoolId).order("name"),
       supabase.from("students").select("class").eq("school_id", schoolId),
+      supabase.from("user_roles").select("user_id, role"),
     ]);
 
     const rawData = assignmentsRes.data || [];
-    const enriched: ClassTeacher[] = rawData.map((a) => ({ ...a, user_name: "", user_email: "" }));
+    const enriched: ClassTeacher[] = rawData.map((a) => ({ ...a, user_name: "" }));
 
-    if (enriched.length > 0) {
-      const userIds = [...new Set(enriched.map((a) => a.user_id))];
+    // Get all teacher user_ids from roles
+    const teacherUserIds = [...new Set((rolesRes.data || []).filter(r => r.role === "teacher").map(r => r.user_id))];
+
+    // Get profiles for all teachers in this school
+    let allTeacherProfiles: TeacherOption[] = [];
+    if (teacherUserIds.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, full_name")
-        .in("user_id", userIds);
-
-      const profileMap = new Map<string, string>();
-      (profiles || []).forEach((p) => profileMap.set(p.user_id, p.full_name));
-      enriched.forEach((a) => { a.user_name = profileMap.get(a.user_id) || "Unknown"; });
+        .in("user_id", teacherUserIds)
+        .eq("school_id", schoolId);
+      allTeacherProfiles = (profiles || []).map(p => ({ user_id: p.user_id, full_name: p.full_name }));
     }
+
+    // Enrich assignments with names
+    const profileMap = new Map<string, string>();
+    allTeacherProfiles.forEach(p => profileMap.set(p.user_id, p.full_name));
+
+    // Also fetch names for assigned teachers that might not be in current teacher list
+    if (enriched.length > 0) {
+      const assignedIds = [...new Set(enriched.map(a => a.user_id))];
+      const missingIds = assignedIds.filter(id => !profileMap.has(id));
+      if (missingIds.length > 0) {
+        const { data: extraProfiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", missingIds);
+        (extraProfiles || []).forEach(p => profileMap.set(p.user_id, p.full_name));
+      }
+    }
+
+    enriched.forEach((a) => { a.user_name = profileMap.get(a.user_id) || "Unknown"; });
 
     const classTableNames = (classesRes.data || []).map((c) => c.name);
     const studentClassNames = [...new Set((studentsRes.data || []).map((s) => s.class))];
@@ -87,36 +109,32 @@ const ManageWaliKelas = () => {
 
     setAssignments(enriched);
     setClasses(allClasses);
+    setTeacherOptions(allTeacherProfiles);
     setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, [schoolId]);
 
-  const handleCreate = async () => {
-    if (!formName || !formEmail || !formPassword || !formClass) {
-      toast.error("Nama, email, password, dan kelas harus diisi"); return;
+  const handleAssign = async () => {
+    if (!formTeacherId || !formClass) {
+      toast.error("Pilih guru dan kelas terlebih dahulu"); return;
     }
-    if (!schoolId) { toast.error("Data sekolah belum dimuat, silakan tunggu sebentar"); return; }
-    if (formPassword.length < 6) { toast.error("Password minimal 6 karakter"); return; }
+    if (!schoolId) { toast.error("Data sekolah belum dimuat"); return; }
 
     setCreating(true);
     try {
-      const res = await supabase.functions.invoke("create-user", {
-        body: { email: formEmail, password: formPassword, full_name: formName, role: "teacher", school_id: schoolId, phone: formPhone },
+      const { error } = await supabase.from("class_teachers").insert({
+        user_id: formTeacherId, class_name: formClass, school_id: schoolId,
       });
-      if (res.error) throw new Error(res.error.message);
-      if (res.data?.error) throw new Error(res.data.error);
+      if (error) throw error;
 
-      const userId = res.data.user_id;
-      const { error: assignError } = await supabase.from("class_teachers").insert({ user_id: userId, class_name: formClass, school_id: schoolId });
-      if (assignError) throw assignError;
-
-      toast.success(`Wali kelas ${formName} berhasil ditambahkan untuk kelas ${formClass}`);
+      const teacher = teacherOptions.find(t => t.user_id === formTeacherId);
+      toast.success(`${teacher?.full_name || "Guru"} ditugaskan sebagai wali kelas ${formClass}`);
       setShowDialog(false);
-      setFormName(""); setFormEmail(""); setFormPassword(""); setFormClass(""); setFormPhone("");
+      setFormTeacherId(""); setFormClass("");
       fetchData();
     } catch (err: any) {
-      toast.error(err.message || "Gagal membuat wali kelas");
+      toast.error(err.message || "Gagal menugaskan wali kelas");
     } finally { setCreating(false); }
   };
 
@@ -127,7 +145,7 @@ const ManageWaliKelas = () => {
   };
 
   const openDetail = async (userId: string, name: string, teacherAssignments: ClassTeacher[]) => {
-    setSelectedTeacher({ user_id: userId, name, email: "", phone: "", assignments: teacherAssignments });
+    setSelectedTeacher({ user_id: userId, name, assignments: teacherAssignments });
     setEditName(name);
     setEditEmail("");
     setEditPhone("");
@@ -181,12 +199,15 @@ const ManageWaliKelas = () => {
     return acc;
   }, {});
 
+  // Filter out teachers already assigned
+  const assignedTeacherIds = new Set(assignments.map(a => a.user_id));
+
   return (
     <PremiumGate featureLabel="Kelola Wali Kelas" requiredPlan="School">
     <div className="space-y-6">
-      <PageHeader icon={GraduationCap} title="Kelola Wali Kelas" subtitle="Tambah dan kelola wali kelas untuk setiap kelas" actions={
+      <PageHeader icon={GraduationCap} title="Kelola Wali Kelas" subtitle="Tugaskan guru sebagai wali kelas" actions={
         <Button onClick={() => setShowDialog(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
-          <Plus className="h-4 w-4 mr-2" /> Tambah Wali Kelas
+          <Plus className="h-4 w-4 mr-2" /> Tugaskan Wali Kelas
         </Button>
       } />
 
@@ -197,8 +218,9 @@ const ManageWaliKelas = () => {
           <CardContent className="p-10 text-center">
             <UserCheck className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-muted-foreground">Belum ada wali kelas yang ditugaskan</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Pilih dari daftar guru yang sudah terdaftar di halaman Guru dan Staff</p>
             <Button variant="outline" className="mt-4" onClick={() => setShowDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Tambah Wali Kelas Pertama
+              <Plus className="h-4 w-4 mr-2" /> Tugaskan Wali Kelas
             </Button>
           </CardContent>
         </Card>
@@ -248,38 +270,32 @@ const ManageWaliKelas = () => {
         </div>
       )}
 
-      {/* Create Dialog */}
+      {/* Assign Dialog - Select from existing teachers */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Tambah Wali Kelas Baru</DialogTitle>
-            <DialogDescription>Buat akun login dan tugaskan ke kelas</DialogDescription>
+            <DialogTitle>Tugaskan Wali Kelas</DialogTitle>
+            <DialogDescription>Pilih guru dari daftar yang sudah terdaftar di halaman Guru dan Staff</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label>Nama Lengkap</Label>
-              <Input placeholder="Nama wali kelas" value={formName} onChange={(e) => setFormName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Email (untuk login)</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="wali@sekolah.com" type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} className="pl-9" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Minimal 6 karakter" type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} className="pl-9" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>No. WhatsApp</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="08xxxxxxxxxx" type="tel" value={formPhone} onChange={(e) => setFormPhone(e.target.value)} className="pl-9" />
-              </div>
+              <Label>Pilih Guru</Label>
+              <Select value={formTeacherId} onValueChange={setFormTeacherId}>
+                <SelectTrigger><SelectValue placeholder="Pilih guru..." /></SelectTrigger>
+                <SelectContent>
+                  {teacherOptions.length === 0 ? (
+                    <div className="p-3 text-center text-sm text-muted-foreground">
+                      Belum ada guru. Tambahkan di halaman Guru dan Staff terlebih dahulu.
+                    </div>
+                  ) : (
+                    teacherOptions.map((t) => (
+                      <SelectItem key={t.user_id} value={t.user_id}>
+                        {t.full_name} {assignedTeacherIds.has(t.user_id) ? "(Sudah ditugaskan)" : ""}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Kelas yang Ditugaskan</Label>
@@ -290,8 +306,8 @@ const ManageWaliKelas = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleCreate} disabled={creating} className="w-full gradient-primary hover:opacity-90">
-              {creating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</> : <><Plus className="h-4 w-4 mr-2" /> Buat & Tugaskan</>}
+            <Button onClick={handleAssign} disabled={creating || !formTeacherId || !formClass} className="w-full gradient-primary hover:opacity-90">
+              {creating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Menyimpan...</> : <><UserCheck className="h-4 w-4 mr-2" /> Tugaskan</>}
             </Button>
           </div>
         </DialogContent>
