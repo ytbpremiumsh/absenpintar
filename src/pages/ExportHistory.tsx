@@ -53,8 +53,12 @@ const ExportHistory = () => {
   const [departureEndTime, setDepartureEndTime] = useState("17:00:00");
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const isTeacher = roles.includes("teacher");
+  const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
   const isPremiumFeature = !features.canExportReport;
+
+  // Teacher subject schedule options
+  const [teacherSchedules, setTeacherSchedules] = useState<{ id: string; class_name: string; subject_name: string; label: string }[]>([]);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
 
   // Fetch classes - merge from classes table + distinct student classes
   useEffect(() => {
