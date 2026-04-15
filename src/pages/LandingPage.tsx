@@ -599,13 +599,19 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 mb-3 block">Kenapa Kami</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 mb-3 block">{get("why_label", "Kenapa Kami")}</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
                 {get("why_title") || <>Solusi Absensi Digital yang <span className="text-indigo-600 dark:text-indigo-400">Terpercaya</span></>}
               </h2>
               <p className="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
                 {get("why_desc", "Kami menyediakan solusi menyeluruh untuk membantu sekolah Anda mengelola kehadiran siswa dengan teknologi terkini.")}
               </p>
+              {get("why_image") && (
+                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
+                  className="mt-6 rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50 shadow-lg">
+                  <img src={get("why_image")} alt="Platform Terpercaya" className="w-full h-auto object-cover" />
+                </motion.div>
+              )}
               <button onClick={() => navigate("/register")}
                 className="mt-8 inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all hover:scale-[1.02]">
                 Mulai Sekarang <ArrowRight className="h-4 w-4" />
@@ -698,24 +704,24 @@ const LandingPage = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-12">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 mb-3 block">Kepercayaan</span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Telah Dipercaya oleh Sekolah-Sekolah
+              {get("trusted_title", "Dipercaya Sekolah di Seluruh Indonesia")}
             </h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">Bergabung bersama sekolah-sekolah yang telah merasakan manfaat absensi digital.</p>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">{get("trusted_subtitle", "Bergabung bersama sekolah-sekolah yang telah merasakan manfaat absensi digital.")}</p>
           </motion.div>
 
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="flex flex-wrap justify-center items-center gap-5 sm:gap-8">
+            className="flex flex-wrap justify-center items-center gap-8 sm:gap-12">
             {trustedSchools.map((school, i) => (
               <motion.div key={school.name} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="group flex flex-col items-center gap-2">
-                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 flex items-center justify-center shadow-sm group-hover:border-indigo-200 dark:group-hover:border-indigo-500/25 group-hover:shadow-lg group-hover:shadow-indigo-500/5 transition-all duration-300 overflow-hidden">
+                className="group flex flex-col items-center gap-2.5">
+                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full flex items-center justify-center overflow-hidden transition-all duration-500">
                   {school.logo_url ? (
-                    <img src={school.logo_url} alt={school.name} className="h-full w-full object-contain p-2" />
+                    <img src={school.logo_url} alt={school.name} className="h-full w-full object-contain p-1 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" />
                   ) : (
-                    <span className="text-sm sm:text-base font-extrabold text-indigo-500/70 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{school.initials}</span>
+                    <span className="text-lg sm:text-xl font-extrabold text-slate-400 grayscale group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all duration-500">{school.initials}</span>
                   )}
                 </div>
-                <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 text-center max-w-[90px] leading-tight">{school.name}</span>
+                <span className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 text-center max-w-[100px] leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors duration-300">{school.name}</span>
               </motion.div>
             ))}
           </motion.div>
