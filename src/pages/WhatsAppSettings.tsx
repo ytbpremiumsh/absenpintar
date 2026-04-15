@@ -171,9 +171,6 @@ const WhatsAppSettings = () => {
   const [onesenderEnabled, setOnesenderEnabled] = useState(true);
   const [teachingReminderEnabled, setTeachingReminderEnabled] = useState(false);
   const [teachingReminderTemplate, setTeachingReminderTemplate] = useState('📋 *Pengingat Jadwal Mengajar*\n\nBapak/Ibu *{teacher_name}*,\n\nMata pelajaran *{subject_name}* untuk kelas *{class_name}* akan dimulai dalam 15 menit.\n\nWaktu: {start_time} - {end_time}\nRuangan: {room}\n\n_Pesan otomatis dari ATSkolla_');
-  const [mpwaConnected, setMpwaConnected] = useState(false);
-  const [mpwaSenderNumber, setMpwaSenderNumber] = useState("");
-  const [onesenderEnabled, setOnesenderEnabled] = useState(true);
 
   const [classes, setClasses] = useState<{ id: string; name: string; wa_group_id: string | null }[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
