@@ -587,7 +587,7 @@ const ExportHistory = () => {
                       {isPulangMode ? (
                         <th className="px-1 py-2 text-center font-bold text-primary uppercase text-[10px] tracking-wider">Keterangan</th>
                       ) : (
-                        <th colSpan={4} className="px-1 py-2 text-center font-bold text-primary uppercase text-[10px] tracking-wider">Keterangan</th>
+                        <th colSpan={5} className="px-1 py-2 text-center font-bold text-primary uppercase text-[10px] tracking-wider">Keterangan</th>
                       )}
                     </tr>
                     <tr className="border-b border-border bg-muted/30">
