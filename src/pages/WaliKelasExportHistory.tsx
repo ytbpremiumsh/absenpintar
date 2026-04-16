@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClipboardList, Clock, CalendarDays, Download, Crown, Lock, Users } from "lucide-react";
+import { ClipboardList, Clock, Download, Lock, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,9 +12,7 @@ import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
-import { Badge } from "@/components/ui/badge";
 
 const STATUS_CODES: Record<string, string> = { hadir: "H", sakit: "S", izin: "I", alfa: "A" };
 const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -38,7 +36,7 @@ const STATUS_EXCEL_COLORS: Record<string, { bg: string; fg: string }> = {
 const WaliKelasExportHistory = () => {
   const { user, profile } = useAuth();
   const features = useSubscriptionFeatures();
-  const navigate = useNavigate();
+  
 
   const [assignments, setAssignments] = useState<{ class_name: string; school_id: string }[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>("");
