@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ClipboardList, CalendarDays, Download, Crown, Lock, Users, BookOpen } from "lucide-react";
+import { Download, Crown, Lock, Users, BookOpen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
@@ -58,7 +57,7 @@ const ExportHistory = () => {
   const tableRef = useRef<HTMLDivElement>(null);
 
   const isPremiumFeature = !features.canExportReport;
-  const isTeacher = roles.includes("teacher");
+  
 
   const [scheduleOptions, setScheduleOptions] = useState<ScheduleOption[]>([]);
   const [selectedScheduleKey, setSelectedScheduleKey] = useState<string>("");
