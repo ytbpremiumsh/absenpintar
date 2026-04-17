@@ -76,6 +76,7 @@ import WaCredit from "./pages/WaCredit";
 import TeachingSchedule from "./pages/TeachingSchedule";
 import LiveSchedule from "./pages/LiveSchedule";
 import TeacherDashboard from "./pages/TeacherDashboard";
+import TeacherAffiliate from "./pages/TeacherAffiliate";
 
 const queryClient = new QueryClient();
 
@@ -147,6 +148,7 @@ function AppRoutes() {
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/support" element={<SupportTickets />} />
         <Route path="/referral" element={<ReferralDashboard />} />
+        <Route path="/affiliate-teacher" element={<TeacherAffiliate />} />
         <Route path="/whatsapp" element={<WhatsAppSettings />} />
         <Route path="/addons" element={<Addons />} />
         <Route path="/custom-domain" element={<CustomDomain />} />
