@@ -45,15 +45,19 @@ const SuperAdminAffiliate = () => {
     fetchAll();
   };
 
-  const handleWithdrawalAction = async (action: 'approved' | 'rejected') => {
+  const handleWithdrawalAction = async (action: 'approved' | 'rejected' | 'paid') => {
     if (!selectedWithdrawal) return;
     setProcessing(true);
     try {
-      await supabase.from('affiliate_withdrawals').update({
+      const updates: any = {
         status: action,
-        admin_notes: adminNotes || null,
+        admin_notes: adminNotes || selectedWithdrawal.admin_notes || null,
         processed_at: new Date().toISOString(),
-      }).eq('id', selectedWithdrawal.id);
+      };
+      if (action === 'approved' && !selectedWithdrawal.estimated_payout_at) {
+        updates.estimated_payout_at = getEstimatedPayoutDate(new Date()).toISOString();
+      }
+      await supabase.from('affiliate_withdrawals').update(updates).eq('id', selectedWithdrawal.id);
 
       if (action === 'rejected') {
         // Refund balance
@@ -66,7 +70,8 @@ const SuperAdminAffiliate = () => {
         }
       }
 
-      toast.success(`Pencairan ${action === 'approved' ? 'disetujui' : 'ditolak'}`);
+      const labels: Record<string, string> = { approved: 'disetujui & diproses', rejected: 'ditolak', paid: 'ditandai sudah dibayar' };
+      toast.success(`Pencairan ${labels[action]}`);
       setSelectedWithdrawal(null);
       setAdminNotes("");
       fetchAll();
