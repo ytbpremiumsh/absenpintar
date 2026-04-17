@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { MobileFooterNav } from "./MobileFooterNav";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { Settings, LogOut, School, KeyRound, Gift, LayoutGrid, Activity, ScanLine, Users, Clock } from "lucide-react";
+import { Settings, LogOut, School, KeyRound, Gift, LayoutGrid, Activity, ScanLine, Users, Clock, HelpCircle, Award } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -122,9 +122,23 @@ function AppContent() {
                   <KeyRound className="h-4 w-4 mr-2.5 text-muted-foreground" />
                   Ganti Password
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/affiliate-teacher")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
-                  <Gift className="h-4 w-4 mr-2.5 text-muted-foreground" />
-                  Affiliate & Komisi
+                {/* Admin Sekolah pakai Referral & Point */}
+                {roles.includes("school_admin") && (
+                  <DropdownMenuItem onClick={() => navigate("/referral")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                    <Award className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                    Referral & Point
+                  </DropdownMenuItem>
+                )}
+                {/* Guru / Wali Kelas pakai Affiliate Komisi */}
+                {(roles.includes("teacher") || (!roles.includes("school_admin") && !roles.includes("staff"))) && (
+                  <DropdownMenuItem onClick={() => navigate("/affiliate-teacher")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                    <Gift className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                    Affiliate & Komisi
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                  <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                  Bantuan
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
