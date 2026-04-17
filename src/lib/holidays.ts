@@ -71,3 +71,12 @@ export function getEstimatedPayoutDate(requestedAt: Date = new Date()): Date {
   // Maks 3x24 jam hari kerja
   return addWorkingDays(requestedAt, 3);
 }
+
+export function formatPayoutEstimate(date: Date): string {
+  return date.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
