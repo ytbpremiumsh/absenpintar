@@ -406,7 +406,7 @@ const TeacherDashboard = () => {
         )}
       </motion.div>
 
-      {/* Full Week Schedule */}
+      {/* Full Week Schedule — 3D Carousel */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold flex items-center gap-2">
@@ -424,22 +424,37 @@ const TeacherDashboard = () => {
             {schedules.length} total sesi
           </Badge>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" style={{ perspective: "1200px" }}>
           {[1, 2, 3, 4, 5, 6].map((day, idx) => {
             const daySchedules = weekSchedules[day] || [];
             const isCurrentDay = day === todayDay;
             const hasActive = isCurrentDay && daySchedules.some(s => getStatus(s.start_time, s.end_time, now) === "active");
+            const dominantColor = daySchedules[0]?.subject_color || "hsl(var(--primary))";
+
             return (
-              <motion.div key={day} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + idx * 0.04 }}>
+              <motion.div
+                key={day}
+                initial={{ opacity: 0, rotateY: -25, y: 20 }}
+                animate={{ opacity: 1, rotateY: 0, y: 0 }}
+                transition={{ delay: 0.3 + idx * 0.07, type: "spring", stiffness: 80 }}
+                whileHover={{ rotateY: 8, rotateX: -4, scale: 1.04, y: -6, transition: { type: "spring", stiffness: 300, damping: 15 } }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="cursor-pointer group"
+              >
                 <Card className={cn(
-                  "border shadow-card h-full transition-all hover:shadow-elevated hover:-translate-y-0.5",
-                  isCurrentDay && "ring-2 ring-primary border-primary/30 bg-gradient-to-b from-primary/5 to-transparent",
-                  hasActive && "ring-2 ring-emerald-500 border-emerald-500/30"
+                  "relative h-full border-0 shadow-card overflow-hidden transition-all duration-300 group-hover:shadow-elevated",
+                  isCurrentDay && "ring-2 ring-primary",
+                  hasActive && "ring-2 ring-emerald-500"
                 )}>
-                  <CardHeader className="pb-2 pt-3 px-3">
+                  <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity" style={{ background: `linear-gradient(135deg, ${dominantColor}, transparent 70%)` }} />
+                  <div className="absolute top-0 left-0 right-0 h-1" style={{ background: isCurrentDay ? "hsl(var(--primary))" : dominantColor }} />
+                  <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full opacity-20 blur-2xl group-hover:opacity-40 transition-opacity" style={{ background: dominantColor }} />
+
+                  <CardHeader className="pb-2 pt-3 px-3 relative z-10">
                     <CardTitle className="text-xs font-bold flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        {DAYS_SHORT[day]}
+                        <span className="text-sm">{DAYS_SHORT[day]}</span>
                         {hasActive && (
                           <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
@@ -447,37 +462,44 @@ const TeacherDashboard = () => {
                           </span>
                         )}
                       </span>
-                      {isCurrentDay && <Badge className="bg-primary text-primary-foreground text-[8px] h-4 px-1">Hari Ini</Badge>}
-                      {!isCurrentDay && (
-                        <Badge variant="secondary" className="text-[8px] h-4 px-1">
-                          {daySchedules.length}
-                        </Badge>
+                      {isCurrentDay ? (
+                        <Badge className="bg-primary text-primary-foreground text-[8px] h-4 px-1.5 animate-pulse">Hari Ini</Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-[8px] h-4 px-1.5">{daySchedules.length}</Badge>
                       )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="px-3 pb-3">
+
+                  <CardContent className="px-3 pb-3 relative z-10">
                     {daySchedules.length === 0 ? (
-                      <p className="text-[10px] text-muted-foreground/60 py-3 text-center">Kosong</p>
+                      <div className="text-center py-4">
+                        <BookOpen className="h-5 w-5 text-muted-foreground/20 mx-auto mb-1" />
+                        <p className="text-[10px] text-muted-foreground/60">Kosong</p>
+                      </div>
                     ) : (
                       <div className="space-y-1.5">
-                        {daySchedules.map(s => {
+                        {daySchedules.map((s, sIdx) => {
                           const st = isCurrentDay ? getStatus(s.start_time, s.end_time, now) : "upcoming";
                           return (
-                            <div
+                            <motion.div
                               key={s.id}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.4 + idx * 0.07 + sIdx * 0.04 }}
                               className={cn(
-                                "flex items-center gap-1.5 p-1.5 rounded-lg transition-colors text-[10px]",
-                                st === "active" ? "bg-emerald-500/10 ring-1 ring-emerald-500/30" :
-                                st === "done" ? "bg-muted/30 opacity-60" : "bg-secondary/40 hover:bg-secondary/60"
+                                "flex items-center gap-1.5 p-1.5 rounded-lg transition-all text-[10px] backdrop-blur-sm border",
+                                st === "active" ? "bg-emerald-500/15 border-emerald-500/40 shadow-[0_0_12px_-2px_rgba(16,185,129,0.4)]" :
+                                st === "done" ? "bg-muted/30 border-transparent opacity-60" :
+                                "bg-background/60 border-border/30 hover:border-primary/40 hover:bg-background/90"
                               )}
+                              style={{ borderLeftWidth: "2px", borderLeftColor: s.subject_color }}
                             >
-                              <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: s.subject_color }} />
                               <div className="flex-1 min-w-0">
-                                <p className="font-semibold truncate text-[10px]">{s.subject_name}</p>
-                                <p className="text-muted-foreground">{s.class_name} · {s.start_time.slice(0, 5)}</p>
+                                <p className="font-bold truncate text-[10px]">{s.subject_name}</p>
+                                <p className="text-muted-foreground text-[9px]">{s.class_name} · {s.start_time.slice(0, 5)}</p>
                               </div>
                               {st === "active" && <PlayCircle className="h-3 w-3 text-emerald-500 shrink-0 animate-pulse" />}
-                            </div>
+                            </motion.div>
                           );
                         })}
                       </div>
