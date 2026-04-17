@@ -112,6 +112,19 @@ const Addons = () => {
   };
 
   // Combine recent orders (ID card + WA credit history)
+  const [waPurchases, setWaPurchases] = useState<any[]>([]);
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    supabase
+      .from("payment_transactions")
+      .select("id, amount, created_at, status, payment_method")
+      .eq("school_id", profile.school_id)
+      .like("payment_method", "%wa_credit%")
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .then(({ data }) => setWaPurchases(data || []));
+  }, [profile?.school_id]);
+
   const recentHistory: { type: string; label: string; date: string; status: string; amount: number; icon: any; id: string }[] = [];
   idcardOrders.slice(0, 5).forEach((order) => {
     recentHistory.push({
@@ -122,6 +135,18 @@ const Addons = () => {
       amount: order.total_amount || 0,
       icon: CreditCard,
       id: order.id,
+    });
+  });
+  waPurchases.forEach((tx) => {
+    const statusMap: Record<string, string> = { pending: "Menunggu Bayar", paid: "Berhasil", success: "Berhasil", failed: "Gagal", expired: "Kadaluarsa" };
+    recentHistory.push({
+      type: "wacredit",
+      label: `Top-up Kredit Pesan WhatsApp`,
+      date: tx.created_at,
+      status: statusMap[tx.status] || tx.status,
+      amount: tx.amount || 0,
+      icon: MessageSquare,
+      id: tx.id,
     });
   });
 
@@ -211,28 +236,27 @@ const Addons = () => {
                 <Sparkles className="h-4 w-4 text-primary" />
                 Riwayat Pesanan Add-on
               </h3>
-              <Button variant="link" size="sm" className="text-xs h-auto p-0" onClick={() => navigate("/order-idcard")}>
-                Lihat semua <ChevronRight className="h-3 w-3 ml-0.5" />
-              </Button>
             </div>
             <div className="space-y-2">
               {recentHistory.slice(0, 5).map((item) => (
                 <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50 hover:bg-muted transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
                       item.type === "idcard" ? "bg-emerald-500/10" : "bg-violet-500/10"
                     }`}>
                       <item.icon className={`h-4 w-4 ${item.type === "idcard" ? "text-emerald-600" : "text-violet-600"}`} />
                     </div>
-                    <div>
-                      <span className="font-semibold text-sm">{item.type === "idcard" ? "ID Card" : "Kredit WA"}</span>
-                      <span className="text-xs text-muted-foreground ml-2">• {item.label}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-sm">{item.type === "idcard" ? "ID Card" : "Kredit WhatsApp"}</span>
+                        <span className="text-xs text-muted-foreground truncate">• {item.label}</span>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         Rp {item.amount.toLocaleString("id-ID")} • {new Date(item.date).toLocaleDateString("id-ID")}
                       </p>
                     </div>
                   </div>
-                  <Badge variant={item.status === "Selesai" ? "default" : "secondary"} className="text-[10px]">
+                  <Badge variant={item.status === "Selesai" || item.status === "Berhasil" ? "default" : "secondary"} className="text-[10px] shrink-0">
                     {item.status}
                   </Badge>
                 </div>

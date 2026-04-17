@@ -354,7 +354,8 @@ const Dashboard = () => {
               <p className="text-2xl font-bold">{attendancePercent}%</p>
               <p className="text-[11px] text-white/70">Kehadiran</p>
             </div>
-            <Button onClick={() => navigate("/scan")} className="bg-white/20 hover:bg-white/30 text-white rounded-xl shadow-sm border border-white/20">
+            {/* Tombol Scan disembunyikan di mobile karena sudah ada di footer */}
+            <Button onClick={() => navigate("/scan")} className="hidden sm:inline-flex bg-white/20 hover:bg-white/30 text-white rounded-xl shadow-sm border border-white/20">
               <QrCode className="h-4 w-4 mr-2" />
               Scan
               <ChevronRight className="h-4 w-4 ml-1" />
