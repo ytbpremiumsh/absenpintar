@@ -73,7 +73,7 @@ export function useTeacherAffiliate() {
             user_id: user.id,
             email: user.email || `${user.id}@teacher.local`,
             full_name: profile.full_name || "Guru",
-            phone: profile.phone || null,
+            phone: (profile as any)?.phone || null,
             password_hash: "TEACHER_LINKED_NO_PASSWORD",
             affiliate_code: code,
             commission_rate: 50,

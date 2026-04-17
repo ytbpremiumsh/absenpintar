@@ -8,13 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Wallet, Copy, Share2, TrendingUp, Users, BadgeDollarSign, ArrowUpRight,
+  Wallet, Copy, Share2, TrendingUp, BadgeDollarSign, ArrowUpRight,
   Clock, CheckCircle2, Loader2, Sparkles, Banknote, Smartphone, Gift,
   Calendar, AlertCircle, Hourglass,
 } from "lucide-react";
