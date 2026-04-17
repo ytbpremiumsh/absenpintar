@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Crown, Lock, Users, BookOpen } from "lucide-react";
+import { Download, Crown, Lock, BookOpen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -242,47 +242,6 @@ const ExportHistory = () => {
     toast.success("Excel berhasil diunduh!");
   };
 
-  const exportStudentAnalytics = () => {
-    if (isPremiumFeature) { toast.error("Upgrade ke paket Basic untuk export"); return; }
-    if (!activeRows.length || !selectedSchedule) { toast.error("Tidak ada data"); return; }
-
-    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="utf-8"><style>
-      td, th { border: 1px solid #999; padding: 4px 8px; font-family: Arial; font-size: 10pt; }
-      th { background: #4f46e5; color: white; font-weight: bold; text-align: center; }
-      .name { text-align: left; min-width: 160px; }
-      .title { font-size: 14pt; font-weight: bold; text-align: center; border: none; }
-      .subtitle { font-size: 11pt; text-align: center; border: none; }
-      .good { background: #dcfce7; color: #16a34a; font-weight: bold; }
-      .warn { background: #fef9c3; color: #ca8a04; font-weight: bold; }
-      .bad { background: #fecaca; color: #dc2626; font-weight: bold; }
-    </style></head><body><table>`;
-    html += `<tr><td colspan="9" class="title">ANALYTIC KEHADIRAN MATA PELAJARAN</td></tr>`;
-    html += `<tr><td colspan="9" class="subtitle">${selectedSchedule.subject_name} — ${selectedSchedule.class_name} — ${monthLabel}</td></tr>`;
-    html += `<tr><td colspan="9" class="subtitle">Guru: ${selectedSchedule.teacher_name}</td></tr>`;
-    html += `<tr><td colspan="9"></td></tr>`;
-    html += `<tr><th>NO</th><th>NIS</th><th class="name">NAMA SISWA</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alfa</th><th>Total</th><th>% Kehadiran</th></tr>`;
-
-    activeRows.forEach((s, i) => {
-      const totalDays = s.totals.H + s.totals.S + s.totals.I + s.totals.A;
-      const pct = totalDays > 0 ? Math.round((s.totals.H / totalDays) * 100) : 0;
-      const cls = pct >= 80 ? "good" : pct >= 60 ? "warn" : "bad";
-      html += `<tr><td style="text-align:center">${i + 1}</td><td style="text-align:center">${s.student_id}</td><td class="name">${s.name}</td>`;
-      html += `<td style="text-align:center" class="good">${s.totals.H}</td><td style="text-align:center">${s.totals.S}</td><td style="text-align:center">${s.totals.I}</td>`;
-      html += `<td style="text-align:center" class="bad">${s.totals.A}</td><td style="text-align:center">${totalDays}</td><td style="text-align:center" class="${cls}">${pct}%</td></tr>`;
-    });
-    html += `</table></body></html>`;
-
-    const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Analytic-Mapel-${selectedSchedule.subject_name}-${selectedSchedule.class_name}-${monthLabel}.xls`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Analytic siswa berhasil diunduh!");
-  };
-
   return (
     <PremiumGate featureLabel="Rekap Absensi Mapel" featureKey="canExportReport" requiredPlan="Basic">
       <div className="space-y-5">
@@ -354,9 +313,6 @@ const ExportHistory = () => {
           </div>
           <Button variant="outline" disabled={isPremiumFeature} onClick={exportExcel} className="gap-2 border-primary/30 text-primary hover:bg-primary/5">
             <Download className="h-4 w-4" /> Export Excel {isPremiumFeature && <Lock className="h-3 w-3" />}
-          </Button>
-          <Button variant="outline" disabled={isPremiumFeature} onClick={exportStudentAnalytics} className="gap-2 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/5">
-            <Users className="h-4 w-4" /> Download Analytic {isPremiumFeature && <Lock className="h-3 w-3" />}
           </Button>
         </div>
 
