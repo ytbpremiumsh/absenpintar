@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Wallet, ArrowDownToLine, CheckCircle2, XCircle, Clock, Loader2, Search, Ban, Play } from "lucide-react";
+import { Users, Wallet, ArrowDownToLine, CheckCircle2, XCircle, Clock, Loader2, Search, Ban, Play, GraduationCap, Smartphone, Building2, CalendarClock, Send } from "lucide-react";
+import { getEstimatedPayoutDate, formatPayoutEstimate } from "@/lib/holidays";
 
 const SuperAdminAffiliate = () => {
   const [loading, setLoading] = useState(true);
@@ -44,15 +45,19 @@ const SuperAdminAffiliate = () => {
     fetchAll();
   };
 
-  const handleWithdrawalAction = async (action: 'approved' | 'rejected') => {
+  const handleWithdrawalAction = async (action: 'approved' | 'rejected' | 'paid') => {
     if (!selectedWithdrawal) return;
     setProcessing(true);
     try {
-      await supabase.from('affiliate_withdrawals').update({
+      const updates: any = {
         status: action,
-        admin_notes: adminNotes || null,
+        admin_notes: adminNotes || selectedWithdrawal.admin_notes || null,
         processed_at: new Date().toISOString(),
-      }).eq('id', selectedWithdrawal.id);
+      };
+      if (action === 'approved' && !selectedWithdrawal.estimated_payout_at) {
+        updates.estimated_payout_at = getEstimatedPayoutDate(new Date()).toISOString();
+      }
+      await supabase.from('affiliate_withdrawals').update(updates).eq('id', selectedWithdrawal.id);
 
       if (action === 'rejected') {
         // Refund balance
@@ -65,7 +70,8 @@ const SuperAdminAffiliate = () => {
         }
       }
 
-      toast.success(`Pencairan ${action === 'approved' ? 'disetujui' : 'ditolak'}`);
+      const labels: Record<string, string> = { approved: 'disetujui & diproses', rejected: 'ditolak', paid: 'ditandai sudah dibayar' };
+      toast.success(`Pencairan ${labels[action]}`);
       setSelectedWithdrawal(null);
       setAdminNotes("");
       fetchAll();
@@ -193,42 +199,92 @@ const SuperAdminAffiliate = () => {
 
         <TabsContent value="withdrawals">
           <Card>
-            <CardHeader><CardTitle className="text-base">Pencairan Dana</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <ArrowDownToLine className="h-4 w-4 text-primary" /> Pencairan Dana
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Estimasi pembayaran maksimal 3 hari kerja (tidak termasuk Sabtu, Minggu, dan tanggal merah)
+              </CardDescription>
+            </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Affiliate</TableHead>
+                    <TableHead>Tipe</TableHead>
                     <TableHead>Jumlah</TableHead>
-                    <TableHead>Bank</TableHead>
-                    <TableHead>No. Rek</TableHead>
+                    <TableHead>Tujuan</TableHead>
+                    <TableHead>Estimasi Cair</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Tanggal</TableHead>
                     <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {withdrawals.map(w => (
-                    <TableRow key={w.id}>
-                      <TableCell className="font-medium text-xs">{(w as any).affiliates?.full_name || '-'}</TableCell>
-                      <TableCell className="font-bold">{formatRp(w.amount)}</TableCell>
-                      <TableCell>{w.bank_name}</TableCell>
-                      <TableCell className="font-mono text-xs">{w.account_number}</TableCell>
-                      <TableCell>
-                        <Badge variant={w.status === 'approved' ? 'default' : w.status === 'rejected' ? 'destructive' : 'outline'}>
-                          {w.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs">{new Date(w.created_at).toLocaleDateString('id-ID')}</TableCell>
-                      <TableCell>
-                        {w.status === 'pending' && (
-                          <Button size="sm" variant="outline" onClick={() => { setSelectedWithdrawal(w); setAdminNotes(""); }}>
-                            Review
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {withdrawals.map(w => {
+                    const aff = (w as any).affiliates;
+                    const isTeacher = aff?.affiliate_code?.startsWith('TCH-');
+                    const isEwallet = !!w.ewallet_type;
+                    const estimate = w.estimated_payout_at
+                      ? new Date(w.estimated_payout_at)
+                      : getEstimatedPayoutDate(new Date(w.created_at));
+                    return (
+                      <TableRow key={w.id}>
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium text-xs">{aff?.full_name || '-'}</span>
+                            <span className="font-mono text-[10px] text-muted-foreground">{aff?.affiliate_code}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {isTeacher ? (
+                            <Badge className="bg-violet-500/15 text-violet-700 border-violet-500/30 text-[10px] gap-1">
+                              <GraduationCap className="h-3 w-3" /> Guru
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">Publik</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-bold text-primary">{formatRp(w.amount)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="flex items-center gap-1 text-xs font-medium">
+                              {isEwallet ? <Smartphone className="h-3 w-3 text-emerald-600" /> : <Building2 className="h-3 w-3 text-blue-600" />}
+                              {isEwallet ? w.ewallet_type : w.bank_name}
+                            </span>
+                            <span className="font-mono text-[10px] text-muted-foreground">{w.account_number}</span>
+                            <span className="text-[10px] text-muted-foreground">a.n {w.account_holder}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-[11px]">
+                            <CalendarClock className="h-3 w-3 text-amber-600" />
+                            <span className={w.status === 'pending' ? 'font-semibold text-amber-700' : 'text-muted-foreground'}>
+                              {formatPayoutEstimate(estimate)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={w.status === 'rejected' ? 'destructive' : 'outline'}
+                            className={w.status === 'paid' ? 'bg-emerald-500 text-white border-0' : w.status === 'approved' ? 'bg-blue-500 text-white border-0' : ''}
+                          >
+                            {w.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
+                            {w.status === 'approved' && <Send className="h-3 w-3 mr-1" />}
+                            {w.status === 'paid' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                            {w.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {(w.status === 'pending' || w.status === 'approved') && (
+                            <Button size="sm" variant="outline" onClick={() => { setSelectedWithdrawal(w); setAdminNotes(""); }}>
+                              {w.status === 'pending' ? 'Review' : 'Tandai Dibayar'}
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                   {withdrawals.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Belum ada pencairan</TableCell></TableRow>}
                 </TableBody>
               </Table>
@@ -238,28 +294,51 @@ const SuperAdminAffiliate = () => {
           {/* Withdrawal Review Dialog */}
           <Dialog open={!!selectedWithdrawal} onOpenChange={(o) => !o && setSelectedWithdrawal(null)}>
             <DialogContent>
-              <DialogHeader><DialogTitle>Review Pencairan Dana</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <ArrowDownToLine className="h-5 w-5 text-primary" />
+                  {selectedWithdrawal?.status === 'approved' ? 'Konfirmasi Pembayaran' : 'Review Pencairan Dana'}
+                </DialogTitle>
+              </DialogHeader>
               {selectedWithdrawal && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><p className="text-muted-foreground">Affiliate</p><p className="font-medium">{(selectedWithdrawal as any).affiliates?.full_name}</p></div>
-                    <div><p className="text-muted-foreground">Jumlah</p><p className="font-bold text-primary">{formatRp(selectedWithdrawal.amount)}</p></div>
-                    <div><p className="text-muted-foreground">Bank</p><p className="font-medium">{selectedWithdrawal.bank_name}</p></div>
-                    <div><p className="text-muted-foreground">No. Rekening</p><p className="font-mono">{selectedWithdrawal.account_number}</p></div>
-                    <div className="col-span-2"><p className="text-muted-foreground">Atas Nama</p><p className="font-medium">{selectedWithdrawal.account_holder}</p></div>
+                  <div className="grid grid-cols-2 gap-3 text-sm bg-muted/30 p-3 rounded-lg">
+                    <div><p className="text-[10px] text-muted-foreground uppercase">Affiliate</p><p className="font-semibold">{(selectedWithdrawal as any).affiliates?.full_name}</p></div>
+                    <div><p className="text-[10px] text-muted-foreground uppercase">Jumlah</p><p className="font-bold text-primary text-base">{formatRp(selectedWithdrawal.amount)}</p></div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+                        {selectedWithdrawal.ewallet_type ? <Smartphone className="h-3 w-3" /> : <Building2 className="h-3 w-3" />}
+                        {selectedWithdrawal.ewallet_type ? 'E-Wallet' : 'Bank'}
+                      </p>
+                      <p className="font-medium">{selectedWithdrawal.ewallet_type || selectedWithdrawal.bank_name}</p>
+                    </div>
+                    <div><p className="text-[10px] text-muted-foreground uppercase">No. Rekening / HP</p><p className="font-mono text-xs">{selectedWithdrawal.account_number}</p></div>
+                    <div className="col-span-2"><p className="text-[10px] text-muted-foreground uppercase">Atas Nama</p><p className="font-medium">{selectedWithdrawal.account_holder}</p></div>
+                    <div className="col-span-2 pt-2 border-t border-border/50">
+                      <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1"><CalendarClock className="h-3 w-3" /> Estimasi Cair</p>
+                      <p className="font-semibold text-amber-700">
+                        {formatPayoutEstimate(selectedWithdrawal.estimated_payout_at ? new Date(selectedWithdrawal.estimated_payout_at) : getEstimatedPayoutDate(new Date(selectedWithdrawal.created_at)))}
+                      </p>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Catatan Admin (opsional)</Label>
-                    <Textarea value={adminNotes} onChange={e => setAdminNotes(e.target.value)} placeholder="Catatan..." />
+                    <Textarea value={adminNotes} onChange={e => setAdminNotes(e.target.value)} placeholder={selectedWithdrawal.status === 'approved' ? 'Bukti transfer / nomor referensi...' : 'Catatan untuk affiliate...'} />
                   </div>
-                  <div className="flex gap-2">
-                    <Button onClick={() => handleWithdrawalAction('approved')} disabled={processing} className="flex-1 gap-1 bg-green-600 hover:bg-green-700">
-                      {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Setujui
+                  {selectedWithdrawal.status === 'pending' ? (
+                    <div className="flex gap-2">
+                      <Button onClick={() => handleWithdrawalAction('approved')} disabled={processing} className="flex-1 gap-1 bg-blue-600 hover:bg-blue-700 text-white">
+                        {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Setujui (Diproses)
+                      </Button>
+                      <Button onClick={() => handleWithdrawalAction('rejected')} disabled={processing} variant="destructive" className="flex-1 gap-1">
+                        {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />} Tolak
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleWithdrawalAction('paid' as any)} disabled={processing} className="w-full gap-1 bg-emerald-600 hover:bg-emerald-700 text-white">
+                      {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Konfirmasi Sudah Dibayar
                     </Button>
-                    <Button onClick={() => handleWithdrawalAction('rejected')} disabled={processing} variant="destructive" className="flex-1 gap-1">
-                      {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />} Tolak
-                    </Button>
-                  </div>
+                  )}
                 </div>
               )}
             </DialogContent>

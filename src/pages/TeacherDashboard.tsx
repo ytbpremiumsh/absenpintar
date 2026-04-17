@@ -18,6 +18,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { WeekScheduleCard } from "@/components/dashboard/WeekScheduleCard";
 
 const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const DAYS_SHORT = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -406,110 +407,15 @@ const TeacherDashboard = () => {
         )}
       </motion.div>
 
-      {/* Full Week Schedule — 3D Carousel */}
+      {/* Full Week Schedule — Mobile App Style */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
-              <Calendar className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span>Jadwal Minggu Ini</span>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
-            </span>
-          </h2>
-          <Badge variant="outline" className="text-[10px] gap-1 border-primary/30 text-primary">
-            <Activity className="h-3 w-3" />
-            {schedules.length} total sesi
-          </Badge>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" style={{ perspective: "1200px" }}>
-          {[1, 2, 3, 4, 5, 6].map((day, idx) => {
-            const daySchedules = weekSchedules[day] || [];
-            const isCurrentDay = day === todayDay;
-            const hasActive = isCurrentDay && daySchedules.some(s => getStatus(s.start_time, s.end_time, now) === "active");
-            const dominantColor = daySchedules[0]?.subject_color || "hsl(var(--primary))";
-
-            return (
-              <motion.div
-                key={day}
-                initial={{ opacity: 0, rotateY: -25, y: 20 }}
-                animate={{ opacity: 1, rotateY: 0, y: 0 }}
-                transition={{ delay: 0.3 + idx * 0.07, type: "spring", stiffness: 80 }}
-                whileHover={{ rotateY: 8, rotateX: -4, scale: 1.04, y: -6, transition: { type: "spring", stiffness: 300, damping: 15 } }}
-                style={{ transformStyle: "preserve-3d" }}
-                className="cursor-pointer group"
-              >
-                <Card className={cn(
-                  "relative h-full border-0 shadow-card overflow-hidden transition-all duration-300 group-hover:shadow-elevated",
-                  isCurrentDay && "ring-2 ring-primary",
-                  hasActive && "ring-2 ring-emerald-500"
-                )}>
-                  <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity" style={{ background: `linear-gradient(135deg, ${dominantColor}, transparent 70%)` }} />
-                  <div className="absolute top-0 left-0 right-0 h-1" style={{ background: isCurrentDay ? "hsl(var(--primary))" : dominantColor }} />
-                  <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full opacity-20 blur-2xl group-hover:opacity-40 transition-opacity" style={{ background: dominantColor }} />
-
-                  <CardHeader className="pb-2 pt-3 px-3 relative z-10">
-                    <CardTitle className="text-xs font-bold flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <span className="text-sm">{DAYS_SHORT[day]}</span>
-                        {hasActive && (
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                          </span>
-                        )}
-                      </span>
-                      {isCurrentDay ? (
-                        <Badge className="bg-primary text-primary-foreground text-[8px] h-4 px-1.5 animate-pulse">Hari Ini</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-[8px] h-4 px-1.5">{daySchedules.length}</Badge>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-
-                  <CardContent className="px-3 pb-3 relative z-10">
-                    {daySchedules.length === 0 ? (
-                      <div className="text-center py-4">
-                        <BookOpen className="h-5 w-5 text-muted-foreground/20 mx-auto mb-1" />
-                        <p className="text-[10px] text-muted-foreground/60">Kosong</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {daySchedules.map((s, sIdx) => {
-                          const st = isCurrentDay ? getStatus(s.start_time, s.end_time, now) : "upcoming";
-                          return (
-                            <motion.div
-                              key={s.id}
-                              initial={{ opacity: 0, x: -8 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.4 + idx * 0.07 + sIdx * 0.04 }}
-                              className={cn(
-                                "flex items-center gap-1.5 p-1.5 rounded-lg transition-all text-[10px] backdrop-blur-sm border",
-                                st === "active" ? "bg-emerald-500/15 border-emerald-500/40 shadow-[0_0_12px_-2px_rgba(16,185,129,0.4)]" :
-                                st === "done" ? "bg-muted/30 border-transparent opacity-60" :
-                                "bg-background/60 border-border/30 hover:border-primary/40 hover:bg-background/90"
-                              )}
-                              style={{ borderLeftWidth: "2px", borderLeftColor: s.subject_color }}
-                            >
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold truncate text-[10px]">{s.subject_name}</p>
-                                <p className="text-muted-foreground text-[9px]">{s.class_name} · {s.start_time.slice(0, 5)}</p>
-                              </div>
-                              {st === "active" && <PlayCircle className="h-3 w-3 text-emerald-500 shrink-0 animate-pulse" />}
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
+        <WeekScheduleCard
+          weekSchedules={weekSchedules}
+          todayDay={todayDay}
+          now={now}
+          totalSessions={schedules.length}
+          onSelectSchedule={openAttendance}
+        />
       </motion.div>
 
       {/* Attendance Dialog */}
