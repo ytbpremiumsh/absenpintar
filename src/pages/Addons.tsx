@@ -138,30 +138,6 @@ const Addons = () => {
     });
   });
 
-  const recentHistory: { type: string; label: string; date: string; status: string; amount: number; icon: any; id: string }[] = [];
-  idcardOrders.slice(0, 5).forEach((order) => {
-    recentHistory.push({
-      type: "idcard",
-      label: `${order.total_cards} kartu • ${(order as any).id_card_designs?.name || "Desain Default"}`,
-      date: order.created_at,
-      status: getProgressLabel(order.progress),
-      amount: order.total_amount || 0,
-      icon: CreditCard,
-      id: order.id,
-    });
-  });
-  waPurchases.forEach((tx) => {
-    const statusMap: Record<string, string> = { pending: "Menunggu Bayar", paid: "Berhasil", success: "Berhasil", failed: "Gagal", expired: "Kadaluarsa" };
-    recentHistory.push({
-      type: "wacredit",
-      label: `Top-up Kredit Pesan WhatsApp`,
-      date: tx.created_at,
-      status: statusMap[tx.status] || tx.status,
-      amount: tx.amount || 0,
-      icon: MessageSquare,
-      id: tx.id,
-    });
-  });
 
   recentHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
