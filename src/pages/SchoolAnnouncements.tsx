@@ -82,7 +82,8 @@ const SchoolAnnouncements = () => {
   };
 
   const handleSave = async () => {
-    if (!title.trim() || !message.trim()) {
+    const plainText = message.replace(/<[^>]*>/g, "").trim();
+    if (!title.trim() || (!plainText && !/<img|<iframe/i.test(message))) {
       toast.error("Mohon isi judul dan pesan");
       return;
     }
