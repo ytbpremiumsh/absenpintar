@@ -229,7 +229,7 @@ const SchoolAnnouncements = () => {
                                 </span>
                               </div>
                               <h3 className="text-base font-bold text-foreground">{a.title}</h3>
-                              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap line-clamp-3">{a.message}</p>
+                              <RichContent html={a.message} className="mt-1 line-clamp-3 [&_img]:hidden [&_*]:!text-sm [&_*]:!text-muted-foreground" />
                             </div>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
@@ -290,8 +290,8 @@ const SchoolAnnouncements = () => {
             </div>
             <div>
               <Label className="text-xs">Isi Pesan</Label>
-              <Textarea className="mt-1.5 min-h-[120px]" placeholder="Tulis isi pengumuman..." value={message} onChange={e => setMessage(e.target.value)} maxLength={2000} />
-              <p className="text-[10px] text-muted-foreground mt-1 text-right">{message.length}/2000</p>
+              <p className="text-[10px] text-muted-foreground mb-1.5">Anda bisa menyisipkan gambar, link, format teks, simbol, daftar, dan lainnya.</p>
+              <RichTextEditor value={message} onChange={setMessage} placeholder="Tulis isi pengumuman... gunakan toolbar untuk format teks, gambar, link, dll." />
             </div>
             <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/40">
               <div className="flex items-center gap-2">
