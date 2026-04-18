@@ -1127,6 +1127,42 @@ export type Database = {
           },
         ]
       }
+      school_announcements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_pinned: boolean
+          message: string
+          school_id: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_pinned?: boolean
+          message: string
+          school_id: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_pinned?: boolean
+          message?: string
+          school_id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       school_groups: {
         Row: {
           created_at: string

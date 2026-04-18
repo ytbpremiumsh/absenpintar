@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { WeekScheduleCard } from "@/components/dashboard/WeekScheduleCard";
+import { SchoolAnnouncementsWidget } from "@/components/dashboard/SchoolAnnouncementsWidget";
 
 const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const DAYS_SHORT = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -252,6 +253,13 @@ const TeacherDashboard = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* School Announcements */}
+      {profile?.school_id && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <SchoolAnnouncementsWidget schoolId={profile.school_id} />
+        </motion.div>
+      )}
 
       {/* Today's Schedule - Timeline Style */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>

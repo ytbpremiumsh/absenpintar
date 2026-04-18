@@ -77,6 +77,7 @@ import TeachingSchedule from "./pages/TeachingSchedule";
 import LiveSchedule from "./pages/LiveSchedule";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherAffiliate from "./pages/TeacherAffiliate";
+import SchoolAnnouncements from "./pages/SchoolAnnouncements";
 
 const queryClient = new QueryClient();
 
@@ -157,6 +158,7 @@ function AppRoutes() {
         <Route path="/teaching-schedule" element={<TeachingSchedule />} />
         <Route path="/live-schedule" element={<LiveSchedule />} />
         <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+        <Route path="/announcements" element={<SchoolAnnouncements />} />
         <Route path="/wa-templates" element={<Navigate to="/whatsapp" replace />} />
         <Route path="/wa-broadcast" element={<Navigate to="/whatsapp" replace />} />
         <Route path="/wa-history" element={<Navigate to="/whatsapp" replace />} />

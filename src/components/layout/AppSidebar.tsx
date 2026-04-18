@@ -20,6 +20,7 @@ import {
   CalendarDays,
   Radio,
   BookOpen,
+  Megaphone,
 } from "lucide-react";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -46,6 +47,7 @@ const mainNav = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Monitoring", url: "/monitoring", icon: Activity, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Scan Absensi", url: "/scan", icon: ScanLine, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Pengumuman", url: "/announcements", icon: Megaphone, accent: "from-[#5B6CF9]/85 to-[#4c5ded]", adminOnly: true },
 ];
 
 const dataNav = [
@@ -236,7 +238,7 @@ export function AppSidebar() {
             <SidebarGroup>
               {renderGroupLabel("Menu Utama")}
               <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">{renderNavItems(mainNav)}</SidebarMenu>
+                <SidebarMenu className="space-y-1">{renderNavItems(mainNav.filter(i => !i.adminOnly || roles.includes("school_admin")))}</SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
