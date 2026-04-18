@@ -140,8 +140,8 @@ const SchoolAnnouncements = () => {
         icon={Megaphone}
         title="Pengumuman Sekolah"
         subtitle="Kelola informasi & pengumuman untuk seluruh staf, guru, dan wali kelas"
-        action={
-          <Button onClick={openNew} className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow-md rounded-xl">
+        actions={
+          <Button onClick={openNew} className="bg-white text-primary hover:bg-white/90 shadow-md rounded-xl">
             <Plus className="h-4 w-4 mr-1.5" /> Buat Baru
           </Button>
         }
