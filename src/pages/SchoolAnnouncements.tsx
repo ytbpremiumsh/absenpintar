@@ -1,0 +1,332 @@
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Megaphone, Plus, Pin, AlertTriangle, Info, Sparkles, Loader2, Pencil, Trash2, Send } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Navigate } from "react-router-dom";
+
+const TYPE_OPTIONS = [
+  { value: "info", label: "Informasi", icon: Info, color: "text-sky-600", bg: "bg-sky-500/10", badge: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30" },
+  { value: "penting", label: "Penting", icon: Sparkles, color: "text-violet-600", bg: "bg-violet-500/10", badge: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30" },
+  { value: "urgent", label: "Mendesak", icon: AlertTriangle, color: "text-red-600", bg: "bg-red-500/10", badge: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30" },
+];
+
+interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  is_pinned: boolean;
+  created_at: string;
+  created_by: string | null;
+}
+
+const SchoolAnnouncements = () => {
+  const { user, profile, roles, loading: authLoading } = useAuth();
+  const isAdmin = roles.includes("school_admin");
+  const [items, setItems] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialog, setDialog] = useState(false);
+  const [editing, setEditing] = useState<Announcement | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Form state
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+  const [type, setType] = useState("info");
+  const [isPinned, setIsPinned] = useState(false);
+
+  const schoolId = profile?.school_id;
+
+  const fetchData = async () => {
+    if (!schoolId) { setLoading(false); return; }
+    const { data } = await supabase
+      .from("school_announcements")
+      .select("*")
+      .eq("school_id", schoolId)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false });
+    setItems(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, [schoolId]);
+
+  if (!authLoading && !isAdmin) return <Navigate to="/dashboard" replace />;
+
+  const openNew = () => {
+    setEditing(null);
+    setTitle(""); setMessage(""); setType("info"); setIsPinned(false);
+    setDialog(true);
+  };
+
+  const openEdit = (a: Announcement) => {
+    setEditing(a);
+    setTitle(a.title); setMessage(a.message); setType(a.type); setIsPinned(a.is_pinned);
+    setDialog(true);
+  };
+
+  const handleSave = async () => {
+    if (!title.trim() || !message.trim()) {
+      toast.error("Mohon isi judul dan pesan");
+      return;
+    }
+    if (!schoolId) return;
+    setSaving(true);
+    try {
+      if (editing) {
+        const { error } = await supabase.from("school_announcements")
+          .update({ title: title.trim(), message: message.trim(), type, is_pinned: isPinned })
+          .eq("id", editing.id);
+        if (error) throw error;
+        toast.success("Pengumuman diperbarui");
+      } else {
+        const { error } = await supabase.from("school_announcements").insert({
+          school_id: schoolId,
+          title: title.trim(),
+          message: message.trim(),
+          type,
+          is_pinned: isPinned,
+          created_by: user?.id,
+        });
+        if (error) throw error;
+        toast.success("Pengumuman dipublikasikan");
+      }
+      setDialog(false);
+      fetchData();
+    } catch (e: any) {
+      toast.error(e.message || "Gagal menyimpan");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("school_announcements").delete().eq("id", deleteId);
+    if (error) { toast.error("Gagal menghapus"); return; }
+    toast.success("Pengumuman dihapus");
+    setDeleteId(null);
+    fetchData();
+  };
+
+  const togglePin = async (a: Announcement) => {
+    const { error } = await supabase.from("school_announcements")
+      .update({ is_pinned: !a.is_pinned }).eq("id", a.id);
+    if (error) { toast.error("Gagal memperbarui"); return; }
+    toast.success(a.is_pinned ? "Pin dilepas" : "Disematkan");
+    fetchData();
+  };
+
+  const totalByType = TYPE_OPTIONS.map(t => ({ ...t, count: items.filter(i => i.type === t.value).length }));
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        icon={Megaphone}
+        title="Pengumuman Sekolah"
+        subtitle="Kelola informasi & pengumuman untuk seluruh staf, guru, dan wali kelas"
+        action={
+          <Button onClick={openNew} className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow-md rounded-xl">
+            <Plus className="h-4 w-4 mr-1.5" /> Buat Baru
+          </Button>
+        }
+      />
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="rounded-2xl border border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shadow-sm">
+                <Megaphone className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total</p>
+                <p className="text-xl font-bold">{items.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {totalByType.map(t => {
+          const Icon = t.icon;
+          return (
+            <Card key={t.value} className="rounded-2xl border border-border/60 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2.5">
+                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", t.bg)}>
+                    <Icon className={cn("h-5 w-5", t.color)} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{t.label}</p>
+                    <p className="text-xl font-bold">{t.count}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* List */}
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      ) : items.length === 0 ? (
+        <Card className="rounded-2xl border border-dashed border-border shadow-none">
+          <CardContent className="p-12 text-center">
+            <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <Megaphone className="h-7 w-7 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-base font-bold mb-1">Belum ada pengumuman</h3>
+            <p className="text-sm text-muted-foreground mb-4">Mulai informasikan hal penting kepada guru dan staf sekolah Anda</p>
+            <Button onClick={openNew} className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white rounded-xl">
+              <Plus className="h-4 w-4 mr-1.5" /> Buat Pengumuman Pertama
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {items.map((a, i) => {
+            const cfg = TYPE_OPTIONS.find(t => t.value === a.type) || TYPE_OPTIONS[0];
+            const Icon = cfg.icon;
+            return (
+              <motion.div key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                <Card className={cn("rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden", a.is_pinned && "ring-1 ring-amber-400/40 bg-gradient-to-br from-amber-50/30 to-transparent dark:from-amber-950/15")}>
+                  <CardContent className="p-0">
+                    <div className="flex items-stretch">
+                      <div className={cn("w-1.5 shrink-0", cfg.bg.replace("/10", ""))} />
+                      <div className="flex-1 p-4 sm:p-5">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", cfg.bg)}>
+                              <Icon className={cn("h-5 w-5", cfg.color)} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                {a.is_pinned && (
+                                  <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] h-5 px-1.5 gap-0.5">
+                                    <Pin className="h-3 w-3" /> Disematkan
+                                  </Badge>
+                                )}
+                                <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5", cfg.badge)}>{cfg.label}</Badge>
+                                <span className="text-[11px] text-muted-foreground">
+                                  {new Date(a.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              </div>
+                              <h3 className="text-base font-bold text-foreground">{a.title}</h3>
+                              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap line-clamp-3">{a.message}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg" onClick={() => togglePin(a)} title={a.is_pinned ? "Lepas pin" : "Sematkan"}>
+                              <Pin className={cn("h-3.5 w-3.5", a.is_pinned ? "text-amber-600 fill-amber-500" : "text-muted-foreground")} />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg" onClick={() => openEdit(a)}>
+                              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:text-destructive" onClick={() => setDeleteId(a.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={dialog} onOpenChange={setDialog}>
+        <DialogContent className="max-w-lg rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-primary" />
+              {editing ? "Edit Pengumuman" : "Buat Pengumuman Baru"}
+            </DialogTitle>
+            <DialogDescription>Pengumuman akan otomatis terlihat di dashboard semua guru dan staf.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs">Tipe Pengumuman</Label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {TYPE_OPTIONS.map(t => {
+                    const Icon = t.icon;
+                    return (
+                      <SelectItem key={t.value} value={t.value}>
+                        <span className="flex items-center gap-2">
+                          <Icon className={cn("h-4 w-4", t.color)} /> {t.label}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Judul</Label>
+              <Input className="mt-1.5" placeholder="Contoh: Rapat Guru Senin Pagi" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
+              <p className="text-[10px] text-muted-foreground mt-1 text-right">{title.length}/120</p>
+            </div>
+            <div>
+              <Label className="text-xs">Isi Pesan</Label>
+              <Textarea className="mt-1.5 min-h-[120px]" placeholder="Tulis isi pengumuman..." value={message} onChange={e => setMessage(e.target.value)} maxLength={2000} />
+              <p className="text-[10px] text-muted-foreground mt-1 text-right">{message.length}/2000</p>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/40">
+              <div className="flex items-center gap-2">
+                <Pin className="h-4 w-4 text-amber-600" />
+                <div>
+                  <p className="text-sm font-medium">Sematkan ke Atas</p>
+                  <p className="text-[10px] text-muted-foreground">Pengumuman ini akan selalu muncul paling atas</p>
+                </div>
+              </div>
+              <Switch checked={isPinned} onCheckedChange={setIsPinned} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialog(false)} disabled={saving} className="rounded-xl">Batal</Button>
+            <Button onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white rounded-xl">
+              {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
+              {editing ? "Simpan Perubahan" : "Publikasikan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Pengumuman?</AlertDialogTitle>
+            <AlertDialogDescription>Tindakan ini tidak dapat dibatalkan. Pengumuman akan hilang dari semua dashboard guru.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 rounded-xl">Hapus</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default SchoolAnnouncements;
