@@ -238,7 +238,7 @@ export function AppSidebar() {
             <SidebarGroup>
               {renderGroupLabel("Menu Utama")}
               <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">{renderNavItems(mainNav)}</SidebarMenu>
+                <SidebarMenu className="space-y-1">{renderNavItems(mainNav.filter(i => !i.adminOnly || roles.includes("school_admin")))}</SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
