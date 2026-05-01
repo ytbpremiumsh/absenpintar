@@ -18,6 +18,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loginLogo, setLoginLogo] = useState("/images/logo-atskolla.png");
+  const [networkIssue, setNetworkIssue] = useState(false);
+  const [recheckKey, setRecheckKey] = useState(0);
 
   useEffect(() => {
     supabase
