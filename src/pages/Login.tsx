@@ -37,10 +37,15 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setNetworkIssue(false);
     const { error } = await signIn(email, password);
     if (error) {
       setLoading(false);
-      if (error.includes("Invalid login credentials")) {
+      if (isBackendNetworkError(error)) {
+        setNetworkIssue(true);
+        setRecheckKey((k) => k + 1);
+        toast.error("Server backend sedang gangguan/timeout. Silakan coba lagi sebentar.");
+      } else if (error.includes("Invalid login credentials")) {
         toast.error("Email atau password salah. Pastikan email sudah terverifikasi.");
       } else if (error.includes("Email not confirmed")) {
         toast.error("Email belum diverifikasi. Silakan cek inbox email Anda.");
