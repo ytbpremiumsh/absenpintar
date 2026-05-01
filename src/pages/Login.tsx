@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2, ArrowRight, Lock, Mail, Shield, QrCode, Scan, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import BackendStatusBanner, { isBackendNetworkError } from "@/components/BackendStatusBanner";
 
 const Login = () => {
   const navigate = useNavigate();
