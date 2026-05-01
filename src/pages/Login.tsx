@@ -236,6 +236,10 @@ const Login = () => {
                 </div>
               </motion.div>
 
+              <div className="mb-4">
+                <BackendStatusBanner forceShow={networkIssue} recheckKey={recheckKey} />
+              </div>
+
               <form onSubmit={handleLogin} className="space-y-5">
                 <motion.div
                   initial={{ opacity: 0, x: -15 }}
