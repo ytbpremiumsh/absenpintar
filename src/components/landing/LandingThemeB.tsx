@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import heroMockup from "@/assets/hero-mockup-theme2.png";
+import dashboardPreviewStack from "@/assets/dashboard-preview-stack.png";
 import illustrationScan from "@/assets/illustration-scan.png";
 import illustrationRegister from "@/assets/illustration-register.png";
 import illustrationMonitor from "@/assets/illustration-monitor.png";
@@ -484,7 +485,7 @@ const LandingThemeB = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-              <img src={heroMockup} alt="Platform ATSkolla" className="w-full h-auto rounded-2xl" loading="lazy" width={1280} height={800} />
+              <img src={dashboardPreviewStack} alt="Platform ATSkolla" className="w-full h-auto" loading="lazy" width={1280} height={1280} />
             </motion.div>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
               <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full mb-4">Tentang Platform</span>
