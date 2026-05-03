@@ -11,13 +11,14 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Plus, Trash2, Users2, Mail, Lock, Loader2, Phone, Shield, Pencil, GraduationCap,
+  Plus, Trash2, Users2, Mail, Lock, Loader2, Phone, Shield, Pencil, GraduationCap, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
+import * as XLSX from "xlsx";
 
 interface StaffMember {
   user_id: string;
@@ -49,6 +50,12 @@ const ManageStaff = () => {
   const [editRoleStaff, setEditRoleStaff] = useState(false);
   const [editRoleTeacher, setEditRoleTeacher] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
+
+  // Bulk import
+  const [importDialog, setImportDialog] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importRows, setImportRows] = useState<any[]>([]);
+  const [importResults, setImportResults] = useState<{ name: string; email: string; ok: boolean; error?: string }[]>([]);
 
   const schoolId = profile?.school_id;
 
@@ -99,6 +106,90 @@ const ManageStaff = () => {
     } catch (err: any) {
       toast.error(err.message || "Gagal membuat akun");
     } finally { setCreating(false); }
+  };
+
+  const downloadTemplate = () => {
+    const data = [
+      { full_name: "Budi Santoso", email: "budi@sekolah.sch.id", password: "rahasia123", role: "teacher", phone: "081234567890" },
+      { full_name: "Siti Aminah", email: "siti@sekolah.sch.id", password: "rahasia123", role: "staff", phone: "081298765432" },
+    ];
+    const ws = XLSX.utils.json_to_sheet(data, { header: ["full_name", "email", "password", "role", "phone"] });
+    ws["!cols"] = [{ wch: 24 }, { wch: 28 }, { wch: 16 }, { wch: 12 }, { wch: 16 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Guru-Staff");
+    const info = [
+      ["Petunjuk Import Akun Guru & Staff"],
+      [""],
+      ["Kolom wajib: full_name, email, password, role"],
+      ["Kolom opsional: phone"],
+      [""],
+      ["role harus salah satu dari:"],
+      ["  - teacher  (untuk Guru)"],
+      ["  - staff    (untuk Staff/Operator)"],
+      [""],
+      ["Password minimal 6 karakter."],
+      ["Hapus baris contoh sebelum upload."],
+    ];
+    const wsInfo = XLSX.utils.aoa_to_sheet(info);
+    wsInfo["!cols"] = [{ wch: 60 }];
+    XLSX.utils.book_append_sheet(wb, wsInfo, "Petunjuk");
+    XLSX.writeFile(wb, "Template-Import-Guru-Staff.xlsx");
+    toast.success("Template berhasil diunduh");
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      const cleaned = rows
+        .map((r) => ({
+          full_name: String(r.full_name || r.nama || "").trim(),
+          email: String(r.email || "").trim(),
+          password: String(r.password || "").trim(),
+          role: String(r.role || "staff").trim().toLowerCase(),
+          phone: String(r.phone || r.no_wa || "").trim(),
+        }))
+        .filter((r) => r.full_name && r.email);
+      if (cleaned.length === 0) { toast.error("Tidak ada baris valid di file"); return; }
+      setImportRows(cleaned);
+      setImportResults([]);
+      toast.success(`${cleaned.length} baris siap diimport`);
+    } catch (err: any) {
+      toast.error("Gagal baca file: " + err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  const handleBulkImport = async () => {
+    if (!schoolId) { toast.error("Data sekolah belum dimuat"); return; }
+    if (importRows.length === 0) return;
+    setImporting(true);
+    const results: { name: string; email: string; ok: boolean; error?: string }[] = [];
+    for (const r of importRows) {
+      try {
+        if (!r.password || r.password.length < 6) throw new Error("Password minimal 6 karakter");
+        if (!["teacher", "staff"].includes(r.role)) throw new Error("Role harus 'teacher' atau 'staff'");
+        const res = await supabase.functions.invoke("create-user", {
+          body: { email: r.email, password: r.password, full_name: r.full_name, role: r.role, school_id: schoolId, phone: r.phone },
+        });
+        if (res.error) throw new Error(res.error.message);
+        if (res.data?.error) throw new Error(res.data.error);
+        results.push({ name: r.full_name, email: r.email, ok: true });
+      } catch (err: any) {
+        results.push({ name: r.full_name, email: r.email, ok: false, error: err.message });
+      }
+      setImportResults([...results]);
+    }
+    setImporting(false);
+    const success = results.filter((r) => r.ok).length;
+    toast.success(`Import selesai: ${success}/${results.length} berhasil`);
+    setImportRows([]);
+    fetchStaff();
   };
 
   const handleDelete = async (member: StaffMember) => {
@@ -192,9 +283,14 @@ const ManageStaff = () => {
     <PremiumGate featureLabel="Kelola Guru & Staff" featureKey="canMultiStaff" requiredPlan="School">
     <div className="space-y-6">
       <PageHeader icon={Shield} title="Guru & Staff" subtitle="Tambah dan kelola akun guru dan staff/operator" actions={
-        <Button onClick={() => setShowDialog(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
-          <Plus className="h-4 w-4 mr-2" /> Tambah Akun
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setImportDialog(true)} variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-xl text-xs">
+            <Upload className="h-4 w-4 mr-2" /> Import Excel
+          </Button>
+          <Button onClick={() => setShowDialog(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
+            <Plus className="h-4 w-4 mr-2" /> Tambah Akun
+          </Button>
+        </div>
       } />
 
       {loading ? (
@@ -385,6 +481,63 @@ const ManageStaff = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Import Dialog */}
+      <Dialog open={importDialog} onOpenChange={(o) => { setImportDialog(o); if (!o) { setImportRows([]); setImportResults([]); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5 text-primary" /> Import Massal Guru & Staff</DialogTitle>
+            <DialogDescription>Unduh template, isi data, lalu upload untuk membuat banyak akun sekaligus.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+              <p className="text-xs font-semibold">Langkah:</p>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
+                <li>Unduh template Excel di bawah ini</li>
+                <li>Isi kolom: <span className="font-mono">full_name, email, password, role, phone</span></li>
+                <li>Kolom <span className="font-mono">role</span> diisi <span className="font-mono">teacher</span> atau <span className="font-mono">staff</span></li>
+                <li>Hapus baris contoh, lalu upload file</li>
+              </ol>
+              <Button variant="outline" size="sm" className="w-full mt-2" onClick={downloadTemplate}>
+                <Download className="h-4 w-4 mr-2" /> Unduh Template Excel
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">Upload File (.xlsx / .csv)</Label>
+              <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileSelect} disabled={importing} />
+            </div>
+
+            {importRows.length > 0 && importResults.length === 0 && (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                <p className="text-sm font-semibold text-primary">{importRows.length} baris siap diimport</p>
+                <p className="text-xs text-muted-foreground mt-1">Klik tombol "Mulai Import" untuk memproses.</p>
+              </div>
+            )}
+
+            {importResults.length > 0 && (
+              <div className="rounded-lg border border-border max-h-56 overflow-y-auto">
+                {importResults.map((r, i) => (
+                  <div key={i} className={`flex items-start gap-2 px-3 py-2 text-xs border-b border-border/50 last:border-0 ${r.ok ? "bg-emerald-50 dark:bg-emerald-950/20" : "bg-red-50 dark:bg-red-950/20"}`}>
+                    {r.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate">{r.name} <span className="text-muted-foreground font-normal">({r.email})</span></p>
+                      {!r.ok && <p className="text-red-600 dark:text-red-400">{r.error}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setImportDialog(false)} disabled={importing}>Tutup</Button>
+              <Button className="flex-1 gradient-primary hover:opacity-90" onClick={handleBulkImport} disabled={importing || importRows.length === 0}>
+                {importing ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : <><Upload className="h-4 w-4 mr-2" /> Mulai Import</>}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
