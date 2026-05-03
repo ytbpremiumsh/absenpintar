@@ -215,6 +215,22 @@ export default function ParentDashboard() {
         {/* HOME */}
         {tab === "home" && (
           <>
+            {/* Period Filter */}
+            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl w-fit">
+              {(["day", "week", "month"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setStatPeriod(p)}
+                  className={cn(
+                    "text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all",
+                    statPeriod === p ? "bg-white shadow text-[#5B6CF9]" : "text-muted-foreground"
+                  )}
+                >
+                  {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
+                </button>
+              ))}
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <StatCard icon={CheckCircle2} label="Hadir" value={stats.hadir} color="emerald" />
@@ -227,8 +243,9 @@ export default function ParentDashboard() {
             <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-white/80">Persentase Kehadiran 30 Hari</p>
+                  <p className="text-xs text-white/80">Persentase Kehadiran ({statPeriod === "day" ? "Hari Ini" : statPeriod === "week" ? "7 Hari" : "30 Hari"})</p>
                   <p className="text-3xl font-bold mt-0.5">{stats.persen}%</p>
+                  <p className="text-[10px] text-white/70 mt-0.5">{stats.count} catatan absensi</p>
                 </div>
                 <TrendingUp className="h-12 w-12 text-white/30" />
               </div>
