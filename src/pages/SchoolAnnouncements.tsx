@@ -33,7 +33,14 @@ interface Announcement {
   is_pinned: boolean;
   created_at: string;
   created_by: string | null;
+  target_audience?: string;
 }
+
+const AUDIENCE_OPTIONS = [
+  { value: "staff", label: "Staf & Guru" },
+  { value: "parents", label: "Wali Murid" },
+  { value: "all", label: "Semua (Staf + Wali Murid)" },
+];
 
 const SchoolAnnouncements = () => {
   const { user, profile, roles, loading: authLoading } = useAuth();
