@@ -11,8 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, LogOut, GraduationCap, CalendarDays, Megaphone, FileText,
-  MessageSquare, ClipboardList, Send, BookOpen, CheckCircle2, XCircle, Clock,
-  Sparkles, TrendingUp, Pin,
+  Phone, ClipboardList, BookOpen, CheckCircle2, XCircle, Clock,
+  Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ const TABS = [
   { id: "info", label: "Info", icon: Megaphone },
   { id: "leave", label: "Izin", icon: FileText },
   { id: "grades", label: "Nilai", icon: BookOpen },
-  { id: "chat", label: "Chat", icon: MessageSquare },
+  { id: "contact", label: "Kontak", icon: Phone },
 ];
 
 export default function ParentDashboard() {
@@ -46,10 +46,11 @@ export default function ParentDashboard() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [leaves, setLeaves] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [homeroom, setHomeroom] = useState<any>(null);
+  const [statPeriod, setStatPeriod] = useState<"day" | "week" | "month">("month");
+  const [uploadingFile, setUploadingFile] = useState(false);
 
-  const [leaveForm, setLeaveForm] = useState({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "" });
-  const [chatInput, setChatInput] = useState("");
+  const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
 
   const invoke = useCallback(async (action: string, body: any = {}) => {
     const res = await fetch(`https://bohuglednqirnaearrkj.supabase.co/functions/v1/parent-portal`, {
@@ -92,8 +93,8 @@ export default function ParentDashboard() {
       const d = await invoke("list_leaves", body); setLeaves(d.leaves || []);
     } else if (tab === "grades") {
       const d = await invoke("grades", body); setGrades(d.grades || []);
-    } else if (tab === "chat") {
-      const d = await invoke("list_messages", body); setMessages(d.messages || []);
+    } else if (tab === "contact") {
+      const d = await invoke("homeroom", body); setHomeroom(d);
     }
   }, [tab, selectedStudent, invoke]);
 
@@ -115,12 +116,23 @@ export default function ParentDashboard() {
     loadTab();
   };
 
-  const sendChat = async () => {
-    if (!chatInput.trim()) return;
-    const d = await invoke("send_message", { student_id: selectedStudent, message: chatInput });
-    if (d?.error) return toast.error(d.error);
-    setChatInput("");
-    loadTab();
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Maks 5MB");
+    setUploadingFile(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${selectedStudent}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("parent-attachments").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("parent-attachments").getPublicUrl(path);
+      setLeaveForm((f) => ({ ...f, attachment_url: data.publicUrl }));
+      toast.success("Lampiran terupload");
+    } catch (e: any) {
+      toast.error(e.message || "Gagal upload");
+    } finally {
+      setUploadingFile(false);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#5B6CF9]" /></div>;

@@ -604,6 +604,7 @@ export type Database = {
       }
       parent_leave_requests: {
         Row: {
+          attachment_url: string | null
           created_at: string
           date: string
           id: string
@@ -618,6 +619,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          attachment_url?: string | null
           created_at?: string
           date: string
           id?: string
@@ -632,6 +634,7 @@ export type Database = {
           type: string
         }
         Update: {
+          attachment_url?: string | null
           created_at?: string
           date?: string
           id?: string

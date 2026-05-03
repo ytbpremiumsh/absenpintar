@@ -21,6 +21,7 @@ import {
   Radio,
   BookOpen,
   Megaphone,
+  FileText,
 } from "lucide-react";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -219,6 +220,7 @@ export function AppSidebar() {
                       { title: "Siswa Kelas Saya", url: "/wali-kelas-students", icon: Users, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                       { title: "Rekap Absensi Kelas", url: "/wali-kelas-export", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                       { title: "Analytic Kelas Wali", url: "/wali-kelas-history", icon: Activity, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                      { title: "Pengajuan Izin/Sakit", url: "/leave-requests", icon: FileText, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                     ])}
                   </SidebarMenu>
                 </SidebarGroupContent>
