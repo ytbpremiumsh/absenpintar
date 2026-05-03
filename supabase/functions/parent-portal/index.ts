@@ -34,11 +34,32 @@ const genToken = () => {
 
 const genOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+function phoneVariants(phone: string): string[] {
+  const digits = (phone || "").replace(/\D/g, "");
+  const variants = new Set<string>();
+  variants.add(digits);
+  if (digits.startsWith("62")) {
+    variants.add("0" + digits.slice(2));
+    variants.add(digits.slice(2));
+    variants.add("+" + digits);
+  }
+  if (digits.startsWith("0")) {
+    variants.add("62" + digits.slice(1));
+    variants.add(digits.slice(1));
+  }
+  if (digits.startsWith("8")) {
+    variants.add("62" + digits);
+    variants.add("0" + digits);
+  }
+  return Array.from(variants).filter(Boolean);
+}
+
 async function findStudentsByPhone(phone: string) {
+  const variants = phoneVariants(phone);
   const { data } = await supabase
     .from("students")
     .select("id, name, student_id, class, photo_url, gender, school_id, parent_name, schools(id, name, logo)")
-    .eq("parent_phone", phone);
+    .in("parent_phone", variants);
   return data || [];
 }
 
@@ -131,7 +152,8 @@ Deno.serve(async (req) => {
       .select("id, name, class, school_id, parent_phone")
       .eq("id", studentId)
       .maybeSingle();
-    if (!studentRow || studentRow.parent_phone !== session.phone) {
+    const allowedPhones = phoneVariants(session.phone);
+    if (!studentRow || !allowedPhones.includes(studentRow.parent_phone || "")) {
       return json({ error: "Akses ditolak untuk siswa ini" });
     }
     const schoolId = studentRow.school_id;
