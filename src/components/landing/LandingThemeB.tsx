@@ -183,21 +183,28 @@ const LandingThemeB = () => {
 
       {/* ─── Floating Navbar ─── */}
       <nav className="fixed top-3 left-3 right-3 z-50 transition-all duration-300 rounded-2xl bg-white dark:bg-slate-900 shadow-lg border border-slate-200/80 dark:border-slate-700/50">
-        <div className="px-4 sm:px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        <div className="relative px-4 sm:px-5 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 z-10">
             <img src={headerLogo} alt="ATSkolla" className="h-8 sm:h-9 object-contain" />
           </div>
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             {[
               { href: "#features", label: "Fitur" },
               { href: "#how-it-works", label: "Cara Kerja" },
               ...(showPricing ? [{ href: "#pricing", label: "Harga" }] : []),
-              { href: "#contact", label: "Kontak" },
+              { href: "https://wa.me/6289605757557", label: "Kontak", external: true },
             ].map(link => (
-              <a key={link.href} href={link.href} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#5B6CF9] transition-colors">{link.label}</a>
+              <a
+                key={link.href}
+                href={link.href}
+                {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#5B6CF9] transition-colors"
+              >
+                {link.label}
+              </a>
             ))}
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 z-10">
             <ThemeToggle />
             <button onClick={() => navigate("/login")} className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
               Masuk
