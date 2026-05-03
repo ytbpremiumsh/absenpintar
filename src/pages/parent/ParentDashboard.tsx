@@ -573,11 +573,16 @@ export default function ParentDashboard() {
                   const cls = l.status === "approved" ? "text-emerald-600" : l.status === "rejected" ? "text-red-600" : "text-amber-600";
                   return (
                     <Card key={l.id} className="p-3 border-0 shadow-card rounded-2xl">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold capitalize">{l.type} • {new Date(l.date).toLocaleDateString("id-ID")}</p>
                           <p className="text-xs text-muted-foreground line-clamp-2">{l.reason}</p>
                           {l.review_note && <p className="text-[11px] text-muted-foreground mt-1">Catatan: {l.review_note}</p>}
+                          {l.attachment_url && (
+                            <a href={l.attachment_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-[#5B6CF9] font-semibold mt-1.5 hover:underline">
+                              <Paperclip className="h-3 w-3" />Lihat lampiran
+                            </a>
+                          )}
                         </div>
                         <span className={`flex items-center gap-1 text-xs font-semibold capitalize shrink-0 ${cls}`}><Icon className="h-3.5 w-3.5" />{l.status}</span>
                       </div>
