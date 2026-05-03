@@ -107,7 +107,7 @@ export function PlanCardsGrid({
                   ⭐ Rekomendasi
                 </div>
               )}
-              {!isCurrent && !highlighted && isPremium && (
+              {!isCurrent && !highlighted && isPremium && !hidePremiumBadge && (
                 <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-semibold text-center py-1.5">
                   👑 Premium
                 </div>
