@@ -541,7 +541,7 @@ const Subscription = () => {
                 plans.flatMap((p: any) => (p.features || []).filter((f: string) => !isLimitFeature(f)))
               ));
               return (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 items-stretch">
               {plans.map((plan, i) => {
                 const planAllFeatures: string[] = plan.features || [];
                 const planLimitFeatures = planAllFeatures.filter((f: string) => isLimitFeature(f));
