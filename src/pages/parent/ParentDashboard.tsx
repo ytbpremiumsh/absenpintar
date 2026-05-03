@@ -316,21 +316,23 @@ export default function ParentDashboard() {
 
             {/* Jadwal Hari Ini */}
             <SectionTitle icon={CalendarDays} title="Jadwal Hari Ini" onMore={() => setTab("schedule")} />
-            {schedule.length === 0 ? (
-              <EmptyMini text="Tidak ada jadwal hari ini." />
-            ) : (
-              <div className="space-y-2">
-                {schedule.slice(0, 3).map((s) => (
-                  <Card key={s.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"} {s.room ? `• ${s.room}` : ""}</p>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0, 5)}</Badge>
-                  </Card>
-                ))}
-              </div>
-            )}
+            {(() => {
+              const todays = schedule.filter((s) => s.day_of_week === new Date().getDay()).sort((a,b)=>(a.start_time||"").localeCompare(b.start_time||""));
+              if (todays.length === 0) return <EmptyMini text="Tidak ada jadwal hari ini." />;
+              return (
+                <div className="space-y-2">
+                  {todays.slice(0, 3).map((s) => (
+                    <Card key={s.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"} {s.room ? `• ${s.room}` : ""}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0, 5)}</Badge>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Info Sekolah */}
             <SectionTitle icon={Megaphone} title="Informasi Terbaru" onMore={() => setTab("info")} />
