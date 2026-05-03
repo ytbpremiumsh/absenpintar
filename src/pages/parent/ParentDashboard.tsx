@@ -157,7 +157,7 @@ export default function ParentDashboard() {
     const d = await invoke("submit_leave", { student_id: selectedStudent, ...leaveForm });
     if (d?.error) return toast.error(d.error);
     toast.success("Pengajuan terkirim, menunggu persetujuan wali kelas");
-    setLeaveForm({ ...leaveForm, reason: "" });
+    setLeaveForm({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
     loadTab();
   };
 
