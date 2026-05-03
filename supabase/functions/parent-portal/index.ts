@@ -152,7 +152,8 @@ Deno.serve(async (req) => {
       .select("id, name, class, school_id, parent_phone")
       .eq("id", studentId)
       .maybeSingle();
-    if (!studentRow || studentRow.parent_phone !== session.phone) {
+    const allowedPhones = phoneVariants(session.phone);
+    if (!studentRow || !allowedPhones.includes(studentRow.parent_phone || "")) {
       return json({ error: "Akses ditolak untuk siswa ini" });
     }
     const schoolId = studentRow.school_id;
