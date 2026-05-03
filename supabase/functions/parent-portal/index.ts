@@ -202,6 +202,7 @@ Deno.serve(async (req) => {
       const type = body.type === "sakit" ? "sakit" : "izin";
       const date = body.date || new Date().toISOString().slice(0, 10);
       const reason = (body.reason || "").toString().slice(0, 500);
+      const attachment_url = body.attachment_url || null;
       if (!reason) return json({ error: "Alasan wajib diisi" });
       const { data, error } = await supabase
         .from("parent_leave_requests")
@@ -212,22 +213,75 @@ Deno.serve(async (req) => {
           type,
           date,
           reason,
+          attachment_url,
         })
         .select()
         .single();
       if (error) return json({ error: error.message });
+
+      // Notify wali kelas via WhatsApp
+      try {
+        const { data: ct } = await supabase
+          .from("class_teachers")
+          .select("user_id")
+          .eq("school_id", schoolId)
+          .eq("class_name", studentRow.class)
+          .limit(1);
+        const teacherId = ct?.[0]?.user_id;
+        if (teacherId) {
+          const { data: tp } = await supabase
+            .from("profiles")
+            .select("phone, full_name")
+            .eq("user_id", teacherId)
+            .maybeSingle();
+          if (tp?.phone) {
+            const tgl = new Date(date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+            const msg = `*Pengajuan ${type.toUpperCase()} Baru*\n\nSiswa: *${studentRow.name}*\nKelas: ${studentRow.class}\nTanggal: ${tgl}\nAlasan: ${reason}${attachment_url ? `\nLampiran: ${attachment_url}` : ""}\n\nMohon untuk menyetujui/menolak melalui dashboard Wali Kelas.`;
+            await supabase.functions.invoke("send-whatsapp", {
+              body: { school_id: schoolId, phone: tp.phone, message: msg, message_type: "leave_request" },
+            });
+          }
+        }
+      } catch (e) { console.error("notify wali kelas failed", e); }
+
       return json({ ok: true, request: data });
     }
 
     if (action === "list_leaves") {
       const { data } = await supabase
         .from("parent_leave_requests")
-        .select("id, type, date, reason, status, review_note, created_at, reviewed_at")
+        .select("id, type, date, reason, attachment_url, status, review_note, created_at, reviewed_at")
         .eq("student_id", studentId)
         .order("created_at", { ascending: false })
         .limit(50);
       return json({ ok: true, leaves: data || [] });
     }
+
+    if (action === "homeroom") {
+      const { data: ct } = await supabase
+        .from("class_teachers")
+        .select("user_id")
+        .eq("school_id", schoolId)
+        .eq("class_name", studentRow.class)
+        .limit(1);
+      const teacherId = ct?.[0]?.user_id;
+      let teacher: any = null;
+      if (teacherId) {
+        const { data: tp } = await supabase
+          .from("profiles")
+          .select("full_name, phone, avatar_url")
+          .eq("user_id", teacherId)
+          .maybeSingle();
+        teacher = tp;
+      }
+      const { data: school } = await supabase
+        .from("schools")
+        .select("name, address, logo")
+        .eq("id", schoolId)
+        .maybeSingle();
+      return json({ ok: true, teacher, school, class_name: studentRow.class });
+    }
+
 
     if (action === "grades") {
       const { data } = await supabase
