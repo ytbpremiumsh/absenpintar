@@ -539,7 +539,31 @@ export default function ParentDashboard() {
                 <Label className="text-xs">Alasan</Label>
                 <Textarea className="mt-1" rows={3} value={leaveForm.reason} onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })} placeholder="Tuliskan alasan..." />
               </div>
-              <Button onClick={submitLeave} className="w-full bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:opacity-90 text-white rounded-xl">Kirim Pengajuan</Button>
+              <div>
+                <Label className="text-xs flex items-center gap-1.5"><Paperclip className="h-3.5 w-3.5" />Lampiran Surat (opsional)</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5 mb-1.5">Foto / gambar surat izin atau surat dokter. Maks 5MB.</p>
+                {leaveForm.attachment_url ? (
+                  <div className="flex items-center gap-2 p-2 rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20">
+                    <a href={leaveForm.attachment_url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                      <img src={leaveForm.attachment_url} alt="lampiran" className="h-12 w-12 object-cover rounded-lg" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                    </a>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Lampiran terupload</p>
+                      <a href={leaveForm.attachment_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground truncate block hover:underline">Lihat file</a>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => setLeaveForm({ ...leaveForm, attachment_url: null })} className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50">
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className={cn("flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-[#5B6CF9]/30 bg-[#5B6CF9]/5 cursor-pointer hover:bg-[#5B6CF9]/10 transition-colors", uploadingFile && "opacity-50 pointer-events-none")}>
+                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }} disabled={uploadingFile} />
+                    {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin text-[#5B6CF9]" /> : <Paperclip className="h-4 w-4 text-[#5B6CF9]" />}
+                    <span className="text-xs font-semibold text-[#5B6CF9]">{uploadingFile ? "Mengupload..." : "Pilih Foto / PDF"}</span>
+                  </label>
+                )}
+              </div>
+              <Button onClick={submitLeave} disabled={uploadingFile} className="w-full bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:opacity-90 text-white rounded-xl">Kirim Pengajuan</Button>
             </Card>
             <SectionTitle icon={ClipboardList} title="Riwayat Pengajuan" />
             {leaves.length === 0 ? <EmptyMini text="Belum ada pengajuan." /> : (
