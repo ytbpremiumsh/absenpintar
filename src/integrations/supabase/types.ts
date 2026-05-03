@@ -1270,6 +1270,7 @@ export type Database = {
           is_pinned: boolean
           message: string
           school_id: string
+          target_audience: string
           title: string
           type: string
           updated_at: string
@@ -1281,6 +1282,7 @@ export type Database = {
           is_pinned?: boolean
           message: string
           school_id: string
+          target_audience?: string
           title: string
           type?: string
           updated_at?: string
@@ -1292,6 +1294,7 @@ export type Database = {
           is_pinned?: boolean
           message?: string
           school_id?: string
+          target_audience?: string
           title?: string
           type?: string
           updated_at?: string
