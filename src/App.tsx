@@ -25,6 +25,7 @@ import WaliKelasAttendance from "./pages/WaliKelasAttendance";
 import WaliKelasStudents from "./pages/WaliKelasStudents";
 import WaliKelasExportHistory from "./pages/WaliKelasExportHistory";
 import WaliKelasHistoryPage from "./pages/WaliKelasHistory";
+import LeaveRequests from "./pages/LeaveRequests";
 import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import PublicMonitoring from "./pages/PublicMonitoring";
