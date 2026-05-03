@@ -189,8 +189,9 @@ Deno.serve(async (req) => {
     if (action === "announcements") {
       const { data } = await supabase
         .from("school_announcements")
-        .select("id, title, message, type, is_pinned, created_at")
+        .select("id, title, message, type, is_pinned, created_at, target_audience")
         .eq("school_id", schoolId)
+        .in("target_audience", ["parents", "all"])
         .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(50);

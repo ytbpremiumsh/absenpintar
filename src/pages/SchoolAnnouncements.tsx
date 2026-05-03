@@ -33,7 +33,14 @@ interface Announcement {
   is_pinned: boolean;
   created_at: string;
   created_by: string | null;
+  target_audience?: string;
 }
+
+const AUDIENCE_OPTIONS = [
+  { value: "staff", label: "Staf & Guru" },
+  { value: "parents", label: "Wali Murid" },
+  { value: "all", label: "Semua (Staf + Wali Murid)" },
+];
 
 const SchoolAnnouncements = () => {
   const { user, profile, roles, loading: authLoading } = useAuth();
@@ -50,6 +57,7 @@ const SchoolAnnouncements = () => {
   const [message, setMessage] = useState("");
   const [type, setType] = useState("info");
   const [isPinned, setIsPinned] = useState(false);
+  const [audience, setAudience] = useState("staff");
 
   const schoolId = profile?.school_id;
 
@@ -71,13 +79,14 @@ const SchoolAnnouncements = () => {
 
   const openNew = () => {
     setEditing(null);
-    setTitle(""); setMessage(""); setType("info"); setIsPinned(false);
+    setTitle(""); setMessage(""); setType("info"); setIsPinned(false); setAudience("staff");
     setDialog(true);
   };
 
   const openEdit = (a: Announcement) => {
     setEditing(a);
     setTitle(a.title); setMessage(a.message); setType(a.type); setIsPinned(a.is_pinned);
+    setAudience(a.target_audience || "staff");
     setDialog(true);
   };
 
@@ -92,7 +101,7 @@ const SchoolAnnouncements = () => {
     try {
       if (editing) {
         const { error } = await supabase.from("school_announcements")
-          .update({ title: title.trim(), message: message.trim(), type, is_pinned: isPinned })
+          .update({ title: title.trim(), message: message.trim(), type, is_pinned: isPinned, target_audience: audience })
           .eq("id", editing.id);
         if (error) throw error;
         toast.success("Pengumuman diperbarui");
@@ -103,6 +112,7 @@ const SchoolAnnouncements = () => {
           message: message.trim(),
           type,
           is_pinned: isPinned,
+          target_audience: audience,
           created_by: user?.id,
         });
         if (error) throw error;
@@ -225,6 +235,9 @@ const SchoolAnnouncements = () => {
                                   </Badge>
                                 )}
                                 <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5", cfg.badge)}>{cfg.label}</Badge>
+                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-[#5B6CF9]/10 text-[#5B6CF9] border-[#5B6CF9]/30">
+                                  {AUDIENCE_OPTIONS.find(o => o.value === (a.target_audience || "staff"))?.label || "Staf & Guru"}
+                                </Badge>
                                 <span className="text-[11px] text-muted-foreground">
                                   {new Date(a.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                                 </span>
@@ -283,6 +296,18 @@ const SchoolAnnouncements = () => {
                   })}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Tujuan Penerima</Label>
+              <Select value={audience} onValueChange={setAudience}>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {AUDIENCE_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground mt-1">Pilih siapa yang akan melihat pengumuman ini di dashboard mereka.</p>
             </div>
             <div>
               <Label className="text-xs">Judul</Label>
