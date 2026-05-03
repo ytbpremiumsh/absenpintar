@@ -173,15 +173,14 @@ Deno.serve(async (req) => {
     }
 
     if (action === "schedule") {
-      // Today's class teaching schedule (if teaching_schedules exists)
       const today = new Date();
-      const dow = today.getDay(); // 0=Sun
+      const dow = today.getDay();
       const { data } = await supabase
         .from("teaching_schedules")
         .select("id, day_of_week, start_time, end_time, room, subjects(name, color), profiles(full_name)")
         .eq("school_id", schoolId)
         .eq("class_name", studentRow.class)
-        .eq("day_of_week", dow)
+        .order("day_of_week")
         .order("start_time");
       return json({ ok: true, schedule: data || [], day_of_week: dow });
     }
