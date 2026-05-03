@@ -93,8 +93,8 @@ export default function ParentDashboard() {
       const d = await invoke("list_leaves", body); setLeaves(d.leaves || []);
     } else if (tab === "grades") {
       const d = await invoke("grades", body); setGrades(d.grades || []);
-    } else if (tab === "chat") {
-      const d = await invoke("list_messages", body); setMessages(d.messages || []);
+    } else if (tab === "contact") {
+      const d = await invoke("homeroom", body); setHomeroom(d);
     }
   }, [tab, selectedStudent, invoke]);
 
