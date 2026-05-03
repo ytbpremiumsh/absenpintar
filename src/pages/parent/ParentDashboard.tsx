@@ -327,17 +327,31 @@ export default function ParentDashboard() {
             {(() => {
               const todays = schedule.filter((s) => s.day_of_week === new Date().getDay()).sort((a,b)=>(a.start_time||"").localeCompare(b.start_time||""));
               if (todays.length === 0) return <EmptyMini text="Tidak ada jadwal hari ini." />;
+              const nowHHMM = new Date().toTimeString().slice(0,5);
               return (
                 <div className="space-y-2">
-                  {todays.slice(0, 3).map((s) => (
-                    <Card key={s.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"} {s.room ? `• ${s.room}` : ""}</p>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0, 5)}</Badge>
-                    </Card>
-                  ))}
+                  {todays.slice(0, 3).map((s) => {
+                    const isOn = (s.start_time||"").slice(0,5) <= nowHHMM && nowHHMM < (s.end_time||"").slice(0,5);
+                    const subjColor = s.subjects?.color || "#5B6CF9";
+                    return (
+                      <Card key={s.id} className={cn("relative overflow-hidden p-0 border-0 shadow-card rounded-2xl", isOn && "ring-2 ring-emerald-500/50")}>
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: subjColor }} />
+                        <div className="flex items-center gap-3 p-3 pl-4">
+                          <div className="flex flex-col items-center justify-center min-w-[54px] py-1.5 rounded-xl" style={{ backgroundColor: `${subjColor}15`, color: subjColor }}>
+                            <span className="text-xs font-bold leading-none">{s.start_time?.slice(0,5)}</span>
+                            <span className="text-[9px] opacity-70 mt-0.5">{s.end_time?.slice(0,5)}</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
+                            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
+                              <User className="h-2.5 w-2.5" />{s.profiles?.full_name || "Guru"}{s.room ? ` • ${s.room}` : ""}
+                            </p>
+                          </div>
+                          {isOn && <Badge className="bg-emerald-500 text-white border-0 text-[9px] font-bold shrink-0">LIVE</Badge>}
+                        </div>
+                      </Card>
+                    );
+                  })}
                 </div>
               );
             })()}
