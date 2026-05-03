@@ -116,12 +116,23 @@ export default function ParentDashboard() {
     loadTab();
   };
 
-  const sendChat = async () => {
-    if (!chatInput.trim()) return;
-    const d = await invoke("send_message", { student_id: selectedStudent, message: chatInput });
-    if (d?.error) return toast.error(d.error);
-    setChatInput("");
-    loadTab();
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Maks 5MB");
+    setUploadingFile(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${selectedStudent}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("parent-attachments").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("parent-attachments").getPublicUrl(path);
+      setLeaveForm((f) => ({ ...f, attachment_url: data.publicUrl }));
+      toast.success("Lampiran terupload");
+    } catch (e: any) {
+      toast.error(e.message || "Gagal upload");
+    } finally {
+      setUploadingFile(false);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#5B6CF9]" /></div>;
