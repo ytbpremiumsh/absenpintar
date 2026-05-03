@@ -94,7 +94,7 @@ export default function ParentDashboard() {
   const [leaves, setLeaves] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
   const [homeroom, setHomeroom] = useState<any>(null);
-  
+  const [statPeriod, setStatPeriod] = useState<"day" | "week" | "month">("week");
   const [uploadingFile, setUploadingFile] = useState(false);
 
   const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
@@ -245,68 +245,94 @@ export default function ParentDashboard() {
         {/* HOME */}
         {tab === "home" && (
           <>
-            {/* Stats Grid (30 Hari) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <StatCard icon={CheckCircle2} label="Hadir" value={attendance.filter(a=>a.status==="hadir").length} color="emerald" />
-              <StatCard icon={FileText} label="Izin" value={attendance.filter(a=>a.status==="izin").length} color="amber" />
-              <StatCard icon={Clock} label="Sakit" value={attendance.filter(a=>a.status==="sakit").length} color="sky" />
-              <StatCard icon={XCircle} label="Alfa" value={attendance.filter(a=>a.status==="alfa").length} color="red" />
+            {/* Period Filter */}
+            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl w-fit">
+              {(["day", "week", "month"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setStatPeriod(p)}
+                  className={cn(
+                    "text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all",
+                    statPeriod === p ? "bg-white shadow text-[#5B6CF9]" : "text-muted-foreground"
+                  )}
+                >
+                  {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
+                </button>
+              ))}
             </div>
 
+            {(() => {
+              const now = new Date();
+              const cutoff = new Date(now);
+              if (statPeriod === "day") cutoff.setHours(0, 0, 0, 0);
+              else if (statPeriod === "week") cutoff.setDate(now.getDate() - 7);
+              else cutoff.setDate(now.getDate() - 30);
+              const filtered = attendance.filter((a) => new Date(a.date) >= cutoff);
+              const c = (s: string) => filtered.filter((a) => a.status === s).length;
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <StatCard icon={CheckCircle2} label="Hadir" value={c("hadir")} color="emerald" />
+                  <StatCard icon={FileText} label="Izin" value={c("izin")} color="amber" />
+                  <StatCard icon={Clock} label="Sakit" value={c("sakit")} color="sky" />
+                  <StatCard icon={XCircle} label="Alfa" value={c("alfa")} color="red" />
+                </div>
+              );
+            })()}
+
             {/* Statistik Garis */}
-            {(["day", "week", "month"] as const).map((p) => (
-              <Card key={p} className="p-4 border-0 shadow-card rounded-2xl">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-bold flex items-center gap-1.5">
-                    <TrendingUp className="h-4 w-4 text-[#5B6CF9]" />
-                    Statistik Kehadiran — {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
-                  </h3>
-                </div>
-                <div className="h-44 -ml-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={buildChartData(attendance, p)}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="name" fontSize={10} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
-                        formatter={(value: number, name: string) => [`${value}`, STATUS_LABELS[name] || name]}
-                      />
-                      <Line type="monotone" dataKey="hadir" stroke={STATUS_COLORS.hadir} strokeWidth={2.5} dot={{ r: 3 }} name="hadir" />
-                      <Line type="monotone" dataKey="izin" stroke={STATUS_COLORS.izin} strokeWidth={2} dot={{ r: 2.5 }} name="izin" />
-                      <Line type="monotone" dataKey="sakit" stroke={STATUS_COLORS.sakit} strokeWidth={2} dot={{ r: 2.5 }} name="sakit" />
-                      <Line type="monotone" dataKey="alfa" stroke={STATUS_COLORS.alfa} strokeWidth={2} dot={{ r: 2.5 }} name="alfa" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex flex-wrap justify-center gap-3 mt-1">
-                  {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                    <div key={key} className="flex items-center gap-1.5 text-[11px]">
-                      <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[key] }} />
-                      <span className="text-muted-foreground font-medium">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            ))}
+            <Card className="p-4 border-0 shadow-card rounded-2xl">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-bold flex items-center gap-1.5">
+                  <TrendingUp className="h-4 w-4 text-[#5B6CF9]" />
+                  Statistik Kehadiran — {statPeriod === "day" ? "Hari Ini" : statPeriod === "week" ? "7 Hari" : "30 Hari"}
+                </h3>
+              </div>
+              <div className="h-48 -ml-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={buildChartData(attendance, statPeriod)}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" fontSize={10} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
+                      formatter={(value: number, name: string) => [`${value}`, STATUS_LABELS[name] || name]}
+                    />
+                    <Line type="monotone" dataKey="hadir" stroke={STATUS_COLORS.hadir} strokeWidth={2.5} dot={{ r: 3 }} name="hadir" />
+                    <Line type="monotone" dataKey="izin" stroke={STATUS_COLORS.izin} strokeWidth={2} dot={{ r: 2.5 }} name="izin" />
+                    <Line type="monotone" dataKey="sakit" stroke={STATUS_COLORS.sakit} strokeWidth={2} dot={{ r: 2.5 }} name="sakit" />
+                    <Line type="monotone" dataKey="alfa" stroke={STATUS_COLORS.alfa} strokeWidth={2} dot={{ r: 2.5 }} name="alfa" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-wrap justify-center gap-3 mt-1">
+                {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                  <div key={key} className="flex items-center gap-1.5 text-[11px]">
+                    <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[key] }} />
+                    <span className="text-muted-foreground font-medium">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
 
             {/* Jadwal Hari Ini */}
             <SectionTitle icon={CalendarDays} title="Jadwal Hari Ini" onMore={() => setTab("schedule")} />
-            {schedule.length === 0 ? (
-              <EmptyMini text="Tidak ada jadwal hari ini." />
-            ) : (
-              <div className="space-y-2">
-                {schedule.slice(0, 3).map((s) => (
-                  <Card key={s.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"} {s.room ? `• ${s.room}` : ""}</p>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0, 5)}</Badge>
-                  </Card>
-                ))}
-              </div>
-            )}
+            {(() => {
+              const todays = schedule.filter((s) => s.day_of_week === new Date().getDay()).sort((a,b)=>(a.start_time||"").localeCompare(b.start_time||""));
+              if (todays.length === 0) return <EmptyMini text="Tidak ada jadwal hari ini." />;
+              return (
+                <div className="space-y-2">
+                  {todays.slice(0, 3).map((s) => (
+                    <Card key={s.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"} {s.room ? `• ${s.room}` : ""}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0, 5)}</Badge>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Info Sekolah */}
             <SectionTitle icon={Megaphone} title="Informasi Terbaru" onMore={() => setTab("info")} />
@@ -351,22 +377,83 @@ export default function ParentDashboard() {
         {/* SCHEDULE */}
         {tab === "schedule" && (
           <>
-            <SectionTitle icon={CalendarDays} title="Jadwal Hari Ini" />
-            {schedule.length === 0 ? <EmptyMini text="Tidak ada jadwal hari ini." /> : (
-              <div className="space-y-2">
-                {schedule.map((s) => (
-                  <Card key={s.id} className="p-3.5 border-0 shadow-card rounded-2xl">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"} {s.room ? `• ${s.room}` : ""}</p>
+            {(() => {
+              const DAY_NAMES = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+              const today = new Date();
+              const dow = today.getDay();
+              const nowHHMM = today.toTimeString().slice(0, 5);
+              const todays = schedule.filter((s) => s.day_of_week === dow);
+              const ongoing = todays.find((s) => (s.start_time || "").slice(0,5) <= nowHHMM && nowHHMM < (s.end_time || "").slice(0,5));
+              const next = todays.find((s) => (s.start_time || "").slice(0,5) > nowHHMM);
+              const grouped: Record<number, any[]> = {};
+              schedule.forEach((s) => { (grouped[s.day_of_week] ||= []).push(s); });
+              const days = Object.keys(grouped).map(Number).sort();
+
+              return (
+                <>
+                  {/* Sedang Berlangsung */}
+                  <SectionTitle icon={Clock} title="Sedang Berlangsung" />
+                  {ongoing ? (
+                    <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <Badge className="bg-white/20 text-white border-0 text-[10px] mb-1">LIVE</Badge>
+                          <p className="font-bold truncate">{ongoing.subjects?.name || "—"}</p>
+                          <p className="text-xs text-white/85 truncate">{ongoing.profiles?.full_name || "Guru"}{ongoing.room ? ` • ${ongoing.room}` : ""}</p>
+                        </div>
+                        <span className="text-xs font-bold bg-white/20 rounded-lg px-2 py-1 shrink-0">{ongoing.start_time?.slice(0,5)}–{ongoing.end_time?.slice(0,5)}</span>
                       </div>
-                      <Badge variant="outline" className="text-xs border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}</Badge>
+                    </Card>
+                  ) : next ? (
+                    <Card className="p-3.5 border-0 shadow-card rounded-2xl border-l-4 border-l-[#5B6CF9]">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Berikutnya</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm truncate">{next.subjects?.name || "—"}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{next.profiles?.full_name || "Guru"}{next.room ? ` • ${next.room}` : ""}</p>
+                        </div>
+                        <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{next.start_time?.slice(0,5)}</Badge>
+                      </div>
+                    </Card>
+                  ) : (
+                    <EmptyMini text="Tidak ada mata pelajaran yang sedang berlangsung." />
+                  )}
+
+                  {/* Jadwal Mingguan */}
+                  <SectionTitle icon={CalendarDays} title="Jadwal Pelajaran Mingguan" />
+                  {schedule.length === 0 ? <EmptyMini text="Belum ada jadwal pelajaran." /> : (
+                    <div className="space-y-3">
+                      {days.map((d) => (
+                        <div key={d}>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <p className={cn("text-xs font-bold", d === dow ? "text-[#5B6CF9]" : "text-muted-foreground")}>
+                              {DAY_NAMES[d]}
+                            </p>
+                            {d === dow && <Badge className="bg-[#5B6CF9] text-white border-0 text-[9px] px-1.5 py-0">Hari Ini</Badge>}
+                          </div>
+                          <div className="space-y-1.5">
+                            {grouped[d].sort((a,b)=>(a.start_time||"").localeCompare(b.start_time||"")).map((s) => {
+                              const isOn = d === dow && (s.start_time||"").slice(0,5) <= nowHHMM && nowHHMM < (s.end_time||"").slice(0,5);
+                              return (
+                                <Card key={s.id} className={cn("p-3 border-0 shadow-card rounded-2xl", isOn && "ring-2 ring-emerald-500/60 bg-emerald-50/50 dark:bg-emerald-950/10")}>
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
+                                      <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"}{s.room ? ` • ${s.room}` : ""}</p>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}</Badge>
+                                  </div>
+                                </Card>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  )}
+                </>
+              );
+            })()}
           </>
         )}
 
