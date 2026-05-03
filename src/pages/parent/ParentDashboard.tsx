@@ -29,7 +29,6 @@ const TABS = [
   { id: "schedule", label: "Jadwal", icon: CalendarDays },
   { id: "info", label: "Info", icon: Megaphone },
   { id: "leave", label: "Izin", icon: FileText },
-  { id: "grades", label: "Nilai", icon: BookOpen },
   { id: "contact", label: "Kontak", icon: Phone },
 ];
 
@@ -91,8 +90,6 @@ export default function ParentDashboard() {
       const d = await invoke("announcements", body); setAnnouncements(d.announcements || []);
     } else if (tab === "leave") {
       const d = await invoke("list_leaves", body); setLeaves(d.leaves || []);
-    } else if (tab === "grades") {
-      const d = await invoke("grades", body); setGrades(d.grades || []);
     } else if (tab === "contact") {
       const d = await invoke("homeroom", body); setHomeroom(d);
     }
@@ -150,16 +147,21 @@ export default function ParentDashboard() {
 
   const current = students.find((s) => s.id === selectedStudent);
 
-  // Stats untuk beranda
+  // Stats untuk beranda dengan filter periode
   const stats = (() => {
-    const last30 = attendance;
-    const hadir = last30.filter(a => a.status === "hadir").length;
-    const izin = last30.filter(a => a.status === "izin").length;
-    const sakit = last30.filter(a => a.status === "sakit").length;
-    const alfa = last30.filter(a => a.status === "alfa").length;
-    const total = last30.length || 1;
+    const now = new Date();
+    const cutoff = new Date(now);
+    if (statPeriod === "day") cutoff.setHours(0, 0, 0, 0);
+    else if (statPeriod === "week") cutoff.setDate(now.getDate() - 7);
+    else cutoff.setDate(now.getDate() - 30);
+    const filtered = attendance.filter((a) => new Date(a.date) >= cutoff);
+    const hadir = filtered.filter(a => a.status === "hadir").length;
+    const izin = filtered.filter(a => a.status === "izin").length;
+    const sakit = filtered.filter(a => a.status === "sakit").length;
+    const alfa = filtered.filter(a => a.status === "alfa").length;
+    const total = filtered.length || 1;
     const persen = Math.round((hadir / total) * 100);
-    return { hadir, izin, sakit, alfa, persen };
+    return { hadir, izin, sakit, alfa, persen, count: filtered.length };
   })();
 
   return (
@@ -211,6 +213,22 @@ export default function ParentDashboard() {
         {/* HOME */}
         {tab === "home" && (
           <>
+            {/* Period Filter */}
+            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl w-fit">
+              {(["day", "week", "month"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setStatPeriod(p)}
+                  className={cn(
+                    "text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all",
+                    statPeriod === p ? "bg-white shadow text-[#5B6CF9]" : "text-muted-foreground"
+                  )}
+                >
+                  {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
+                </button>
+              ))}
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <StatCard icon={CheckCircle2} label="Hadir" value={stats.hadir} color="emerald" />
@@ -223,8 +241,9 @@ export default function ParentDashboard() {
             <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-white/80">Persentase Kehadiran 30 Hari</p>
+                  <p className="text-xs text-white/80">Persentase Kehadiran ({statPeriod === "day" ? "Hari Ini" : statPeriod === "week" ? "7 Hari" : "30 Hari"})</p>
                   <p className="text-3xl font-bold mt-0.5">{stats.persen}%</p>
+                  <p className="text-[10px] text-white/70 mt-0.5">{stats.count} catatan absensi</p>
                 </div>
                 <TrendingUp className="h-12 w-12 text-white/30" />
               </div>
@@ -389,22 +408,53 @@ export default function ParentDashboard() {
           </>
         )}
 
-        {/* GRADES */}
-        {tab === "grades" && (
+        {/* CONTACT */}
+        {tab === "contact" && (
           <>
-            <SectionTitle icon={BookOpen} title="Rekap Nilai" />
-            {grades.length === 0 ? <EmptyMini text="Belum ada nilai dipublikasikan." /> : (
-              <div className="space-y-2">
-                {grades.map((g) => (
-                  <Card key={g.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">{g.subject}</p>
-                      <p className="text-xs text-muted-foreground">{g.school_year} • Sem {g.semester} • {g.term}</p>
+            <SectionTitle icon={Phone} title="Kontak Wali Kelas" />
+            {!homeroom ? <EmptyMini text="Memuat..." /> : (
+              <>
+                <Card className="p-4 border-0 shadow-card rounded-2xl">
+                  {homeroom.teacher ? (
+                    <div className="flex items-start gap-3">
+                      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0">
+                        {homeroom.teacher.avatar_url ? <img src={homeroom.teacher.avatar_url} alt="" className="h-full w-full object-cover" /> : <User className="h-6 w-6" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-foreground">{homeroom.teacher.full_name}</p>
+                        <p className="text-xs text-muted-foreground">Wali Kelas {homeroom.class_name}</p>
+                        {homeroom.teacher.phone && (
+                          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1"><Phone className="h-3 w-3" />{homeroom.teacher.phone}</p>
+                        )}
+                        {homeroom.teacher.phone && (
+                          <div className="flex gap-2 mt-2.5">
+                            <a href={`https://wa.me/${homeroom.teacher.phone.replace(/\D/g, "").replace(/^0/, "62")}`} target="_blank" rel="noopener noreferrer" className="flex-1">
+                              <Button size="sm" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl"><MessageCircle className="h-4 w-4 mr-1.5" />WhatsApp</Button>
+                            </a>
+                            <a href={`tel:${homeroom.teacher.phone}`} className="flex-1">
+                              <Button size="sm" variant="outline" className="w-full rounded-xl"><Phone className="h-4 w-4 mr-1.5" />Telepon</Button>
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-xl font-extrabold text-[#5B6CF9]">{Number(g.score).toFixed(0)}</span>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-4">Wali kelas belum ditetapkan oleh sekolah.</p>
+                  )}
+                </Card>
+
+                {homeroom.school && (
+                  <Card className="p-4 border-0 shadow-card rounded-2xl">
+                    <SectionTitle icon={GraduationCap} title="Informasi Sekolah" />
+                    <div className="mt-2 space-y-1.5">
+                      <p className="text-sm font-bold">{homeroom.school.name}</p>
+                      {homeroom.school.address && (
+                        <p className="text-xs text-muted-foreground flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />{homeroom.school.address}</p>
+                      )}
+                    </div>
                   </Card>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </>
         )}
