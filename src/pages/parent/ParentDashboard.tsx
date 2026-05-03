@@ -94,7 +94,7 @@ export default function ParentDashboard() {
   const [leaves, setLeaves] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
   const [homeroom, setHomeroom] = useState<any>(null);
-  const [statPeriod, setStatPeriod] = useState<"day" | "week" | "month">("month");
+  
   const [uploadingFile, setUploadingFile] = useState(false);
 
   const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
