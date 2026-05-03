@@ -78,6 +78,8 @@ import LiveSchedule from "./pages/LiveSchedule";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherAffiliate from "./pages/TeacherAffiliate";
 import SchoolAnnouncements from "./pages/SchoolAnnouncements";
+import ParentLogin from "./pages/parent/ParentLogin";
+import ParentDashboard from "./pages/parent/ParentDashboard";
 
 const queryClient = new QueryClient();
 
