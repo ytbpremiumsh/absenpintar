@@ -483,6 +483,63 @@ const ManageStaff = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Import Dialog */}
+      <Dialog open={importDialog} onOpenChange={(o) => { setImportDialog(o); if (!o) { setImportRows([]); setImportResults([]); } }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5 text-primary" /> Import Massal Guru & Staff</DialogTitle>
+            <DialogDescription>Unduh template, isi data, lalu upload untuk membuat banyak akun sekaligus.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+              <p className="text-xs font-semibold">Langkah:</p>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
+                <li>Unduh template Excel di bawah ini</li>
+                <li>Isi kolom: <span className="font-mono">full_name, email, password, role, phone</span></li>
+                <li>Kolom <span className="font-mono">role</span> diisi <span className="font-mono">teacher</span> atau <span className="font-mono">staff</span></li>
+                <li>Hapus baris contoh, lalu upload file</li>
+              </ol>
+              <Button variant="outline" size="sm" className="w-full mt-2" onClick={downloadTemplate}>
+                <Download className="h-4 w-4 mr-2" /> Unduh Template Excel
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">Upload File (.xlsx / .csv)</Label>
+              <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileSelect} disabled={importing} />
+            </div>
+
+            {importRows.length > 0 && importResults.length === 0 && (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                <p className="text-sm font-semibold text-primary">{importRows.length} baris siap diimport</p>
+                <p className="text-xs text-muted-foreground mt-1">Klik tombol "Mulai Import" untuk memproses.</p>
+              </div>
+            )}
+
+            {importResults.length > 0 && (
+              <div className="rounded-lg border border-border max-h-56 overflow-y-auto">
+                {importResults.map((r, i) => (
+                  <div key={i} className={`flex items-start gap-2 px-3 py-2 text-xs border-b border-border/50 last:border-0 ${r.ok ? "bg-emerald-50 dark:bg-emerald-950/20" : "bg-red-50 dark:bg-red-950/20"}`}>
+                    {r.ok ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold truncate">{r.name} <span className="text-muted-foreground font-normal">({r.email})</span></p>
+                      {!r.ok && <p className="text-red-600 dark:text-red-400">{r.error}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setImportDialog(false)} disabled={importing}>Tutup</Button>
+              <Button className="flex-1 gradient-primary hover:opacity-90" onClick={handleBulkImport} disabled={importing || importRows.length === 0}>
+                {importing ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : <><Upload className="h-4 w-4 mr-2" /> Mulai Import</>}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
     </PremiumGate>
   );
