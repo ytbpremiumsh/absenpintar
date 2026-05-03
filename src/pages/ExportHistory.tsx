@@ -212,6 +212,11 @@ const ScanAttendanceRecap = () => {
       else html += `<td class="H">${s.totals.H || ""}</td><td class="S">${s.totals.S || ""}</td><td class="I">${s.totals.I || ""}</td><td class="A">${s.totals.A || ""}</td></tr>`;
     });
 
+    html += `<tr><td colspan="${totalCols}"></td></tr><tr><td colspan="${totalCols}"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none">${schoolCity || schoolName}, ........................ ${selectedYear}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">WALI KELAS ${selectedClass}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="border:none"></td></tr><tr><td colspan="${totalCols}" style="border:none"></td></tr><tr><td colspan="${totalCols}" style="border:none"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">${waliKelasName ? `( ${waliKelasName} )` : "(..................................)"}</td></tr>`;
     html += `</table></body></html>`;
 
     const blob = new Blob([html], { type: "application/vnd.ms-excel" });
