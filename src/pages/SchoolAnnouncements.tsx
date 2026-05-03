@@ -79,13 +79,14 @@ const SchoolAnnouncements = () => {
 
   const openNew = () => {
     setEditing(null);
-    setTitle(""); setMessage(""); setType("info"); setIsPinned(false);
+    setTitle(""); setMessage(""); setType("info"); setIsPinned(false); setAudience("staff");
     setDialog(true);
   };
 
   const openEdit = (a: Announcement) => {
     setEditing(a);
     setTitle(a.title); setMessage(a.message); setType(a.type); setIsPinned(a.is_pinned);
+    setAudience(a.target_audience || "staff");
     setDialog(true);
   };
 
