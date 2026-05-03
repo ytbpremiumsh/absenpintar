@@ -298,6 +298,18 @@ const SchoolAnnouncements = () => {
               </Select>
             </div>
             <div>
+              <Label className="text-xs">Tujuan Penerima</Label>
+              <Select value={audience} onValueChange={setAudience}>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {AUDIENCE_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground mt-1">Pilih siapa yang akan melihat pengumuman ini di dashboard mereka.</p>
+            </div>
+            <div>
               <Label className="text-xs">Judul</Label>
               <Input className="mt-1.5" placeholder="Contoh: Rapat Guru Senin Pagi" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
               <p className="text-[10px] text-muted-foreground mt-1 text-right">{title.length}/120</p>
