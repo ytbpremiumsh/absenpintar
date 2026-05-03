@@ -149,16 +149,21 @@ export default function ParentDashboard() {
 
   const current = students.find((s) => s.id === selectedStudent);
 
-  // Stats untuk beranda
+  // Stats untuk beranda dengan filter periode
   const stats = (() => {
-    const last30 = attendance;
-    const hadir = last30.filter(a => a.status === "hadir").length;
-    const izin = last30.filter(a => a.status === "izin").length;
-    const sakit = last30.filter(a => a.status === "sakit").length;
-    const alfa = last30.filter(a => a.status === "alfa").length;
-    const total = last30.length || 1;
+    const now = new Date();
+    const cutoff = new Date(now);
+    if (statPeriod === "day") cutoff.setHours(0, 0, 0, 0);
+    else if (statPeriod === "week") cutoff.setDate(now.getDate() - 7);
+    else cutoff.setDate(now.getDate() - 30);
+    const filtered = attendance.filter((a) => new Date(a.date) >= cutoff);
+    const hadir = filtered.filter(a => a.status === "hadir").length;
+    const izin = filtered.filter(a => a.status === "izin").length;
+    const sakit = filtered.filter(a => a.status === "sakit").length;
+    const alfa = filtered.filter(a => a.status === "alfa").length;
+    const total = filtered.length || 1;
     const persen = Math.round((hadir / total) * 100);
-    return { hadir, izin, sakit, alfa, persen };
+    return { hadir, izin, sakit, alfa, persen, count: filtered.length };
   })();
 
   return (
