@@ -101,7 +101,7 @@ const SchoolAnnouncements = () => {
     try {
       if (editing) {
         const { error } = await supabase.from("school_announcements")
-          .update({ title: title.trim(), message: message.trim(), type, is_pinned: isPinned })
+          .update({ title: title.trim(), message: message.trim(), type, is_pinned: isPinned, target_audience: audience })
           .eq("id", editing.id);
         if (error) throw error;
         toast.success("Pengumuman diperbarui");
@@ -112,6 +112,7 @@ const SchoolAnnouncements = () => {
           message: message.trim(),
           type,
           is_pinned: isPinned,
+          target_audience: audience,
           created_by: user?.id,
         });
         if (error) throw error;
