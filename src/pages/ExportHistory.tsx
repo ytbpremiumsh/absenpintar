@@ -75,7 +75,8 @@ const ScanAttendanceRecap = () => {
   const [pulangLogs, setPulangLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState("");
-  const [schoolAddress, setSchoolAddress] = useState("");
+  const [schoolCity, setSchoolCity] = useState("");
+  const [waliKelasName, setWaliKelasName] = useState("");
   const [rekapTab, setRekapTab] = useState<"datang" | "pulang">("datang");
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -97,10 +98,22 @@ const ScanAttendanceRecap = () => {
       if (list.length > 0) setSelectedClass(list[0]);
       else setLoading(false);
     });
-    supabase.from("schools").select("name, address, city").eq("id", profile.school_id).maybeSingle().then(({ data }) => {
-      if (data) { setSchoolName(data.name); setSchoolAddress((data as any).city || data.address || ""); }
+    supabase.from("schools").select("name, city").eq("id", profile.school_id).maybeSingle().then(({ data }) => {
+      if (data) { setSchoolName(data.name); setSchoolCity((data as any).city || ""); }
     });
   }, [profile?.school_id]);
+
+  // Fetch wali kelas name when class selected
+  useEffect(() => {
+    if (!profile?.school_id || !selectedClass) { setWaliKelasName(""); return; }
+    supabase.from("class_teachers").select("user_id").eq("school_id", profile.school_id).eq("class_name", selectedClass).maybeSingle().then(({ data }) => {
+      if (data?.user_id) {
+        supabase.from("profiles").select("full_name").eq("user_id", data.user_id).maybeSingle().then(({ data: prof }) => {
+          setWaliKelasName(prof?.full_name || "");
+        });
+      } else setWaliKelasName("");
+    });
+  }, [profile?.school_id, selectedClass]);
 
   useEffect(() => {
     if (!profile?.school_id || !selectedClass) { setLoading(false); return; }
@@ -199,6 +212,11 @@ const ScanAttendanceRecap = () => {
       else html += `<td class="H">${s.totals.H || ""}</td><td class="S">${s.totals.S || ""}</td><td class="I">${s.totals.I || ""}</td><td class="A">${s.totals.A || ""}</td></tr>`;
     });
 
+    html += `<tr><td colspan="${totalCols}"></td></tr><tr><td colspan="${totalCols}"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none">${schoolCity || schoolName}, ........................ ${selectedYear}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">WALI KELAS ${selectedClass}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="border:none"></td></tr><tr><td colspan="${totalCols}" style="border:none"></td></tr><tr><td colspan="${totalCols}" style="border:none"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">${waliKelasName ? `( ${waliKelasName} )` : "(..................................)"}</td></tr>`;
     html += `</table></body></html>`;
 
     const blob = new Blob([html], { type: "application/vnd.ms-excel" });
@@ -398,6 +416,21 @@ const ScanAttendanceRecap = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {activeRows.length > 0 && (
+              <div className="p-6 border-t border-border">
+                <div className="flex justify-end">
+                  <div className="text-center text-xs text-muted-foreground space-y-1">
+                    <p>{schoolCity || schoolName}, ........................ {selectedYear}</p>
+                    <p className="font-semibold text-foreground">WALI KELAS {selectedClass}</p>
+                    <div className="h-16" />
+                    <p className="font-semibold text-foreground border-b border-foreground inline-block min-w-[180px]">
+                      {waliKelasName ? `( ${waliKelasName} )` : "(.................................)"}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
