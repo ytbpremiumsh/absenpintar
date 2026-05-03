@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Loader2, LogOut, GraduationCap, CalendarDays, Megaphone, FileText,
   Phone, ClipboardList, BookOpen, CheckCircle2, XCircle, Clock,
-  Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin,
+  Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin, Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
