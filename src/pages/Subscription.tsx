@@ -560,8 +560,8 @@ const Subscription = () => {
                 });
 
                 return (
-                  <motion.div key={plan.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.06 }}>
-                    <Card className={`border-0 relative overflow-hidden flex flex-col ${
+                  <motion.div key={plan.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.06 }} className="h-full flex">
+                    <Card className={`border-0 relative overflow-hidden flex flex-col w-full h-full ${
                       isCurrent ? "ring-2 ring-primary shadow-lg" : highlighted ? "ring-2 ring-primary/60 shadow-lg" : isPremium ? "ring-1 ring-amber-400/50 shadow-lg" : "shadow-card"
                     }`}>
                       {/* Top Banner */}
