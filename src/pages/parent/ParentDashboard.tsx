@@ -455,32 +455,60 @@ export default function ParentDashboard() {
                   <SectionTitle icon={CalendarDays} title="Jadwal Pelajaran Mingguan" />
                   {schedule.length === 0 ? <EmptyMini text="Belum ada jadwal pelajaran." /> : (
                     <div className="space-y-3">
-                      {days.map((d) => (
-                        <div key={d}>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <p className={cn("text-xs font-bold", d === dow ? "text-[#5B6CF9]" : "text-muted-foreground")}>
-                              {DAY_NAMES[d]}
-                            </p>
-                            {d === dow && <Badge className="bg-[#5B6CF9] text-white border-0 text-[9px] px-1.5 py-0">Hari Ini</Badge>}
-                          </div>
-                          <div className="space-y-1.5">
-                            {grouped[d].sort((a,b)=>(a.start_time||"").localeCompare(b.start_time||"")).map((s) => {
-                              const isOn = d === dow && (s.start_time||"").slice(0,5) <= nowHHMM && nowHHMM < (s.end_time||"").slice(0,5);
-                              return (
-                                <Card key={s.id} className={cn("p-3 border-0 shadow-card rounded-2xl", isOn && "ring-2 ring-emerald-500/60 bg-emerald-50/50 dark:bg-emerald-950/10")}>
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
-                                      <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"}{s.room ? ` • ${s.room}` : ""}</p>
+                      {days.map((d) => {
+                        const isToday = d === dow;
+                        const dayGradient = isToday
+                          ? "from-[#5B6CF9] to-[#4c5ded]"
+                          : d % 2 === 0
+                            ? "from-violet-500 to-fuchsia-500"
+                            : "from-emerald-500 to-teal-500";
+                        return (
+                          <Card key={d} className="border-0 shadow-card rounded-2xl overflow-hidden">
+                            {/* Day Header */}
+                            <div className={cn("relative px-4 py-2.5 bg-gradient-to-r text-white flex items-center justify-between", dayGradient)}>
+                              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+                              <div className="relative flex items-center gap-2">
+                                <CalendarDays className="h-4 w-4" />
+                                <p className="text-sm font-bold tracking-wide">{DAY_NAMES[d]}</p>
+                              </div>
+                              {isToday && (
+                                <Badge className="relative bg-white/25 text-white border-0 text-[10px] font-bold backdrop-blur">
+                                  <span className="relative flex h-1.5 w-1.5 mr-1">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                                  </span>
+                                  Hari Ini
+                                </Badge>
+                              )}
+                            </div>
+                            {/* Lessons */}
+                            <div className="p-2.5 space-y-1.5 bg-gradient-to-b from-background to-muted/20">
+                              {grouped[d].sort((a,b)=>(a.start_time||"").localeCompare(b.start_time||"")).map((s) => {
+                                const isOn = isToday && (s.start_time||"").slice(0,5) <= nowHHMM && nowHHMM < (s.end_time||"").slice(0,5);
+                                const subjColor = s.subjects?.color || "#5B6CF9";
+                                return (
+                                  <div key={s.id} className={cn("relative rounded-xl bg-card border border-border/50 p-2.5 pl-3 flex items-center gap-3 hover:shadow-md transition-all", isOn && "ring-2 ring-emerald-500/60 shadow-md")}>
+                                    <div className="absolute left-0 top-2 bottom-2 w-1 rounded-full" style={{ backgroundColor: subjColor }} />
+                                    <div className="flex flex-col items-center justify-center min-w-[52px] py-1 px-2 rounded-lg" style={{ backgroundColor: `${subjColor}15`, color: subjColor }}>
+                                      <span className="text-[10px] font-bold leading-none">{s.start_time?.slice(0,5)}</span>
+                                      <span className="text-[8px] opacity-70 mt-0.5">{s.end_time?.slice(0,5)}</span>
                                     </div>
-                                    <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}</Badge>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
+                                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
+                                        <User className="h-2.5 w-2.5" />{s.profiles?.full_name || "Guru"}{s.room ? ` • ${s.room}` : ""}
+                                      </p>
+                                    </div>
+                                    {isOn && (
+                                      <Badge className="bg-emerald-500 text-white border-0 text-[9px] font-bold">LIVE</Badge>
+                                    )}
                                   </div>
-                                </Card>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
+                                );
+                              })}
+                            </div>
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </>
