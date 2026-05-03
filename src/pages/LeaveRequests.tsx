@@ -269,7 +269,7 @@ export default function LeaveRequests() {
       )}
 
       <Dialog open={!!reviewItem} onOpenChange={(o) => !o && setReviewItem(null)}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {reviewAction === "approved" ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
@@ -287,7 +287,7 @@ export default function LeaveRequests() {
             )}
             <div>
               <label className="text-xs font-medium">Catatan (opsional)</label>
-              <Textarea rows={3} className="mt-1" placeholder="Tulis catatan untuk wali murid..." value={reviewNote} onChange={e => setReviewNote(e.target.value)} />
+              <Textarea rows={5} className="mt-1 min-h-[120px] resize-y" placeholder="Tulis catatan untuk wali murid..." value={reviewNote} onChange={e => setReviewNote(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
