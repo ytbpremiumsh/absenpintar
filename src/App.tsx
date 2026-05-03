@@ -78,6 +78,8 @@ import LiveSchedule from "./pages/LiveSchedule";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherAffiliate from "./pages/TeacherAffiliate";
 import SchoolAnnouncements from "./pages/SchoolAnnouncements";
+import ParentLogin from "./pages/parent/ParentLogin";
+import ParentDashboard from "./pages/parent/ParentDashboard";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +103,8 @@ function AppRoutes() {
       <Route path="/affiliate/register" element={<AffiliateRegister />} />
       <Route path="/affiliate/login" element={<AffiliateLogin />} />
       <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
+      <Route path="/parent/login" element={<ParentLogin />} />
+      <Route path="/parent" element={<ParentDashboard />} />
       {/* Super Admin */}
       <Route element={<SuperAdminLayout />}>
         <Route path="/super-admin" element={<SuperAdminDashboard />} />
