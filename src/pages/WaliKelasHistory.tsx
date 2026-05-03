@@ -236,7 +236,7 @@ const WaliKelasHistory = () => {
         <div className="p-4 border-b border-border">
           <h3 className="text-sm font-bold">Ringkasan Per Siswa</h3>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[60vh]">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-primary/5">
