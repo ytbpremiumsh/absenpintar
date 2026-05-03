@@ -29,7 +29,6 @@ const TABS = [
   { id: "schedule", label: "Jadwal", icon: CalendarDays },
   { id: "info", label: "Info", icon: Megaphone },
   { id: "leave", label: "Izin", icon: FileText },
-  { id: "grades", label: "Nilai", icon: BookOpen },
   { id: "contact", label: "Kontak", icon: Phone },
 ];
 
