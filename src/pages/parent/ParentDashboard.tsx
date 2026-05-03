@@ -11,8 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, LogOut, GraduationCap, CalendarDays, Megaphone, FileText,
-  MessageSquare, ClipboardList, Send, BookOpen, CheckCircle2, XCircle, Clock,
-  Sparkles, TrendingUp, Pin,
+  Phone, ClipboardList, BookOpen, CheckCircle2, XCircle, Clock,
+  Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ const TABS = [
   { id: "info", label: "Info", icon: Megaphone },
   { id: "leave", label: "Izin", icon: FileText },
   { id: "grades", label: "Nilai", icon: BookOpen },
-  { id: "chat", label: "Chat", icon: MessageSquare },
+  { id: "contact", label: "Kontak", icon: Phone },
 ];
 
 export default function ParentDashboard() {
