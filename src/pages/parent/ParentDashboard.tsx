@@ -375,22 +375,83 @@ export default function ParentDashboard() {
         {/* SCHEDULE */}
         {tab === "schedule" && (
           <>
-            <SectionTitle icon={CalendarDays} title="Jadwal Hari Ini" />
-            {schedule.length === 0 ? <EmptyMini text="Tidak ada jadwal hari ini." /> : (
-              <div className="space-y-2">
-                {schedule.map((s) => (
-                  <Card key={s.id} className="p-3.5 border-0 shadow-card rounded-2xl">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"} {s.room ? `• ${s.room}` : ""}</p>
+            {(() => {
+              const DAY_NAMES = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+              const today = new Date();
+              const dow = today.getDay();
+              const nowHHMM = today.toTimeString().slice(0, 5);
+              const todays = schedule.filter((s) => s.day_of_week === dow);
+              const ongoing = todays.find((s) => (s.start_time || "").slice(0,5) <= nowHHMM && nowHHMM < (s.end_time || "").slice(0,5));
+              const next = todays.find((s) => (s.start_time || "").slice(0,5) > nowHHMM);
+              const grouped: Record<number, any[]> = {};
+              schedule.forEach((s) => { (grouped[s.day_of_week] ||= []).push(s); });
+              const days = Object.keys(grouped).map(Number).sort();
+
+              return (
+                <>
+                  {/* Sedang Berlangsung */}
+                  <SectionTitle icon={Clock} title="Sedang Berlangsung" />
+                  {ongoing ? (
+                    <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <Badge className="bg-white/20 text-white border-0 text-[10px] mb-1">LIVE</Badge>
+                          <p className="font-bold truncate">{ongoing.subjects?.name || "—"}</p>
+                          <p className="text-xs text-white/85 truncate">{ongoing.profiles?.full_name || "Guru"}{ongoing.room ? ` • ${ongoing.room}` : ""}</p>
+                        </div>
+                        <span className="text-xs font-bold bg-white/20 rounded-lg px-2 py-1 shrink-0">{ongoing.start_time?.slice(0,5)}–{ongoing.end_time?.slice(0,5)}</span>
                       </div>
-                      <Badge variant="outline" className="text-xs border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}</Badge>
+                    </Card>
+                  ) : next ? (
+                    <Card className="p-3.5 border-0 shadow-card rounded-2xl border-l-4 border-l-[#5B6CF9]">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Berikutnya</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm truncate">{next.subjects?.name || "—"}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{next.profiles?.full_name || "Guru"}{next.room ? ` • ${next.room}` : ""}</p>
+                        </div>
+                        <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{next.start_time?.slice(0,5)}</Badge>
+                      </div>
+                    </Card>
+                  ) : (
+                    <EmptyMini text="Tidak ada mata pelajaran yang sedang berlangsung." />
+                  )}
+
+                  {/* Jadwal Mingguan */}
+                  <SectionTitle icon={CalendarDays} title="Jadwal Pelajaran Mingguan" />
+                  {schedule.length === 0 ? <EmptyMini text="Belum ada jadwal pelajaran." /> : (
+                    <div className="space-y-3">
+                      {days.map((d) => (
+                        <div key={d}>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <p className={cn("text-xs font-bold", d === dow ? "text-[#5B6CF9]" : "text-muted-foreground")}>
+                              {DAY_NAMES[d]}
+                            </p>
+                            {d === dow && <Badge className="bg-[#5B6CF9] text-white border-0 text-[9px] px-1.5 py-0">Hari Ini</Badge>}
+                          </div>
+                          <div className="space-y-1.5">
+                            {grouped[d].sort((a,b)=>(a.start_time||"").localeCompare(b.start_time||"")).map((s) => {
+                              const isOn = d === dow && (s.start_time||"").slice(0,5) <= nowHHMM && nowHHMM < (s.end_time||"").slice(0,5);
+                              return (
+                                <Card key={s.id} className={cn("p-3 border-0 shadow-card rounded-2xl", isOn && "ring-2 ring-emerald-500/60 bg-emerald-50/50 dark:bg-emerald-950/10")}>
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold truncate">{s.subjects?.name || "—"}</p>
+                                      <p className="text-[11px] text-muted-foreground truncate">{s.profiles?.full_name || "Guru"}{s.room ? ` • ${s.room}` : ""}</p>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px] border-[#5B6CF9]/30 text-[#5B6CF9] shrink-0">{s.start_time?.slice(0,5)}–{s.end_time?.slice(0,5)}</Badge>
+                                  </div>
+                                </Card>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </Card>
-                ))}
-              </div>
-            )}
+                  )}
+                </>
+              );
+            })()}
           </>
         )}
 
