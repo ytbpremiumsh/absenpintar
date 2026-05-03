@@ -15,6 +15,54 @@ import {
   Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+const STATUS_COLORS: Record<string, string> = {
+  hadir: "#10b981",
+  izin: "#f59e0b",
+  sakit: "#0ea5e9",
+  alfa: "#ef4444",
+};
+const STATUS_LABELS: Record<string, string> = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa" };
+
+function buildChartData(attendance: any[], period: "day" | "week" | "month") {
+  const buckets: { key: string; name: string; date: Date }[] = [];
+  const now = new Date();
+  if (period === "day") {
+    // jam 06-18 tiap 2 jam
+    for (let h = 6; h <= 18; h += 2) {
+      const d = new Date(now); d.setHours(h, 0, 0, 0);
+      buckets.push({ key: `${d.toISOString().slice(0,10)}-${h}`, name: `${String(h).padStart(2,"0")}:00`, date: d });
+    }
+  } else {
+    const days = period === "week" ? 7 : 30;
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0,0,0,0);
+      buckets.push({
+        key: d.toISOString().slice(0, 10),
+        name: period === "week"
+          ? d.toLocaleDateString("id-ID", { weekday: "short" })
+          : d.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+        date: d,
+      });
+    }
+  }
+  return buckets.map((b) => {
+    const counts: any = { name: b.name, hadir: 0, izin: 0, sakit: 0, alfa: 0 };
+    if (period === "day") {
+      const dayKey = now.toISOString().slice(0, 10);
+      attendance.forEach((a) => {
+        if (a.date !== dayKey) return;
+        const hh = parseInt((a.time || "00:00").slice(0, 2), 10);
+        if (hh >= b.date.getHours() && hh < b.date.getHours() + 2) counts[a.status] = (counts[a.status] || 0) + 1;
+      });
+    } else {
+      const dayKey = b.date.toISOString().slice(0, 10);
+      attendance.forEach((a) => { if (a.date === dayKey) counts[a.status] = (counts[a.status] || 0) + 1; });
+    }
+    return counts;
+  });
+}
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   hadir: { label: "Hadir", cls: "bg-emerald-500 text-white" },
