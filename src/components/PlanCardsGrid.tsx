@@ -24,6 +24,10 @@ interface Props {
   ctaLabel?: string;
   /** Hide CTA button (e.g. preview mode in super admin) */
   hideCta?: boolean;
+  /** Hide Premium banner & icon styling (used on landing page) */
+  hidePremiumBadge?: boolean;
+  /** Tailwind grid class override. */
+  gridClassName?: string;
 }
 
 const formatRupiah = (n: number) => (n === 0 ? "Gratis" : `Rp ${n.toLocaleString("id-ID")}`);
