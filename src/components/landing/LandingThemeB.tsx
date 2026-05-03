@@ -456,6 +456,38 @@ const LandingThemeB = () => {
         </div>
       </section>
 
+      {/* ─── Dashboard Showcase ─── */}
+      <section id="dashboards" className="py-20 sm:py-28">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
+            <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full mb-4">Fitur Dashboard</span>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Dashboard untuk Setiap Peran</h2>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Setiap pengguna punya tampilan dashboard sendiri, sesuai kebutuhan dan akses datanya.</p>
+          </motion.div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { icon: Monitor, title: "Dashboard Sekolah", desc: "Statistik global kehadiran, monitoring real-time, manajemen kelas & siswa, hingga laporan rekap lengkap.", color: "from-indigo-500 to-blue-600", badge: null as string | null },
+              { icon: GraduationCap, title: "Dashboard Wali Kelas & Guru", desc: "Akses cepat ke kelas binaan, jadwal mengajar, rekap absensi mapel, dan leaderboard kelas.", color: "from-emerald-500 to-teal-600", badge: null as string | null },
+              { icon: Users, title: "Dashboard Wali Murid", desc: "Pantau kehadiran anak secara real-time, notifikasi WhatsApp instan, dan riwayat absensi lengkap.", color: "from-amber-500 to-orange-500", badge: "Coming Soon" as string | null },
+            ].map((d, i) => (
+              <motion.div key={d.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+                className="relative group bg-white dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl p-6 hover:border-indigo-200 dark:hover:border-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 hover:-translate-y-1">
+                {d.badge && (
+                  <span className="absolute top-4 right-4 inline-flex items-center gap-1 bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                    <Clock className="h-3 w-3" /> {d.badge}
+                  </span>
+                )}
+                <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${d.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
+                  <d.icon className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base mb-2">{d.title}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{d.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── Why Choose Us ─── */}
       <section className="py-20 sm:py-28 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-indigo-500/3 rounded-full blur-[150px] pointer-events-none" />
