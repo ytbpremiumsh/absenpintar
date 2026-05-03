@@ -146,6 +146,7 @@ function AppRoutes() {
         <Route path="/wali-kelas-students" element={<WaliKelasStudents />} />
         <Route path="/wali-kelas-export" element={<WaliKelasExportHistory />} />
         <Route path="/wali-kelas-history" element={<WaliKelasHistoryPage />} />
+        <Route path="/leave-requests" element={<LeaveRequests />} />
         <Route path="/history" element={<History />} />
         <Route path="/export-history" element={<ExportHistory />} />
         <Route path="/edit-attendance" element={<EditAttendance />} />
