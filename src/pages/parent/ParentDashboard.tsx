@@ -261,44 +261,50 @@ export default function ParentDashboard() {
         {/* HOME */}
         {tab === "home" && (
           <>
-            {/* Period Filter */}
-            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl w-fit">
-              {(["day", "week", "month"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setStatPeriod(p)}
-                  className={cn(
-                    "text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all",
-                    statPeriod === p ? "bg-white shadow text-[#5B6CF9]" : "text-muted-foreground"
-                  )}
-                >
-                  {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
-                </button>
-              ))}
-            </div>
-
-            {/* Stats Grid */}
+            {/* Stats Grid (30 Hari) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <StatCard icon={CheckCircle2} label="Hadir" value={stats.hadir} color="emerald" />
-              <StatCard icon={FileText} label="Izin" value={stats.izin} color="amber" />
-              <StatCard icon={Clock} label="Sakit" value={stats.sakit} color="sky" />
-              <StatCard icon={XCircle} label="Alfa" value={stats.alfa} color="red" />
+              <StatCard icon={CheckCircle2} label="Hadir" value={attendance.filter(a=>a.status==="hadir").length} color="emerald" />
+              <StatCard icon={FileText} label="Izin" value={attendance.filter(a=>a.status==="izin").length} color="amber" />
+              <StatCard icon={Clock} label="Sakit" value={attendance.filter(a=>a.status==="sakit").length} color="sky" />
+              <StatCard icon={XCircle} label="Alfa" value={attendance.filter(a=>a.status==="alfa").length} color="red" />
             </div>
 
-            {/* Persentase */}
-            <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white/80">Persentase Kehadiran ({statPeriod === "day" ? "Hari Ini" : statPeriod === "week" ? "7 Hari" : "30 Hari"})</p>
-                  <p className="text-3xl font-bold mt-0.5">{stats.persen}%</p>
-                  <p className="text-[10px] text-white/70 mt-0.5">{stats.count} catatan absensi</p>
+            {/* Statistik Garis */}
+            {(["day", "week", "month"] as const).map((p) => (
+              <Card key={p} className="p-4 border-0 shadow-card rounded-2xl">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold flex items-center gap-1.5">
+                    <TrendingUp className="h-4 w-4 text-[#5B6CF9]" />
+                    Statistik Kehadiran — {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
+                  </h3>
                 </div>
-                <TrendingUp className="h-12 w-12 text-white/30" />
-              </div>
-              <div className="mt-3 h-2 rounded-full bg-white/20 overflow-hidden">
-                <div className="h-full bg-white rounded-full transition-all" style={{ width: `${stats.persen}%` }} />
-              </div>
-            </Card>
+                <div className="h-44 -ml-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={buildChartData(attendance, p)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="name" fontSize={10} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
+                        formatter={(value: number, name: string) => [`${value}`, STATUS_LABELS[name] || name]}
+                      />
+                      <Line type="monotone" dataKey="hadir" stroke={STATUS_COLORS.hadir} strokeWidth={2.5} dot={{ r: 3 }} name="hadir" />
+                      <Line type="monotone" dataKey="izin" stroke={STATUS_COLORS.izin} strokeWidth={2} dot={{ r: 2.5 }} name="izin" />
+                      <Line type="monotone" dataKey="sakit" stroke={STATUS_COLORS.sakit} strokeWidth={2} dot={{ r: 2.5 }} name="sakit" />
+                      <Line type="monotone" dataKey="alfa" stroke={STATUS_COLORS.alfa} strokeWidth={2} dot={{ r: 2.5 }} name="alfa" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-wrap justify-center gap-3 mt-1">
+                  {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                    <div key={key} className="flex items-center gap-1.5 text-[11px]">
+                      <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[key] }} />
+                      <span className="text-muted-foreground font-medium">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ))}
 
             {/* Jadwal Hari Ini */}
             <SectionTitle icon={CalendarDays} title="Jadwal Hari Ini" onMore={() => setTab("schedule")} />
