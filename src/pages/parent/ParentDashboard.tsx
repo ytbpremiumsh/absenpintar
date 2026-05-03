@@ -212,9 +212,17 @@ export default function ParentDashboard() {
                 <h1 className="text-sm sm:text-base font-bold truncate">{current?.schools?.name || "Sekolah"}</h1>
               </div>
             </div>
-            <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/15 rounded-xl h-9">
-              <LogOut className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur flex items-center justify-center transition-colors" aria-label="Notifikasi">
+                <Bell className="h-4 w-4" />
+                {announcements.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-400 ring-2 ring-[#5B6CF9] animate-pulse" />
+                )}
+              </button>
+              <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/15 rounded-xl h-9">
+                <LogOut className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Keluar</span>
+              </Button>
+            </div>
           </div>
 
           {/* Student Card */}
