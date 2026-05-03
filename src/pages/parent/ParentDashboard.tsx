@@ -15,6 +15,54 @@ import {
   Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+const STATUS_COLORS: Record<string, string> = {
+  hadir: "#10b981",
+  izin: "#f59e0b",
+  sakit: "#0ea5e9",
+  alfa: "#ef4444",
+};
+const STATUS_LABELS: Record<string, string> = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alfa: "Alfa" };
+
+function buildChartData(attendance: any[], period: "day" | "week" | "month") {
+  const buckets: { key: string; name: string; date: Date }[] = [];
+  const now = new Date();
+  if (period === "day") {
+    // jam 06-18 tiap 2 jam
+    for (let h = 6; h <= 18; h += 2) {
+      const d = new Date(now); d.setHours(h, 0, 0, 0);
+      buckets.push({ key: `${d.toISOString().slice(0,10)}-${h}`, name: `${String(h).padStart(2,"0")}:00`, date: d });
+    }
+  } else {
+    const days = period === "week" ? 7 : 30;
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0,0,0,0);
+      buckets.push({
+        key: d.toISOString().slice(0, 10),
+        name: period === "week"
+          ? d.toLocaleDateString("id-ID", { weekday: "short" })
+          : d.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+        date: d,
+      });
+    }
+  }
+  return buckets.map((b) => {
+    const counts: any = { name: b.name, hadir: 0, izin: 0, sakit: 0, alfa: 0 };
+    if (period === "day") {
+      const dayKey = now.toISOString().slice(0, 10);
+      attendance.forEach((a) => {
+        if (a.date !== dayKey) return;
+        const hh = parseInt((a.time || "00:00").slice(0, 2), 10);
+        if (hh >= b.date.getHours() && hh < b.date.getHours() + 2) counts[a.status] = (counts[a.status] || 0) + 1;
+      });
+    } else {
+      const dayKey = b.date.toISOString().slice(0, 10);
+      attendance.forEach((a) => { if (a.date === dayKey) counts[a.status] = (counts[a.status] || 0) + 1; });
+    }
+    return counts;
+  });
+}
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   hadir: { label: "Hadir", cls: "bg-emerald-500 text-white" },
@@ -46,7 +94,7 @@ export default function ParentDashboard() {
   const [leaves, setLeaves] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
   const [homeroom, setHomeroom] = useState<any>(null);
-  const [statPeriod, setStatPeriod] = useState<"day" | "week" | "month">("month");
+  
   const [uploadingFile, setUploadingFile] = useState(false);
 
   const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
@@ -147,22 +195,6 @@ export default function ParentDashboard() {
 
   const current = students.find((s) => s.id === selectedStudent);
 
-  // Stats untuk beranda dengan filter periode
-  const stats = (() => {
-    const now = new Date();
-    const cutoff = new Date(now);
-    if (statPeriod === "day") cutoff.setHours(0, 0, 0, 0);
-    else if (statPeriod === "week") cutoff.setDate(now.getDate() - 7);
-    else cutoff.setDate(now.getDate() - 30);
-    const filtered = attendance.filter((a) => new Date(a.date) >= cutoff);
-    const hadir = filtered.filter(a => a.status === "hadir").length;
-    const izin = filtered.filter(a => a.status === "izin").length;
-    const sakit = filtered.filter(a => a.status === "sakit").length;
-    const alfa = filtered.filter(a => a.status === "alfa").length;
-    const total = filtered.length || 1;
-    const persen = Math.round((hadir / total) * 100);
-    return { hadir, izin, sakit, alfa, persen, count: filtered.length };
-  })();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#5B6CF9]/5 via-background to-background pb-28">
@@ -213,44 +245,50 @@ export default function ParentDashboard() {
         {/* HOME */}
         {tab === "home" && (
           <>
-            {/* Period Filter */}
-            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl w-fit">
-              {(["day", "week", "month"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setStatPeriod(p)}
-                  className={cn(
-                    "text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all",
-                    statPeriod === p ? "bg-white shadow text-[#5B6CF9]" : "text-muted-foreground"
-                  )}
-                >
-                  {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
-                </button>
-              ))}
-            </div>
-
-            {/* Stats Grid */}
+            {/* Stats Grid (30 Hari) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <StatCard icon={CheckCircle2} label="Hadir" value={stats.hadir} color="emerald" />
-              <StatCard icon={FileText} label="Izin" value={stats.izin} color="amber" />
-              <StatCard icon={Clock} label="Sakit" value={stats.sakit} color="sky" />
-              <StatCard icon={XCircle} label="Alfa" value={stats.alfa} color="red" />
+              <StatCard icon={CheckCircle2} label="Hadir" value={attendance.filter(a=>a.status==="hadir").length} color="emerald" />
+              <StatCard icon={FileText} label="Izin" value={attendance.filter(a=>a.status==="izin").length} color="amber" />
+              <StatCard icon={Clock} label="Sakit" value={attendance.filter(a=>a.status==="sakit").length} color="sky" />
+              <StatCard icon={XCircle} label="Alfa" value={attendance.filter(a=>a.status==="alfa").length} color="red" />
             </div>
 
-            {/* Persentase */}
-            <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white/80">Persentase Kehadiran ({statPeriod === "day" ? "Hari Ini" : statPeriod === "week" ? "7 Hari" : "30 Hari"})</p>
-                  <p className="text-3xl font-bold mt-0.5">{stats.persen}%</p>
-                  <p className="text-[10px] text-white/70 mt-0.5">{stats.count} catatan absensi</p>
+            {/* Statistik Garis */}
+            {(["day", "week", "month"] as const).map((p) => (
+              <Card key={p} className="p-4 border-0 shadow-card rounded-2xl">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold flex items-center gap-1.5">
+                    <TrendingUp className="h-4 w-4 text-[#5B6CF9]" />
+                    Statistik Kehadiran — {p === "day" ? "Hari Ini" : p === "week" ? "7 Hari" : "30 Hari"}
+                  </h3>
                 </div>
-                <TrendingUp className="h-12 w-12 text-white/30" />
-              </div>
-              <div className="mt-3 h-2 rounded-full bg-white/20 overflow-hidden">
-                <div className="h-full bg-white rounded-full transition-all" style={{ width: `${stats.persen}%` }} />
-              </div>
-            </Card>
+                <div className="h-44 -ml-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={buildChartData(attendance, p)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="name" fontSize={10} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={10} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
+                        formatter={(value: number, name: string) => [`${value}`, STATUS_LABELS[name] || name]}
+                      />
+                      <Line type="monotone" dataKey="hadir" stroke={STATUS_COLORS.hadir} strokeWidth={2.5} dot={{ r: 3 }} name="hadir" />
+                      <Line type="monotone" dataKey="izin" stroke={STATUS_COLORS.izin} strokeWidth={2} dot={{ r: 2.5 }} name="izin" />
+                      <Line type="monotone" dataKey="sakit" stroke={STATUS_COLORS.sakit} strokeWidth={2} dot={{ r: 2.5 }} name="sakit" />
+                      <Line type="monotone" dataKey="alfa" stroke={STATUS_COLORS.alfa} strokeWidth={2} dot={{ r: 2.5 }} name="alfa" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-wrap justify-center gap-3 mt-1">
+                  {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                    <div key={key} className="flex items-center gap-1.5 text-[11px]">
+                      <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[key] }} />
+                      <span className="text-muted-foreground font-medium">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ))}
 
             {/* Jadwal Hari Ini */}
             <SectionTitle icon={CalendarDays} title="Jadwal Hari Ini" onMore={() => setTab("schedule")} />
