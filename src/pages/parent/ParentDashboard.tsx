@@ -46,10 +46,11 @@ export default function ParentDashboard() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [leaves, setLeaves] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [homeroom, setHomeroom] = useState<any>(null);
+  const [statPeriod, setStatPeriod] = useState<"day" | "week" | "month">("month");
+  const [uploadingFile, setUploadingFile] = useState(false);
 
-  const [leaveForm, setLeaveForm] = useState({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "" });
-  const [chatInput, setChatInput] = useState("");
+  const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
 
   const invoke = useCallback(async (action: string, body: any = {}) => {
     const res = await fetch(`https://bohuglednqirnaearrkj.supabase.co/functions/v1/parent-portal`, {
