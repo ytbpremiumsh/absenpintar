@@ -393,18 +393,50 @@ export default function ParentDashboard() {
                 <>
                   {/* Sedang Berlangsung */}
                   <SectionTitle icon={Clock} title="Sedang Berlangsung" />
-                  {ongoing ? (
-                    <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <Badge className="bg-white/20 text-white border-0 text-[10px] mb-1">LIVE</Badge>
-                          <p className="font-bold truncate">{ongoing.subjects?.name || "—"}</p>
-                          <p className="text-xs text-white/85 truncate">{ongoing.profiles?.full_name || "Guru"}{ongoing.room ? ` • ${ongoing.room}` : ""}</p>
+                  {ongoing ? (() => {
+                    const [sh, sm] = (ongoing.start_time || "00:00").split(":").map(Number);
+                    const [eh, em] = (ongoing.end_time || "00:00").split(":").map(Number);
+                    const startMin = sh * 60 + sm;
+                    const endMin = eh * 60 + em;
+                    const nowMin = today.getHours() * 60 + today.getMinutes();
+                    const progress = Math.min(100, Math.max(0, ((nowMin - startMin) / Math.max(1, endMin - startMin)) * 100));
+                    const remain = Math.max(0, endMin - nowMin);
+                    const color = ongoing.subjects?.color || "#10b981";
+                    return (
+                      <Card className="p-0 border-0 shadow-card rounded-2xl overflow-hidden text-white relative" style={{ background: `linear-gradient(135deg, ${color}, ${color}dd)` }}>
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 0%, white 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+                        <div className="relative p-4">
+                          <div className="flex items-start justify-between gap-2 mb-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 mb-1.5">
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                                </span>
+                                <Badge className="bg-white/25 text-white border-0 text-[10px] font-bold tracking-wider">SEDANG BERLANGSUNG</Badge>
+                              </div>
+                              <p className="font-bold text-lg leading-tight truncate">{ongoing.subjects?.name || "—"}</p>
+                              <p className="text-xs text-white/85 truncate mt-0.5 flex items-center gap-1">
+                                <User className="h-3 w-3" />{ongoing.profiles?.full_name || "Guru"}{ongoing.room ? ` • ${ongoing.room}` : ""}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-[10px] text-white/70 uppercase tracking-wider font-semibold">Sisa</p>
+                              <p className="text-xl font-bold leading-none mt-0.5">{remain}<span className="text-xs font-medium ml-0.5">m</span></p>
+                            </div>
+                          </div>
+                          <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-white rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                          </div>
+                          <div className="flex items-center justify-between mt-1.5 text-[10px] text-white/80 font-medium">
+                            <span>{ongoing.start_time?.slice(0,5)}</span>
+                            <span>{Math.round(progress)}%</span>
+                            <span>{ongoing.end_time?.slice(0,5)}</span>
+                          </div>
                         </div>
-                        <span className="text-xs font-bold bg-white/20 rounded-lg px-2 py-1 shrink-0">{ongoing.start_time?.slice(0,5)}–{ongoing.end_time?.slice(0,5)}</span>
-                      </div>
-                    </Card>
-                  ) : next ? (
+                      </Card>
+                    );
+                  })() : next ? (
                     <Card className="p-3.5 border-0 shadow-card rounded-2xl border-l-4 border-l-[#5B6CF9]">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Berikutnya</p>
                       <div className="flex items-center justify-between gap-2">
@@ -507,7 +539,31 @@ export default function ParentDashboard() {
                 <Label className="text-xs">Alasan</Label>
                 <Textarea className="mt-1" rows={3} value={leaveForm.reason} onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })} placeholder="Tuliskan alasan..." />
               </div>
-              <Button onClick={submitLeave} className="w-full bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:opacity-90 text-white rounded-xl">Kirim Pengajuan</Button>
+              <div>
+                <Label className="text-xs flex items-center gap-1.5"><Paperclip className="h-3.5 w-3.5" />Lampiran Surat (opsional)</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5 mb-1.5">Foto / gambar surat izin atau surat dokter. Maks 5MB.</p>
+                {leaveForm.attachment_url ? (
+                  <div className="flex items-center gap-2 p-2 rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20">
+                    <a href={leaveForm.attachment_url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                      <img src={leaveForm.attachment_url} alt="lampiran" className="h-12 w-12 object-cover rounded-lg" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                    </a>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Lampiran terupload</p>
+                      <a href={leaveForm.attachment_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-muted-foreground truncate block hover:underline">Lihat file</a>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => setLeaveForm({ ...leaveForm, attachment_url: null })} className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50">
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className={cn("flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-[#5B6CF9]/30 bg-[#5B6CF9]/5 cursor-pointer hover:bg-[#5B6CF9]/10 transition-colors", uploadingFile && "opacity-50 pointer-events-none")}>
+                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }} disabled={uploadingFile} />
+                    {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin text-[#5B6CF9]" /> : <Paperclip className="h-4 w-4 text-[#5B6CF9]" />}
+                    <span className="text-xs font-semibold text-[#5B6CF9]">{uploadingFile ? "Mengupload..." : "Pilih Foto / PDF"}</span>
+                  </label>
+                )}
+              </div>
+              <Button onClick={submitLeave} disabled={uploadingFile} className="w-full bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] hover:opacity-90 text-white rounded-xl">Kirim Pengajuan</Button>
             </Card>
             <SectionTitle icon={ClipboardList} title="Riwayat Pengajuan" />
             {leaves.length === 0 ? <EmptyMini text="Belum ada pengajuan." /> : (
@@ -517,11 +573,16 @@ export default function ParentDashboard() {
                   const cls = l.status === "approved" ? "text-emerald-600" : l.status === "rejected" ? "text-red-600" : "text-amber-600";
                   return (
                     <Card key={l.id} className="p-3 border-0 shadow-card rounded-2xl">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold capitalize">{l.type} • {new Date(l.date).toLocaleDateString("id-ID")}</p>
                           <p className="text-xs text-muted-foreground line-clamp-2">{l.reason}</p>
                           {l.review_note && <p className="text-[11px] text-muted-foreground mt-1">Catatan: {l.review_note}</p>}
+                          {l.attachment_url && (
+                            <a href={l.attachment_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-[#5B6CF9] font-semibold mt-1.5 hover:underline">
+                              <Paperclip className="h-3 w-3" />Lihat lampiran
+                            </a>
+                          )}
                         </div>
                         <span className={`flex items-center gap-1 text-xs font-semibold capitalize shrink-0 ${cls}`}><Icon className="h-3.5 w-3.5" />{l.status}</span>
                       </div>
