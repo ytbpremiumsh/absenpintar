@@ -90,8 +90,6 @@ export default function ParentDashboard() {
       const d = await invoke("announcements", body); setAnnouncements(d.announcements || []);
     } else if (tab === "leave") {
       const d = await invoke("list_leaves", body); setLeaves(d.leaves || []);
-    } else if (tab === "grades") {
-      const d = await invoke("grades", body); setGrades(d.grades || []);
     } else if (tab === "contact") {
       const d = await invoke("homeroom", body); setHomeroom(d);
     }
