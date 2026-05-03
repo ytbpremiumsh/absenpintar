@@ -57,6 +57,7 @@ const SchoolAnnouncements = () => {
   const [message, setMessage] = useState("");
   const [type, setType] = useState("info");
   const [isPinned, setIsPinned] = useState(false);
+  const [audience, setAudience] = useState("staff");
 
   const schoolId = profile?.school_id;
 
