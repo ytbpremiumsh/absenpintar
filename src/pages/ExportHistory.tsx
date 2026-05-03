@@ -98,10 +98,22 @@ const ScanAttendanceRecap = () => {
       if (list.length > 0) setSelectedClass(list[0]);
       else setLoading(false);
     });
-    supabase.from("schools").select("name, address, city").eq("id", profile.school_id).maybeSingle().then(({ data }) => {
-      if (data) { setSchoolName(data.name); setSchoolAddress((data as any).city || data.address || ""); }
+    supabase.from("schools").select("name, city").eq("id", profile.school_id).maybeSingle().then(({ data }) => {
+      if (data) { setSchoolName(data.name); setSchoolCity((data as any).city || ""); }
     });
   }, [profile?.school_id]);
+
+  // Fetch wali kelas name when class selected
+  useEffect(() => {
+    if (!profile?.school_id || !selectedClass) { setWaliKelasName(""); return; }
+    supabase.from("class_teachers").select("user_id").eq("school_id", profile.school_id).eq("class_name", selectedClass).maybeSingle().then(({ data }) => {
+      if (data?.user_id) {
+        supabase.from("profiles").select("full_name").eq("user_id", data.user_id).maybeSingle().then(({ data: prof }) => {
+          setWaliKelasName(prof?.full_name || "");
+        });
+      } else setWaliKelasName("");
+    });
+  }, [profile?.school_id, selectedClass]);
 
   useEffect(() => {
     if (!profile?.school_id || !selectedClass) { setLoading(false); return; }
