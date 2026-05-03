@@ -235,6 +235,9 @@ const SchoolAnnouncements = () => {
                                   </Badge>
                                 )}
                                 <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5", cfg.badge)}>{cfg.label}</Badge>
+                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-[#5B6CF9]/10 text-[#5B6CF9] border-[#5B6CF9]/30">
+                                  {AUDIENCE_OPTIONS.find(o => o.value === (a.target_audience || "staff"))?.label || "Staf & Guru"}
+                                </Badge>
                                 <span className="text-[11px] text-muted-foreground">
                                   {new Date(a.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                                 </span>
