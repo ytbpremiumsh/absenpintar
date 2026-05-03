@@ -175,14 +175,43 @@ Deno.serve(async (req) => {
     if (action === "schedule") {
       const today = new Date();
       const dow = today.getDay();
-      const { data } = await supabase
-        .from("teaching_schedules")
-        .select("id, day_of_week, start_time, end_time, room, subjects(name, color), profiles(full_name)")
+      // Find class id by class name within the student's school
+      const { data: classRow } = await supabase
+        .from("classes")
+        .select("id")
         .eq("school_id", schoolId)
-        .eq("class_name", studentRow.class)
+        .eq("name", studentRow.class)
+        .maybeSingle();
+      if (!classRow) return json({ ok: true, schedule: [], day_of_week: dow });
+
+      const { data: rows } = await supabase
+        .from("teaching_schedules")
+        .select("id, day_of_week, start_time, end_time, room, teacher_id, subject_id")
+        .eq("school_id", schoolId)
+        .eq("class_id", classRow.id)
+        .eq("is_active", true)
         .order("day_of_week")
         .order("start_time");
-      return json({ ok: true, schedule: data || [], day_of_week: dow });
+
+      const schedules = rows || [];
+      const subjectIds = Array.from(new Set(schedules.map((s) => s.subject_id).filter(Boolean)));
+      const teacherIds = Array.from(new Set(schedules.map((s) => s.teacher_id).filter(Boolean)));
+      const [{ data: subj }, { data: teach }] = await Promise.all([
+        subjectIds.length
+          ? supabase.from("subjects").select("id, name, color").in("id", subjectIds)
+          : Promise.resolve({ data: [] as any[] }),
+        teacherIds.length
+          ? supabase.from("profiles").select("user_id, full_name, avatar_url").in("user_id", teacherIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const subjectMap = new Map((subj || []).map((s: any) => [s.id, s]));
+      const teacherMap = new Map((teach || []).map((t: any) => [t.user_id, t]));
+      const enriched = schedules.map((s: any) => ({
+        ...s,
+        subjects: subjectMap.get(s.subject_id) || null,
+        profiles: teacherMap.get(s.teacher_id) || null,
+      }));
+      return json({ ok: true, schedule: enriched, day_of_week: dow });
     }
 
     if (action === "announcements") {
