@@ -51,6 +51,12 @@ const ManageStaff = () => {
   const [editRoleTeacher, setEditRoleTeacher] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
 
+  // Bulk import
+  const [importDialog, setImportDialog] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importRows, setImportRows] = useState<any[]>([]);
+  const [importResults, setImportResults] = useState<{ name: string; email: string; ok: boolean; error?: string }[]>([]);
+
   const schoolId = profile?.school_id;
 
   const fetchStaff = async () => {
