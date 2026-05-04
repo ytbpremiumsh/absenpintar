@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { getLocalDateString, getLocalTimeString } from "@/lib/dateLocal";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "text-success",
@@ -90,7 +91,7 @@ const Monitoring = () => {
   const fetchData = useCallback(async () => {
     if (!profile?.school_id) return;
     const schoolId = profile.school_id;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getLocalDateString("Asia/Jakarta");
 
     const [studentsRes, logsRes, settingsRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, student_id, photo_url").eq("school_id", schoolId),
@@ -147,7 +148,22 @@ const Monitoring = () => {
         fetchData();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    // Auto-refresh ketika tanggal lokal berganti (mis. lewat 00:00 WIB),
+    // sehingga "Absensi Terbaru" otomatis kosong dan tidak menampilkan data kemarin.
+    let lastDate = getLocalDateString("Asia/Jakarta");
+    const dateWatcher = setInterval(() => {
+      const currentDate = getLocalDateString("Asia/Jakarta");
+      if (currentDate !== lastDate) {
+        lastDate = currentDate;
+        fetchData();
+      }
+    }, 30_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(dateWatcher);
+    };
   }, [fetchData]);
 
   const handleUpdateStatus = async () => {
@@ -169,8 +185,8 @@ const Monitoring = () => {
       await supabase.from("attendance_logs").insert({
         school_id: profile.school_id,
         student_id: editStudent.id,
-        date: now.toISOString().slice(0, 10),
-        time: now.toTimeString().slice(0, 8),
+        date: getLocalDateString("Asia/Jakarta", now),
+        time: getLocalTimeString("Asia/Jakarta", now),
         method: "manual",
         status: editStatus,
         recorded_by: profile.full_name || "Admin",
