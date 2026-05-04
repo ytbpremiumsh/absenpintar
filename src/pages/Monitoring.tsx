@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { getLocalDateString, getLocalTimeString } from "@/lib/dateLocal";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "text-success",
