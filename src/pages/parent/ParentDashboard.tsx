@@ -13,8 +13,9 @@ import {
   Loader2, LogOut, GraduationCap, CalendarDays, Megaphone, FileText,
   Phone, ClipboardList, BookOpen, CheckCircle2, XCircle, Clock,
   Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin, Bell,
-  Wallet, AlertCircle, Download, ExternalLink, RefreshCw, Receipt,
+  Wallet, AlertCircle, Download, ExternalLink, RefreshCw, Receipt, MoreHorizontal,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -73,14 +74,17 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   alfa: { label: "Alfa", cls: "bg-red-500 text-white" },
 };
 
-const TABS = [
+const PRIMARY_TABS = [
   { id: "home", label: "Beranda", icon: Sparkles },
   { id: "attendance", label: "Absensi", icon: ClipboardList },
   { id: "spp", label: "SPP", icon: Wallet },
   { id: "schedule", label: "Jadwal", icon: CalendarDays },
-  { id: "info", label: "Info", icon: Megaphone },
-  { id: "leave", label: "Izin", icon: FileText },
-  { id: "contact", label: "Kontak", icon: Phone },
+];
+
+const MORE_TABS = [
+  { id: "info", label: "Pengumuman", icon: Megaphone, desc: "Info & berita sekolah" },
+  { id: "leave", label: "Pengajuan Izin", icon: FileText, desc: "Ajukan izin/sakit" },
+  { id: "contact", label: "Kontak Wali Kelas", icon: Phone, desc: "Hubungi guru" },
 ];
 
 export default function ParentDashboard() {
