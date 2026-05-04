@@ -521,9 +521,9 @@ const LandingPage = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-red-500 mb-3 block">Latar Belakang</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Masalah Absensi di Sekolah
+              Tantangan Administrasi Sekolah Saat Ini
             </h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">Sistem absensi manual di sekolah Indonesia masih menyimpan banyak masalah dan ketidakefisienan.</p>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">Absensi manual, jadwal mengajar berantakan, tagihan SPP di Excel, dan komunikasi wali murid yang lambat — sekolah Indonesia menghadapi banyak inefisiensi.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
