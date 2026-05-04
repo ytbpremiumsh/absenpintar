@@ -212,8 +212,10 @@ async function ensureFreshLink(
   if (!linkRes.ok) return { success: false, error: linkRes.json?.message || "Gagal create payment di Mayar" };
 
   const link = linkRes.json.data;
+  const mayarId = link.id || link.paymentLinkId || link.paymentLinkID || null;
+  const mayarTransactionId = link.transactionId || link.transaction_id || null;
   await supabaseAdmin.from("spp_invoices").update({
-    mayar_invoice_id: link.id || null,
+    mayar_invoice_id: mayarId,
     payment_url: link.link || null,
     expired_at: linkRes.expiry.toISOString(),
   }).eq("id", inv.id);
@@ -225,7 +227,7 @@ async function ensureFreshLink(
     plan_id: anyPlan?.id || inv.school_id,
     amount: inv.total_amount,
     status: "pending",
-    mayar_transaction_id: link.id || null,
+    mayar_transaction_id: mayarId || mayarTransactionId,
     mayar_payment_url: link.link || null,
     payment_method: "spp",
   });
