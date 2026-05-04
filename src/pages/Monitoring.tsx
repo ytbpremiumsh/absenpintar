@@ -170,8 +170,8 @@ const Monitoring = () => {
       await supabase.from("attendance_logs").insert({
         school_id: profile.school_id,
         student_id: editStudent.id,
-        date: now.toISOString().slice(0, 10),
-        time: now.toTimeString().slice(0, 8),
+        date: getLocalDateString("Asia/Jakarta", now),
+        time: getLocalTimeString("Asia/Jakarta", now),
         method: "manual",
         status: editStatus,
         recorded_by: profile.full_name || "Admin",
