@@ -25,12 +25,15 @@ const fadeUp = {
 };
 
 const DEFAULT_FEATURES = [
-  { icon: QrCode, title: "Scan Barcode", desc: "Absensi instan kurang dari 1 detik dengan scan barcode siswa.", color: "from-blue-500 to-indigo-600" },
-  { icon: UserCheck, title: "Face Recognition", desc: "Pengenalan wajah berbasis AI. Tanpa kartu, tanpa sentuhan.", color: "from-violet-500 to-purple-600" },
-  { icon: Monitor, title: "Dashboard Real-Time", desc: "Pantau statistik kehadiran secara live dengan grafik interaktif.", color: "from-emerald-500 to-teal-600" },
-  { icon: FileBarChart, title: "Rekap & Export", desc: "Rekap otomatis harian, mingguan, bulanan. Export ke Excel & PDF.", color: "from-amber-500 to-orange-600" },
-  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Notifikasi otomatis ke orang tua saat anak tercatat hadir.", color: "from-pink-500 to-rose-600" },
-  { icon: GraduationCap, title: "Multi Sekolah", desc: "Arsitektur SaaS multi-tenant. Satu platform untuk banyak sekolah.", color: "from-cyan-500 to-blue-600" },
+  { icon: QrCode, title: "Scan QR & Face AI", desc: "Absensi instan via QR Code atau Face Recognition AI. Tanpa kartu, tanpa sentuhan, kurang dari 1 detik.", color: "from-blue-500 to-indigo-600" },
+  { icon: Monitor, title: "Dashboard Real-Time", desc: "Pantau kehadiran, jadwal mengajar, dan keuangan SPP secara live dengan grafik interaktif.", color: "from-emerald-500 to-teal-600" },
+  { icon: CalendarDays, title: "Jadwal Mengajar Live", desc: "Atur jadwal mengajar per guru & kelas. Live schedule menampilkan kelas berlangsung & berikutnya.", color: "from-violet-500 to-purple-600" },
+  { icon: Receipt, title: "Tagihan SPP Otomatis", desc: "Generate tagihan SPP per kelas atau seluruh sekolah sekali klik, kirim WA otomatis ke wali murid.", color: "from-amber-500 to-orange-600" },
+  { icon: CreditCard, title: "Pembayaran Online", desc: "Wali murid bayar SPP via QRIS atau Transfer Bank. Status update otomatis tanpa konfirmasi manual.", color: "from-rose-500 to-pink-600" },
+  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Absensi, jadwal, pengumuman, dan tagihan SPP dikirim otomatis ke WhatsApp wali murid.", color: "from-green-500 to-emerald-600" },
+  { icon: Users, title: "Portal Wali Murid", desc: "Dashboard khusus orang tua untuk pantau absensi, jadwal anak, pengumuman, dan riwayat SPP.", color: "from-cyan-500 to-blue-600" },
+  { icon: FileBarChart, title: "Laporan Terintegrasi", desc: "Rekap absensi, keuangan SPP, dan jadwal dalam satu sistem. Export Excel & PDF kapan saja.", color: "from-indigo-500 to-violet-600" },
+  { icon: GraduationCap, title: "Multi-Role & Multi Sekolah", desc: "4 peran (Admin, Bendahara, Wali Kelas, Wali Murid) dan arsitektur multi-tenant untuk banyak sekolah.", color: "from-fuchsia-500 to-purple-600" },
 ];
 
 const DEFAULT_HERO_STATS = [
@@ -642,7 +645,7 @@ const LandingPage = () => {
             {(() => {
               const ICON_FEAT_MAP: Record<string, any> = { scan: QrCode, monitor: Monitor, message: Bell, chart: FileBarChart, face: UserCheck, school: GraduationCap };
               const COLORS = ["from-blue-500 to-indigo-600", "from-violet-500 to-purple-600", "from-emerald-500 to-teal-600", "from-amber-500 to-orange-600", "from-pink-500 to-rose-600", "from-cyan-500 to-blue-600"];
-              const features = Array.from({ length: 6 }, (_, i) => {
+              const features = Array.from({ length: 9 }, (_, i) => {
                 const n = i + 1;
                 const title = get(`feature_${n}_title`) || DEFAULT_FEATURES[i]?.title || "";
                 const desc = get(`feature_${n}_desc`) || DEFAULT_FEATURES[i]?.desc || "";

@@ -34,12 +34,15 @@ interface TrustedSchool { name: string; initials: string; logo_url: string | nul
 interface Testimonial { name: string; role: string; text: string; rating: number; }
 
 const DEFAULT_FEATURES = [
-  { icon: QrCode, title: "Scan Barcode Instan", desc: "Absensi instan kurang dari 1 detik dengan scan barcode siswa.", color: "bg-blue-50 dark:bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
-  { icon: UserCheck, title: "Face Recognition", desc: "Pengenalan wajah berbasis AI. Tanpa kartu, tanpa sentuhan.", color: "bg-violet-50 dark:bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
-  { icon: Monitor, title: "Dashboard Real-Time", desc: "Pantau statistik kehadiran secara live dengan grafik interaktif.", color: "bg-emerald-50 dark:bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
-  { icon: FileBarChart, title: "Rekap & Export", desc: "Rekap otomatis harian, mingguan, bulanan. Export ke Excel & PDF.", color: "bg-amber-50 dark:bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
-  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Notifikasi otomatis ke orang tua saat anak tercatat hadir.", color: "bg-pink-50 dark:bg-pink-500/10", iconColor: "text-pink-600 dark:text-pink-400" },
-  { icon: GraduationCap, title: "Multi Sekolah", desc: "Arsitektur SaaS multi-tenant. Satu platform untuk banyak sekolah.", color: "bg-cyan-50 dark:bg-cyan-500/10", iconColor: "text-cyan-600 dark:text-cyan-400" },
+  { icon: QrCode, title: "Scan QR & Face AI", desc: "Absensi instan via QR Code atau Face Recognition AI. Tanpa kartu, tanpa sentuhan, kurang dari 1 detik.", color: "bg-blue-50 dark:bg-blue-500/10", iconColor: "text-blue-600 dark:text-blue-400" },
+  { icon: Monitor, title: "Dashboard Real-Time", desc: "Pantau kehadiran, jadwal mengajar, dan keuangan SPP secara live dengan grafik interaktif.", color: "bg-emerald-50 dark:bg-emerald-500/10", iconColor: "text-emerald-600 dark:text-emerald-400" },
+  { icon: CalendarDays, title: "Jadwal Mengajar Live", desc: "Atur jadwal mengajar per guru & kelas. Live schedule menampilkan kelas berlangsung & berikutnya.", color: "bg-violet-50 dark:bg-violet-500/10", iconColor: "text-violet-600 dark:text-violet-400" },
+  { icon: Receipt, title: "Tagihan SPP Otomatis", desc: "Generate tagihan SPP per kelas atau seluruh sekolah sekali klik, kirim WA otomatis ke wali murid.", color: "bg-amber-50 dark:bg-amber-500/10", iconColor: "text-amber-600 dark:text-amber-400" },
+  { icon: CreditCard, title: "Pembayaran Online", desc: "Wali murid bayar SPP via QRIS atau Transfer Bank. Status update otomatis tanpa konfirmasi manual.", color: "bg-rose-50 dark:bg-rose-500/10", iconColor: "text-rose-600 dark:text-rose-400" },
+  { icon: Bell, title: "Notifikasi WhatsApp", desc: "Absensi, jadwal, pengumuman, dan tagihan SPP dikirim otomatis ke WhatsApp wali murid.", color: "bg-green-50 dark:bg-green-500/10", iconColor: "text-green-600 dark:text-green-400" },
+  { icon: Users, title: "Portal Wali Murid", desc: "Dashboard khusus orang tua untuk pantau absensi, jadwal anak, pengumuman, dan riwayat SPP.", color: "bg-cyan-50 dark:bg-cyan-500/10", iconColor: "text-cyan-600 dark:text-cyan-400" },
+  { icon: FileBarChart, title: "Laporan Terintegrasi", desc: "Rekap absensi, keuangan SPP, dan jadwal dalam satu sistem. Export Excel & PDF kapan saja.", color: "bg-indigo-50 dark:bg-indigo-500/10", iconColor: "text-indigo-600 dark:text-indigo-400" },
+  { icon: GraduationCap, title: "Multi-Role & Multi Sekolah", desc: "4 peran (Admin, Bendahara, Wali Kelas, Wali Murid) dan arsitektur multi-tenant untuk banyak sekolah.", color: "bg-fuchsia-50 dark:bg-fuchsia-500/10", iconColor: "text-fuchsia-600 dark:text-fuchsia-400" },
 ];
 
 const HOW_IT_WORKS = [
