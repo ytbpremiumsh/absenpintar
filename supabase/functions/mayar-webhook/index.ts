@@ -6,6 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const isPaidStatus = (status: unknown) => {
+  const s = String(status || '').toLowerCase();
+  return ['paid', 'settled', 'success', 'completed'].includes(s) || status === true;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -13,11 +18,11 @@ serve(async (req) => {
     const body = await req.json();
     console.log('Mayar webhook received:', JSON.stringify(body));
 
-    const event = body.event;
+    const event = body.event || body['event.received'] || body.eventName || body.type;
     const data = body.data;
 
     const acceptedEvents = ['payment.received', 'payment.completed', 'payment.success', 'payment.paid'];
-    if (!acceptedEvents.includes(event)) {
+    if (event && !acceptedEvents.includes(event) && !isPaidStatus(data?.status)) {
       return new Response(JSON.stringify({ message: 'Event ignored', event }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -29,8 +34,16 @@ serve(async (req) => {
     );
 
     const transactionId = data?.id || data?.transaction_id || data?.transactionId;
-    const productId = data?.productId;
-    const paymentUrl = data?.paymentUrl;
+    const productId = data?.productId || data?.product_id || data?.paymentLinkId || data?.payment_link_id;
+    const paymentUrl = data?.paymentUrl || data?.payment_url || data?.link;
+    const identifiers = Array.from(new Set([
+      transactionId,
+      productId,
+      data?.paymentLinkId,
+      data?.payment_link_id,
+      data?.paymentLinkTransactionId,
+      data?.payment_link_transaction_id,
+    ].filter(Boolean).map(String)));
     
     if (!transactionId && !productId) {
       return new Response(JSON.stringify({ error: 'No transaction ID' }), {
