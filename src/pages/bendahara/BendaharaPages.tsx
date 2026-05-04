@@ -994,6 +994,15 @@ export function BendaharaGenerate() {
               </Button>
             </div>
           </CardContent>
+          {bulkProgress && (
+            <div className="px-4 pb-4">
+              <div className="flex items-center justify-between text-xs text-white/90 mb-1">
+                <span>{bulkProgress.phase}</span>
+                <span className="font-semibold">{bulkProgress.done}/{bulkProgress.total}</span>
+              </div>
+              <Progress value={(bulkProgress.done / Math.max(1, bulkProgress.total)) * 100} className="h-1.5 bg-white/20" />
+            </div>
+          )}
         </Card>
       </div>
 
