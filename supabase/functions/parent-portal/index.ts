@@ -72,7 +72,7 @@ async function syncSppInvoicesFromMayar(invoices: any[]) {
       if (!res.ok || !isPaidMayarStatus(data?.status)) { synced.push(inv); continue; }
 
       const paidAt = new Date().toISOString();
-      const gatewayFee = Math.round((inv.total_amount || 0) * 0.007) + 500;
+      const gatewayFee = Math.round((inv.total_amount || 0) * (feeCfg.percent / 100)) + (feeCfg.flat || 0);
       const netAmount = Math.max(0, (inv.total_amount || 0) - gatewayFee);
       const paymentMethod = data?.paymentMethod || data?.payment_method || "mayar";
       await supabase.from("spp_invoices").update({
