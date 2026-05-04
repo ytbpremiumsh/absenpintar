@@ -86,7 +86,70 @@ serve(async (req) => {
       payment = found;
     }
 
+    // 5. SPP fallback — match directly against spp_invoices (in case payment_transactions bridge missing)
     if (!payment) {
+      let sppInv: any = null;
+      if (transactionId) {
+        const { data } = await supabaseAdmin.from('spp_invoices').select('*').eq('mayar_invoice_id', transactionId).maybeSingle();
+        sppInv = data;
+      }
+      if (!sppInv && productId) {
+        const { data } = await supabaseAdmin.from('spp_invoices').select('*').eq('mayar_invoice_id', productId).maybeSingle();
+        sppInv = data;
+      }
+      if (!sppInv && paymentUrl) {
+        const { data } = await supabaseAdmin.from('spp_invoices').select('*').eq('payment_url', paymentUrl).neq('status','paid').maybeSingle();
+        sppInv = data;
+      }
+      if (!sppInv && data?.amount) {
+        const { data: found } = await supabaseAdmin.from('spp_invoices').select('*').eq('total_amount', data.amount).neq('status','paid').order('created_at',{ascending:false}).limit(1).maybeSingle();
+        sppInv = found;
+      }
+
+      if (sppInv && sppInv.status !== 'paid') {
+        const gatewayFee = Math.round(sppInv.total_amount * 0.007) + 500;
+        const netAmount = sppInv.total_amount - gatewayFee;
+        await supabaseAdmin.from('spp_invoices').update({
+          status: 'paid', paid_at: new Date().toISOString(),
+          payment_method: data?.paymentMethod || 'mayar',
+          gateway_fee: gatewayFee, net_amount: netAmount,
+          mayar_invoice_id: sppInv.mayar_invoice_id || transactionId || productId,
+        }).eq('id', sppInv.id);
+
+        await supabaseAdmin.from('spp_logs').insert({
+          school_id: sppInv.school_id, invoice_id: sppInv.id, event_type: 'webhook',
+          status: 'paid', payload: body, message: 'SPP paid (direct fallback)',
+        });
+        await supabaseAdmin.from('notifications').insert({
+          school_id: sppInv.school_id,
+          title: 'Pembayaran SPP Diterima',
+          message: `Pembayaran SPP ${sppInv.student_name} (${sppInv.class_name}) untuk ${sppInv.period_label} sebesar Rp ${(sppInv.total_amount).toLocaleString('id-ID')} telah diterima.`,
+          type: 'success',
+        });
+
+        // WA notif ke ortu
+        if (sppInv.parent_phone) {
+          try {
+            const { data: integ } = await supabaseAdmin.from('school_integrations')
+              .select('api_url, api_key, is_active').eq('school_id', sppInv.school_id).eq('is_active', true).maybeSingle();
+            if (integ?.api_url && integ?.api_key) {
+              let phone = sppInv.parent_phone.replace(/\D/g, '');
+              if (phone.startsWith('0')) phone = '62' + phone.substring(1);
+              const msg = `Halo Ayah/Bunda ${sppInv.parent_name || ''},\n\nPembayaran SPP ananda:\n*${sppInv.student_name} - ${sppInv.class_name} - ${sppInv.period_label}*\nsebesar Rp${(sppInv.total_amount).toLocaleString('id-ID')}\ntelah berhasil diterima.\n\nTerima kasih.`;
+              await fetch(integ.api_url, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${integ.api_key}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient_type: 'individual', to: phone, type: 'text', text: { body: msg } }),
+              });
+            }
+          } catch (waErr) { console.error('SPP WA notif error', waErr); }
+        }
+
+        return new Response(JSON.stringify({ success: true, type: 'spp_direct' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       console.log('Transaction not found for ID:', transactionId);
       return new Response(JSON.stringify({ message: 'Transaction not found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
