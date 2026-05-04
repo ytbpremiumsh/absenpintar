@@ -134,6 +134,22 @@ export function BendaharaDashboard() {
     return Object.entries(map).map(([name, value]) => ({ name, value }));
   }, [invoices]);
 
+  const tunggakanList = useMemo(() => {
+    const now = new Date();
+    const map = new Map<string, { name: string; class: string; total: number; count: number }>();
+    invoices.filter(i => i.status === "pending" && new Date(i.due_date) < now).forEach(i => {
+      const e = map.get(i.student_id) || { name: i.student_name, class: i.class_name, total: 0, count: 0 };
+      e.total += i.total_amount || 0; e.count += 1;
+      map.set(i.student_id, e);
+    });
+    return Array.from(map.entries()).map(([id, v]) => ({ id, ...v })).sort((a, b) => b.total - a.total).slice(0, 8);
+  }, [invoices]);
+
+  const completionRate = useMemo(() => {
+    if (invoices.length === 0) return 0;
+    return Math.round((invoices.filter(i => i.status === "paid").length / invoices.length) * 100);
+  }, [invoices]);
+
   if (loading) return <div className="p-12 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
 
   return (
@@ -150,6 +166,20 @@ export function BendaharaDashboard() {
         <StatCard label="Saldo Bisa Cair" value={fmtIDR(stats.availableBalance)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
         <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-red-500 to-rose-600" sub={`${stats.pendingCount} pending`} />
       </div>
+
+      {/* Persentase pelunasan */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">Persentase Pelunasan</p>
+              <p className="text-2xl font-extrabold text-emerald-600">{completionRate}%</p>
+            </div>
+            <CheckCircle2 className="h-10 w-10 text-emerald-500/30" />
+          </div>
+          <Progress value={completionRate} className="h-2" />
+        </CardContent>
+      </Card>
 
       {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
@@ -194,6 +224,33 @@ export function BendaharaDashboard() {
             <div><p className="text-[11px] text-muted-foreground">Saldo Pending</p><p className="font-bold text-amber-600">{fmtIDR(stats.pendingBalance)}</p></div>
             <div><p className="text-[11px] text-muted-foreground">Sudah Dicairkan</p><p className="font-bold">{fmtIDR(stats.settled)}</p></div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Siswa Menunggak */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2"><AlertCircle className="h-4 w-4 text-red-500" /> Siswa Menunggak</CardTitle>
+          <Badge variant="secondary">{tunggakanList.length}</Badge>
+        </CardHeader>
+        <CardContent className="p-0">
+          {tunggakanList.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Tidak ada tunggakan</p>
+          ) : (
+            <Table>
+              <TableHeader><TableRow><TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Bulan Nunggak</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {tunggakanList.map(t => (
+                  <TableRow key={t.id}>
+                    <TableCell className="font-medium">{t.name}</TableCell>
+                    <TableCell><Badge variant="secondary">{t.class}</Badge></TableCell>
+                    <TableCell>{t.count} bulan</TableCell>
+                    <TableCell className="text-right font-semibold text-red-600">{fmtIDR(t.total)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
