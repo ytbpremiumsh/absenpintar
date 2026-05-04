@@ -55,12 +55,14 @@ serve(async (req) => {
     // Find the payment transaction — try multiple matching strategies
     let payment = null;
     
-    // 1. Match by transactionId
-    if (transactionId) {
+    // 1. Match by all Mayar identifiers (invoice id, paymentLinkId, transaction ids)
+    if (identifiers.length) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
         .select('id, school_id, plan_id, status, amount, payment_method')
-        .eq('mayar_transaction_id', transactionId)
+        .in('mayar_transaction_id', identifiers)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       payment = found;
     }
