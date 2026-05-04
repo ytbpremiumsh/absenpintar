@@ -246,31 +246,41 @@ export function BendaharaDashboard() {
         </CardContent>
       </Card>
 
-      {/* Siswa Menunggak */}
+      {/* Riwayat Siswa Membayar SPP */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><AlertCircle className="h-4 w-4 text-red-500" /> Siswa Menunggak</CardTitle>
-          <Badge variant="secondary">{tunggakanList.length}</Badge>
+          <CardTitle className="text-base flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Riwayat Siswa Membayar SPP
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {showRecentPaid && <Badge variant="secondary">{recentPaidList.length}</Badge>}
+            <Button variant="ghost" size="sm" onClick={toggleShowRecentPaid} className="h-7 px-2 text-xs">
+              {showRecentPaid ? "Sembunyikan" : "Tampilkan"}
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="p-0">
-          {tunggakanList.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Tidak ada tunggakan</p>
-          ) : (
-            <Table>
-              <TableHeader><TableRow><TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Bulan Nunggak</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {tunggakanList.map(t => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell><Badge variant="secondary">{t.class}</Badge></TableCell>
-                    <TableCell>{t.count} bulan</TableCell>
-                    <TableCell className="text-right font-semibold text-red-600">{fmtIDR(t.total)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
+        {showRecentPaid && (
+          <CardContent className="p-0">
+            {recentPaidList.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Belum ada pembayaran</p>
+            ) : (
+              <Table>
+                <TableHeader><TableRow><TableHead>Tanggal</TableHead><TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Jumlah</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {recentPaidList.map(t => (
+                    <TableRow key={t.id}>
+                      <TableCell className="text-xs whitespace-nowrap">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
+                      <TableCell className="font-medium">{t.student_name}</TableCell>
+                      <TableCell><Badge variant="secondary">{t.class_name}</Badge></TableCell>
+                      <TableCell className="text-xs">{t.period_label}</TableCell>
+                      <TableCell className="text-right font-semibold text-emerald-600">{fmtIDR(t.total_amount)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        )}
       </Card>
     </div>
   );
