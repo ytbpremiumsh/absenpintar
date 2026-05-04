@@ -11,6 +11,29 @@ const isPaidStatus = (status: unknown) => {
   return ['paid', 'settled', 'success', 'completed'].includes(s) || status === true;
 };
 
+async function getGatewayFeeConfig(supabaseAdmin: any): Promise<{ percent: number; flat: number }> {
+  try {
+    const { data } = await supabaseAdmin
+      .from('platform_settings')
+      .select('key,value')
+      .in('key', ['gateway_fee_percent', 'gateway_fee_flat']);
+    const map: Record<string, string> = {};
+    (data || []).forEach((r: any) => { map[r.key] = r.value; });
+    const percent = parseFloat(map['gateway_fee_percent'] ?? '0.7');
+    const flat = parseInt(map['gateway_fee_flat'] ?? '500', 10);
+    return {
+      percent: isNaN(percent) ? 0.7 : percent,
+      flat: isNaN(flat) ? 500 : flat,
+    };
+  } catch {
+    return { percent: 0.7, flat: 500 };
+  }
+}
+
+function calcGatewayFee(amount: number, cfg: { percent: number; flat: number }): number {
+  return Math.round((amount || 0) * (cfg.percent / 100)) + (cfg.flat || 0);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -122,7 +145,8 @@ serve(async (req) => {
       }
 
       if (sppInv && sppInv.status !== 'paid') {
-        const gatewayFee = Math.round(sppInv.total_amount * 0.007) + 500;
+        const feeCfg = await getGatewayFeeConfig(supabaseAdmin);
+        const gatewayFee = calcGatewayFee(sppInv.total_amount, feeCfg);
         const netAmount = sppInv.total_amount - gatewayFee;
         await supabaseAdmin.from('spp_invoices').update({
           status: 'paid', paid_at: new Date().toISOString(),
@@ -211,7 +235,8 @@ serve(async (req) => {
         inv = foundInv;
       }
       if (inv) {
-        const gatewayFee = Math.round(inv.total_amount * 0.007) + 500; // ~0.7% + 500 estimate (configurable)
+        const feeCfg2 = await getGatewayFeeConfig(supabaseAdmin);
+        const gatewayFee = calcGatewayFee(inv.total_amount, feeCfg2);
         const netAmount = inv.total_amount - gatewayFee;
         await supabaseAdmin.from('spp_invoices').update({
           status: 'paid',

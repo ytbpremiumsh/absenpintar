@@ -81,11 +81,14 @@ export default function SuperAdminBendahara() {
   const [reviewing, setReviewing] = useState<Settlement | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [feePercent, setFeePercent] = useState<string>("0.7");
+  const [feeFlat, setFeeFlat] = useState<string>("500");
+  const [savingFee, setSavingFee] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [sR, iR, stR, bR] = await Promise.all([
+      const [sR, iR, stR, bR, psR] = await Promise.all([
         supabase.from("schools").select("id,name,npsn").order("name"),
         supabase.from("spp_invoices")
           .select("id,school_id,invoice_number,student_name,class_name,period_label,total_amount,net_amount,gateway_fee,status,payment_method,paid_at,settlement_id,created_at")
@@ -94,11 +97,16 @@ export default function SuperAdminBendahara() {
         supabase.from("spp_settlements")
           .select("*").order("requested_at", { ascending: false }),
         supabase.from("bendahara_settings").select("*"),
+        supabase.from("platform_settings").select("key,value").in("key", ["gateway_fee_percent", "gateway_fee_flat"]),
       ]);
       setSchools(sR.data || []);
       setInvoices((iR.data || []) as Invoice[]);
       setSettlements((stR.data || []) as Settlement[]);
       setSettings((bR.data || []) as BendaharaSetting[]);
+      const psMap: Record<string, string> = {};
+      (psR.data || []).forEach((r: any) => { psMap[r.key] = r.value; });
+      if (psMap["gateway_fee_percent"] != null) setFeePercent(psMap["gateway_fee_percent"]);
+      if (psMap["gateway_fee_flat"] != null) setFeeFlat(psMap["gateway_fee_flat"]);
     } catch (e: any) {
       toast.error("Gagal memuat data: " + e.message);
     } finally {
@@ -202,6 +210,36 @@ export default function SuperAdminBendahara() {
     setReviewing(s);
     setAdminNote(s.admin_notes || "");
     setReviewOpen(true);
+  };
+
+  const saveFeeConfig = async () => {
+    const pNum = parseFloat(feePercent);
+    const fNum = parseInt(feeFlat, 10);
+    if (isNaN(pNum) || pNum < 0 || pNum > 100) {
+      toast.error("Persentase fee harus 0–100");
+      return;
+    }
+    if (isNaN(fNum) || fNum < 0) {
+      toast.error("Biaya tetap fee harus angka ≥ 0");
+      return;
+    }
+    setSavingFee(true);
+    try {
+      const { error: e1 } = await supabase.from("platform_settings").upsert(
+        { key: "gateway_fee_percent", value: String(pNum) },
+        { onConflict: "key" }
+      );
+      const { error: e2 } = await supabase.from("platform_settings").upsert(
+        { key: "gateway_fee_flat", value: String(fNum) },
+        { onConflict: "key" }
+      );
+      if (e1 || e2) throw e1 || e2;
+      toast.success("Konfigurasi fee gateway disimpan");
+    } catch (e: any) {
+      toast.error("Gagal menyimpan: " + e.message);
+    } finally {
+      setSavingFee(false);
+    }
   };
 
   const updateSettlement = async (newStatus: "approved" | "paid" | "rejected") => {
@@ -446,7 +484,77 @@ export default function SuperAdminBendahara() {
         </TabsContent>
 
         {/* KONFIGURASI */}
-        <TabsContent value="settings" className="mt-5">
+        <TabsContent value="settings" className="mt-5 space-y-5">
+          {/* Konfigurasi Fee Gateway */}
+          <Card className="border-0 shadow-card">
+            <CardContent className="p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <h3 className="font-bold text-base flex items-center gap-2">
+                    <Settings2 className="h-4 w-4 text-primary" />
+                    Fee Gateway Pembayaran
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Atur biaya potongan gateway untuk setiap pembayaran SPP. Berlaku global ke semua sekolah.
+                  </p>
+                </div>
+                <Badge className="bg-indigo-500 text-white border-0 text-[10px]">Berlaku Global</Badge>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="fee-percent" className="text-xs font-semibold">Persentase Fee (%)</Label>
+                  <Input
+                    id="fee-percent"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={feePercent}
+                    onChange={(e) => setFeePercent(e.target.value)}
+                    placeholder="0.7"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Misal: 0.7 untuk 0,7% dari nominal pembayaran</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="fee-flat" className="text-xs font-semibold">Biaya Tetap (Rp)</Label>
+                  <Input
+                    id="fee-flat"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={feeFlat}
+                    onChange={(e) => setFeeFlat(e.target.value)}
+                    placeholder="500"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Biaya admin tetap per transaksi (boleh 0)</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-muted/40 border p-3 text-xs">
+                <p className="font-semibold mb-1">Simulasi (SPP Rp 500.000)</p>
+                <p className="text-muted-foreground">
+                  Fee = {fmtIDR(Math.round(500000 * ((parseFloat(feePercent) || 0) / 100)) + (parseInt(feeFlat, 10) || 0))}
+                  {" • "}
+                  Diterima sekolah ={" "}
+                  <span className="font-semibold text-foreground">
+                    {fmtIDR(500000 - (Math.round(500000 * ((parseFloat(feePercent) || 0) / 100)) + (parseInt(feeFlat, 10) || 0)))}
+                  </span>
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => { setFeePercent("0.7"); setFeeFlat("500"); }}>
+                  Reset Default
+                </Button>
+                <Button size="sm" onClick={saveFeeConfig} disabled={savingFee} className="bg-primary">
+                  {savingFee ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                  Simpan Konfigurasi
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-0 shadow-card overflow-hidden">
             <div className="overflow-x-auto">
               <Table>
