@@ -1288,6 +1288,8 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         if (waErr) waFail++; else waOk++;
       } catch { waFail++; }
       setBulkProgress({ done: i + 1, total: targetInvs.length });
+      // Throttle to avoid Mayar 429 duplicate-detection on bulk class send
+      if (i < targetInvs.length - 1) await new Promise((r) => setTimeout(r, 1200));
     }
     setBulkBusy(null);
     setBulkProgress(null);
