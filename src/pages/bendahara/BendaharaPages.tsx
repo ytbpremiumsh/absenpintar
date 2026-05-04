@@ -1302,31 +1302,56 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         const isOpen = openClass[className] ?? false;
         return (
           <Card key={className} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-            <button
-              onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
-            >
-              {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
-              <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
-                <GraduationCap className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
-                  <Badge variant="secondary" className="text-[10px] h-5">{list.length} siswa</Badge>
+            <div className="flex items-stretch">
+              <button
+                onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
+                className="flex-1 min-w-0 flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
+              >
+                {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+                <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
+                  <GraduationCap className="h-4 w-4 text-white" />
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
-              </div>
-              <div className="hidden md:flex items-center gap-1.5">
-                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
-                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
-                <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
-              </div>
-              <div className="flex md:hidden items-center gap-1">
-                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
-                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
-              </div>
-            </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
+                    <Badge variant="secondary" className="text-[10px] h-5">{list.length} siswa</Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
+                </div>
+                <div className="hidden md:flex items-center gap-1.5">
+                  <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
+                  <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
+                  <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
+                </div>
+                <div className="flex md:hidden items-center gap-1">
+                  <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
+                  <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
+                </div>
+              </button>
+              {nunggak > 0 && (
+                <div className="flex items-center pr-2 sm:pr-3 border-l border-border/40 bg-secondary/20">
+                  <Button
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
+                    disabled={bulkBusy === className}
+                    className="h-8 px-2.5 ml-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs shadow-sm"
+                    title={`Kirim WA tagihan ke ${nunggak} wali murid kelas ${className}`}
+                  >
+                    {bulkBusy === className ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
+                        <span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-3.5 w-3.5 sm:mr-1.5" />
+                        <span className="hidden sm:inline">Kirim WA</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
             {isOpen && (
               <div className="border-t border-border/50">
                 <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
