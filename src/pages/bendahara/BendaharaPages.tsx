@@ -717,70 +717,82 @@ function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; f
         const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
         const isOpen = openClass[className] ?? false;
         return (
-          <Card key={className} className="border-0 shadow-sm overflow-hidden">
+          <Card key={className} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
             <button
               onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
-              className="w-full flex items-center justify-between gap-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 hover:from-emerald-100 dark:hover:from-emerald-950/50 transition"
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
             >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold text-sm shadow">
-                  {className.replace(/[^0-9A-Z]/gi, "").slice(0, 3) || "K"}
+              {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+              <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
+                <GraduationCap className="h-4 w-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
+                  <Badge variant="secondary" className="text-[10px] h-5">{list.length} siswa</Badge>
                 </div>
-                <div className="text-left">
-                  <h3 className="font-bold text-base">Kelas {className}</h3>
-                  <p className="text-[11px] text-muted-foreground">{list.length} siswa · TA {filterAY}</p>
-                </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
               </div>
-              <div className="hidden md:flex items-center gap-2">
-                <Badge className="bg-emerald-500 text-white">Lunas {lunas}</Badge>
-                <Badge className="bg-red-500 text-white">Nunggak {nunggak}</Badge>
-                <Badge variant="outline" className="font-semibold">{fmtIDR(totalSisa)}</Badge>
+              <div className="hidden md:flex items-center gap-1.5">
+                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
+                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
+                <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
               </div>
-              <div className="flex md:hidden items-center gap-1.5">
-                <Badge className="bg-emerald-500 text-white text-[10px]">{lunas}</Badge>
-                <Badge className="bg-red-500 text-white text-[10px]">{nunggak}</Badge>
+              <div className="flex md:hidden items-center gap-1">
+                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
+                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
               </div>
-              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
             </button>
             {isOpen && (
-              <div className="divide-y">
-                {list.map(s => {
-                  const pct = s.total > 0 ? Math.round((s.lunas / s.total) * 100) : 0;
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
-                      className="flex items-center gap-3 p-3 hover:bg-muted/40 cursor-pointer transition"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-sm font-bold text-emerald-700 shrink-0">
-                        {s.name[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold truncate">{s.name}</p>
-                          <StatusBadge status={s.aggStatus} />
-                        </div>
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          NIS {s.student_id} · {s.parent_name || "-"} {s.parent_phone ? `· ${s.parent_phone}` : ""}
-                        </p>
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <div className="flex-1 max-w-[180px]">
+              <div className="border-t border-border/50">
+                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {list.map(s => {
+                    const pct = s.total > 0 ? Math.round((s.lunas / s.total) * 100) : 0;
+                    return (
+                      <Card
+                        key={s.id}
+                        onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
+                        className="border border-border/50 shadow-sm hover:shadow-md hover:border-[#5B6CF9]/40 transition-all cursor-pointer overflow-hidden"
+                      >
+                        <CardContent className="p-3.5 space-y-2.5">
+                          <div className="flex items-start gap-2.5">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                              {s.name[0]?.toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-foreground truncate hover:underline">{s.name}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">NIS {s.student_id}</p>
+                            </div>
+                            <StatusBadge status={s.aggStatus} />
+                          </div>
+                          {s.parent_name && (
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              Wali: {s.parent_name}{s.parent_phone ? ` · ${s.parent_phone}` : ""}
+                            </p>
+                          )}
+                          <div>
+                            <div className="flex items-center justify-between text-[10px] mb-1">
+                              <span className="font-medium text-muted-foreground">{s.lunas}/{s.total} bulan lunas</span>
+                              <span className="font-semibold text-[#5B6CF9]">{pct}%</span>
+                            </div>
                             <Progress value={pct} className="h-1.5" />
                           </div>
-                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{s.lunas}/{s.total} bln</span>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className={`text-sm font-bold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                          {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
-                        </p>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 mt-0.5">
-                          <Eye className="h-3.5 w-3.5 mr-1" /> Detail
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
+                          <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">Sisa Tagihan</p>
+                              <p className={`text-sm font-bold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                                {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
+                              </p>
+                            </div>
+                            <Button size="sm" className="h-7 px-2.5 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white text-xs shadow-sm">
+                              <Eye className="h-3.5 w-3.5 mr-1" /> Detail
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </Card>
