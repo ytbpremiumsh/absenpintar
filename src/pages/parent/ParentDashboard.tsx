@@ -145,8 +145,33 @@ export default function ParentDashboard() {
       const d = await invoke("list_leaves", body); setLeaves(d.leaves || []);
     } else if (tab === "contact") {
       const d = await invoke("homeroom", body); setHomeroom(d);
+    } else if (tab === "spp") {
+      const d = await invoke("spp_list", body);
+      setSppData({ aktif: d.aktif || [], tunggakan: d.tunggakan || [], lunas: d.lunas || [], total_tunggakan: d.total_tunggakan || 0 });
     }
   }, [tab, selectedStudent, invoke]);
+
+  const paySpp = async (invoiceId: string) => {
+    setSppBusy(invoiceId);
+    const d = await invoke("spp_pay", { student_id: selectedStudent, invoice_id: invoiceId });
+    setSppBusy(null);
+    if (d?.error) { toast.error(d.error); return; }
+    if (d?.payment_url) { window.open(d.payment_url, "_blank"); toast.success("Membuka halaman pembayaran..."); loadTab(); }
+  };
+
+  const downloadSppPdf = async (inv: any) => {
+    setSppBusy(`pdf-${inv.id}`);
+    try {
+      const sch = await invoke("school_info", { student_id: selectedStudent });
+      await downloadSppInvoicePDF({
+        invoice: inv,
+        student: { student_id: current?.student_id, parent_name: current?.parent_name },
+        school: sch?.school || { name: "Sekolah" },
+      });
+      toast.success("Invoice diunduh");
+    } catch (e: any) { toast.error(e.message || "Gagal"); }
+    finally { setSppBusy(null); }
+  };
 
   useEffect(() => { loadTab(); }, [loadTab]);
 
