@@ -88,7 +88,7 @@ export default function SuperAdminBendahara() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [sR, iR, stR, bR] = await Promise.all([
+      const [sR, iR, stR, bR, psR] = await Promise.all([
         supabase.from("schools").select("id,name,npsn").order("name"),
         supabase.from("spp_invoices")
           .select("id,school_id,invoice_number,student_name,class_name,period_label,total_amount,net_amount,gateway_fee,status,payment_method,paid_at,settlement_id,created_at")
@@ -97,11 +97,16 @@ export default function SuperAdminBendahara() {
         supabase.from("spp_settlements")
           .select("*").order("requested_at", { ascending: false }),
         supabase.from("bendahara_settings").select("*"),
+        supabase.from("platform_settings").select("key,value").in("key", ["gateway_fee_percent", "gateway_fee_flat"]),
       ]);
       setSchools(sR.data || []);
       setInvoices((iR.data || []) as Invoice[]);
       setSettlements((stR.data || []) as Settlement[]);
       setSettings((bR.data || []) as BendaharaSetting[]);
+      const psMap: Record<string, string> = {};
+      (psR.data || []).forEach((r: any) => { psMap[r.key] = r.value; });
+      if (psMap["gateway_fee_percent"] != null) setFeePercent(psMap["gateway_fee_percent"]);
+      if (psMap["gateway_fee_flat"] != null) setFeeFlat(psMap["gateway_fee_flat"]);
     } catch (e: any) {
       toast.error("Gagal memuat data: " + e.message);
     } finally {
