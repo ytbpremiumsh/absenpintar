@@ -1561,21 +1561,69 @@ export function BendaharaImportExport() {
   const [errorRows, setErrorRows] = useState<{ row: number; error: string }[]>([]);
   const [importing, setImporting] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
+  const [classes, setClasses] = useState<string[]>([]);
+  const [school, setSchool] = useState<any>(null);
+
+  // Export filters
+  const currentAY = academicYearOf(new Date().getMonth() + 1, new Date().getFullYear());
+  const [expClass, setExpClass] = useState<string>("all");
+  const [expAY, setExpAY] = useState<string>(currentAY);
+  const [expStatus, setExpStatus] = useState<string>("all");
+  const [expCount, setExpCount] = useState({ total: 0, paid: 0, unpaid: 0, sum: 0 });
 
   useEffect(() => {
     if (!profile?.school_id) return;
-    supabase.from("students").select("id, name, student_id, class").eq("school_id", profile.school_id).then(({ data }) => setStudents(data || []));
+    Promise.all([
+      supabase.from("students").select("id, name, student_id, class, parent_name, parent_phone").eq("school_id", profile.school_id),
+      supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
+      supabase.from("schools").select("name, npsn, address").eq("id", profile.school_id).maybeSingle(),
+    ]).then(([s, c, sc]) => {
+      setStudents(s.data || []);
+      setClasses((c.data || []).map((x: any) => x.name));
+      setSchool(sc.data);
+    });
   }, [profile?.school_id]);
 
+  // Live preview count
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    let q = supabase.from("spp_invoices").select("*", { count: "exact" }).eq("school_id", profile.school_id);
+    if (expClass !== "all") q = q.eq("class_name", expClass);
+    if (expStatus !== "all") q = q.eq("status", expStatus);
+    q.then(({ data }) => {
+      const filtered = (data || []).filter(i => expAY === "all" || academicYearOf(i.period_month, i.period_year) === expAY);
+      setExpCount({
+        total: filtered.length,
+        paid: filtered.filter(i => i.status === "paid").length,
+        unpaid: filtered.filter(i => i.status !== "paid").length,
+        sum: filtered.reduce((a, i) => a + (i.total_amount || 0), 0),
+      });
+    });
+  }, [profile?.school_id, expClass, expAY, expStatus]);
+
   const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
-      ["nis", "nama_siswa", "kelas", "tahun_ajaran", "bulan", "tahun", "nominal", "tanggal_jatuh_tempo"],
-      ["12345", "Ahmad Fauzan", "VII A", "2026/2027", "1", "2027", "150000", "2027-01-10"],
-      ["12346", "Siti Nurhaliza", "VII A", "2026/2027", "1", "2027", "150000", "2027-01-10"],
-    ]);
+    const sample = students.slice(0, 5);
+    const header = ["nis", "nama_siswa", "kelas", "tahun_ajaran", "bulan", "tahun", "nominal", "tanggal_jatuh_tempo", "denda"];
+    const exampleRows = sample.length > 0
+      ? sample.map(s => [s.student_id, s.name, s.class, currentAY, "1", String(new Date().getFullYear() + 1), "150000", `${new Date().getFullYear() + 1}-01-10`, "0"])
+      : [["12345", "Ahmad Fauzan", "VII A", "2026/2027", "1", "2027", "150000", "2027-01-10", "0"]];
+    const ws = XLSX.utils.aoa_to_sheet([header, ...exampleRows]);
+    ws["!cols"] = [{ wch: 12 }, { wch: 25 }, { wch: 10 }, { wch: 14 }, { wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 18 }, { wch: 10 }];
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template SPP");
-    XLSX.writeFile(wb, "template-import-spp.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Tagihan SPP");
+
+    // Add reference sheet with classes & students
+    const refData = [
+      ["DAFTAR KELAS"], ...classes.map(c => [c]),
+      [""], ["DAFTAR SISWA (NIS — Nama — Kelas)"],
+      ...students.map(s => [s.student_id, s.name, s.class]),
+    ];
+    const wsRef = XLSX.utils.aoa_to_sheet(refData);
+    wsRef["!cols"] = [{ wch: 15 }, { wch: 30 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, wsRef, "Referensi");
+
+    XLSX.writeFile(wb, `template-import-spp-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success("Template diunduh — sheet 'Referensi' berisi daftar siswa & kelas");
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1598,16 +1646,19 @@ export function BendaharaImportExport() {
           const month = parseInt(r.bulan);
           const year = parseInt(r.tahun);
           const nominal = parseInt(r.nominal);
+          const denda = parseInt(r.denda) || 0;
           if (!nis) return errors.push({ row: rowNum, error: "NIS kosong" });
-          if (!month || month < 1 || month > 12) return errors.push({ row: rowNum, error: "Bulan tidak valid" });
+          if (!month || month < 1 || month > 12) return errors.push({ row: rowNum, error: "Bulan tidak valid (1-12)" });
           if (!year || year < 2020) return errors.push({ row: rowNum, error: "Tahun tidak valid" });
-          if (!nominal || nominal <= 0) return errors.push({ row: rowNum, error: "Nominal tidak valid" });
+          if (!nominal || nominal <= 0) return errors.push({ row: rowNum, error: "Nominal harus > 0" });
           const student = students.find(s => s.student_id === nis);
-          if (!student) return errors.push({ row: rowNum, error: `Siswa NIS ${nis} tidak ditemukan` });
-          valid.push({ ...r, _student: student, _month: month, _year: year, _nominal: nominal });
+          if (!student) return errors.push({ row: rowNum, error: `NIS ${nis} tidak ditemukan` });
+          valid.push({ ...r, _student: student, _month: month, _year: year, _nominal: nominal, _denda: denda });
         });
         setValidRows(valid);
         setErrorRows(errors);
+        if (valid.length > 0) toast.success(`${valid.length} baris valid, ${errors.length} error`);
+        else toast.error(`Semua baris gagal divalidasi (${errors.length} error)`);
       } catch (err: any) {
         toast.error("Gagal membaca file: " + err.message);
       }
@@ -1621,17 +1672,18 @@ export function BendaharaImportExport() {
     const rows = validRows.map(r => {
       const dueDate = r.tanggal_jatuh_tempo ? new Date(r.tanggal_jatuh_tempo) : new Date(r._year, r._month - 1, 10);
       const label = `${MONTHS[r._month - 1]} ${r._year}`;
+      const total = r._nominal + r._denda;
       return {
         school_id: profile!.school_id,
         student_id: r._student.id,
-        invoice_number: `SPP/${r._year}${String(r._month).padStart(2,"0")}/${r._student.student_id}`,
+        invoice_number: `SPP/${r._year}${String(r._month).padStart(2, "0")}/${r._student.student_id}`,
         student_name: r._student.name,
         class_name: r._student.class,
-        parent_name: r.nama_wali || null,
-        parent_phone: r.no_wa_wali || null,
+        parent_name: r._student.parent_name || null,
+        parent_phone: r._student.parent_phone || null,
         period_month: r._month, period_year: r._year, period_label: label,
         description: `${r._student.name} - ${r._student.class} - ${label}`,
-        amount: r._nominal, denda: 0, total_amount: r._nominal,
+        amount: r._nominal, denda: r._denda, total_amount: total,
         due_date: dueDate.toISOString().slice(0, 10),
       };
     });
@@ -1643,101 +1695,209 @@ export function BendaharaImportExport() {
 
   const exportData = async (format: "xlsx" | "csv" | "pdf") => {
     if (!profile?.school_id) return;
-    toast.loading("Menyiapkan export...");
-    const { data: invs } = await supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).order("period_year").order("period_month");
-    toast.dismiss();
-    if (!invs || invs.length === 0) { toast.error("Tidak ada data"); return; }
+    const tid = toast.loading("Menyiapkan export...");
+    let q = supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id);
+    if (expClass !== "all") q = q.eq("class_name", expClass);
+    if (expStatus !== "all") q = q.eq("status", expStatus);
+    const { data: invs } = await q.order("class_name").order("student_name").order("period_year").order("period_month");
+    toast.dismiss(tid);
+    const filtered = (invs || []).filter(i => expAY === "all" || academicYearOf(i.period_month, i.period_year) === expAY);
+    if (filtered.length === 0) { toast.error("Tidak ada data untuk filter ini"); return; }
 
-    const rows = invs.map(i => ({
-      Invoice: i.invoice_number, Siswa: i.student_name, Kelas: i.class_name,
-      Wali: i.parent_name || "", Bulan: i.period_label,
-      Nominal: i.total_amount, Status: i.status,
+    const rows = filtered.map((i, idx) => ({
+      "No": idx + 1,
+      "No. Invoice": i.invoice_number,
+      "NIS": students.find(s => s.id === i.student_id)?.student_id || "",
+      "Nama Siswa": i.student_name,
+      "Kelas": i.class_name,
+      "Tahun Ajaran": academicYearOf(i.period_month, i.period_year),
+      "Periode": i.period_label,
+      "Nama Wali": i.parent_name || "",
+      "No. WA Wali": i.parent_phone || "",
+      "Nominal": i.amount,
+      "Denda": i.denda,
+      "Total": i.total_amount,
+      "Jatuh Tempo": i.due_date ? new Date(i.due_date).toLocaleDateString("id-ID") : "",
+      "Status": i.status === "paid" ? "Lunas" : i.status === "pending" ? "Pending" : i.status === "expired" ? "Kadaluarsa" : "Belum Bayar",
       "Tgl Bayar": i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "",
-      Metode: i.payment_method || "",
+      "Metode": i.payment_method || "",
     }));
 
+    const filterTag = `${expAY === "all" ? "ALL" : expAY.replace("/", "-")}_${expClass === "all" ? "SEMUA-KELAS" : expClass.replace(/\s/g, "-")}_${expStatus.toUpperCase()}`;
+    const fname = `SPP_${filterTag}_${new Date().toISOString().slice(0, 10)}`;
+
     if (format === "xlsx") {
-      const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "SPP");
-      XLSX.writeFile(wb, `spp-${new Date().toISOString().slice(0,10)}.xlsx`);
+      // Group per class — one sheet per class (national format)
+      if (expClass === "all") {
+        const grouped = new Map<string, any[]>();
+        rows.forEach(r => {
+          const cls = String(r["Kelas"]);
+          if (!grouped.has(cls)) grouped.set(cls, []);
+          grouped.get(cls)!.push(r);
+        });
+        // Summary sheet
+        const summary = Array.from(grouped.entries()).map(([cls, list]) => ({
+          "Kelas": cls,
+          "Jumlah Tagihan": list.length,
+          "Lunas": list.filter(x => x.Status === "Lunas").length,
+          "Belum Bayar": list.filter(x => x.Status !== "Lunas").length,
+          "Total Tagihan": list.reduce((a, x) => a + (x.Total || 0), 0),
+        }));
+        const wsSum = XLSX.utils.json_to_sheet(summary);
+        wsSum["!cols"] = [{ wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 16 }];
+        XLSX.utils.book_append_sheet(wb, wsSum, "Ringkasan");
+        // Per-class sheet
+        Array.from(grouped.entries()).forEach(([cls, list]) => {
+          const ws = XLSX.utils.json_to_sheet(list);
+          ws["!cols"] = Object.keys(list[0]).map(k => ({ wch: Math.min(Math.max(k.length + 2, 10), 28) }));
+          XLSX.utils.book_append_sheet(wb, ws, cls.slice(0, 31));
+        });
+      } else {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws["!cols"] = Object.keys(rows[0]).map(k => ({ wch: Math.min(Math.max(k.length + 2, 10), 28) }));
+        XLSX.utils.book_append_sheet(wb, ws, expClass.slice(0, 31));
+      }
+      XLSX.writeFile(wb, `${fname}.xlsx`);
     } else if (format === "csv") {
       const ws = XLSX.utils.json_to_sheet(rows);
       const csv = XLSX.utils.sheet_to_csv(ws);
-      const blob = new Blob([csv], { type: "text/csv" });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = `spp-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+      const a = document.createElement("a"); a.href = url; a.download = `${fname}.csv`; a.click();
       URL.revokeObjectURL(url);
     } else {
-      const doc = new jsPDF();
-      doc.text("Laporan SPP", 14, 14);
+      const doc = new jsPDF("l", "mm", "a4");
+      doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("LAPORAN TAGIHAN SPP", 14, 14);
+      doc.setFontSize(10); doc.setFont("helvetica", "normal");
+      doc.text(school?.name || "", 14, 21);
+      doc.setFontSize(9);
+      doc.text(`NPSN: ${school?.npsn || "-"}`, 14, 27);
+      doc.text(`Tahun Ajaran: ${expAY === "all" ? "Semua" : expAY}  •  Kelas: ${expClass === "all" ? "Semua" : expClass}  •  Status: ${expStatus === "all" ? "Semua" : expStatus}`, 14, 33);
+      doc.text(`Total: ${rows.length} tagihan • ${fmtIDR(rows.reduce((a, r) => a + (r.Total || 0), 0))}`, 14, 39);
       (doc as any).autoTable({
-        startY: 20,
-        head: [Object.keys(rows[0])],
-        body: rows.map(r => Object.values(r)),
-        styles: { fontSize: 7 },
+        startY: 45,
+        head: [["No", "NIS", "Nama Siswa", "Kelas", "Periode", "Total", "Jatuh Tempo", "Status"]],
+        body: rows.map(r => [r.No, r.NIS, r["Nama Siswa"], r.Kelas, r.Periode, fmtIDR(r.Total), r["Jatuh Tempo"], r.Status]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [91, 108, 249], textColor: 255 },
+        alternateRowStyles: { fillColor: [248, 249, 252] },
       });
-      doc.save(`spp-${new Date().toISOString().slice(0,10)}.pdf`);
+      doc.save(`${fname}.pdf`);
     }
     toast.success("Export selesai");
   };
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Import & Export SPP</h1>
+      <PageHeader icon={ArrowDownToLine} title="Import & Export SPP" subtitle="Format nasional — sistematis per kelas, mendukung Excel, CSV, dan PDF" />
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#5B6CF9]/10 to-transparent"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Tagihan</p><p className="text-xl font-bold mt-0.5">{expCount.total}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><Receipt className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Lunas</p><p className="text-xl font-bold mt-0.5 text-emerald-600">{expCount.paid}</p></div><div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Belum Bayar</p><p className="text-xl font-bold mt-0.5 text-amber-600">{expCount.unpaid}</p></div><div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center"><AlertCircle className="h-4 w-4 text-amber-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Nominal</p><p className="text-base font-bold mt-0.5">{fmtIDR(expCount.sum)}</p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><Banknote className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
+      </div>
 
       {/* Export */}
       <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Download className="h-4 w-4" /> Export Data</CardTitle></CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">Unduh seluruh data tagihan SPP.</p>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Download className="h-4 w-4 text-[#5B6CF9]" /> Export Data</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div>
+              <Label className="text-xs">Tahun Ajaran</Label>
+              <Select value={expAY} onValueChange={setExpAY}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua TA</SelectItem>
+                  {academicYearList(new Date().getFullYear()).map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Kelas</Label>
+              <Select value={expClass} onValueChange={setExpClass}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kelas (per-sheet)</SelectItem>
+                  {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Status</Label>
+              <Select value={expStatus} onValueChange={setExpStatus}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="paid">Lunas</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="unpaid">Belum Bayar</SelectItem>
+                  <SelectItem value="expired">Kadaluarsa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
+            <strong className="text-foreground">Format Nasional:</strong> kolom No, No. Invoice, NIS, Nama, Kelas, Tahun Ajaran, Periode, Wali, Nominal, Denda, Total, Jatuh Tempo, Status, Tgl Bayar.
+            Saat memilih "Semua Kelas", Excel akan dipisah <strong>per-sheet kelas</strong> + sheet Ringkasan.
+          </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => exportData("xlsx")} className="bg-emerald-600 hover:bg-emerald-700"><Download className="h-4 w-4 mr-2" /> Excel</Button>
+            <Button onClick={() => exportData("xlsx")} className="bg-[#5B6CF9] hover:bg-[#4c5ded]"><Download className="h-4 w-4 mr-2" /> Excel (per kelas)</Button>
             <Button onClick={() => exportData("csv")} variant="outline"><Download className="h-4 w-4 mr-2" /> CSV</Button>
-            <Button onClick={() => exportData("pdf")} variant="outline"><Download className="h-4 w-4 mr-2" /> PDF</Button>
+            <Button onClick={() => exportData("pdf")} variant="outline"><Download className="h-4 w-4 mr-2" /> PDF Laporan</Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Import */}
       <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Upload className="h-4 w-4" /> Import Tagihan</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Upload className="h-4 w-4 text-[#5B6CF9]" /> Import Tagihan</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" onClick={downloadTemplate}><FileText className="h-4 w-4 mr-2" /> Download Template</Button>
-            <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} className="max-w-xs" />
+          <div className="rounded-lg border-2 border-dashed border-[#5B6CF9]/30 bg-[#5B6CF9]/5 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Langkah 1 — Unduh Template</p>
+                <p className="text-xs text-muted-foreground">Template berisi sheet Referensi (daftar siswa & kelas Anda)</p>
+              </div>
+              <Button variant="outline" onClick={downloadTemplate}><FileText className="h-4 w-4 mr-2" /> Download Template</Button>
+            </div>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-            Format kolom: <strong>nis, nama_siswa, kelas, tahun_ajaran, bulan, tahun, nominal, tanggal_jatuh_tempo</strong>
+          <div className="rounded-lg border-2 border-dashed border-muted-foreground/30 p-4">
+            <p className="text-sm font-semibold mb-2">Langkah 2 — Upload File</p>
+            <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} className="max-w-sm" />
+            <p className="text-[11px] text-muted-foreground mt-2">Format: <code className="bg-muted px-1 rounded">nis, nama_siswa, kelas, tahun_ajaran, bulan, tahun, nominal, tanggal_jatuh_tempo, denda</code></p>
           </div>
 
           {(validRows.length > 0 || errorRows.length > 0) && (
             <>
               <div className="flex gap-2 flex-wrap">
-                <Badge className="bg-emerald-500">Valid: {validRows.length}</Badge>
-                {errorRows.length > 0 && <Badge className="bg-red-500">Error: {errorRows.length}</Badge>}
-                <Badge variant="secondary">Total baris: {previewRows.length}</Badge>
+                <Badge className="bg-emerald-500 hover:bg-emerald-500"><CheckCircle2 className="h-3 w-3 mr-1" /> Valid: {validRows.length}</Badge>
+                {errorRows.length > 0 && <Badge className="bg-red-500 hover:bg-red-500"><AlertCircle className="h-3 w-3 mr-1" /> Error: {errorRows.length}</Badge>}
+                <Badge variant="secondary">Total: {previewRows.length}</Badge>
               </div>
 
               {errorRows.length > 0 && (
                 <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg p-3 max-h-40 overflow-y-auto">
-                  <p className="text-xs font-bold text-red-700 mb-1">Baris gagal:</p>
-                  {errorRows.map((e, i) => <p key={i} className="text-[11px] text-red-700">Baris {e.row}: {e.error}</p>)}
+                  <p className="text-xs font-bold text-red-700 dark:text-red-300 mb-1">Baris gagal divalidasi:</p>
+                  {errorRows.map((e, i) => <p key={i} className="text-[11px] text-red-700 dark:text-red-300">Baris {e.row}: {e.error}</p>)}
                 </div>
               )}
 
               {validRows.length > 0 && (
                 <div className="border rounded-lg overflow-x-auto max-h-72">
                   <Table>
-                    <TableHeader><TableRow><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nominal</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow className="bg-muted/40"><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {validRows.slice(0, 50).map((r, i) => (
                         <TableRow key={i}>
                           <TableCell className="text-xs">{r.nis}</TableCell>
                           <TableCell className="text-xs">{r._student.name}</TableCell>
-                          <TableCell className="text-xs">{r._student.class}</TableCell>
+                          <TableCell className="text-xs"><Badge variant="secondary">{r._student.class}</Badge></TableCell>
                           <TableCell className="text-xs">{MONTHS[r._month - 1]} {r._year}</TableCell>
-                          <TableCell className="text-xs font-semibold text-right">{fmtIDR(r._nominal)}</TableCell>
+                          <TableCell className="text-xs font-semibold text-right">{fmtIDR(r._nominal + r._denda)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1746,7 +1906,7 @@ export function BendaharaImportExport() {
                 </div>
               )}
 
-              <Button disabled={importing || validRows.length === 0} onClick={submitImport} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button disabled={importing || validRows.length === 0} onClick={submitImport} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
                 {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
                 Import {validRows.length} Tagihan
               </Button>
