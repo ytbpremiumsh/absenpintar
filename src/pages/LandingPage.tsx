@@ -47,10 +47,10 @@ const WHY_ITEMS = [
 ];
 
 const WORKFLOW = [
-  { step: "01", title: "Daftar & Setup", desc: "Buat akun sekolah dan import data siswa dalam hitungan menit." },
-  { step: "02", title: "Siswa Scan", desc: "Siswa scan barcode atau gunakan face recognition untuk absensi." },
-  { step: "03", title: "Monitoring Live", desc: "Pantau kehadiran real-time dan terima notifikasi otomatis." },
-  { step: "04", title: "Rekap & Laporan", desc: "Download rekap lengkap dalam format Excel atau PDF." },
+  { step: "01", title: "Daftar & Setup Sekolah", desc: "Buat akun, import data siswa, guru, kelas, serta atur jadwal mengajar dan tagihan SPP." },
+  { step: "02", title: "Aktivitas Harian", desc: "Siswa absen via QR/Face Recognition, guru mengajar sesuai jadwal live, bendahara generate tagihan." },
+  { step: "03", title: "Wali Murid Terhubung", desc: "Orang tua menerima notifikasi WhatsApp untuk absensi, jadwal, pengumuman, dan tagihan SPP." },
+  { step: "04", title: "Laporan & Pembayaran", desc: "Rekap absensi, monitoring live, pembayaran SPP online (QRIS/Transfer), dan export Excel/PDF." },
 ];
 
 const DEFAULT_TRUSTED_SCHOOLS = [
@@ -599,7 +599,7 @@ const LandingPage = () => {
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Mulai dalam 4 Langkah Mudah
             </h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Proses sederhana dari pendaftaran hingga monitoring kehadiran siswa.</p>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Dari setup sekolah, absensi & jadwal mengajar, hingga pembayaran SPP online — semua dalam satu platform.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
