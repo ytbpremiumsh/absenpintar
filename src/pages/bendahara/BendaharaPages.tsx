@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
-  Receipt, ArrowDownToLine, Settings as SettingsIcon, Banknote, RefreshCw, FileText,
+  Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
