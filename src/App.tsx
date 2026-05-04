@@ -160,6 +160,7 @@ function AppRoutes() {
         <Route path="/teachers" element={<Teachers />} />
         <Route path="/wali-kelas" element={<ManageWaliKelas />} />
         <Route path="/staff" element={<ManageStaff />} />
+        <Route path="/bendahara-manage" element={<ManageBendahara />} />
         <Route path="/wali-kelas-dashboard" element={<WaliKelasDashboard />} />
         <Route path="/wali-kelas-attendance" element={<WaliKelasAttendance />} />
         <Route path="/wali-kelas-students" element={<WaliKelasStudents />} />

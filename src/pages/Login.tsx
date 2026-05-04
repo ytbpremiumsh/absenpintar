@@ -63,6 +63,7 @@ const Login = () => {
       ]);
       const rolesList = (roles || []).map((r: any) => r.role);
       const isSuperAdmin = rolesList.includes("super_admin");
+      const isBendahara = rolesList.includes("bendahara");
       const isTeacher = rolesList.includes("teacher");
 
       let schoolName: string | null = null;
@@ -81,6 +82,7 @@ const Login = () => {
 
       setLoading(false);
       if (isSuperAdmin) navigate("/super-admin");
+      else if (isBendahara) navigate("/bendahara");
       else if (isTeacher) navigate("/teacher-dashboard");
       else navigate("/dashboard");
     } else {
