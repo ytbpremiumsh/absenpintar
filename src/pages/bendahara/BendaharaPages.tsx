@@ -1700,10 +1700,26 @@ export function BendaharaImportExport() {
         due_date: dueDate.toISOString().slice(0, 10),
       };
     });
-    const { error } = await supabase.from("spp_invoices").upsert(rows, { onConflict: "school_id,student_id,period_year,period_month", ignoreDuplicates: true });
+    const { data: existingForImport } = await supabase
+      .from("spp_invoices")
+      .select("student_id, period_month, period_year, status")
+      .eq("school_id", profile!.school_id)
+      .in("student_id", rows.map(r => r.student_id));
+    const existsKey = new Set(
+      (existingForImport || [])
+        .filter((e: any) => e.status !== "expired")
+        .map((e: any) => `${e.student_id}|${e.period_year}|${e.period_month}`)
+    );
+    const toInsert = rows.filter(r => !existsKey.has(`${r.student_id}|${r.period_year}|${r.period_month}`));
+    if (toInsert.length === 0) {
+      setImporting(false);
+      toast.info("Semua tagihan sudah ada");
+      return;
+    }
+    const { error } = await supabase.from("spp_invoices").insert(toInsert);
     setImporting(false);
     if (error) toast.error(error.message);
-    else { toast.success(`${rows.length} tagihan berhasil di-import`); setPreviewRows([]); setValidRows([]); setErrorRows([]); }
+    else { toast.success(`${toInsert.length} tagihan berhasil di-import${toInsert.length < rows.length ? ` (${rows.length - toInsert.length} dilewati)` : ""}`); setPreviewRows([]); setValidRows([]); setErrorRows([]); }
   };
 
   const exportData = async (format: "xlsx" | "csv" | "pdf") => {
