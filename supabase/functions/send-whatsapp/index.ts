@@ -266,15 +266,24 @@ serve(async (req) => {
     const results: { target: string; ok: boolean; data: any }[] = [];
 
     if (gatewayType === 'mpwa') {
-      // ═══ MPWA Gateway - same /send-message for phone & group ═══
+      const buttonSpec = detectButtons(message, message_type);
+
       if (phone) {
         const formattedPhone = formatPhoneNumber(phone);
-        const result = await sendMpwaMessage(finalApiKey, mpwaSenderNum, formattedPhone, message);
-        results.push({ target: `phone:${formattedPhone}`, ...result });
+        const result = buttonSpec
+          ? await sendMpwaButton(finalApiKey, mpwaSenderNum, formattedPhone, message, buttonSpec.buttons, buttonSpec.footer)
+          : await sendMpwaMessage(finalApiKey, mpwaSenderNum, formattedPhone, message);
+        // Fallback to plain text if button send fails
+        if (!result.ok && buttonSpec) {
+          const fallback = await sendMpwaMessage(finalApiKey, mpwaSenderNum, formattedPhone, message);
+          results.push({ target: `phone:${formattedPhone}`, ...fallback });
+        } else {
+          results.push({ target: `phone:${formattedPhone}`, ...result });
+        }
       }
 
       if (group_id) {
-        // Send to group using the same /send-message endpoint with isGroup flag
+        // Buttons not supported for groups in MPWA; always plain text
         const result = await sendMpwaMessage(finalApiKey, mpwaSenderNum, group_id, message, true);
         results.push({ target: `group:${group_id}`, ...result });
       }
