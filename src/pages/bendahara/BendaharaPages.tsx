@@ -1,24 +1,60 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
-  Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle,
+  Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle, Mail, Copy,
+  Download, Upload, ArrowLeft, User, ChevronRight, Eye,
 } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell } from "recharts";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+// Helper: hitung tahun ajaran (Juli-Juni). Bulan 7-12 = year/year+1, bulan 1-6 = year-1/year
+const academicYearOf = (month: number, year: number) => {
+  if (month >= 7) return `${year}/${year + 1}`;
+  return `${year - 1}/${year}`;
+};
+const academicYearList = (currentYear: number) => {
+  const arr: string[] = [];
+  for (let y = currentYear - 2; y <= currentYear + 1; y++) arr.push(`${y}/${y + 1}`);
+  return arr;
+};
+const monthsOfAcademicYear = (ay: string): { month: number; year: number; label: string }[] => {
+  const [y1, y2] = ay.split("/").map(Number);
+  const arr: { month: number; year: number; label: string }[] = [];
+  for (let m = 7; m <= 12; m++) arr.push({ month: m, year: y1, label: `${MONTHS[m - 1]} ${y1}` });
+  for (let m = 1; m <= 6; m++) arr.push({ month: m, year: y2, label: `${MONTHS[m - 1]} ${y2}` });
+  return arr;
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const map: any = {
+    paid: { c: "bg-emerald-500 hover:bg-emerald-500", t: "Lunas" },
+    pending: { c: "bg-amber-500 hover:bg-amber-500", t: "Pending" },
+    unpaid: { c: "bg-slate-400 hover:bg-slate-400", t: "Belum Bayar" },
+    failed: { c: "bg-red-500 hover:bg-red-500", t: "Gagal" },
+    expired: { c: "bg-slate-500 hover:bg-slate-500", t: "Expired" },
+  };
+  const v = map[status] || map.unpaid;
+  return <Badge className={`${v.c} text-white`}>{v.t}</Badge>;
+};
 
 function StatCard({ label, value, icon: Icon, gradient = "from-emerald-500 to-teal-600", sub }: any) {
   return (
