@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
   Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle, Mail, Copy,
-  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye, GraduationCap,
+  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye, GraduationCap, Send,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import * as XLSX from "xlsx";
