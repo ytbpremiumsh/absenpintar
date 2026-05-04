@@ -76,6 +76,7 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
 const TABS = [
   { id: "home", label: "Beranda", icon: Sparkles },
   { id: "attendance", label: "Absensi", icon: ClipboardList },
+  { id: "spp", label: "SPP", icon: Wallet },
   { id: "schedule", label: "Jadwal", icon: CalendarDays },
   { id: "info", label: "Info", icon: Megaphone },
   { id: "leave", label: "Izin", icon: FileText },
