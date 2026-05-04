@@ -585,58 +585,73 @@ export function BendaharaTransaksi() {
     totalSisa: enriched.reduce((s, x) => s + x.sisa, 0),
   }), [enriched]);
 
+  // Sinkronkan opsi bulan dengan tahun ajaran terpilih
+  const ayMonths = useMemo(() => monthsOfAcademicYear(filterAY), [filterAY]);
+  // Reset filter bulan jika tidak ada di AY ini
+  useEffect(() => {
+    if (filterMonth !== "all" && !ayMonths.find(m => String(m.month) === filterMonth)) {
+      setFilterMonth("all");
+    }
+  }, [filterAY]);
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold">Pembayaran SPP</h1>
-          <p className="text-sm text-muted-foreground">Per siswa, per tahun ajaran, per bulan</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/bendahara/import-export")}>
-            <Upload className="h-4 w-4 mr-2" /> Import / Export
+    <div className="space-y-5">
+      <PageHeader
+        icon={Wallet}
+        title="Pembayaran SPP"
+        subtitle="Per siswa, per tahun ajaran, per bulan"
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate("/bendahara/import-export")}
+            className="bg-white/15 hover:bg-white/25 text-white border-0"
+          >
+            <Upload className="h-4 w-4 mr-1.5" /> Import / Export
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Summary mini */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Total Siswa" value={summary.total} icon={User} gradient="from-slate-500 to-slate-700" />
+        <StatCard label="Total Siswa" value={summary.total} icon={User} gradient="from-[#5B6CF9] to-[#4c5ded]" />
         <StatCard label="Sudah Lunas" value={summary.lunas} icon={CheckCircle2} gradient="from-emerald-500 to-teal-600" />
         <StatCard label="Menunggak" value={summary.nunggak} icon={AlertCircle} gradient="from-red-500 to-rose-600" />
-        <StatCard label="Total Sisa Tagihan" value={fmtIDR(summary.totalSisa)} icon={Wallet} gradient="from-amber-500 to-orange-600" />
+        <StatCard label="Total Sisa Tagihan" value={fmtIDR(summary.totalSisa)} icon={Banknote} gradient="from-amber-500 to-orange-600" />
       </div>
 
       {/* Filter Bar */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border border-border/50 shadow-sm">
         <CardContent className="p-4">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
             <div className="md:col-span-2 relative">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Cari nama / NIS" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+              <Input placeholder="Cari nama / NIS" value={search} onChange={e => setSearch(e.target.value)} className="pl-9 text-sm" />
             </div>
             <Select value={filterClass} onValueChange={setFilterClass}>
-              <SelectTrigger><SelectValue placeholder="Kelas" /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue placeholder="Kelas" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Kelas</SelectItem>
-                {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {classes.map(c => <SelectItem key={c} value={c}>Kelas {c}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterAY} onValueChange={setFilterAY}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {academicYearList(currentYear).map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
+                {academicYearList(currentYear).map(ay => <SelectItem key={ay} value={ay}>TA {ay}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterMonth} onValueChange={setFilterMonth}>
-              <SelectTrigger><SelectValue placeholder="Bulan" /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue placeholder="Bulan" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Bulan</SelectItem>
-                {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                {ayMonths.map(m => (
+                  <SelectItem key={`${m.year}-${m.month}`} value={String(m.month)}>{m.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Status</SelectItem>
                 <SelectItem value="paid">Lunas</SelectItem>
@@ -648,14 +663,14 @@ export function BendaharaTransaksi() {
           <div className="flex items-center gap-2 mt-3">
             <span className="text-xs text-muted-foreground">Urutkan:</span>
             <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-              <SelectTrigger className="w-44 h-8"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">Nama (A-Z)</SelectItem>
                 <SelectItem value="tunggakan">Tunggakan terbesar</SelectItem>
                 <SelectItem value="lunas">Bulan lunas terbanyak</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="ghost" size="sm" onClick={load}><RefreshCw className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={load} className="h-8"><RefreshCw className="h-4 w-4" /></Button>
           </div>
         </CardContent>
       </Card>
