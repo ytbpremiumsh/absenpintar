@@ -2118,13 +2118,39 @@ export function BendaharaImportExport() {
 export function BendaharaSaldo() {
   const { profile } = useAuth();
   const [items, setItems] = useState<any[]>([]);
+  const [settlements, setSettlements] = useState<any[]>([]);
+  const [feeCfg, setFeeCfg] = useState({ percent: 0.7, flat: 500 });
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
+
+  const fetchAll = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
-    supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").order("paid_at", { ascending: false }).then(({ data }) => {
-      setItems(data || []); setLoading(false);
+    const [invRes, stlRes, psRes] = await Promise.all([
+      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").order("paid_at", { ascending: false }),
+      supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
+      supabase.from("platform_settings").select("key,value").in("key", ["gateway_fee_percent", "gateway_fee_flat"]),
+    ]);
+    setItems(invRes.data || []);
+    setSettlements(stlRes.data || []);
+    const map: any = Object.fromEntries((psRes.data || []).map((r: any) => [r.key, r.value]));
+    setFeeCfg({
+      percent: parseFloat(map.gateway_fee_percent ?? "0.7"),
+      flat: parseInt(map.gateway_fee_flat ?? "500", 10),
     });
+    setLoading(false);
   }, [profile?.school_id]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Realtime: refresh saat ada perubahan invoice/settlement
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    const channel = supabase
+      .channel("bendahara-saldo-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_invoices", filter: `school_id=eq.${profile.school_id}` }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_settlements", filter: `school_id=eq.${profile.school_id}` }, () => fetchAll())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [profile?.school_id, fetchAll]);
 
   const totals = items.reduce((acc, i) => ({
     gross: acc.gross + (i.total_amount || 0),
@@ -2132,34 +2158,124 @@ export function BendaharaSaldo() {
     net: acc.net + (i.net_amount || 0),
   }), { gross: 0, fee: 0, net: 0 });
 
+  // Pecah fee gateway agar transparan
+  const txCount = items.length;
+  const feePercentTotal = items.reduce((s, i) => s + Math.round((i.total_amount || 0) * (feeCfg.percent / 100)), 0);
+  const feeFlatTotal = txCount * feeCfg.flat;
+
+  // Saldo
+  const settled = settlements.filter(s => s.status === "paid").reduce((s, x) => s + (x.final_payout || 0), 0);
+  const settledFeePencairan = settlements.filter(s => s.status === "paid").reduce((s, x) => s + (x.withdraw_fee || 0), 0);
+  const pendingPayout = settlements.filter(s => ["pending", "approved"].includes(s.status)).reduce((s, x) => s + (x.total_net || 0), 0);
+  const lockedNet = settlements.filter(s => ["pending", "approved", "paid"].includes(s.status)).reduce((s, x) => s + (x.total_net || 0), 0);
+  const activeBalance = Math.max(0, totals.net - lockedNet);
+
   return (
     <div className="space-y-4">
       <PageHeader
         icon={Wallet}
         title="Saldo & Ledger"
-        subtitle="Rekap pendapatan SPP, fee gateway, dan saldo bersih sekolah"
+        subtitle="Pantau saldo aktif, dana yang sudah cair, dan rincian fee secara realtime"
       />
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard label="Gross Amount" value={fmtIDR(totals.gross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
-        <StatCard label="Gateway Fee" value={fmtIDR(totals.fee)} icon={Banknote} gradient="from-slate-500 to-slate-700" />
-        <StatCard label="Net Amount" value={fmtIDR(totals.net)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
+
+      {/* Saldo Aktif - Highlight Card */}
+      <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
+        <CardContent className="p-5 relative">
+          <div className="flex items-center gap-2 mb-1">
+            <Wallet className="h-4 w-4" />
+            <p className="text-xs font-medium opacity-90">Saldo Aktif (Siap Dicairkan)</p>
+            <span className="ml-auto inline-flex items-center gap-1 text-[10px] bg-white/20 px-2 py-0.5 rounded-full">
+              <span className="h-1.5 w-1.5 bg-white rounded-full animate-pulse" /> LIVE
+            </span>
+          </div>
+          <p className="text-3xl md:text-4xl font-extrabold tracking-tight">{fmtIDR(activeBalance)}</p>
+          <p className="text-[11px] opacity-80 mt-1">Total Net Rp {fmtIDR(totals.net).replace("Rp ", "")} − Sudah/akan dicairkan {fmtIDR(lockedNet)}</p>
+        </CardContent>
+      </Card>
+
+      {/* Ringkasan Saldo */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Total Bruto SPP" value={fmtIDR(totals.gross)} sub={`${txCount} transaksi`} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
+        <StatCard label="Sudah Dicairkan" value={fmtIDR(settled)} sub="status PAID" icon={ArrowDownToLine} gradient="from-violet-500 to-purple-600" />
+        <StatCard label="Pending Pencairan" value={fmtIDR(pendingPayout)} sub="menunggu admin" icon={Loader2} gradient="from-amber-500 to-orange-600" />
+        <StatCard label="Total Fee Dibebankan" value={fmtIDR(totals.fee)} sub="lihat rincian" icon={Banknote} gradient="from-slate-500 to-slate-700" />
       </div>
+
+      {/* Detail Fee Gateway - Transparan per komponen */}
       <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Banknote className="h-4 w-4 text-slate-600" /> Rincian Fee (Transparan)
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Fee dipecah per komponen agar mudah dibaca. Bukan satu nilai besar.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/30 p-3">
+              <p className="text-[11px] text-muted-foreground">Fee Persen Gateway</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{feeCfg.percent}% × bruto</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-200 mt-1">{fmtIDR(feePercentTotal)}</p>
+            </div>
+            <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/30 p-3">
+              <p className="text-[11px] text-muted-foreground">Fee Flat per Transaksi</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Rp {feeCfg.flat.toLocaleString("id-ID")} × {txCount} trx</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-200 mt-1">{fmtIDR(feeFlatTotal)}</p>
+            </div>
+            <div className="rounded-lg border bg-violet-50 dark:bg-violet-950/30 p-3">
+              <p className="text-[11px] text-muted-foreground">Fee Pencairan</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Rp 3.000 × {settlements.filter(s => s.status === "paid").length} pencairan cair</p>
+              <p className="text-lg font-bold text-violet-700 dark:text-violet-300 mt-1">{fmtIDR(settledFeePencairan)}</p>
+            </div>
+          </div>
+          <div className="text-[11px] text-muted-foreground bg-muted/40 rounded p-2">
+            Tarif fee bersifat dinamis dan dikelola Super Admin. Komponen di atas dihitung dari konfigurasi terbaru ({feeCfg.percent}% + Rp {feeCfg.flat.toLocaleString("id-ID")} per transaksi).
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabel Ledger */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Ledger Transaksi Paid</CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
           {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
             <Table>
-              <TableHeader><TableRow><TableHead>Tanggal</TableHead><TableHead>Deskripsi</TableHead><TableHead>Gross</TableHead><TableHead>Fee</TableHead><TableHead>Net</TableHead></TableRow></TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Deskripsi</TableHead>
+                  <TableHead className="text-right">Bruto</TableHead>
+                  <TableHead className="text-right">Fee {feeCfg.percent}%</TableHead>
+                  <TableHead className="text-right">Fee Flat</TableHead>
+                  <TableHead className="text-right">Net</TableHead>
+                  <TableHead>Status Cair</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
-                {items.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Belum ada transaksi paid</TableCell></TableRow>}
-                {items.map(i => (
-                  <TableRow key={i.id}>
-                    <TableCell className="text-xs">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
-                    <TableCell className="text-xs">{i.description}</TableCell>
-                    <TableCell className="text-sm">{fmtIDR(i.total_amount)}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{fmtIDR(i.gateway_fee)}</TableCell>
-                    <TableCell className="text-sm font-semibold text-emerald-600">{fmtIDR(i.net_amount)}</TableCell>
-                  </TableRow>
-                ))}
+                {items.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Belum ada transaksi paid</TableCell></TableRow>}
+                {items.map(i => {
+                  const feePct = Math.round((i.total_amount || 0) * (feeCfg.percent / 100));
+                  const feeFl = feeCfg.flat;
+                  return (
+                    <TableRow key={i.id}>
+                      <TableCell className="text-xs">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
+                      <TableCell className="text-xs">{i.description}</TableCell>
+                      <TableCell className="text-sm text-right">{fmtIDR(i.total_amount)}</TableCell>
+                      <TableCell className="text-xs text-right text-muted-foreground">{fmtIDR(feePct)}</TableCell>
+                      <TableCell className="text-xs text-right text-muted-foreground">{fmtIDR(feeFl)}</TableCell>
+                      <TableCell className="text-sm text-right font-semibold text-emerald-600">{fmtIDR(i.net_amount)}</TableCell>
+                      <TableCell>
+                        {i.settlement_id
+                          ? <Badge className="bg-emerald-500 text-[10px]">DICAIRKAN</Badge>
+                          : <Badge className="bg-amber-500 text-[10px]">SALDO AKTIF</Badge>}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -2168,6 +2284,7 @@ export function BendaharaSaldo() {
     </div>
   );
 }
+
 
 // ============ PENCAIRAN + RIWAYAT (gabungan) ============
 export function BendaharaPencairan() {
