@@ -1111,13 +1111,14 @@ export function BendaharaSPPDetail() {
         <CardHeader><CardTitle className="text-base">Status Per Bulan – TA {ay}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {grid.map(g => {
-              const status = g.inv?.status || "unpaid";
+            {enrichedGrid.map(g => {
+              const status = g.inv?._displayStatus || g.inv?.status || "unpaid";
               const colorMap: any = {
                 paid: "border-emerald-500/40 bg-emerald-500/5",
                 pending: "border-amber-500/40 bg-amber-500/5",
                 unpaid: "border-slate-300 dark:border-slate-700",
                 failed: "border-red-500/40 bg-red-500/5",
+                expired: "border-orange-500/40 bg-orange-500/5",
               };
               return (
                 <div key={`${g.year}-${g.month}`} className={`relative rounded-xl border-2 p-3 ${colorMap[status]}`}>
@@ -1147,35 +1148,49 @@ export function BendaharaSPPDetail() {
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {grid.filter(g => g.inv).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Belum ada tagihan</TableCell></TableRow>}
-                {grid.filter(g => g.inv).map(g => {
-                  const inv = g.inv;
+                {enrichedInvoices.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Belum ada tagihan</TableCell></TableRow>}
+                {enrichedInvoices
+                  .filter((inv) => {
+                    const a = academicYearOf(inv.period_month, inv.period_year);
+                    return a === ay;
+                  })
+                  .sort((a, b) => (a.period_year - b.period_year) || (a.period_month - b.period_month) || (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()))
+                  .map((inv) => {
+                  const dStatus = inv._displayStatus || inv.status;
                   return (
-                    <TableRow key={inv.id}>
-                      <TableCell className="font-medium text-sm">{g.label}</TableCell>
+                    <TableRow key={inv.id} className={inv.status === "expired" ? "opacity-60" : ""}>
+                      <TableCell className="font-medium text-sm">{inv.period_label}</TableCell>
                       <TableCell className="text-xs font-mono">{inv.invoice_number}</TableCell>
                       <TableCell className="font-semibold">{fmtIDR(inv.total_amount)}</TableCell>
                       <TableCell className="text-xs">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
                       <TableCell className="text-xs">{inv.payment_method || "-"}</TableCell>
-                      <TableCell><StatusBadge status={inv.status} /></TableCell>
+                      <TableCell><StatusBadge status={dStatus} /></TableCell>
                       <TableCell className="text-right">
-                        {inv.status === "pending" ? (
+                        {dStatus === "pending" ? (
                           <div className="flex flex-wrap gap-1 justify-end">
                             {!inv.payment_url ? (
-                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
+                              <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
                                 {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><LinkIcon className="h-3 w-3 mr-1" /> Buat Link</>}
                               </Button>
                             ) : (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => copyLink(inv.payment_url)}><Copy className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="outline" onClick={() => window.open(inv.payment_url, "_blank")}><LinkIcon className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => copyLink(inv.payment_url)} title="Salin"><Copy className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => window.open(inv.payment_url, "_blank")} title="Buka"><LinkIcon className="h-3 w-3" /></Button>
                                 <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `wa-${inv.id}`} onClick={() => sendWa(inv)}><MessageCircle className="h-3 w-3 mr-1" /> WA</Button>
-                                <Button size="sm" variant="outline" onClick={() => sendEmail(inv)}><Mail className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
                             )}
                           </div>
-                        ) : inv.status === "paid" ? (
-                          <Button size="sm" variant="ghost" className="text-emerald-600"><CheckCircle2 className="h-3 w-3 mr-1" /> Lunas</Button>
+                        ) : dStatus === "expired" ? (
+                          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)}>
+                            {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 mr-1" /> Buat Ulang Link</>}
+                          </Button>
+                        ) : dStatus === "paid" ? (
+                          <div className="flex flex-wrap gap-1 justify-end">
+                            <Button size="sm" variant="outline" disabled={busy === `pdf-${inv.id}`} onClick={() => downloadPdf(inv)}>
+                              {busy === `pdf-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Download className="h-3 w-3 mr-1" /> Invoice</>}
+                            </Button>
+                          </div>
                         ) : null}
                       </TableCell>
                     </TableRow>
