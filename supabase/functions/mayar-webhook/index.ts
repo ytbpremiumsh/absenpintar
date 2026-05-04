@@ -47,7 +47,7 @@ serve(async (req) => {
     
     if (!transactionId && !productId) {
       return new Response(JSON.stringify({ error: 'No transaction ID' }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -462,7 +462,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Webhook error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
