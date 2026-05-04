@@ -599,7 +599,7 @@ const LandingPage = () => {
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Mulai dalam 4 Langkah Mudah
             </h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Proses sederhana dari pendaftaran hingga monitoring kehadiran siswa.</p>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Dari setup sekolah, absensi & jadwal mengajar, hingga pembayaran SPP online — semua dalam satu platform.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
