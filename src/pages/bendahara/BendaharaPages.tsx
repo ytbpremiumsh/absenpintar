@@ -544,7 +544,7 @@ export function BendaharaTransaksi() {
   };
   useEffect(load, [profile?.school_id]);
 
-  const ayMonths = useMemo(() => monthsOfAcademicYear(filterAY), [filterAY]);
+  
 
   const enriched = useMemo(() => {
     return students.map(s => {
