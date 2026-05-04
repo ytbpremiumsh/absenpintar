@@ -2172,11 +2172,6 @@ export function BendaharaSaldo() {
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        icon={Wallet}
-        title="Saldo & Ledger"
-        subtitle="Pantau saldo aktif, dana yang sudah cair, dan rincian fee secara realtime"
-      />
 
       {/* Saldo Aktif - Highlight Card */}
       <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white overflow-hidden relative">
