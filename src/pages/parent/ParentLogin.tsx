@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, GraduationCap, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, Shield, ArrowLeft, ArrowRight, Phone, KeyRound, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ParentLogin() {
   const navigate = useNavigate();
@@ -15,9 +15,20 @@ export default function ParentLogin() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [loginLogo, setLoginLogo] = useState("/images/logo-atskolla.png");
 
   useEffect(() => {
     if (localStorage.getItem("parent_token")) navigate("/parent");
+    supabase
+      .from("platform_settings")
+      .select("key, value")
+      .in("key", ["login_logo_url"])
+      .then(({ data }) => {
+        if (data) {
+          const map = Object.fromEntries(data.map((d: any) => [d.key, d.value]));
+          if (map.login_logo_url) setLoginLogo(map.login_logo_url);
+        }
+      });
   }, [navigate]);
 
   useEffect(() => {
@@ -53,58 +64,265 @@ export default function ParentLogin() {
     navigate("/parent");
   };
 
+  const scanBars = Array.from({ length: 24 }, (_, i) => i);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#5B6CF9]/10 via-background to-background p-4">
-      <Card className="w-full max-w-md p-6 sm:p-8 border-0 shadow-elevated">
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center mb-3">
-            <GraduationCap className="h-7 w-7 text-white" />
-          </div>
-          <h1 className="text-xl font-bold text-foreground">Dashboard Wali Murid</h1>
-          <p className="text-sm text-muted-foreground mt-1">Login dengan nomor WhatsApp terdaftar</p>
+    <div className="min-h-screen flex relative overflow-hidden bg-[#5B6CF9]">
+      {/* Back to home */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-4 left-4 z-50 flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all backdrop-blur-sm"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Kembali
+      </button>
+
+      {/* Grid background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+
+      {/* Floating ambient elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[
+          { top: "10%", left: "5%", delay: 0 },
+          { top: "20%", left: "90%", delay: 1 },
+          { top: "70%", left: "8%", delay: 0.5 },
+          { top: "80%", left: "85%", delay: 1.5 },
+          { top: "40%", left: "3%", delay: 2 },
+          { top: "55%", left: "95%", delay: 0.8 },
+        ].map((dot, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 rounded-full bg-white"
+            style={{ top: dot.top, left: dot.left }}
+            animate={{ opacity: [0.1, 0.4, 0.1], scale: [1, 1.5, 1] }}
+            transition={{ duration: 3, repeat: Infinity, delay: dot.delay }}
+          />
+        ))}
+
+        {/* Scan line */}
+        <motion.div
+          className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
+          animate={{ top: ["0%", "100%"] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* Bars */}
+        <div className="hidden lg:flex absolute left-[8%] top-1/2 -translate-y-1/2 flex-col items-center gap-1 opacity-20">
+          {scanBars.map((i) => (
+            <motion.div
+              key={i}
+              className="bg-white rounded-full"
+              style={{ width: Math.random() * 40 + 20, height: 2 }}
+              animate={{ opacity: [0.3, 0.8, 0.3], scaleX: [0.8, 1, 0.8] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.08 }}
+            />
+          ))}
         </div>
 
-        {step === "phone" ? (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-xs">Nomor WhatsApp</Label>
-              <Input
-                type="tel" inputMode="numeric" placeholder="08xxxxxxxxxx"
-                value={phone} onChange={(e) => setPhone(e.target.value)}
-              />
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Gunakan nomor yang sama dengan yang terdaftar di sekolah anak Anda.
-              </p>
+        {/* Floating phone icon */}
+        <motion.div
+          className="hidden lg:flex absolute left-[18%] top-[22%] h-16 w-16 rounded-2xl bg-white/5 border border-white/10 items-center justify-center"
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        >
+          <Phone className="h-7 w-7 text-white/30" />
+        </motion.div>
+        <motion.div
+          className="hidden lg:flex absolute left-[10%] bottom-[20%] h-12 w-12 rounded-xl bg-white/5 border border-white/10 items-center justify-center"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+        >
+          <KeyRound className="h-5 w-5 text-white/25" />
+        </motion.div>
+
+        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+          <line x1="10%" y1="0" x2="30%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="6 12" />
+          <line x1="45%" y1="0" x2="25%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="4 16" />
+        </svg>
+      </div>
+
+      {/* Glows */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-white/[0.03] rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-300/[0.05] rounded-full blur-3xl pointer-events-none" />
+
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-md"
+        >
+          {/* Logo */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="flex items-center justify-center gap-3 mb-6"
+          >
+            <img src={loginLogo} alt="ATSkolla" className="h-11 w-11 rounded-xl shadow-lg" />
+            <span className="font-bold text-xl text-white tracking-tight">ATSkolla</span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-center mb-6"
+          >
+            <h2 className="text-2xl sm:text-3xl font-bold text-white">Portal Wali Murid</h2>
+            <p className="text-white/60 text-sm mt-1">Pantau aktivitas ananda dengan mudah</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.25, duration: 0.6 }}
+            className="relative"
+          >
+            <div className="absolute -inset-1 bg-white/10 rounded-[2rem] blur-xl" />
+            <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] p-7 sm:p-8 shadow-2xl shadow-black/20">
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="flex items-center gap-2 mb-6"
+              >
+                <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1">
+                  <Shield className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                    Login Aman via WhatsApp
+                  </span>
+                </div>
+              </motion.div>
+
+              <AnimatePresence mode="wait">
+                {step === "phone" ? (
+                  <motion.div
+                    key="phone"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-5"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Nomor WhatsApp
+                      </Label>
+                      <div className="relative group">
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input
+                          id="phone"
+                          type="tel"
+                          inputMode="numeric"
+                          placeholder="08xxxxxxxxxx"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                          className="h-12 pl-10 bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 transition-all duration-300 rounded-xl"
+                        />
+                      </div>
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        Gunakan nomor yang terdaftar di sekolah ananda.
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={requestOtp}
+                      disabled={loading}
+                      className="w-full h-12 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white font-semibold text-sm uppercase tracking-wide shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all rounded-xl"
+                    >
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <MessageSquare className="h-4 w-4 mr-2" /> Kirim Kode OTP
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="otp"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-5"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="otp" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Kode OTP (6 digit)
+                      </Label>
+                      <Input
+                        id="otp"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="------"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                        className="h-14 text-center text-2xl tracking-[0.5em] font-bold bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 transition-all rounded-xl"
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        Kode dikirim ke <strong>{phone}</strong> via WhatsApp.
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={verifyOtp}
+                      disabled={loading}
+                      className="w-full h-12 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white font-semibold text-sm uppercase tracking-wide shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all rounded-xl"
+                    >
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          Masuk Sekarang
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <button onClick={() => setStep("phone")} className="text-muted-foreground hover:text-foreground transition-colors">
+                        ← Ganti nomor
+                      </button>
+                      <button
+                        onClick={requestOtp}
+                        disabled={cooldown > 0 || loading}
+                        className="text-[#5B6CF9] disabled:text-muted-foreground font-medium"
+                      >
+                        {cooldown > 0 ? `Kirim ulang (${cooldown}s)` : "Kirim ulang OTP"}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <Button onClick={requestOtp} disabled={loading} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded] text-white">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><MessageSquare className="h-4 w-4 mr-2" /> Kirim Kode OTP</>}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-xs">Kode OTP (6 digit)</Label>
-              <Input
-                type="text" inputMode="numeric" maxLength={6} placeholder="------"
-                value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                className="text-center text-2xl tracking-[0.5em] font-bold"
-              />
-              <p className="text-[11px] text-muted-foreground mt-1">
-                Kode dikirim ke <strong>{phone}</strong> via WhatsApp.
-              </p>
-            </div>
-            <Button onClick={verifyOtp} disabled={loading} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded] text-white">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Masuk"}
-            </Button>
-            <div className="flex items-center justify-between text-xs">
-              <button onClick={() => setStep("phone")} className="text-muted-foreground hover:text-foreground">← Ganti nomor</button>
-              <button onClick={requestOtp} disabled={cooldown > 0 || loading} className="text-[#5B6CF9] disabled:text-muted-foreground">
-                {cooldown > 0 ? `Kirim ulang (${cooldown}s)` : "Kirim ulang OTP"}
-              </button>
-            </div>
-          </div>
-        )}
-      </Card>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="text-center text-white/30 text-xs mt-6"
+          >
+            © 2026 ATSkolla - Absensi Digital Sekolah
+          </motion.p>
+        </motion.div>
+      </div>
+
+      {/* Rounded bottom accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-white dark:bg-slate-950 rounded-t-[2rem] z-[5]" />
     </div>
   );
 }
