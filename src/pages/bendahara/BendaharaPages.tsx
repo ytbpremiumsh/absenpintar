@@ -1221,7 +1221,7 @@ export function BendaharaTransaksi() {
 }
 
 // Per-class collapsible cards
-function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; filterAY: string; navigate: any }) {
+function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices, schoolId, onRefresh }: { students: any[]; filterAY: string; filterMonth: string; navigate: any; invoices: any[]; schoolId?: string; onRefresh: () => void }) {
   const grouped = useMemo(() => {
     const m = new Map<string, any[]>();
     students.forEach(s => {
@@ -1237,6 +1237,61 @@ function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; f
     grouped.forEach(([k], i) => { o[k] = i < 2; });
     return o;
   });
+
+  const [bulkBusy, setBulkBusy] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
+
+  // Send WA massal untuk daftar siswa di kelas ini (status pending/unpaid pada periode aktif)
+  const sendBulkForStudents = async (className: string, classStudents: any[]) => {
+    if (!schoolId) return;
+    // Cari invoice pending untuk siswa-siswa ini sesuai filter AY & bulan
+    const studentIds = new Set(classStudents.map(s => s.id));
+    const studentMap = new Map(classStudents.map(s => [s.id, s]));
+    const targetInvs = invoices.filter(inv => {
+      if (!studentIds.has(inv.student_id)) return false;
+      if (inv.status === "paid" || inv.status === "expired") return false;
+      const ay = academicYearOf(inv.period_month, inv.period_year);
+      if (ay !== filterAY) return false;
+      if (filterMonth !== "all" && inv.period_month !== parseInt(filterMonth)) return false;
+      const stu = studentMap.get(inv.student_id);
+      return stu?.parent_phone;
+    });
+
+    if (targetInvs.length === 0) {
+      toast.info("Tidak ada tagihan tertunggak yang bisa dikirim (cek filter bulan/AY & nomor wali)");
+      return;
+    }
+    const confirmMsg = `Kirim WA tagihan ke ${targetInvs.length} wali murid kelas ${className}?\n(Sistem otomatis membuat link Mayar untuk yang belum punya link)`;
+    if (!confirm(confirmMsg)) return;
+
+    setBulkBusy(className);
+    setBulkProgress({ done: 0, total: targetInvs.length });
+    let waOk = 0, waFail = 0, linkFail = 0;
+    for (let i = 0; i < targetInvs.length; i++) {
+      const inv = targetInvs[i];
+      let paymentUrl = inv.payment_url;
+      try {
+        if (!paymentUrl) {
+          const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
+            body: { action: "create_payment_link", invoice_id: inv.id },
+          });
+          paymentUrl = linkRes?.payment_url;
+        }
+        if (!paymentUrl) { linkFail++; setBulkProgress({ done: i + 1, total: targetInvs.length }); continue; }
+        const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
+        const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${paymentUrl}\n\nJatuh tempo: ${due}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
+        const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
+          body: { school_id: schoolId, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
+        });
+        if (waErr) waFail++; else waOk++;
+      } catch { waFail++; }
+      setBulkProgress({ done: i + 1, total: targetInvs.length });
+    }
+    setBulkBusy(null);
+    setBulkProgress(null);
+    toast.success(`Kelas ${className}: WA terkirim ${waOk}${waFail ? ` • gagal ${waFail}` : ""}${linkFail ? ` • gagal link ${linkFail}` : ""}`);
+    onRefresh();
+  };
 
   return (
     <div className="space-y-3">
