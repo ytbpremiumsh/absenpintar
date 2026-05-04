@@ -12,6 +12,7 @@ import {
   ChevronRight, Sparkles, Play, ArrowDown,
   AlertTriangle, XCircle, Clock, FileText, Globe,
   Quote, ChevronLeft, School,
+  CalendarDays, Wallet, CreditCard, MessageSquare, BookOpen, Receipt,
 } from "lucide-react";
 import heroDashboard from "@/assets/hero-dashboard.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -74,20 +75,24 @@ const DEFAULT_TESTIMONIALS = [
 
 const PROBLEMS = [
   { icon: AlertTriangle, title: "Absensi Manual", desc: "Pencatatan kehadiran masih pakai buku tulis, rawan kesalahan dan manipulasi data." },
-  { icon: Clock, title: "Proses Lambat", desc: "Guru harus memanggil siswa satu per satu untuk absensi, memakan waktu belajar." },
-  { icon: XCircle, title: "Tidak Ada Rekap Digital", desc: "Sekolah kesulitan membuat laporan kehadiran bulanan karena data tidak terdigitalisasi." },
-  { icon: Users, title: "Orang Tua Tidak Tahu", desc: "Wali murid tidak mendapat informasi real-time tentang kehadiran anaknya." },
-  { icon: FileText, title: "Laporan Tidak Akurat", desc: "Data absensi manual sulit diaudit dan sering terjadi ketidakcocokan." },
-  { icon: Globe, title: "Tidak Transparan", desc: "Tidak ada monitoring kehadiran yang bisa diakses orang tua secara online." },
+  { icon: Clock, title: "Proses Lambat", desc: "Guru memanggil siswa satu per satu untuk absensi, memakan waktu jam belajar." },
+  { icon: CalendarDays, title: "Jadwal Mengajar Berantakan", desc: "Jadwal mengajar guru masih dikelola lewat kertas atau grup WA, sering bentrok dan terlewat." },
+  { icon: Receipt, title: "Tagihan SPP Manual", desc: "Bendahara membuat tagihan SPP satu per satu di Excel, rawan salah hitung dan tunggakan menumpuk." },
+  { icon: Wallet, title: "Pembayaran Ribet", desc: "Wali murid harus datang ke sekolah untuk bayar SPP, antri, dan menyimpan kuitansi fisik." },
+  { icon: MessageSquare, title: "Komunikasi Lambat", desc: "Pengumuman sekolah hanya lewat surat kertas atau grup WA yang sering tidak terbaca." },
+  { icon: Users, title: "Wali Murid Tidak Tahu", desc: "Orang tua tidak tahu kehadiran, jadwal, dan tagihan anak secara real-time." },
+  { icon: FileText, title: "Laporan Tidak Akurat", desc: "Data manual sulit diaudit — absensi, keuangan, dan jadwal sering tidak cocok." },
 ];
 
 const SOLUTIONS = [
-  { icon: QrCode, problem: "Absensi Manual", solution: "Scan Barcode Instan", desc: "Siswa cukup scan barcode untuk mencatat kehadiran. Proses kurang dari 1 detik." },
-  { icon: UserCheck, problem: "Proses Lambat", solution: "Face Recognition AI", desc: "AI mengenali wajah siswa dan mencatat absensi secara otomatis tanpa sentuhan." },
-  { icon: BarChart3, problem: "Tidak Ada Rekap", solution: "Rekap Otomatis", desc: "Rekap harian, mingguan, dan bulanan dibuat otomatis dengan statistik lengkap." },
-  { icon: Monitor, problem: "Tidak Transparan", solution: "Dashboard Real-Time", desc: "Dashboard menampilkan statistik kehadiran secara live — hadir, izin, sakit, alfa." },
-  { icon: Bell, problem: "Orang Tua Tidak Tahu", solution: "Notifikasi WhatsApp", desc: "Wali murid otomatis menerima notifikasi WhatsApp saat anak tercatat hadir." },
-  { icon: FileBarChart, problem: "Laporan Tidak Akurat", solution: "Export Excel & PDF", desc: "Laporan kehadiran lengkap bisa di-export dalam format Excel atau PDF kapan saja." },
+  { icon: QrCode, problem: "Absensi Manual", solution: "Scan QR & Face AI", desc: "Siswa absen via QR atau Face Recognition AI. Proses kurang dari 1 detik, tanpa kontak." },
+  { icon: BarChart3, problem: "Proses Lambat", solution: "Rekap Otomatis", desc: "Rekap harian, mingguan, bulanan dibuat otomatis dengan statistik lengkap & export Excel/PDF." },
+  { icon: CalendarDays, problem: "Jadwal Berantakan", solution: "Jadwal Mengajar Live", desc: "Atur jadwal per guru & kelas. Live schedule menampilkan kelas berlangsung & berikutnya." },
+  { icon: Receipt, problem: "Tagihan SPP Manual", solution: "Generate SPP Sekali Klik", desc: "Generate tagihan SPP per kelas atau seluruh sekolah dalam satu klik, kirim WA otomatis." },
+  { icon: CreditCard, problem: "Pembayaran Ribet", solution: "Bayar SPP Online", desc: "Wali murid bayar SPP via QRIS atau Transfer Bank langsung dari WhatsApp. Status update otomatis." },
+  { icon: Bell, problem: "Komunikasi Lambat", solution: "Notifikasi WhatsApp", desc: "Absensi, jadwal, pengumuman, dan tagihan SPP dikirim otomatis ke WhatsApp wali murid." },
+  { icon: Monitor, problem: "Wali Murid Tidak Tahu", solution: "Portal Wali Murid", desc: "Dashboard khusus wali murid untuk pantau absensi, jadwal anak, pengumuman, dan riwayat SPP." },
+  { icon: FileBarChart, problem: "Laporan Tidak Akurat", solution: "Laporan Terintegrasi", desc: "Laporan absensi, keuangan SPP, dan jadwal mengajar dalam satu sistem — akurat & bisa diaudit." },
 ];
 
 interface PlanRow {
