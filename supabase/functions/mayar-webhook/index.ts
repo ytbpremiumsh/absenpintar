@@ -11,6 +11,29 @@ const isPaidStatus = (status: unknown) => {
   return ['paid', 'settled', 'success', 'completed'].includes(s) || status === true;
 };
 
+async function getGatewayFeeConfig(supabaseAdmin: any): Promise<{ percent: number; flat: number }> {
+  try {
+    const { data } = await supabaseAdmin
+      .from('platform_settings')
+      .select('key,value')
+      .in('key', ['gateway_fee_percent', 'gateway_fee_flat']);
+    const map: Record<string, string> = {};
+    (data || []).forEach((r: any) => { map[r.key] = r.value; });
+    const percent = parseFloat(map['gateway_fee_percent'] ?? '0.7');
+    const flat = parseInt(map['gateway_fee_flat'] ?? '500', 10);
+    return {
+      percent: isNaN(percent) ? 0.7 : percent,
+      flat: isNaN(flat) ? 500 : flat,
+    };
+  } catch {
+    return { percent: 0.7, flat: 500 };
+  }
+}
+
+function calcGatewayFee(amount: number, cfg: { percent: number; flat: number }): number {
+  return Math.round((amount || 0) * (cfg.percent / 100)) + (cfg.flat || 0);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
