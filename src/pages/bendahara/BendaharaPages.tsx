@@ -147,6 +147,14 @@ export function BendaharaDashboard() {
     return Array.from(map.entries()).map(([id, v]) => ({ id, ...v })).sort((a, b) => b.total - a.total).slice(0, 8);
   }, [invoices]);
 
+  // Riwayat Siswa Membayar SPP (10 transaksi paid terakhir)
+  const recentPaidList = useMemo(() => {
+    return invoices
+      .filter(i => i.status === "paid" && i.paid_at)
+      .sort((a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime())
+      .slice(0, 10);
+  }, [invoices]);
+
   const completionRate = useMemo(() => {
     if (invoices.length === 0) return 0;
     return Math.round((invoices.filter(i => i.status === "paid").length / invoices.length) * 100);
