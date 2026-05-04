@@ -148,7 +148,22 @@ const Monitoring = () => {
         fetchData();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    // Auto-refresh ketika tanggal lokal berganti (mis. lewat 00:00 WIB),
+    // sehingga "Absensi Terbaru" otomatis kosong dan tidak menampilkan data kemarin.
+    let lastDate = getLocalDateString("Asia/Jakarta");
+    const dateWatcher = setInterval(() => {
+      const currentDate = getLocalDateString("Asia/Jakarta");
+      if (currentDate !== lastDate) {
+        lastDate = currentDate;
+        fetchData();
+      }
+    }, 30_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(dateWatcher);
+    };
   }, [fetchData]);
 
   const handleUpdateStatus = async () => {
