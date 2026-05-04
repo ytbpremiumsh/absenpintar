@@ -341,6 +341,59 @@ Deno.serve(async (req) => {
       return json({ ok: true, messages: data || [] });
     }
 
+    if (action === "spp_list") {
+      const { data } = await supabase
+        .from("spp_invoices")
+        .select("id, invoice_number, period_month, period_year, period_label, total_amount, amount, denda, due_date, status, payment_url, paid_at, payment_method, expired_at, mayar_invoice_id")
+        .eq("student_id", studentId)
+        .order("period_year", { ascending: false })
+        .order("period_month", { ascending: false });
+      // Auto-mark as expired if past expiry and not paid
+      const now = Date.now();
+      const list = (data || []).map((i: any) => {
+        if (i.status === "pending" && i.expired_at && new Date(i.expired_at).getTime() < now) {
+          return { ...i, status: "expired" };
+        }
+        return i;
+      });
+      // Compute aktif/tunggakan/lunas server side for convenience
+      const today = new Date();
+      const tunggakan = list.filter((i) => i.status !== "paid" && i.due_date && new Date(i.due_date) < today);
+      const aktif = list.filter((i) => i.status === "pending" || i.status === "expired");
+      const lunas = list.filter((i) => i.status === "paid");
+      const total_tunggakan = tunggakan.reduce((s, i) => s + (i.total_amount || 0), 0);
+      return json({ ok: true, invoices: list, aktif, tunggakan, lunas, total_tunggakan });
+    }
+
+    if (action === "spp_pay") {
+      const invoiceId = body.invoice_id;
+      if (!invoiceId) return json({ error: "invoice_id wajib" });
+      const { data: inv } = await supabase.from("spp_invoices").select("id, student_id").eq("id", invoiceId).maybeSingle();
+      if (!inv || inv.student_id !== studentId) return json({ error: "Invoice tidak valid" });
+      // Forward to spp-mayar with parent token
+      const sppRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/spp-mayar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-parent-token": session.token,
+          "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        },
+        body: JSON.stringify({ action: "parent_create_payment", invoice_id: invoiceId }),
+      });
+      const sppJson = await sppRes.json();
+      if (!sppJson?.success) return json({ error: sppJson?.error || "Gagal" });
+      return json({ ok: true, payment_url: sppJson.payment_url, invoice_id: sppJson.invoice_id });
+    }
+
+    if (action === "school_info") {
+      const { data: school } = await supabase
+        .from("schools")
+        .select("name, address, logo, npsn")
+        .eq("id", schoolId)
+        .maybeSingle();
+      return json({ ok: true, school });
+    }
+
     if (action === "send_message") {
       const message = (body.message || "").toString().slice(0, 1000);
       if (!message.trim()) return json({ error: "Pesan kosong" });
