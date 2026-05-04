@@ -12,11 +12,12 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
   Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle, Mail, Copy,
-  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye,
+  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye, GraduationCap,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import * as XLSX from "xlsx";
@@ -585,58 +586,73 @@ export function BendaharaTransaksi() {
     totalSisa: enriched.reduce((s, x) => s + x.sisa, 0),
   }), [enriched]);
 
+  // Sinkronkan opsi bulan dengan tahun ajaran terpilih
+  const ayMonths = useMemo(() => monthsOfAcademicYear(filterAY), [filterAY]);
+  // Reset filter bulan jika tidak ada di AY ini
+  useEffect(() => {
+    if (filterMonth !== "all" && !ayMonths.find(m => String(m.month) === filterMonth)) {
+      setFilterMonth("all");
+    }
+  }, [filterAY]);
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold">Pembayaran SPP</h1>
-          <p className="text-sm text-muted-foreground">Per siswa, per tahun ajaran, per bulan</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/bendahara/import-export")}>
-            <Upload className="h-4 w-4 mr-2" /> Import / Export
+    <div className="space-y-5">
+      <PageHeader
+        icon={Wallet}
+        title="Pembayaran SPP"
+        subtitle="Per siswa, per tahun ajaran, per bulan"
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate("/bendahara/import-export")}
+            className="bg-white/15 hover:bg-white/25 text-white border-0"
+          >
+            <Upload className="h-4 w-4 mr-1.5" /> Import / Export
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Summary mini */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard label="Total Siswa" value={summary.total} icon={User} gradient="from-slate-500 to-slate-700" />
+        <StatCard label="Total Siswa" value={summary.total} icon={User} gradient="from-[#5B6CF9] to-[#4c5ded]" />
         <StatCard label="Sudah Lunas" value={summary.lunas} icon={CheckCircle2} gradient="from-emerald-500 to-teal-600" />
         <StatCard label="Menunggak" value={summary.nunggak} icon={AlertCircle} gradient="from-red-500 to-rose-600" />
-        <StatCard label="Total Sisa Tagihan" value={fmtIDR(summary.totalSisa)} icon={Wallet} gradient="from-amber-500 to-orange-600" />
+        <StatCard label="Total Sisa Tagihan" value={fmtIDR(summary.totalSisa)} icon={Banknote} gradient="from-amber-500 to-orange-600" />
       </div>
 
       {/* Filter Bar */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border border-border/50 shadow-sm">
         <CardContent className="p-4">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
             <div className="md:col-span-2 relative">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Cari nama / NIS" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+              <Input placeholder="Cari nama / NIS" value={search} onChange={e => setSearch(e.target.value)} className="pl-9 text-sm" />
             </div>
             <Select value={filterClass} onValueChange={setFilterClass}>
-              <SelectTrigger><SelectValue placeholder="Kelas" /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue placeholder="Kelas" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Kelas</SelectItem>
-                {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {classes.map(c => <SelectItem key={c} value={c}>Kelas {c}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterAY} onValueChange={setFilterAY}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {academicYearList(currentYear).map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
+                {academicYearList(currentYear).map(ay => <SelectItem key={ay} value={ay}>TA {ay}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterMonth} onValueChange={setFilterMonth}>
-              <SelectTrigger><SelectValue placeholder="Bulan" /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue placeholder="Bulan" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Bulan</SelectItem>
-                {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                {ayMonths.map(m => (
+                  <SelectItem key={`${m.year}-${m.month}`} value={String(m.month)}>{m.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Status</SelectItem>
                 <SelectItem value="paid">Lunas</SelectItem>
@@ -648,14 +664,14 @@ export function BendaharaTransaksi() {
           <div className="flex items-center gap-2 mt-3">
             <span className="text-xs text-muted-foreground">Urutkan:</span>
             <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-              <SelectTrigger className="w-44 h-8"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">Nama (A-Z)</SelectItem>
                 <SelectItem value="tunggakan">Tunggakan terbesar</SelectItem>
                 <SelectItem value="lunas">Bulan lunas terbanyak</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="ghost" size="sm" onClick={load}><RefreshCw className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={load} className="h-8"><RefreshCw className="h-4 w-4" /></Button>
           </div>
         </CardContent>
       </Card>
@@ -701,70 +717,82 @@ function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; f
         const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
         const isOpen = openClass[className] ?? false;
         return (
-          <Card key={className} className="border-0 shadow-sm overflow-hidden">
+          <Card key={className} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
             <button
               onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
-              className="w-full flex items-center justify-between gap-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 hover:from-emerald-100 dark:hover:from-emerald-950/50 transition"
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
             >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold text-sm shadow">
-                  {className.replace(/[^0-9A-Z]/gi, "").slice(0, 3) || "K"}
+              {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+              <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
+                <GraduationCap className="h-4 w-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
+                  <Badge variant="secondary" className="text-[10px] h-5">{list.length} siswa</Badge>
                 </div>
-                <div className="text-left">
-                  <h3 className="font-bold text-base">Kelas {className}</h3>
-                  <p className="text-[11px] text-muted-foreground">{list.length} siswa · TA {filterAY}</p>
-                </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
               </div>
-              <div className="hidden md:flex items-center gap-2">
-                <Badge className="bg-emerald-500 text-white">Lunas {lunas}</Badge>
-                <Badge className="bg-red-500 text-white">Nunggak {nunggak}</Badge>
-                <Badge variant="outline" className="font-semibold">{fmtIDR(totalSisa)}</Badge>
+              <div className="hidden md:flex items-center gap-1.5">
+                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
+                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
+                <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
               </div>
-              <div className="flex md:hidden items-center gap-1.5">
-                <Badge className="bg-emerald-500 text-white text-[10px]">{lunas}</Badge>
-                <Badge className="bg-red-500 text-white text-[10px]">{nunggak}</Badge>
+              <div className="flex md:hidden items-center gap-1">
+                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
+                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
               </div>
-              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
             </button>
             {isOpen && (
-              <div className="divide-y">
-                {list.map(s => {
-                  const pct = s.total > 0 ? Math.round((s.lunas / s.total) * 100) : 0;
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
-                      className="flex items-center gap-3 p-3 hover:bg-muted/40 cursor-pointer transition"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-sm font-bold text-emerald-700 shrink-0">
-                        {s.name[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold truncate">{s.name}</p>
-                          <StatusBadge status={s.aggStatus} />
-                        </div>
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          NIS {s.student_id} · {s.parent_name || "-"} {s.parent_phone ? `· ${s.parent_phone}` : ""}
-                        </p>
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <div className="flex-1 max-w-[180px]">
+              <div className="border-t border-border/50">
+                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {list.map(s => {
+                    const pct = s.total > 0 ? Math.round((s.lunas / s.total) * 100) : 0;
+                    return (
+                      <Card
+                        key={s.id}
+                        onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
+                        className="border border-border/50 shadow-sm hover:shadow-md hover:border-[#5B6CF9]/40 transition-all cursor-pointer overflow-hidden"
+                      >
+                        <CardContent className="p-3.5 space-y-2.5">
+                          <div className="flex items-start gap-2.5">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                              {s.name[0]?.toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-foreground truncate hover:underline">{s.name}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">NIS {s.student_id}</p>
+                            </div>
+                            <StatusBadge status={s.aggStatus} />
+                          </div>
+                          {s.parent_name && (
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              Wali: {s.parent_name}{s.parent_phone ? ` · ${s.parent_phone}` : ""}
+                            </p>
+                          )}
+                          <div>
+                            <div className="flex items-center justify-between text-[10px] mb-1">
+                              <span className="font-medium text-muted-foreground">{s.lunas}/{s.total} bulan lunas</span>
+                              <span className="font-semibold text-[#5B6CF9]">{pct}%</span>
+                            </div>
                             <Progress value={pct} className="h-1.5" />
                           </div>
-                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{s.lunas}/{s.total} bln</span>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className={`text-sm font-bold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                          {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
-                        </p>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 mt-0.5">
-                          <Eye className="h-3.5 w-3.5 mr-1" /> Detail
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
+                          <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">Sisa Tagihan</p>
+                              <p className={`text-sm font-bold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                                {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
+                              </p>
+                            </div>
+                            <Button size="sm" className="h-7 px-2.5 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white text-xs shadow-sm">
+                              <Eye className="h-3.5 w-3.5 mr-1" /> Detail
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </Card>
