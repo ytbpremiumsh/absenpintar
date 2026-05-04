@@ -83,6 +83,15 @@ export function BendaharaDashboard() {
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [settlements, setSettlements] = useState<any[]>([]);
+  const [showRecentPaid, setShowRecentPaid] = useState<boolean>(() => {
+    const v = localStorage.getItem("bendahara_show_recent_paid");
+    return v === null ? true : v === "1";
+  });
+  const toggleShowRecentPaid = () => {
+    const next = !showRecentPaid;
+    setShowRecentPaid(next);
+    localStorage.setItem("bendahara_show_recent_paid", next ? "1" : "0");
+  };
 
   useEffect(() => {
     if (!profile?.school_id) { setLoading(false); return; }
