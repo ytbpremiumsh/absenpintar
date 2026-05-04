@@ -232,6 +232,48 @@ export type Database = {
           },
         ]
       }
+      bendahara_settings: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          environment: string
+          id: string
+          last_test_status: string | null
+          last_tested_at: string | null
+          school_id: string
+          secret_key: string | null
+          updated_at: string
+          use_platform_key: boolean
+          webhook_url: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          last_test_status?: string | null
+          last_tested_at?: string | null
+          school_id: string
+          secret_key?: string | null
+          updated_at?: string
+          use_platform_key?: boolean
+          webhook_url?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          last_test_status?: string | null
+          last_tested_at?: string | null
+          school_id?: string
+          secret_key?: string | null
+          updated_at?: string
+          use_platform_key?: boolean
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       class_teachers: {
         Row: {
           class_name: string
@@ -1491,6 +1533,243 @@ export type Database = {
           },
         ]
       }
+      spp_invoices: {
+        Row: {
+          amount: number
+          class_name: string
+          created_at: string
+          denda: number
+          description: string
+          due_date: string
+          gateway_fee: number
+          id: string
+          invoice_number: string
+          mayar_invoice_id: string | null
+          net_amount: number
+          paid_at: string | null
+          parent_name: string | null
+          parent_phone: string | null
+          payment_method: string | null
+          payment_url: string | null
+          period_label: string
+          period_month: number
+          period_year: number
+          qr_code: string | null
+          school_id: string
+          settlement_id: string | null
+          status: string
+          student_id: string
+          student_name: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          class_name: string
+          created_at?: string
+          denda?: number
+          description: string
+          due_date: string
+          gateway_fee?: number
+          id?: string
+          invoice_number: string
+          mayar_invoice_id?: string | null
+          net_amount?: number
+          paid_at?: string | null
+          parent_name?: string | null
+          parent_phone?: string | null
+          payment_method?: string | null
+          payment_url?: string | null
+          period_label: string
+          period_month: number
+          period_year: number
+          qr_code?: string | null
+          school_id: string
+          settlement_id?: string | null
+          status?: string
+          student_id: string
+          student_name: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          class_name?: string
+          created_at?: string
+          denda?: number
+          description?: string
+          due_date?: string
+          gateway_fee?: number
+          id?: string
+          invoice_number?: string
+          mayar_invoice_id?: string | null
+          net_amount?: number
+          paid_at?: string | null
+          parent_name?: string | null
+          parent_phone?: string | null
+          payment_method?: string | null
+          payment_url?: string | null
+          period_label?: string
+          period_month?: number
+          period_year?: number
+          qr_code?: string | null
+          school_id?: string
+          settlement_id?: string | null
+          status?: string
+          student_id?: string
+          student_name?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      spp_logs: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          invoice_id: string | null
+          message: string | null
+          payload: Json | null
+          school_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          invoice_id?: string | null
+          message?: string | null
+          payload?: Json | null
+          school_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          invoice_id?: string | null
+          message?: string | null
+          payload?: Json | null
+          school_id?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      spp_settlements: {
+        Row: {
+          account_holder: string | null
+          account_number: string | null
+          admin_notes: string | null
+          approved_at: string | null
+          bank_name: string | null
+          created_at: string
+          final_payout: number
+          id: string
+          notes: string | null
+          paid_at: string | null
+          requested_at: string
+          requested_by: string | null
+          reviewed_by: string | null
+          school_id: string
+          settlement_code: string
+          status: string
+          total_gateway_fee: number
+          total_gross: number
+          total_net: number
+          total_transactions: number
+          updated_at: string
+          withdraw_fee: number
+        }
+        Insert: {
+          account_holder?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          approved_at?: string | null
+          bank_name?: string | null
+          created_at?: string
+          final_payout?: number
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          reviewed_by?: string | null
+          school_id: string
+          settlement_code: string
+          status?: string
+          total_gateway_fee?: number
+          total_gross?: number
+          total_net?: number
+          total_transactions?: number
+          updated_at?: string
+          withdraw_fee?: number
+        }
+        Update: {
+          account_holder?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          approved_at?: string | null
+          bank_name?: string | null
+          created_at?: string
+          final_payout?: number
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          reviewed_by?: string | null
+          school_id?: string
+          settlement_code?: string
+          status?: string
+          total_gateway_fee?: number
+          total_gross?: number
+          total_net?: number
+          total_transactions?: number
+          updated_at?: string
+          withdraw_fee?: number
+        }
+        Relationships: []
+      }
+      spp_tariffs: {
+        Row: {
+          amount: number
+          class_name: string
+          created_at: string
+          denda: number
+          due_date_day: number
+          id: string
+          is_active: boolean
+          school_id: string
+          school_year: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          class_name: string
+          created_at?: string
+          denda?: number
+          due_date_day?: number
+          id?: string
+          is_active?: boolean
+          school_id: string
+          school_year: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          class_name?: string
+          created_at?: string
+          denda?: number
+          due_date_day?: number
+          id?: string
+          is_active?: boolean
+          school_id?: string
+          school_year?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_grades: {
         Row: {
           created_at: string
@@ -1997,7 +2276,12 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "super_admin" | "school_admin" | "staff" | "teacher"
+      app_role:
+        | "super_admin"
+        | "school_admin"
+        | "staff"
+        | "teacher"
+        | "bendahara"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2125,7 +2409,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "school_admin", "staff", "teacher"],
+      app_role: [
+        "super_admin",
+        "school_admin",
+        "staff",
+        "teacher",
+        "bendahara",
+      ],
     },
   },
 } as const

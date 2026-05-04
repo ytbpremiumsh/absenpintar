@@ -117,6 +117,59 @@ serve(async (req) => {
     const paymentMethod = payment.payment_method || '';
 
     // ═══════════════════════════════════════════
+    // SPP Invoice — auto confirm + WA notif
+    // ═══════════════════════════════════════════
+    if (paymentMethod === 'spp') {
+      const { data: inv } = await supabaseAdmin.from('spp_invoices')
+        .select('*').eq('mayar_invoice_id', payment.mayar_transaction_id).maybeSingle();
+      if (inv) {
+        const gatewayFee = Math.round(inv.total_amount * 0.007) + 500; // ~0.7% + 500 estimate (configurable)
+        const netAmount = inv.total_amount - gatewayFee;
+        await supabaseAdmin.from('spp_invoices').update({
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+          payment_method: data?.paymentMethod || 'mayar',
+          gateway_fee: gatewayFee,
+          net_amount: netAmount,
+        }).eq('id', inv.id);
+
+        await supabaseAdmin.from('spp_logs').insert({
+          school_id: inv.school_id, invoice_id: inv.id, event_type: 'webhook',
+          status: 'paid', payload: body, message: 'SPP paid',
+        });
+
+        // Notif dashboard
+        await supabaseAdmin.from('notifications').insert({
+          school_id: inv.school_id,
+          title: 'Pembayaran SPP Diterima',
+          message: `Pembayaran SPP ${inv.student_name} (${inv.class_name}) untuk ${inv.period_label} sebesar ${amountFormatted} telah diterima.`,
+          type: 'success',
+        });
+
+        // WA notif ke ortu
+        if (inv.parent_phone) {
+          try {
+            const { data: integ } = await supabaseAdmin.from('school_integrations')
+              .select('api_url, api_key, is_active').eq('school_id', inv.school_id).eq('is_active', true).maybeSingle();
+            if (integ?.api_url && integ?.api_key) {
+              let phone = inv.parent_phone.replace(/\D/g, '');
+              if (phone.startsWith('0')) phone = '62' + phone.substring(1);
+              const msg = `Halo Ayah/Bunda ${inv.parent_name || ''},\n\nPembayaran SPP ananda:\n*${inv.student_name} - ${inv.class_name} - ${inv.period_label}*\nsebesar Rp${(inv.total_amount).toLocaleString('id-ID')}\ntelah berhasil diterima.\n\nTerima kasih.`;
+              await fetch(integ.api_url, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${integ.api_key}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient_type: 'individual', to: phone, type: 'text', text: { body: msg } }),
+              });
+            }
+          } catch (waErr) { console.error('SPP WA notif error', waErr); }
+        }
+      }
+      return new Response(JSON.stringify({ success: true, type: 'spp' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ═══════════════════════════════════════════
     // ADDON: ID Card Order — auto confirm
     // ═══════════════════════════════════════════
     if (paymentMethod === 'addon_idcard') {
