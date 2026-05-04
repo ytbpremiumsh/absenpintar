@@ -273,7 +273,7 @@ const LandingThemeB = () => {
         <div className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-28 sm:pt-24 pb-2 sm:pb-4 flex-shrink-0">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center">
             <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-xs font-bold text-white/90 mb-3 sm:mb-4">
-              <Sparkles className="h-3.5 w-3.5" /> Platform Absensi Digital #1
+              <Sparkles className="h-3.5 w-3.5" /> Platform Digital Sekolah #1
             </span>
           </motion.div>
 
@@ -284,7 +284,7 @@ const LandingThemeB = () => {
             </span>
             <span className="block min-h-[1.2em]">
               <TypingEffect
-                texts={["Absensi Digital Sekolah", "Cepat, Aman & Modern", "Scan Barcode & Face AI"]}
+                texts={["Platform Digital Sekolah", "Cepat, Aman & Modern", "Scan Barcode & Face AI"]}
                 speed={60}
                 deleteSpeed={35}
                 pauseTime={2500}
@@ -403,7 +403,7 @@ const LandingThemeB = () => {
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
             <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#5B6CF9] bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full mb-4">Jawaban Tepat</span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">ATSkolla — Absensi Digital Sekolah</h2>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">ATSkolla — Platform Digital Sekolah Terintegrasi</h2>
           </motion.div>
           <div className="grid sm:grid-cols-2 gap-5">
             {SOLUTIONS.map((s, i) => (
@@ -439,7 +439,7 @@ const LandingThemeB = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
             <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full mb-4">Fitur Unggulan</span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Semua yang Sekolah Anda Butuhkan</h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Platform lengkap untuk mengelola absensi siswa secara digital dengan teknologi terkini.</p>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Platform lengkap untuk absensi, jadwal mengajar, pembayaran SPP, dan komunikasi wali murid — semua terintegrasi.</p>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {DEFAULT_FEATURES.map((f, i) => {
@@ -503,10 +503,10 @@ const LandingThemeB = () => {
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
               <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full mb-4">Kenapa Kami</span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                {get("why_title", "Platform Absensi Digital yang Terpercaya")}
+                {get("why_title", "Platform Digital Sekolah yang Terpercaya")}
               </h2>
               <p className="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
-                {get("why_desc", "ATSkolla menyediakan solusi menyeluruh untuk membantu sekolah Anda mengelola kehadiran siswa dengan teknologi terkini.")}
+                {get("why_desc", "ATSkolla menyediakan platform digital terintegrasi: absensi, jadwal mengajar, pembayaran SPP online, dan komunikasi wali murid dalam satu sistem.")}
               </p>
               <button onClick={() => navigate("/register")} className="mt-8 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]">
                 Mulai Sekarang <ArrowRight className="h-4 w-4" />
@@ -536,10 +536,10 @@ const LandingThemeB = () => {
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
               <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-1.5 rounded-full mb-4">Tentang Platform</span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                {get("why_title", "Platform Absensi Digital yang Terpercaya")}
+                {get("why_title", "Platform Digital Sekolah yang Terpercaya")}
               </h2>
               <p className="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
-                {get("why_desc", "ATSkolla menyediakan solusi menyeluruh untuk membantu sekolah Anda mengelola kehadiran siswa dengan teknologi terkini. Cepat, aman, dan mudah digunakan oleh siapa saja.")}
+                {get("why_desc", "ATSkolla menyediakan platform digital terintegrasi untuk absensi, jadwal mengajar, pembayaran SPP online, dan komunikasi wali murid. Cepat, aman, dan mudah digunakan oleh siapa saja.")}
               </p>
               <div className="mt-6 space-y-3">
                 {[
@@ -641,7 +641,7 @@ const LandingThemeB = () => {
             <div className="relative z-10">
               <div className="h-14 w-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mx-auto mb-6"><GraduationCap className="h-7 w-7 text-white" /></div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-4">{get("cta_banner_text", "Siap Tingkatkan Absensi Sekolah?")}</h2>
-              <p className="text-white/80 text-sm sm:text-base mb-8 max-w-lg mx-auto">{get("cta_banner_desc", "Bergabung sekarang dan rasakan kemudahan absensi digital. Tanpa biaya setup.")}</p>
+              <p className="text-white/80 text-sm sm:text-base mb-8 max-w-lg mx-auto">{get("cta_banner_desc", "Bergabung sekarang dan kelola absensi, jadwal mengajar, SPP, hingga komunikasi wali murid dalam satu platform. Tanpa biaya setup.")}</p>
               <button onClick={() => navigate("/register")} className="inline-flex items-center gap-2 bg-white text-indigo-700 px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:bg-white/90 shadow-xl hover:scale-[1.02]">
                 <Zap className="h-4 w-4" /> Daftar Gratis Sekarang
               </button>
@@ -659,9 +659,9 @@ const LandingThemeB = () => {
             <div className="lg:col-span-1 space-y-5">
               <div className="flex items-center gap-3">
                 {get("footer_logo") ? <img src={get("footer_logo")} alt="Logo" className="h-11 w-11 rounded-xl object-cover shadow-lg" /> : <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg"><GraduationCap className="h-5 w-5 text-white" /></div>}
-                <div><p className="font-bold text-white text-base">{get("footer_brand_name", "ATSkolla")}</p><p className="text-xs text-slate-400">{get("footer_brand_tagline", "Absensi Digital Sekolah")}</p></div>
+                <div><p className="font-bold text-white text-base">{get("footer_brand_name", "ATSkolla")}</p><p className="text-xs text-slate-400">{get("footer_brand_tagline", "Platform Digital Sekolah")}</p></div>
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed">{get("footer_description", "Solusi absensi digital #1 untuk sekolah modern Indonesia.")}</p>
+              <p className="text-sm text-slate-400 leading-relaxed">{get("footer_description", "Solusi digital #1 untuk sekolah modern Indonesia — absensi, jadwal mengajar, SPP, dan monitoring wali murid dalam satu platform.")}</p>
             </div>
             <div className="space-y-4">
               <p className="text-sm font-bold text-white uppercase tracking-wider">Produk</p>
@@ -691,7 +691,7 @@ const LandingThemeB = () => {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")} — {get("footer_brand_tagline", "Absensi Digital Sekolah")}. All rights reserved.</p>
+            <p className="text-xs text-slate-500">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")} — {get("footer_brand_tagline", "Platform Digital Sekolah")}. All rights reserved.</p>
           </div>
         </div>
       </footer>
