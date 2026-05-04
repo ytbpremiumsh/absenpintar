@@ -28,7 +28,8 @@ const groups: { label: string; items: { title: string; url: string; icon: any; e
     label: "Operasional",
     items: [
       { title: "Generate Tagihan", url: "/bendahara/generate", icon: FileText },
-      { title: "Transaksi", url: "/bendahara/transaksi", icon: CreditCard },
+      { title: "Pembayaran SPP", url: "/bendahara/transaksi", icon: CreditCard },
+      { title: "Import / Export", url: "/bendahara/import-export", icon: Upload },
     ],
   },
   {
