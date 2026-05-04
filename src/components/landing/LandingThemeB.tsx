@@ -292,7 +292,7 @@ const LandingThemeB = () => {
             </span>
             <span className="block min-h-[1.2em]">
               <TypingEffect
-                texts={["Platform Digital Sekolah", "Cepat, Aman & Modern", "Scan Barcode & Face AI"]}
+                texts={["Platform Digital Sekolah", "Absensi QR & Face AI", "Jadwal Mengajar Live", "Bayar SPP Online", "Notifikasi WhatsApp", "Cepat, Aman & Terintegrasi"]}
                 speed={60}
                 deleteSpeed={35}
                 pauseTime={2500}
