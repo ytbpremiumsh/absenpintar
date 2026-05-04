@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
   Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle, Mail, Copy,
-  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye, GraduationCap,
+  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye, GraduationCap, Send,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import * as XLSX from "xlsx";
@@ -695,8 +695,10 @@ export function BendaharaGenerate() {
   const [rangeFrom, setRangeFrom] = useState(0);
   const [rangeTo, setRangeTo] = useState(ayMonths.length - 1);
   const [skipExisting, setSkipExisting] = useState(true);
+  const [autoSendWa, setAutoSendWa] = useState(true);
   const [loading, setLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; phase: string } | null>(null);
 
   useEffect(() => {
     if (!profile?.school_id) return;
@@ -789,9 +791,46 @@ export function BendaharaGenerate() {
       );
       const toInsert = rows.filter(r => !existsKey.has(`${r.student_id}|${r.period_year}|${r.period_month}`));
       if (toInsert.length === 0) { toast.info("Semua tagihan untuk periode ini sudah ada"); return; }
-      const { error } = await supabase.from("spp_invoices").insert(toInsert);
+      const { data: inserted, error } = await supabase.from("spp_invoices").insert(toInsert).select("*");
       if (error) { toast.error(error.message); return; }
-      toast.success(`${toInsert.length} tagihan SPP berhasil dibuat${toInsert.length < rows.length ? ` (${rows.length - toInsert.length} dilewati karena sudah ada)` : ""}`);
+      const created = inserted || [];
+      toast.success(`${created.length} tagihan SPP berhasil dibuat${created.length < rows.length ? ` (${rows.length - created.length} dilewati karena sudah ada)` : ""}`);
+
+      // === Auto generate Mayar link + kirim WA (opsional) ===
+      if (autoSendWa && created.length > 0) {
+        let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
+        setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran..." });
+        // Sequential to avoid Mayar rate limits
+        for (let i = 0; i < created.length; i++) {
+          const inv = created[i];
+          try {
+            const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
+              body: { action: "create_payment_link", invoice_id: inv.id },
+            });
+            const paymentUrl = linkRes?.payment_url;
+            if (paymentUrl) {
+              linkOk++;
+              const phone = inv.parent_phone;
+              if (phone) {
+                const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
+                const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${paymentUrl}\n\nJatuh tempo: ${due}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
+                const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
+                  body: { school_id: profile.school_id, phone, message: msg, message_type: "spp_invoice" },
+                });
+                if (waErr) waFail++; else waOk++;
+              } else {
+                waSkip++;
+              }
+            } else {
+              linkFail++;
+            }
+          } catch { linkFail++; }
+          setBulkProgress({ done: i + 1, total: created.length, phase: "Membuat link & kirim WA..." });
+        }
+        setBulkProgress(null);
+        toast.success(`Link berhasil: ${linkOk} • WA terkirim: ${waOk}${waFail ? ` • gagal kirim: ${waFail}` : ""}${waSkip ? ` • tanpa nomor WA: ${waSkip}` : ""}${linkFail ? ` • gagal link: ${linkFail}` : ""}`);
+      }
+
       setPreviewOpen(false);
       // refresh existing invs to reflect new state
       const { data } = await supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id);
@@ -922,6 +961,13 @@ export function BendaharaGenerate() {
             </div>
             <Switch checked={skipExisting} onCheckedChange={setSkipExisting} />
           </div>
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-[#5B6CF9]/5 border-[#5B6CF9]/20">
+            <div>
+              <p className="text-sm font-medium flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-[#5B6CF9]" /> Otomatis kirim WA ke wali murid</p>
+              <p className="text-xs text-muted-foreground">Setelah generate, sistem otomatis membuat link Mayar dan mengirim tagihan via WhatsApp</p>
+            </div>
+            <Switch checked={autoSendWa} onCheckedChange={setAutoSendWa} />
+          </div>
           {(preview.skipped > 0 || preview.noTariff > 0) && (
             <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3 text-xs space-y-1">
               {preview.skipped > 0 && <p className="text-amber-800 dark:text-amber-200"><strong>{preview.skipped}</strong> tagihan akan dilewati (sudah ada)</p>}
@@ -948,6 +994,15 @@ export function BendaharaGenerate() {
               </Button>
             </div>
           </CardContent>
+          {bulkProgress && (
+            <div className="px-4 pb-4">
+              <div className="flex items-center justify-between text-xs text-white/90 mb-1">
+                <span>{bulkProgress.phase}</span>
+                <span className="font-semibold">{bulkProgress.done}/{bulkProgress.total}</span>
+              </div>
+              <Progress value={(bulkProgress.done / Math.max(1, bulkProgress.total)) * 100} className="h-1.5 bg-white/20" />
+            </div>
+          )}
         </Card>
       </div>
 
@@ -1159,14 +1214,14 @@ export function BendaharaTransaksi() {
           Tidak ada data sesuai filter
         </CardContent></Card>
       ) : (
-        <ClassGroupedList students={enriched} filterAY={filterAY} navigate={navigate} />
+        <ClassGroupedList students={enriched} filterAY={filterAY} filterMonth={filterMonth} navigate={navigate} invoices={invoices} schoolId={profile?.school_id} onRefresh={load} />
       )}
     </div>
   );
 }
 
 // Per-class collapsible cards
-function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; filterAY: string; navigate: any }) {
+function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices, schoolId, onRefresh }: { students: any[]; filterAY: string; filterMonth: string; navigate: any; invoices: any[]; schoolId?: string; onRefresh: () => void }) {
   const grouped = useMemo(() => {
     const m = new Map<string, any[]>();
     students.forEach(s => {
@@ -1183,6 +1238,61 @@ function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; f
     return o;
   });
 
+  const [bulkBusy, setBulkBusy] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
+
+  // Send WA massal untuk daftar siswa di kelas ini (status pending/unpaid pada periode aktif)
+  const sendBulkForStudents = async (className: string, classStudents: any[]) => {
+    if (!schoolId) return;
+    // Cari invoice pending untuk siswa-siswa ini sesuai filter AY & bulan
+    const studentIds = new Set(classStudents.map(s => s.id));
+    const studentMap = new Map(classStudents.map(s => [s.id, s]));
+    const targetInvs = invoices.filter(inv => {
+      if (!studentIds.has(inv.student_id)) return false;
+      if (inv.status === "paid" || inv.status === "expired") return false;
+      const ay = academicYearOf(inv.period_month, inv.period_year);
+      if (ay !== filterAY) return false;
+      if (filterMonth !== "all" && inv.period_month !== parseInt(filterMonth)) return false;
+      const stu = studentMap.get(inv.student_id);
+      return stu?.parent_phone;
+    });
+
+    if (targetInvs.length === 0) {
+      toast.info("Tidak ada tagihan tertunggak yang bisa dikirim (cek filter bulan/AY & nomor wali)");
+      return;
+    }
+    const confirmMsg = `Kirim WA tagihan ke ${targetInvs.length} wali murid kelas ${className}?\n(Sistem otomatis membuat link Mayar untuk yang belum punya link)`;
+    if (!confirm(confirmMsg)) return;
+
+    setBulkBusy(className);
+    setBulkProgress({ done: 0, total: targetInvs.length });
+    let waOk = 0, waFail = 0, linkFail = 0;
+    for (let i = 0; i < targetInvs.length; i++) {
+      const inv = targetInvs[i];
+      let paymentUrl = inv.payment_url;
+      try {
+        if (!paymentUrl) {
+          const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
+            body: { action: "create_payment_link", invoice_id: inv.id },
+          });
+          paymentUrl = linkRes?.payment_url;
+        }
+        if (!paymentUrl) { linkFail++; setBulkProgress({ done: i + 1, total: targetInvs.length }); continue; }
+        const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
+        const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${paymentUrl}\n\nJatuh tempo: ${due}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
+        const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
+          body: { school_id: schoolId, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
+        });
+        if (waErr) waFail++; else waOk++;
+      } catch { waFail++; }
+      setBulkProgress({ done: i + 1, total: targetInvs.length });
+    }
+    setBulkBusy(null);
+    setBulkProgress(null);
+    toast.success(`Kelas ${className}: WA terkirim ${waOk}${waFail ? ` • gagal ${waFail}` : ""}${linkFail ? ` • gagal link ${linkFail}` : ""}`);
+    onRefresh();
+  };
+
   return (
     <div className="space-y-3">
       {grouped.map(([className, list]) => {
@@ -1192,31 +1302,56 @@ function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; f
         const isOpen = openClass[className] ?? false;
         return (
           <Card key={className} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-            <button
-              onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
-            >
-              {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
-              <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
-                <GraduationCap className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
-                  <Badge variant="secondary" className="text-[10px] h-5">{list.length} siswa</Badge>
+            <div className="flex items-stretch">
+              <button
+                onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
+                className="flex-1 min-w-0 flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
+              >
+                {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+                <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
+                  <GraduationCap className="h-4 w-4 text-white" />
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
-              </div>
-              <div className="hidden md:flex items-center gap-1.5">
-                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
-                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
-                <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
-              </div>
-              <div className="flex md:hidden items-center gap-1">
-                <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
-                <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
-              </div>
-            </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
+                    <Badge variant="secondary" className="text-[10px] h-5">{list.length} siswa</Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
+                </div>
+                <div className="hidden md:flex items-center gap-1.5">
+                  <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
+                  <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
+                  <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
+                </div>
+                <div className="flex md:hidden items-center gap-1">
+                  <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
+                  <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
+                </div>
+              </button>
+              {nunggak > 0 && (
+                <div className="flex items-center pr-2 sm:pr-3 border-l border-border/40 bg-secondary/20">
+                  <Button
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
+                    disabled={bulkBusy === className}
+                    className="h-8 px-2.5 ml-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs shadow-sm"
+                    title={`Kirim WA tagihan ke ${nunggak} wali murid kelas ${className}`}
+                  >
+                    {bulkBusy === className ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
+                        <span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-3.5 w-3.5 sm:mr-1.5" />
+                        <span className="hidden sm:inline">Kirim WA</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
             {isOpen && (
               <div className="border-t border-border/50">
                 <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
