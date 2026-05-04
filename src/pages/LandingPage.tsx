@@ -12,6 +12,7 @@ import {
   ChevronRight, Sparkles, Play, ArrowDown,
   AlertTriangle, XCircle, Clock, FileText, Globe,
   Quote, ChevronLeft, School,
+  CalendarDays, Wallet, CreditCard, MessageSquare, BookOpen, Receipt,
 } from "lucide-react";
 import heroDashboard from "@/assets/hero-dashboard.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
