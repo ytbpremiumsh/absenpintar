@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server } from "lucide-react";
+import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server, Banknote } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -15,35 +15,51 @@ import {
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
+  // OVERVIEW
   { title: "Dashboard", url: "/super-admin", icon: LayoutGrid, group: "overview" },
-  { title: "Kelola Sekolah", url: "/super-admin/schools", icon: School, group: "management" },
-  { title: "Log Login", url: "/super-admin/login-logs", icon: Clock, group: "management" },
-  { title: "Konfirmasi Bayar", url: "/super-admin/payments", icon: Crown, group: "management" },
-  { title: "Tiket Bantuan", url: "/super-admin/tickets", icon: UsersRound, group: "management" },
-  { title: "Pengumuman", url: "/super-admin/announcements", icon: Megaphone, group: "management" },
-  { title: "Paket Langganan", url: "/super-admin/plans", icon: Wallet, group: "billing" },
-  { title: "Langganan", url: "/super-admin/subscriptions", icon: CalendarCheck, group: "billing" },
-  { title: "Referral & Poin", url: "/super-admin/referral", icon: Gift, group: "billing" },
-  { title: "Affiliate", url: "/super-admin/affiliate", icon: Handshake, group: "billing" },
-  { title: "Model Bisnis", url: "/super-admin/business-model", icon: Receipt, group: "integration" },
-  { title: "Aktivasi WA Sekolah", url: "/super-admin/whatsapp", icon: Eye, group: "integration" },
-  { title: "Konfigurasi API WA", url: "/super-admin/registration-wa", icon: MessageCircle, group: "integration" },
-  { title: "Multi Cabang", url: "/super-admin/branches", icon: Building2, group: "integration" },
+
+  // SEKOLAH & PENGGUNA
+  { title: "Kelola Sekolah", url: "/super-admin/schools", icon: School, group: "schools" },
+  { title: "Multi Cabang", url: "/super-admin/branches", icon: Building2, group: "schools" },
+  { title: "Log Login", url: "/super-admin/login-logs", icon: Clock, group: "schools" },
+
+  // KEUANGAN
+  { title: "Konfirmasi Bayar", url: "/super-admin/payments", icon: CreditCard, group: "finance" },
+  { title: "Manajemen Bendahara", url: "/super-admin/bendahara", icon: Banknote, group: "finance" },
+  { title: "Paket Langganan", url: "/super-admin/plans", icon: Wallet, group: "finance" },
+  { title: "Langganan Sekolah", url: "/super-admin/subscriptions", icon: CalendarCheck, group: "finance" },
+  { title: "Kelola Add-on", url: "/super-admin/addons", icon: Package, group: "finance" },
+
+  // PROGRAM PARTNER
+  { title: "Referral & Poin", url: "/super-admin/referral", icon: Gift, group: "partner" },
+  { title: "Affiliate", url: "/super-admin/affiliate", icon: Handshake, group: "partner" },
+
+  // KOMUNIKASI
+  { title: "Pengumuman", url: "/super-admin/announcements", icon: Megaphone, group: "comms" },
+  { title: "Tiket Bantuan", url: "/super-admin/tickets", icon: UsersRound, group: "comms" },
+  { title: "Aktivasi WA Sekolah", url: "/super-admin/whatsapp", icon: Eye, group: "comms" },
+  { title: "Konfigurasi API WA", url: "/super-admin/registration-wa", icon: MessageCircle, group: "comms" },
+
+  // KONTEN PUBLIK
   { title: "Branding & Landing", url: "/super-admin/landing", icon: Palette, group: "content" },
   { title: "Testimoni & Sekolah", url: "/super-admin/testimonials", icon: School, group: "content" },
   { title: "Halaman Fitur", url: "/super-admin/fitur", icon: Presentation, group: "content" },
   { title: "Halaman Penawaran", url: "/super-admin/penawaran", icon: Globe, group: "content" },
-  { title: "Backup & Migrasi", url: "/super-admin/backup", icon: Database, group: "management" },
-  { title: "Kelola Add-on", url: "/super-admin/addons", icon: Package, group: "billing" },
-  { title: "Server Info", url: "/super-admin/server-info", icon: Server, group: "management" },
+  { title: "Model Bisnis", url: "/super-admin/business-model", icon: Receipt, group: "content" },
+
+  // SISTEM
+  { title: "Backup & Migrasi", url: "/super-admin/backup", icon: Database, group: "system" },
+  { title: "Server Info", url: "/super-admin/server-info", icon: Server, group: "system" },
 ];
 
 const groups = [
   { key: "overview", label: "OVERVIEW" },
-  { key: "management", label: "MANAJEMEN" },
-  { key: "billing", label: "BILLING" },
-  { key: "integration", label: "INTEGRASI" },
-  { key: "content", label: "TAMPILAN" },
+  { key: "schools", label: "SEKOLAH & PENGGUNA" },
+  { key: "finance", label: "KEUANGAN" },
+  { key: "partner", label: "PROGRAM PARTNER" },
+  { key: "comms", label: "KOMUNIKASI" },
+  { key: "content", label: "KONTEN PUBLIK" },
+  { key: "system", label: "SISTEM" },
 ];
 
 const superAdminFooterItems = [
