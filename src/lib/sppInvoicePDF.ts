@@ -206,12 +206,18 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(5, 122, 85);
-    doc.text("✓ PEMBAYARAN DITERIMA", M + 4, y + 6);
+    doc.text("LUNAS / PEMBAYARAN DITERIMA", M + 4, y + 6);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.setTextColor(60, 90, 70);
-    doc.text(`Tanggal: ${fmtDate(data.invoice.paid_at)}`, M + 4, y + 11.5);
-    doc.text(`Metode: ${(data.invoice.payment_method || "Mayar").toUpperCase()}`, M + 4, y + 15.5);
+    doc.text(`Tanggal Pembayaran : ${fmtDate(data.invoice.paid_at)}`, M + 4, y + 11.5);
+    const rawMethod = (data.invoice.payment_method || "").toLowerCase();
+    const methodLabel = rawMethod.includes("transfer") || rawMethod.includes("bank") ? "Transfer Bank"
+      : rawMethod.includes("qris") ? "QRIS"
+      : rawMethod.includes("ewallet") || rawMethod.includes("wallet") ? "E-Wallet"
+      : rawMethod === "spp" || rawMethod === "" || rawMethod === "mayar" ? "QRIS / Transfer Bank"
+      : data.invoice.payment_method!.toUpperCase();
+    doc.text(`Metode Pembayaran  : ${methodLabel}`, M + 4, y + 15.5);
     y += 18;
   }
 
