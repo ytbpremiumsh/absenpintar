@@ -227,27 +227,32 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
   doc.text(
-    "Invoice ini sah dan diproses oleh sistem ATSkolla. Tidak memerlukan tanda tangan basah.",
+    "Bukti pembayaran ini diterbitkan secara elektronik dan sah tanpa memerlukan tanda tangan basah maupun cap stempel.",
     W / 2, y, { align: "center", maxWidth: 170 }
   );
 
   y += 6;
   doc.setFontSize(9);
-  doc.setTextColor(60, 60, 60);
-  doc.text(`${data.school.name},`, W - M - 50, y);
-  doc.text(`${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`, W - M - 50, y + 4);
-  doc.text("Bendahara Sekolah", W - M - 50, y + 9);
+  doc.setTextColor(40, 40, 40);
+  const cityLine = `${data.school.address ? data.school.address.split(",").slice(-2, -1)[0]?.trim() || "" : ""}`;
+  const place = cityLine ? `${cityLine}, ` : "";
+  doc.text(`${place}${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`, W - M - 60, y);
+  doc.text("Bendahara Sekolah,", W - M - 60, y + 5);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text(data.bendahara_name || "(_______________)", W - M - 50, y + 25);
+  doc.text(data.bendahara_name || "(_______________)", W - M - 60, y + 25);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text("NIP/NIK : ........................", W - M - 60, y + 30);
 
   // page footer
   doc.setFont("helvetica", "italic");
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    `Dicetak ${new Date().toLocaleString("id-ID")} • Powered by ATSkolla (Ayo Pintar)`,
+    `Dokumen dicetak otomatis pada ${new Date().toLocaleString("id-ID")}`,
     W / 2, 290, { align: "center" }
   );
 
