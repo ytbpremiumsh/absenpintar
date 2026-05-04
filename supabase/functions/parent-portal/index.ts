@@ -396,13 +396,14 @@ Deno.serve(async (req) => {
     if (action === "spp_list") {
       const { data } = await supabase
         .from("spp_invoices")
-        .select("id, invoice_number, period_month, period_year, period_label, total_amount, amount, denda, due_date, status, payment_url, paid_at, payment_method, expired_at, mayar_invoice_id")
+        .select("id, school_id, invoice_number, period_month, period_year, period_label, total_amount, amount, denda, due_date, status, payment_url, paid_at, payment_method, expired_at, mayar_invoice_id")
         .eq("student_id", studentId)
         .order("period_year", { ascending: false })
         .order("period_month", { ascending: false });
+      const syncedData = await syncSppInvoicesFromMayar(data || []);
       // Auto-mark as expired if past expiry and not paid
       const now = Date.now();
-      const list = (data || []).map((i: any) => {
+      const list = syncedData.map((i: any) => {
         if (i.status === "pending" && i.expired_at && new Date(i.expired_at).getTime() < now) {
           return { ...i, status: "expired" };
         }
