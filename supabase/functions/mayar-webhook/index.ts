@@ -145,7 +145,8 @@ serve(async (req) => {
       }
 
       if (sppInv && sppInv.status !== 'paid') {
-        const gatewayFee = Math.round(sppInv.total_amount * 0.007) + 500;
+        const feeCfg = await getGatewayFeeConfig(supabaseAdmin);
+        const gatewayFee = calcGatewayFee(sppInv.total_amount, feeCfg);
         const netAmount = sppInv.total_amount - gatewayFee;
         await supabaseAdmin.from('spp_invoices').update({
           status: 'paid', paid_at: new Date().toISOString(),
