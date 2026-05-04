@@ -791,9 +791,46 @@ export function BendaharaGenerate() {
       );
       const toInsert = rows.filter(r => !existsKey.has(`${r.student_id}|${r.period_year}|${r.period_month}`));
       if (toInsert.length === 0) { toast.info("Semua tagihan untuk periode ini sudah ada"); return; }
-      const { error } = await supabase.from("spp_invoices").insert(toInsert);
+      const { data: inserted, error } = await supabase.from("spp_invoices").insert(toInsert).select("*");
       if (error) { toast.error(error.message); return; }
-      toast.success(`${toInsert.length} tagihan SPP berhasil dibuat${toInsert.length < rows.length ? ` (${rows.length - toInsert.length} dilewati karena sudah ada)` : ""}`);
+      const created = inserted || [];
+      toast.success(`${created.length} tagihan SPP berhasil dibuat${created.length < rows.length ? ` (${rows.length - created.length} dilewati karena sudah ada)` : ""}`);
+
+      // === Auto generate Mayar link + kirim WA (opsional) ===
+      if (autoSendWa && created.length > 0) {
+        let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
+        setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran..." });
+        // Sequential to avoid Mayar rate limits
+        for (let i = 0; i < created.length; i++) {
+          const inv = created[i];
+          try {
+            const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
+              body: { action: "create_payment_link", invoice_id: inv.id },
+            });
+            const paymentUrl = linkRes?.payment_url;
+            if (paymentUrl) {
+              linkOk++;
+              const phone = inv.parent_phone;
+              if (phone) {
+                const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
+                const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${paymentUrl}\n\nJatuh tempo: ${due}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
+                const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
+                  body: { school_id: profile.school_id, phone, message: msg, message_type: "spp_invoice" },
+                });
+                if (waErr) waFail++; else waOk++;
+              } else {
+                waSkip++;
+              }
+            } else {
+              linkFail++;
+            }
+          } catch { linkFail++; }
+          setBulkProgress({ done: i + 1, total: created.length, phase: "Membuat link & kirim WA..." });
+        }
+        setBulkProgress(null);
+        toast.success(`Link berhasil: ${linkOk} • WA terkirim: ${waOk}${waFail ? ` • gagal kirim: ${waFail}` : ""}${waSkip ? ` • tanpa nomor WA: ${waSkip}` : ""}${linkFail ? ` • gagal link: ${linkFail}` : ""}`);
+      }
+
       setPreviewOpen(false);
       // refresh existing invs to reflect new state
       const { data } = await supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id);
