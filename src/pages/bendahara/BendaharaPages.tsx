@@ -433,12 +433,32 @@ export function BendaharaTransaksi() {
   };
   useEffect(load, [profile?.school_id]);
 
-  const createLink = async (invoiceId: string) => {
+  const sendWa = async (inv: any, url: string) => {
+    if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    const msg =
+      `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\n` +
+      `Tagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\n` +
+      `Silakan lakukan pembayaran melalui link berikut:\n${url}\n\n` +
+      `Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\n` +
+      `Terima kasih.\n_ATSkolla - Sistem Sekolah_`;
+    toast.loading("Mengirim WA...");
+    const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
+    });
+    toast.dismiss();
+    if (error || data?.success === false) toast.error("Gagal kirim WA"); else toast.success("Link tagihan dikirim ke WA wali");
+  };
+
+  const createLink = async (inv: any) => {
     toast.loading("Membuat link Mayar...");
-    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action: "create_payment_link", invoice_id: invoiceId } });
+    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action: "create_payment_link", invoice_id: inv.id } });
     toast.dismiss();
     if (error || !data?.success) { toast.error(data?.error || error?.message || "Gagal"); return; }
-    if (data.payment_url) { window.open(data.payment_url, "_blank"); toast.success("Link dibuat"); load(); }
+    if (data.payment_url) {
+      toast.success("Link dibuat, mengirim ke WA wali...");
+      load();
+      sendWa(inv, data.payment_url);
+    }
   };
 
   const filtered = items.filter(i =>
@@ -474,26 +494,36 @@ export function BendaharaTransaksi() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Invoice</TableHead><TableHead>Deskripsi</TableHead><TableHead>Amount</TableHead>
-                  <TableHead>Fee</TableHead><TableHead>Net</TableHead><TableHead>Method</TableHead>
-                  <TableHead>Status</TableHead><TableHead>Action</TableHead>
+                  <TableHead>Invoice</TableHead><TableHead>Siswa</TableHead><TableHead>Amount</TableHead>
+                  <TableHead>Net</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Aksi</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Tidak ada transaksi</TableCell></TableRow>}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Tidak ada transaksi</TableCell></TableRow>}
                   {filtered.map(i => (
                     <TableRow key={i.id}>
                       <TableCell className="text-xs font-mono">{i.invoice_number}</TableCell>
-                      <TableCell className="text-xs">{i.description}</TableCell>
+                      <TableCell className="text-xs">
+                        <p className="font-semibold">{i.student_name}</p>
+                        <p className="text-muted-foreground">{i.class_name} · {i.period_label}</p>
+                      </TableCell>
                       <TableCell className="font-semibold">{fmtIDR(i.total_amount)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{fmtIDR(i.gateway_fee)}</TableCell>
                       <TableCell className="text-xs font-semibold text-emerald-600">{fmtIDR(i.net_amount)}</TableCell>
-                      <TableCell className="text-xs">{i.payment_method || "-"}</TableCell>
                       <TableCell>{statusBadge(i.status)}</TableCell>
                       <TableCell>
-                        {i.status === "pending" && (i.payment_url ?
-                          <Button size="sm" variant="outline" onClick={() => window.open(i.payment_url, "_blank")}><LinkIcon className="h-3 w-3 mr-1" /> Buka</Button> :
-                          <Button size="sm" className="bg-emerald-600" onClick={() => createLink(i.id)}>Buat Link</Button>
-                        )}
+                        {i.status === "pending" && (i.payment_url ? (
+                          <div className="flex gap-1 justify-end">
+                            <Button size="sm" variant="outline" onClick={() => window.open(i.payment_url, "_blank")}>
+                              <LinkIcon className="h-3 w-3 mr-1" /> Buka
+                            </Button>
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => sendWa(i, i.payment_url)}>
+                              <MessageCircle className="h-3 w-3 mr-1" /> Kirim WA
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button size="sm" className="bg-emerald-600" onClick={() => createLink(i)}>
+                            <LinkIcon className="h-3 w-3 mr-1" /> Buat & Kirim
+                          </Button>
+                        ))}
                       </TableCell>
                     </TableRow>
                   ))}
