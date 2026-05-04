@@ -60,11 +60,31 @@ serve(async (req) => {
       if (!inv) return err("Invoice tidak ditemukan");
       if (inv.status === "paid") return err("Invoice sudah lunas");
 
-      // Verify parent owns the invoice (by phone match)
-      const phoneDigits = (inv.parent_phone || "").replace(/\D/g, "");
-      const sesDigits = (ses.phone || "").replace(/\D/g, "");
-      const norm = (p: string) => p.startsWith("0") ? "62" + p.slice(1) : p;
-      if (norm(phoneDigits) !== norm(sesDigits)) return err("Akses ditolak");
+      // Verify parent owns the invoice via the student's CURRENT parent_phone
+      // (invoice's snapshot parent_phone may be stale/wrong; trust the student record)
+      const { data: studentRow } = await supabaseAdmin
+        .from("students")
+        .select("parent_phone")
+        .eq("id", inv.student_id)
+        .maybeSingle();
+
+      const phoneVariants = (raw: string): string[] => {
+        const digits = (raw || "").replace(/\D/g, "");
+        const v = new Set<string>();
+        if (!digits) return [];
+        v.add(digits);
+        if (digits.startsWith("62")) { v.add("0" + digits.slice(2)); v.add(digits.slice(2)); }
+        if (digits.startsWith("0")) { v.add("62" + digits.slice(1)); v.add(digits.slice(1)); }
+        if (digits.startsWith("8")) { v.add("62" + digits); v.add("0" + digits); }
+        return Array.from(v);
+      };
+      const sesVariants = phoneVariants(ses.phone || "");
+      const studentVariants = phoneVariants(studentRow?.parent_phone || "");
+      const invVariants = phoneVariants(inv.parent_phone || "");
+      const owned =
+        sesVariants.some((p) => studentVariants.includes(p)) ||
+        sesVariants.some((p) => invVariants.includes(p));
+      if (!owned) return err("Akses ditolak");
 
       const result = await ensureFreshLink(supabaseAdmin, inv);
       if (!result.success) return err(result.error || "Gagal");
