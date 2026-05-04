@@ -86,7 +86,7 @@ import { BendaharaLayout } from "./components/layout/BendaharaLayout";
 import {
   BendaharaDashboard, BendaharaSiswa, BendaharaTarif, BendaharaGenerate,
   BendaharaTransaksi, BendaharaSaldo, BendaharaPencairan, BendaharaSettlement,
-  BendaharaLaporan, BendaharaGateway,
+  BendaharaLaporan,
 } from "./pages/bendahara/BendaharaPages";
 
 const queryClient = new QueryClient();
