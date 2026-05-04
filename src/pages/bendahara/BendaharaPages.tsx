@@ -107,19 +107,15 @@ export function BendaharaDashboard() {
         <p className="text-sm text-muted-foreground">Ringkasan keuangan sekolah</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* PRIMARY ROW: 4 KPI utama */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Tagihan Bulan Ini" value={fmtIDR(stats.monthBills)} icon={Receipt} gradient="from-violet-500 to-purple-600" />
-        <StatCard label="Pembayaran Berhasil" value={stats.paidCount} icon={CheckCircle2} sub="Transaksi" />
-        <StatCard label="Pending" value={stats.pendingCount} icon={AlertCircle} gradient="from-amber-500 to-orange-600" sub="Belum dibayar" />
-        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-red-500 to-rose-600" />
-        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
-        <StatCard label="Fee Gateway" value={fmtIDR(stats.totalFee)} icon={Banknote} gradient="from-slate-500 to-slate-700" />
-        <StatCard label="Fee Pencairan" value={fmtIDR(stats.settleFee)} icon={Banknote} gradient="from-slate-500 to-slate-700" />
-        <StatCard label="Saldo Pending" value={fmtIDR(stats.pendingBalance)} icon={Wallet} gradient="from-amber-500 to-orange-600" />
+        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" sub={`${stats.paidCount} transaksi`} />
         <StatCard label="Saldo Bisa Cair" value={fmtIDR(stats.availableBalance)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
-        <StatCard label="Dana Dicairkan" value={fmtIDR(stats.settled)} icon={ArrowDownToLine} gradient="from-emerald-600 to-green-700" />
+        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-red-500 to-rose-600" sub={`${stats.pendingCount} pending`} />
       </div>
 
+      {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle className="text-base">Pembayaran Bulanan</CardTitle></CardHeader>
@@ -150,6 +146,20 @@ export function BendaharaDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* SECONDARY: detail keuangan dalam satu card ringkas */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader><CardTitle className="text-base">Rincian Keuangan</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+            <div><p className="text-[11px] text-muted-foreground">Pendapatan Net</p><p className="font-bold text-emerald-600">{fmtIDR(stats.totalNet)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Fee Gateway</p><p className="font-bold">{fmtIDR(stats.totalFee)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Fee Pencairan</p><p className="font-bold">{fmtIDR(stats.settleFee)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Saldo Pending</p><p className="font-bold text-amber-600">{fmtIDR(stats.pendingBalance)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Sudah Dicairkan</p><p className="font-bold">{fmtIDR(stats.settled)}</p></div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
