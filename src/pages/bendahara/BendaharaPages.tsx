@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
   Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle, Mail, Copy,
-  Download, Upload, ArrowLeft, User, ChevronRight, Eye,
+  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import * as XLSX from "xlsx";
@@ -660,63 +660,116 @@ export function BendaharaTransaksi() {
         </CardContent>
       </Card>
 
-      {/* List */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Siswa</TableHead>
-                  <TableHead>Kelas</TableHead>
-                  <TableHead>Wali</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead className="text-right">Sisa Tagihan</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {enriched.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    <FileText className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                    Tidak ada data sesuai filter
-                  </TableCell></TableRow>}
-                  {enriched.map(s => {
-                    const pct = s.total > 0 ? Math.round((s.lunas / s.total) * 100) : 0;
-                    return (
-                      <TableRow key={s.id} className="cursor-pointer" onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-xs font-bold text-emerald-700">{s.name[0]}</div>
-                            <div><p className="text-sm font-semibold">{s.name}</p><p className="text-[11px] text-muted-foreground">NIS {s.student_id}</p></div>
-                          </div>
-                        </TableCell>
-                        <TableCell><Badge variant="secondary">{s.class}</Badge></TableCell>
-                        <TableCell className="text-xs"><p>{s.parent_name || "-"}</p><p className="text-muted-foreground">{s.parent_phone || ""}</p></TableCell>
-                        <TableCell>
-                          <div className="w-32">
-                            <div className="flex items-center justify-between text-[10px] mb-1">
-                              <span className="font-medium">{s.lunas}/{s.total} bulan</span>
-                              <span className="text-muted-foreground">{pct}%</span>
-                            </div>
+      {/* Per-Class Grouping */}
+      {loading ? (
+        <Card className="border-0 shadow-sm"><CardContent className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></CardContent></Card>
+      ) : enriched.length === 0 ? (
+        <Card className="border-0 shadow-sm"><CardContent className="p-12 text-center text-muted-foreground">
+          <FileText className="h-10 w-10 mx-auto mb-2 opacity-30" />
+          Tidak ada data sesuai filter
+        </CardContent></Card>
+      ) : (
+        <ClassGroupedList students={enriched} filterAY={filterAY} navigate={navigate} />
+      )}
+    </div>
+  );
+}
+
+// Per-class collapsible cards
+function ClassGroupedList({ students, filterAY, navigate }: { students: any[]; filterAY: string; navigate: any }) {
+  const grouped = useMemo(() => {
+    const m = new Map<string, any[]>();
+    students.forEach(s => {
+      const k = s.class || "Tanpa Kelas";
+      if (!m.has(k)) m.set(k, []);
+      m.get(k)!.push(s);
+    });
+    return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [students]);
+
+  const [openClass, setOpenClass] = useState<Record<string, boolean>>(() => {
+    const o: Record<string, boolean> = {};
+    grouped.forEach(([k], i) => { o[k] = i < 2; });
+    return o;
+  });
+
+  return (
+    <div className="space-y-3">
+      {grouped.map(([className, list]) => {
+        const lunas = list.filter(s => s.aggStatus === "paid").length;
+        const nunggak = list.filter(s => s.sisa > 0).length;
+        const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
+        const isOpen = openClass[className] ?? false;
+        return (
+          <Card key={className} className="border-0 shadow-sm overflow-hidden">
+            <button
+              onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
+              className="w-full flex items-center justify-between gap-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 hover:from-emerald-100 dark:hover:from-emerald-950/50 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold text-sm shadow">
+                  {className.replace(/[^0-9A-Z]/gi, "").slice(0, 3) || "K"}
+                </div>
+                <div className="text-left">
+                  <h3 className="font-bold text-base">Kelas {className}</h3>
+                  <p className="text-[11px] text-muted-foreground">{list.length} siswa · TA {filterAY}</p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                <Badge className="bg-emerald-500 text-white">Lunas {lunas}</Badge>
+                <Badge className="bg-red-500 text-white">Nunggak {nunggak}</Badge>
+                <Badge variant="outline" className="font-semibold">{fmtIDR(totalSisa)}</Badge>
+              </div>
+              <div className="flex md:hidden items-center gap-1.5">
+                <Badge className="bg-emerald-500 text-white text-[10px]">{lunas}</Badge>
+                <Badge className="bg-red-500 text-white text-[10px]">{nunggak}</Badge>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isOpen && (
+              <div className="divide-y">
+                {list.map(s => {
+                  const pct = s.total > 0 ? Math.round((s.lunas / s.total) * 100) : 0;
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
+                      className="flex items-center gap-3 p-3 hover:bg-muted/40 cursor-pointer transition"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-sm font-bold text-emerald-700 shrink-0">
+                        {s.name[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-semibold truncate">{s.name}</p>
+                          <StatusBadge status={s.aggStatus} />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          NIS {s.student_id} · {s.parent_name || "-"} {s.parent_phone ? `· ${s.parent_phone}` : ""}
+                        </p>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <div className="flex-1 max-w-[180px]">
                             <Progress value={pct} className="h-1.5" />
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">{s.sisa > 0 ? <span className="text-red-600">{fmtIDR(s.sisa)}</span> : <span className="text-emerald-600">Lunas</span>}</TableCell>
-                        <TableCell><StatusBadge status={s.aggStatus} /></TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm"><Eye className="h-4 w-4 mr-1" /> Detail</Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{s.lunas}/{s.total} bln</span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className={`text-sm font-bold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                          {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
+                        </p>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 mt-0.5">
+                          <Eye className="h-3.5 w-3.5 mr-1" /> Detail
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        );
+      })}
     </div>
   );
 }
