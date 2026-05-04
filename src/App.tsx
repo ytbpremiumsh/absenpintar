@@ -81,6 +81,13 @@ import TeacherAffiliate from "./pages/TeacherAffiliate";
 import SchoolAnnouncements from "./pages/SchoolAnnouncements";
 import ParentLogin from "./pages/parent/ParentLogin";
 import ParentDashboard from "./pages/parent/ParentDashboard";
+import ManageBendahara from "./pages/ManageBendahara";
+import { BendaharaLayout } from "./components/layout/BendaharaLayout";
+import {
+  BendaharaDashboard, BendaharaSiswa, BendaharaTarif, BendaharaGenerate,
+  BendaharaTransaksi, BendaharaSaldo, BendaharaPencairan, BendaharaSettlement,
+  BendaharaLaporan, BendaharaGateway,
+} from "./pages/bendahara/BendaharaPages";
 
 const queryClient = new QueryClient();
 
@@ -106,7 +113,19 @@ function AppRoutes() {
       <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
       <Route path="/parent/login" element={<ParentLogin />} />
       <Route path="/parent" element={<ParentDashboard />} />
-      {/* Super Admin */}
+      {/* Bendahara */}
+      <Route element={<BendaharaLayout />}>
+        <Route path="/bendahara" element={<BendaharaDashboard />} />
+        <Route path="/bendahara/siswa" element={<BendaharaSiswa />} />
+        <Route path="/bendahara/tarif" element={<BendaharaTarif />} />
+        <Route path="/bendahara/generate" element={<BendaharaGenerate />} />
+        <Route path="/bendahara/transaksi" element={<BendaharaTransaksi />} />
+        <Route path="/bendahara/saldo" element={<BendaharaSaldo />} />
+        <Route path="/bendahara/pencairan" element={<BendaharaPencairan />} />
+        <Route path="/bendahara/settlement" element={<BendaharaSettlement />} />
+        <Route path="/bendahara/laporan" element={<BendaharaLaporan />} />
+        <Route path="/bendahara/gateway" element={<BendaharaGateway />} />
+      </Route>
       <Route element={<SuperAdminLayout />}>
         <Route path="/super-admin" element={<SuperAdminDashboard />} />
         <Route path="/super-admin/schools" element={<SuperAdminSchools />} />
