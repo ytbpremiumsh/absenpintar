@@ -695,8 +695,10 @@ export function BendaharaGenerate() {
   const [rangeFrom, setRangeFrom] = useState(0);
   const [rangeTo, setRangeTo] = useState(ayMonths.length - 1);
   const [skipExisting, setSkipExisting] = useState(true);
+  const [autoSendWa, setAutoSendWa] = useState(true);
   const [loading, setLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; phase: string } | null>(null);
 
   useEffect(() => {
     if (!profile?.school_id) return;
