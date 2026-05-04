@@ -1214,7 +1214,7 @@ export function BendaharaTransaksi() {
           Tidak ada data sesuai filter
         </CardContent></Card>
       ) : (
-        <ClassGroupedList students={enriched} filterAY={filterAY} navigate={navigate} />
+        <ClassGroupedList students={enriched} filterAY={filterAY} filterMonth={filterMonth} navigate={navigate} invoices={invoices} schoolId={profile?.school_id} onRefresh={load} />
       )}
     </div>
   );
