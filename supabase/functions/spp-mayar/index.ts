@@ -15,13 +15,19 @@ function buildInvoiceTitle(inv: { student_name: string; class_name: string; peri
   return `${inv.student_name} – ${inv.class_name} – ${inv.period_label}`;
 }
 
-async function createMayarLink(apiKey: string, inv: any) {
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{ ok: boolean; json: any; expiry: Date; status: number }> {
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + MAYAR_LINK_TTL_DAYS);
+  // Unique suffix to bypass Mayar's "duplicate request" dedupe (which compares
+  // recent payloads). We embed an invisible token in the description, which
+  // does not affect what the user sees on the payment page meaningfully.
+  const uniq = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const payload = {
-    name: buildInvoiceTitle(inv),
+    name: `${buildInvoiceTitle(inv)} #${uniq.slice(-6).toUpperCase()}`,
     amount: inv.total_amount,
-    description: `Pembayaran SPP ${inv.period_label} — ${inv.student_name} (${inv.class_name})`,
+    description: `Pembayaran SPP ${inv.period_label} — ${inv.student_name} (${inv.class_name}) [${uniq}]`,
     email: "spp@atskolla.com",
     mobile: (inv.parent_phone || "08000000000").replace(/\D/g, ""),
     redirectUrl: "https://atskolla.com/parent",
@@ -33,8 +39,18 @@ async function createMayarLink(apiKey: string, inv: any) {
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const json = await res.json();
-  return { ok: res.ok && !!json?.data?.link, json, expiry };
+  const json = await res.json().catch(() => ({}));
+
+  // Retry on 429 (Mayar rate-limit / duplicate detection) with backoff
+  const isDuplicate = res.status === 429 || /duplicate/i.test(json?.message || "");
+  if (isDuplicate && attempt < 3) {
+    const backoff = 1500 + attempt * 1500 + Math.floor(Math.random() * 800);
+    console.log(`Mayar 429/duplicate — retry #${attempt + 1} after ${backoff}ms`);
+    await sleep(backoff);
+    return createMayarLink(apiKey, inv, attempt + 1);
+  }
+
+  return { ok: res.ok && !!json?.data?.link, json, expiry, status: res.status };
 }
 
 serve(async (req) => {

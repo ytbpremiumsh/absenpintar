@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
@@ -83,6 +84,15 @@ export function BendaharaDashboard() {
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [settlements, setSettlements] = useState<any[]>([]);
+  const [showRecentPaid, setShowRecentPaid] = useState<boolean>(() => {
+    const v = localStorage.getItem("bendahara_show_recent_paid");
+    return v === null ? true : v === "1";
+  });
+  const toggleShowRecentPaid = () => {
+    const next = !showRecentPaid;
+    setShowRecentPaid(next);
+    localStorage.setItem("bendahara_show_recent_paid", next ? "1" : "0");
+  };
 
   useEffect(() => {
     if (!profile?.school_id) { setLoading(false); return; }
@@ -145,6 +155,14 @@ export function BendaharaDashboard() {
       map.set(i.student_id, e);
     });
     return Array.from(map.entries()).map(([id, v]) => ({ id, ...v })).sort((a, b) => b.total - a.total).slice(0, 8);
+  }, [invoices]);
+
+  // Riwayat Siswa Membayar SPP (10 transaksi paid terakhir)
+  const recentPaidList = useMemo(() => {
+    return invoices
+      .filter(i => i.status === "paid" && i.paid_at)
+      .sort((a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime())
+      .slice(0, 10);
   }, [invoices]);
 
   const completionRate = useMemo(() => {
@@ -229,31 +247,41 @@ export function BendaharaDashboard() {
         </CardContent>
       </Card>
 
-      {/* Siswa Menunggak */}
+      {/* Riwayat Siswa Membayar SPP */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><AlertCircle className="h-4 w-4 text-red-500" /> Siswa Menunggak</CardTitle>
-          <Badge variant="secondary">{tunggakanList.length}</Badge>
+          <CardTitle className="text-base flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Riwayat Siswa Membayar SPP
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {showRecentPaid && <Badge variant="secondary">{recentPaidList.length}</Badge>}
+            <Button variant="ghost" size="sm" onClick={toggleShowRecentPaid} className="h-7 px-2 text-xs">
+              {showRecentPaid ? "Sembunyikan" : "Tampilkan"}
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="p-0">
-          {tunggakanList.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Tidak ada tunggakan</p>
-          ) : (
-            <Table>
-              <TableHeader><TableRow><TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Bulan Nunggak</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {tunggakanList.map(t => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell><Badge variant="secondary">{t.class}</Badge></TableCell>
-                    <TableCell>{t.count} bulan</TableCell>
-                    <TableCell className="text-right font-semibold text-red-600">{fmtIDR(t.total)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
+        {showRecentPaid && (
+          <CardContent className="p-0">
+            {recentPaidList.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Belum ada pembayaran</p>
+            ) : (
+              <Table>
+                <TableHeader><TableRow><TableHead>Tanggal</TableHead><TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Jumlah</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {recentPaidList.map(t => (
+                    <TableRow key={t.id}>
+                      <TableCell className="text-xs whitespace-nowrap">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
+                      <TableCell className="font-medium">{t.student_name}</TableCell>
+                      <TableCell><Badge variant="secondary">{t.class_name}</Badge></TableCell>
+                      <TableCell className="text-xs">{t.period_label}</TableCell>
+                      <TableCell className="text-right font-semibold text-emerald-600">{fmtIDR(t.total_amount)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        )}
       </Card>
     </div>
   );
@@ -800,7 +828,7 @@ export function BendaharaGenerate() {
       if (autoSendWa && created.length > 0) {
         let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
         setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran..." });
-        // Sequential to avoid Mayar rate limits
+        // Sequential with delay to avoid Mayar rate limits / duplicate detection
         for (let i = 0; i < created.length; i++) {
           const inv = created[i];
           try {
@@ -826,6 +854,8 @@ export function BendaharaGenerate() {
             }
           } catch { linkFail++; }
           setBulkProgress({ done: i + 1, total: created.length, phase: "Membuat link & kirim WA..." });
+          // Throttle ~1.2s between Mayar calls to avoid duplicate-request 429
+          if (i < created.length - 1) await new Promise((r) => setTimeout(r, 1200));
         }
         setBulkProgress(null);
         toast.success(`Link berhasil: ${linkOk} • WA terkirim: ${waOk}${waFail ? ` • gagal kirim: ${waFail}` : ""}${waSkip ? ` • tanpa nomor WA: ${waSkip}` : ""}${linkFail ? ` • gagal link: ${linkFail}` : ""}`);
@@ -1286,6 +1316,8 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         if (waErr) waFail++; else waOk++;
       } catch { waFail++; }
       setBulkProgress({ done: i + 1, total: targetInvs.length });
+      // Throttle to avoid Mayar 429 duplicate-detection on bulk class send
+      if (i < targetInvs.length - 1) await new Promise((r) => setTimeout(r, 1200));
     }
     setBulkBusy(null);
     setBulkProgress(null);
@@ -2102,7 +2134,11 @@ export function BendaharaSaldo() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Saldo & Ledger</h1>
+      <PageHeader
+        icon={Wallet}
+        title="Saldo & Ledger"
+        subtitle="Rekap pendapatan SPP, fee gateway, dan saldo bersih sekolah"
+      />
       <div className="grid grid-cols-3 gap-3">
         <StatCard label="Gross Amount" value={fmtIDR(totals.gross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
         <StatCard label="Gateway Fee" value={fmtIDR(totals.fee)} icon={Banknote} gradient="from-slate-500 to-slate-700" />
@@ -2133,28 +2169,34 @@ export function BendaharaSaldo() {
   );
 }
 
-// ============ PENCAIRAN ============
+// ============ PENCAIRAN + RIWAYAT (gabungan) ============
 export function BendaharaPencairan() {
   const { profile, user } = useAuth();
   const [available, setAvailable] = useState({ count: 0, gross: 0, fee: 0, net: 0 });
   const [open, setOpen] = useState(false);
   const [bank, setBank] = useState({ bank_name: "", account_number: "", account_holder: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (!profile?.school_id) return;
+    if (!profile?.school_id) { setLoadingHistory(false); return; }
     Promise.all([
       supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").is("settlement_id", null),
-    ]).then(([res]) => {
-      const items = res.data || [];
+      supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
+    ]).then(([avRes, hRes]) => {
+      const items = avRes.data || [];
       setAvailable({
         count: items.length,
         gross: items.reduce((s, i) => s + (i.total_amount || 0), 0),
         fee: items.reduce((s, i) => s + (i.gateway_fee || 0), 0),
         net: items.reduce((s, i) => s + (i.net_amount || 0), 0),
       });
+      setHistory(hRes.data || []);
+      setLoadingHistory(false);
     });
-  }, [profile?.school_id, open]);
+  }, [profile?.school_id, open, refreshKey]);
 
   const finalPayout = Math.max(0, available.net - 3000);
 
@@ -2171,35 +2213,89 @@ export function BendaharaPencairan() {
       ...bank, requested_by: user?.id,
     }).select().single();
     if (error || !settlement) { toast.error(error?.message || "Gagal"); setSubmitting(false); return; }
-    // Mark invoices
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
       .eq("school_id", profile!.school_id).eq("status", "paid").is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
-    setOpen(false); setSubmitting(false);
+    setOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
+  };
+
+  const badge = (s: string) => {
+    const map: any = { pending: "bg-amber-500", approved: "bg-blue-500", paid: "bg-emerald-500", rejected: "bg-red-500" };
+    return <Badge className={map[s] || "bg-slate-500"}>{s.toUpperCase()}</Badge>;
   };
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Pencairan Dana</h1>
-      <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
-        <CardHeader><CardTitle className="text-base">Preview Pencairan</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-            <div><p className="text-xs text-muted-foreground">Total Transaksi</p><p className="font-bold">{available.count}</p></div>
-            <div><p className="text-xs text-muted-foreground">Total Bruto</p><p className="font-bold">{fmtIDR(available.gross)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Fee Gateway</p><p className="font-bold">{fmtIDR(available.fee)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Total Net</p><p className="font-bold">{fmtIDR(available.net)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Fee Pencairan</p><p className="font-bold">- {fmtIDR(3000)}</p></div>
-            <div className="col-span-2 md:col-span-1 border-t md:border-t-0 md:border-l pt-2 md:pt-0 md:pl-3">
-              <p className="text-xs text-muted-foreground">Final Payout</p>
-              <p className="text-xl font-extrabold text-emerald-600">{fmtIDR(finalPayout)}</p>
-            </div>
-          </div>
-          <Button disabled={available.count === 0} onClick={() => setOpen(true)} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 mt-2">
-            <ArrowDownToLine className="h-4 w-4 mr-2" /> Ajukan Pencairan
-          </Button>
-        </CardContent>
-      </Card>
+      <PageHeader
+        icon={ArrowDownToLine}
+        title="Pencairan Dana"
+        subtitle="Ajukan pencairan saldo SPP dan pantau riwayat settlement"
+      />
+
+      {/* KPI ringkas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Transaksi Siap Cair" value={String(available.count)} icon={Receipt} gradient="from-violet-500 to-purple-600" />
+        <StatCard label="Total Bruto" value={fmtIDR(available.gross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
+        <StatCard label="Total Net" value={fmtIDR(available.net)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
+        <StatCard label="Final Payout" value={fmtIDR(finalPayout)} icon={Banknote} sub="setelah fee Rp 3.000" gradient="from-amber-500 to-orange-600" />
+      </div>
+
+      <Tabs defaultValue="pencairan" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 md:w-fit">
+          <TabsTrigger value="pencairan" className="gap-2"><ArrowDownToLine className="h-4 w-4" /> Ajukan Pencairan</TabsTrigger>
+          <TabsTrigger value="riwayat" className="gap-2"><FileText className="h-4 w-4" /> Riwayat Settlement</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pencairan" className="space-y-4 mt-4">
+          <Card className="border-0 shadow-sm">
+            <CardHeader><CardTitle className="text-base">Preview Pencairan</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div><p className="text-xs text-muted-foreground">Total Transaksi</p><p className="font-bold">{available.count}</p></div>
+                <div><p className="text-xs text-muted-foreground">Total Bruto</p><p className="font-bold">{fmtIDR(available.gross)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Fee Gateway</p><p className="font-bold">{fmtIDR(available.fee)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Total Net</p><p className="font-bold">{fmtIDR(available.net)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Fee Pencairan</p><p className="font-bold">- {fmtIDR(3000)}</p></div>
+                <div className="border-t md:border-t-0 md:border-l pt-2 md:pt-0 md:pl-3">
+                  <p className="text-xs text-muted-foreground">Final Payout</p>
+                  <p className="text-xl font-extrabold text-emerald-600">{fmtIDR(finalPayout)}</p>
+                </div>
+              </div>
+              <Button disabled={available.count === 0} onClick={() => setOpen(true)} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700">
+                <ArrowDownToLine className="h-4 w-4 mr-2" /> Ajukan Pencairan
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="riwayat" className="space-y-4 mt-4">
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-0">
+              {loadingHistory ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
+                <Table>
+                  <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Fee Gw</TableHead><TableHead>Fee Pcr</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {history.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Belum ada settlement</TableCell></TableRow>}
+                    {history.map(s => (
+                      <TableRow key={s.id}>
+                        <TableCell className="text-xs font-mono">{s.settlement_code}</TableCell>
+                        <TableCell className="text-xs">{new Date(s.requested_at).toLocaleDateString("id-ID")}</TableCell>
+                        <TableCell>{s.total_transactions}</TableCell>
+                        <TableCell className="text-xs">{fmtIDR(s.total_gross)}</TableCell>
+                        <TableCell className="text-xs">{fmtIDR(s.total_gateway_fee)}</TableCell>
+                        <TableCell className="text-xs">{fmtIDR(s.withdraw_fee)}</TableCell>
+                        <TableCell className="font-semibold text-emerald-600">{fmtIDR(s.final_payout)}</TableCell>
+                        <TableCell>{badge(s.status)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Pengajuan Pencairan Dana</DialogTitle></DialogHeader>
@@ -2220,55 +2316,10 @@ export function BendaharaPencairan() {
   );
 }
 
-// ============ SETTLEMENT HISTORY ============
+// Backward-compat alias: route /bendahara/settlement now redirects to gabungan
 export function BendaharaSettlement() {
-  const { profile } = useAuth();
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    if (!profile?.school_id) { setLoading(false); return; }
-    supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }).then(({ data }) => {
-      setItems(data || []); setLoading(false);
-    });
-  }, [profile?.school_id]);
-
-  const badge = (s: string) => {
-    const map: any = { pending: "bg-amber-500", approved: "bg-blue-500", paid: "bg-emerald-500", rejected: "bg-red-500" };
-    return <Badge className={map[s] || "bg-slate-500"}>{s.toUpperCase()}</Badge>;
-  };
-
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Riwayat Settlement</h1>
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-0">
-          {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
-            <Table>
-              <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Fee Gw</TableHead><TableHead>Fee Pcr</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {items.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Belum ada settlement</TableCell></TableRow>}
-                {items.map(s => (
-                  <TableRow key={s.id}>
-                    <TableCell className="text-xs font-mono">{s.settlement_code}</TableCell>
-                    <TableCell className="text-xs">{new Date(s.requested_at).toLocaleDateString("id-ID")}</TableCell>
-                    <TableCell>{s.total_transactions}</TableCell>
-                    <TableCell className="text-xs">{fmtIDR(s.total_gross)}</TableCell>
-                    <TableCell className="text-xs">{fmtIDR(s.total_gateway_fee)}</TableCell>
-                    <TableCell className="text-xs">{fmtIDR(s.withdraw_fee)}</TableCell>
-                    <TableCell className="font-semibold text-emerald-600">{fmtIDR(s.final_payout)}</TableCell>
-                    <TableCell>{badge(s.status)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <BendaharaPencairan />;
 }
-
-// ============ LAPORAN ============
 export function BendaharaLaporan() {
   const { profile } = useAuth();
   const [items, setItems] = useState<any[]>([]);

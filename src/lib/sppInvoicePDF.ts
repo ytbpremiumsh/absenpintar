@@ -47,46 +47,59 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210;
   const M = 15;
-  let y = 15;
+  let y = 14;
 
-  // ─── HEADER / KOP SURAT ───
+  // ─── HEADER / KOP SURAT (Format Resmi Nasional) ───
+  // Logo kiri
   if (data.school.logo) {
     try {
       const img = await loadImageAsDataURL(data.school.logo);
-      doc.addImage(img, "PNG", M, y, 22, 22);
+      doc.addImage(img, "PNG", M, y, 24, 24);
     } catch {/* skip */}
   }
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.setTextColor(40, 40, 40);
-  doc.text(data.school.name.toUpperCase(), W / 2, y + 6, { align: "center" });
+  // Garuda placeholder kanan (jika tidak ada, kosongkan; banyak sekolah hanya pakai logo sekolah)
+  // Kop teks tengah
+  doc.setFont("times", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(20, 20, 20);
+  doc.text("PEMERINTAH REPUBLIK INDONESIA", W / 2, y + 4, { align: "center" });
+  doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", W / 2, y + 9, { align: "center" });
 
-  doc.setFont("helvetica", "normal");
+  doc.setFontSize(14);
+  doc.text(data.school.name.toUpperCase(), W / 2, y + 15, { align: "center" });
+
+  doc.setFont("times", "normal");
   doc.setFontSize(9);
-  doc.setTextColor(80, 80, 80);
-  if (data.school.address) doc.text(data.school.address, W / 2, y + 11, { align: "center", maxWidth: 140 });
+  doc.setTextColor(40, 40, 40);
+  if (data.school.address) {
+    doc.text(data.school.address, W / 2, y + 20, { align: "center", maxWidth: 150 });
+  }
   const meta: string[] = [];
   if (data.school.npsn) meta.push(`NPSN: ${data.school.npsn}`);
   if (data.school.phone) meta.push(`Telp: ${data.school.phone}`);
-  if (data.school.email) meta.push(data.school.email);
-  if (meta.length) doc.text(meta.join("  •  "), W / 2, y + 16, { align: "center" });
+  if (data.school.email) meta.push(`Email: ${data.school.email}`);
+  if (meta.length) doc.text(meta.join("  •  "), W / 2, y + 25, { align: "center" });
 
-  // garis kop
-  y = 38;
-  doc.setDrawColor(91, 108, 249);
+  // Garis kop (double line — formal Indonesian standard)
+  y = 42;
+  doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.8);
   doc.line(M, y, W - M, y);
-  doc.setLineWidth(0.2);
-  doc.setDrawColor(180, 180, 180);
-  doc.line(M, y + 1.2, W - M, y + 1.2);
+  doc.setLineWidth(0.3);
+  doc.line(M, y + 1.5, W - M, y + 1.5);
 
   // ─── TITLE ───
-  y += 12;
+  y += 10;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(91, 108, 249);
-  doc.text("INVOICE PEMBAYARAN SPP", W / 2, y, { align: "center" });
+  doc.setFontSize(14);
+  doc.setTextColor(20, 20, 20);
+  doc.text("KWITANSI / INVOICE PEMBAYARAN SPP", W / 2, y, { align: "center" });
+  // Underline title
+  const titleW = doc.getTextWidth("KWITANSI / INVOICE PEMBAYARAN SPP");
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(20, 20, 20);
+  doc.line((W - titleW) / 2, y + 1.2, (W + titleW) / 2, y + 1.2);
 
   // status badge
   y += 8;
@@ -198,12 +211,18 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(5, 122, 85);
-    doc.text("✓ PEMBAYARAN DITERIMA", M + 4, y + 6);
+    doc.text("LUNAS / PEMBAYARAN DITERIMA", M + 4, y + 6);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.setTextColor(60, 90, 70);
-    doc.text(`Tanggal: ${fmtDate(data.invoice.paid_at)}`, M + 4, y + 11.5);
-    doc.text(`Metode: ${(data.invoice.payment_method || "Mayar").toUpperCase()}`, M + 4, y + 15.5);
+    doc.text(`Tanggal Pembayaran : ${fmtDate(data.invoice.paid_at)}`, M + 4, y + 11.5);
+    const rawMethod = (data.invoice.payment_method || "").toLowerCase();
+    const methodLabel = rawMethod.includes("transfer") || rawMethod.includes("bank") ? "Transfer Bank"
+      : rawMethod.includes("qris") ? "QRIS"
+      : rawMethod.includes("ewallet") || rawMethod.includes("wallet") ? "E-Wallet"
+      : rawMethod === "spp" || rawMethod === "" || rawMethod === "mayar" ? "QRIS / Transfer Bank"
+      : data.invoice.payment_method!.toUpperCase();
+    doc.text(`Metode Pembayaran  : ${methodLabel}`, M + 4, y + 15.5);
     y += 18;
   }
 
@@ -213,27 +232,32 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
   doc.text(
-    "Invoice ini sah dan diproses oleh sistem ATSkolla. Tidak memerlukan tanda tangan basah.",
+    "Bukti pembayaran ini diterbitkan secara elektronik dan sah tanpa memerlukan tanda tangan basah maupun cap stempel.",
     W / 2, y, { align: "center", maxWidth: 170 }
   );
 
   y += 6;
   doc.setFontSize(9);
-  doc.setTextColor(60, 60, 60);
-  doc.text(`${data.school.name},`, W - M - 50, y);
-  doc.text(`${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`, W - M - 50, y + 4);
-  doc.text("Bendahara Sekolah", W - M - 50, y + 9);
+  doc.setTextColor(40, 40, 40);
+  const cityLine = `${data.school.address ? data.school.address.split(",").slice(-2, -1)[0]?.trim() || "" : ""}`;
+  const place = cityLine ? `${cityLine}, ` : "";
+  doc.text(`${place}${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`, W - M - 60, y);
+  doc.text("Bendahara Sekolah,", W - M - 60, y + 5);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text(data.bendahara_name || "(_______________)", W - M - 50, y + 25);
+  doc.text(data.bendahara_name || "(_______________)", W - M - 60, y + 25);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text("NIP/NIK : ........................", W - M - 60, y + 30);
 
   // page footer
   doc.setFont("helvetica", "italic");
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    `Dicetak ${new Date().toLocaleString("id-ID")} • Powered by ATSkolla (Ayo Pintar)`,
+    `Dokumen dicetak otomatis pada ${new Date().toLocaleString("id-ID")}`,
     W / 2, 290, { align: "center" }
   );
 
