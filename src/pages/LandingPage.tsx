@@ -378,7 +378,7 @@ const LandingPage = () => {
         <div className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-4 flex-shrink-0">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center">
             <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-xs font-bold text-white/90 mb-4">
-              <Sparkles className="h-3.5 w-3.5" /> Platform Absensi Digital #1
+              <Sparkles className="h-3.5 w-3.5" /> Platform Digital Sekolah #1
             </span>
           </motion.div>
 
@@ -389,7 +389,7 @@ const LandingPage = () => {
             </span>
             <span className="block min-h-[1.2em]">
               <TypingEffect
-                texts={["Absensi Digital Sekolah", "Cepat, Aman & Modern", "Scan Barcode & Face AI"]}
+                texts={["Platform Digital Sekolah", "Cepat, Aman & Modern", "Scan Barcode & Face AI"]}
                 speed={60}
                 deleteSpeed={35}
                 pauseTime={2500}
@@ -556,7 +556,7 @@ const LandingPage = () => {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#5B6CF9] mb-3 block">Jawaban Tepat</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              ATSkolla — Absensi Digital Sekolah
+              ATSkolla — Platform Digital Sekolah Terintegrasi
             </h2>
             <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">Setiap permasalahan memiliki solusi teknologi modern yang terintegrasi dalam satu platform.</p>
           </motion.div>
@@ -630,7 +630,7 @@ const LandingPage = () => {
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Semua yang Sekolah Anda Butuhkan
             </h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Platform lengkap untuk mengelola absensi siswa secara digital.</p>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Platform lengkap untuk absensi, jadwal mengajar, pembayaran SPP, dan komunikasi wali murid.</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -669,10 +669,10 @@ const LandingPage = () => {
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 mb-3 block">{get("why_label", "Kenapa Kami")}</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                {get("why_title") || <>Solusi Absensi Digital yang <span className="text-indigo-600 dark:text-indigo-400">Terpercaya</span></>}
+                {get("why_title") || <>Solusi Digital Sekolah yang <span className="text-indigo-600 dark:text-indigo-400">Terpercaya</span></>}
               </h2>
               <p className="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
-                {get("why_desc", "Kami menyediakan solusi menyeluruh untuk membantu sekolah Anda mengelola kehadiran siswa dengan teknologi terkini.")}
+                {get("why_desc", "Kami menyediakan platform digital terintegrasi: absensi, jadwal mengajar, pembayaran SPP online, dan komunikasi wali murid dalam satu sistem.")}
               </p>
               {get("why_image") && (
                 <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
@@ -740,7 +740,7 @@ const LandingPage = () => {
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {get("trusted_title", "Dipercaya Sekolah di Seluruh Indonesia")}
             </h2>
-            <p className="mt-3 text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">{get("trusted_subtitle", "Bergabung bersama sekolah-sekolah yang telah merasakan manfaat absensi digital.")}</p>
+            <p className="mt-3 text-slate-500 dark:text-slate-400 text-sm max-w-lg mx-auto">{get("trusted_subtitle", "Bergabung bersama sekolah-sekolah yang telah merasakan manfaat platform digital terintegrasi.")}</p>
           </motion.div>
 
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
@@ -805,7 +805,7 @@ const LandingPage = () => {
                 {get("cta_banner_text", "Siap Tingkatkan Absensi Sekolah?")}
               </h2>
               <p className="text-white/80 text-sm sm:text-base mb-8 max-w-lg mx-auto">
-                {get("cta_banner_desc", "Bergabung sekarang dan rasakan kemudahan absensi digital. Tanpa biaya setup.")}
+                {get("cta_banner_desc", "Bergabung sekarang dan kelola absensi, jadwal mengajar, SPP, hingga komunikasi wali murid dalam satu platform. Tanpa biaya setup.")}
               </p>
               <button onClick={() => navigate("/register")}
                 className="inline-flex items-center gap-2 bg-white text-indigo-700 px-8 py-3.5 rounded-2xl font-bold text-sm transition-all hover:bg-white/90 shadow-xl hover:scale-[1.02] active:scale-[0.98]">
@@ -836,11 +836,11 @@ const LandingPage = () => {
                 )}
                 <div>
                   <p className="font-bold text-white text-base">{get("footer_brand_name", "ATSkolla")}</p>
-                  <p className="text-xs text-slate-400">{get("footer_brand_tagline", "Absensi Digital Sekolah")}</p>
+                  <p className="text-xs text-slate-400">{get("footer_brand_tagline", "Platform Digital Sekolah")}</p>
                 </div>
               </div>
               <p className="text-sm text-slate-400 leading-relaxed">
-                {get("footer_description", "Solusi absensi digital #1 untuk sekolah modern. Hemat waktu guru, tingkatkan kedisiplinan siswa, dan beri ketenangan kepada orang tua.")}
+                {get("footer_description", "Platform digital #1 untuk sekolah modern. Absensi, jadwal mengajar, SPP online, dan monitoring wali murid — semua terintegrasi dalam satu sistem.")}
               </p>
             </div>
 
@@ -889,7 +889,7 @@ const LandingPage = () => {
 
           {/* Bottom bar */}
           <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")} — {get("footer_brand_tagline", "Absensi Digital Sekolah")}. All rights reserved.</p>
+            <p className="text-xs text-slate-500">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")} — {get("footer_brand_tagline", "Platform Digital Sekolah")}. All rights reserved.</p>
             <p className="text-[10px] text-slate-600">Dipercaya sekolah-sekolah di seluruh Indonesia 🇮🇩</p>
           </div>
         </div>
