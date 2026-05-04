@@ -42,9 +42,9 @@ const DEFAULT_FEATURES = [
 ];
 
 const HOW_IT_WORKS = [
-  { step: "01", title: "Daftar Akun", desc: "Buat akun sekolah Anda dan import data siswa dengan mudah.", img: illustrationRegister },
-  { step: "02", title: "Scan Absensi", desc: "Siswa scan barcode atau gunakan face recognition untuk absensi instan.", img: illustrationScan },
-  { step: "03", title: "Monitoring Live", desc: "Pantau kehadiran siswa secara real-time dan terima notifikasi otomatis.", img: illustrationMonitor },
+  { step: "01", title: "Setup Sekolah", desc: "Daftar akun, import siswa & guru, atur kelas, jadwal mengajar, dan tagihan SPP.", img: illustrationRegister },
+  { step: "02", title: "Operasional Harian", desc: "Absensi via QR/Face Recognition, jadwal mengajar live, dan generate tagihan SPP otomatis.", img: illustrationScan },
+  { step: "03", title: "Monitoring & Pembayaran", desc: "Wali murid pantau absensi real-time, terima notifikasi WA, dan bayar SPP online via QRIS/Transfer.", img: illustrationMonitor },
 ];
 
 const DEFAULT_TESTIMONIALS = [
