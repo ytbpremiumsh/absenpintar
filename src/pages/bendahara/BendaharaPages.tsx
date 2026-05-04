@@ -776,9 +776,22 @@ export function BendaharaGenerate() {
           due_date: due.toISOString().slice(0, 10),
         };
       });
-      const { error } = await supabase.from("spp_invoices").upsert(rows, { onConflict: "school_id,student_id,period_year,period_month", ignoreDuplicates: true });
+      // Filter out periods already having an active (non-expired, non-paid is fine to skip too) invoice
+      const { data: existingForPeriod } = await supabase
+        .from("spp_invoices")
+        .select("student_id, period_month, period_year, status")
+        .eq("school_id", profile.school_id)
+        .in("student_id", rows.map(r => r.student_id));
+      const existsKey = new Set(
+        (existingForPeriod || [])
+          .filter((e: any) => e.status !== "expired")
+          .map((e: any) => `${e.student_id}|${e.period_year}|${e.period_month}`)
+      );
+      const toInsert = rows.filter(r => !existsKey.has(`${r.student_id}|${r.period_year}|${r.period_month}`));
+      if (toInsert.length === 0) { toast.info("Semua tagihan untuk periode ini sudah ada"); return; }
+      const { error } = await supabase.from("spp_invoices").insert(toInsert);
       if (error) { toast.error(error.message); return; }
-      toast.success(`${rows.length} tagihan SPP berhasil dibuat`);
+      toast.success(`${toInsert.length} tagihan SPP berhasil dibuat${toInsert.length < rows.length ? ` (${rows.length - toInsert.length} dilewati karena sudah ada)` : ""}`);
       setPreviewOpen(false);
       // refresh existing invs to reflect new state
       const { data } = await supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id);
@@ -1687,10 +1700,26 @@ export function BendaharaImportExport() {
         due_date: dueDate.toISOString().slice(0, 10),
       };
     });
-    const { error } = await supabase.from("spp_invoices").upsert(rows, { onConflict: "school_id,student_id,period_year,period_month", ignoreDuplicates: true });
+    const { data: existingForImport } = await supabase
+      .from("spp_invoices")
+      .select("student_id, period_month, period_year, status")
+      .eq("school_id", profile!.school_id)
+      .in("student_id", rows.map(r => r.student_id));
+    const existsKey = new Set(
+      (existingForImport || [])
+        .filter((e: any) => e.status !== "expired")
+        .map((e: any) => `${e.student_id}|${e.period_year}|${e.period_month}`)
+    );
+    const toInsert = rows.filter(r => !existsKey.has(`${r.student_id}|${r.period_year}|${r.period_month}`));
+    if (toInsert.length === 0) {
+      setImporting(false);
+      toast.info("Semua tagihan sudah ada");
+      return;
+    }
+    const { error } = await supabase.from("spp_invoices").insert(toInsert);
     setImporting(false);
     if (error) toast.error(error.message);
-    else { toast.success(`${rows.length} tagihan berhasil di-import`); setPreviewRows([]); setValidRows([]); setErrorRows([]); }
+    else { toast.success(`${toInsert.length} tagihan berhasil di-import${toInsert.length < rows.length ? ` (${rows.length - toInsert.length} dilewati)` : ""}`); setPreviewRows([]); setValidRows([]); setErrorRows([]); }
   };
 
   const exportData = async (format: "xlsx" | "csv" | "pdf") => {
