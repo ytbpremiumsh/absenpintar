@@ -455,14 +455,20 @@ export function BendaharaTarif() {
   const [tariffs, setTariffs] = useState<any[]>([]);
   const [classes, setClasses] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ school_year: "2025/2026", class_name: "", amount: 0, due_date_day: 10, denda: 0 });
+  const [editing, setEditing] = useState<any | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkForm, setBulkForm] = useState({ school_year: academicYearOf(new Date().getMonth() + 1, new Date().getFullYear()), amount: 0, due_date_day: 10, denda: 0 });
+  const currentAY = academicYearOf(new Date().getMonth() + 1, new Date().getFullYear());
+  const [filterAY, setFilterAY] = useState<string>(currentAY);
+  const [search, setSearch] = useState("");
+  const [form, setForm] = useState({ id: "" as string | "", school_year: currentAY, class_name: "", amount: 0, due_date_day: 10, denda: 0, is_active: true });
   const [loading, setLoading] = useState(true);
 
   const load = () => {
     if (!profile?.school_id) { setLoading(false); return; }
     Promise.all([
       supabase.from("spp_tariffs").select("*").eq("school_id", profile.school_id).order("class_name"),
-      supabase.from("classes").select("name").eq("school_id", profile.school_id),
+      supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
     ]).then(([t, c]) => {
       setTariffs(t.data || []);
       setClasses((c.data || []).map((x: any) => x.name));
@@ -471,10 +477,37 @@ export function BendaharaTarif() {
   };
   useEffect(load, [profile?.school_id]);
 
+  const ayOptions = useMemo(() => {
+    const cy = new Date().getFullYear();
+    const set = new Set<string>(academicYearList(cy));
+    tariffs.forEach(t => set.add(t.school_year));
+    return Array.from(set).sort();
+  }, [tariffs]);
+
+  const openAdd = () => {
+    setEditing(null);
+    setForm({ id: "", school_year: filterAY, class_name: "", amount: 0, due_date_day: 10, denda: 0, is_active: true });
+    setOpen(true);
+  };
+  const openEdit = (t: any) => {
+    setEditing(t);
+    setForm({ id: t.id, school_year: t.school_year, class_name: t.class_name, amount: t.amount, due_date_day: t.due_date_day, denda: t.denda, is_active: t.is_active });
+    setOpen(true);
+  };
+
   const save = async () => {
     if (!form.class_name || form.amount <= 0) { toast.error("Lengkapi data"); return; }
-    const { error } = await supabase.from("spp_tariffs").upsert({ school_id: profile!.school_id, ...form }, { onConflict: "school_id,school_year,class_name" });
-    if (error) toast.error(error.message); else { toast.success("Tarif tersimpan"); setOpen(false); load(); }
+    const payload = { school_id: profile!.school_id, school_year: form.school_year, class_name: form.class_name, amount: form.amount, due_date_day: form.due_date_day, denda: form.denda, is_active: form.is_active };
+    const { error } = editing
+      ? await supabase.from("spp_tariffs").update(payload).eq("id", editing.id)
+      : await supabase.from("spp_tariffs").upsert(payload, { onConflict: "school_id,school_year,class_name" });
+    if (error) toast.error(error.message); else { toast.success(editing ? "Tarif diperbarui" : "Tarif tersimpan"); setOpen(false); load(); }
+  };
+
+  const remove = async (t: any) => {
+    if (!confirm(`Hapus tarif ${t.class_name} (${t.school_year})?`)) return;
+    const { error } = await supabase.from("spp_tariffs").delete().eq("id", t.id);
+    if (error) toast.error(error.message); else { toast.success("Tarif dihapus"); load(); }
   };
 
   const toggle = async (t: any) => {
@@ -482,40 +515,122 @@ export function BendaharaTarif() {
     load();
   };
 
+  const bulkApply = async () => {
+    if (bulkForm.amount <= 0 || classes.length === 0) { toast.error("Tidak ada kelas / nominal kosong"); return; }
+    const rows = classes.map(c => ({ school_id: profile!.school_id, school_year: bulkForm.school_year, class_name: c, amount: bulkForm.amount, due_date_day: bulkForm.due_date_day, denda: bulkForm.denda, is_active: true }));
+    const { error } = await supabase.from("spp_tariffs").upsert(rows, { onConflict: "school_id,school_year,class_name" });
+    if (error) toast.error(error.message); else { toast.success(`${rows.length} tarif diterapkan ke semua kelas`); setBulkOpen(false); load(); }
+  };
+
+  const filtered = useMemo(() =>
+    tariffs
+      .filter(t => filterAY === "all" || t.school_year === filterAY)
+      .filter(t => !search || t.class_name.toLowerCase().includes(search.toLowerCase())),
+    [tariffs, filterAY, search]
+  );
+
+  const summary = useMemo(() => ({
+    total: filtered.length,
+    aktif: filtered.filter(t => t.is_active).length,
+    rata: filtered.length > 0 ? Math.round(filtered.reduce((a, t) => a + t.amount, 0) / filtered.length) : 0,
+    kelasBelum: classes.filter(c => !filtered.some(t => t.class_name === c)).length,
+  }), [filtered, classes]);
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">Tarif SPP</h1>
-        <Button onClick={() => setOpen(true)} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="h-4 w-4 mr-1" /> Tambah</Button>
+      <PageHeader
+        icon={Banknote}
+        title="Tarif SPP"
+        subtitle="Kelola nominal SPP per tahun ajaran & kelas"
+        actions={
+          <>
+            <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Copy className="h-4 w-4 mr-1.5" /> Set Massal</Button>
+            <Button size="sm" onClick={openAdd} className="bg-white text-[#5B6CF9] hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
+          </>
+        }
+      />
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#5B6CF9]/10 to-transparent"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Tarif</p><p className="text-xl font-bold mt-0.5">{summary.total}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><Receipt className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Aktif</p><p className="text-xl font-bold mt-0.5 text-emerald-600">{summary.aktif}</p></div><div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Rata-rata</p><p className="text-base font-bold mt-0.5">{fmtIDR(summary.rata)}</p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Kelas Belum</p><p className="text-xl font-bold mt-0.5 text-amber-600">{summary.kelasBelum}</p></div><div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center"><AlertCircle className="h-4 w-4 text-amber-600" /></div></div></CardContent></Card>
       </div>
+
+      {/* Filter bar */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Cari kelas…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" />
+          </div>
+          <Select value={filterAY} onValueChange={setFilterAY}>
+            <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Tahun Ajaran</SelectItem>
+              {ayOptions.map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-0">
-          {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
-            <Table>
-              <TableHeader><TableRow><TableHead>Tahun Ajaran</TableHead><TableHead>Kelas</TableHead><TableHead>Nominal</TableHead><TableHead>Due Date</TableHead><TableHead>Denda</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {tariffs.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Belum ada tarif</TableCell></TableRow>}
-                {tariffs.map(t => (
-                  <TableRow key={t.id}>
-                    <TableCell>{t.school_year}</TableCell>
-                    <TableCell><Badge variant="secondary">{t.class_name}</Badge></TableCell>
-                    <TableCell className="font-semibold">{fmtIDR(t.amount)}</TableCell>
-                    <TableCell>Tanggal {t.due_date_day}</TableCell>
-                    <TableCell>{fmtIDR(t.denda)}</TableCell>
-                    <TableCell><Switch checked={t.is_active} onCheckedChange={() => toggle(t)} /></TableCell>
+          {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-[#5B6CF9]" /></div> : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40">
+                    <TableHead className="font-semibold">Tahun Ajaran</TableHead>
+                    <TableHead className="font-semibold">Kelas</TableHead>
+                    <TableHead className="font-semibold">Nominal</TableHead>
+                    <TableHead className="font-semibold">Jatuh Tempo</TableHead>
+                    <TableHead className="font-semibold">Denda</TableHead>
+                    <TableHead className="font-semibold">Aktif</TableHead>
+                    <TableHead className="font-semibold text-right">Aksi</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground text-sm">Belum ada tarif. Klik <strong>Tambah</strong> atau <strong>Set Massal</strong>.</TableCell></TableRow>}
+                  {filtered.map(t => (
+                    <TableRow key={t.id} className="hover:bg-muted/30">
+                      <TableCell className="text-sm"><Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">{t.school_year}</Badge></TableCell>
+                      <TableCell><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
+                      <TableCell className="font-bold text-[#5B6CF9]">{fmtIDR(t.amount)}</TableCell>
+                      <TableCell className="text-sm">Tanggal {t.due_date_day}</TableCell>
+                      <TableCell className="text-sm">{t.denda > 0 ? fmtIDR(t.denda) : <span className="text-muted-foreground">—</span>}</TableCell>
+                      <TableCell><Switch checked={t.is_active} onCheckedChange={() => toggle(t)} /></TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => openEdit(t)} className="h-8 px-2"><FileText className="h-3.5 w-3.5" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => remove(t)} className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"><AlertCircle className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Add/Edit Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Tambah Tarif SPP</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? "Edit Tarif SPP" : "Tambah Tarif SPP"}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div><Label>Tahun Ajaran</Label><Input value={form.school_year} onChange={e => setForm({ ...form, school_year: e.target.value })} /></div>
-            <div><Label>Kelas</Label>
+            <div>
+              <Label>Tahun Ajaran</Label>
+              <Select value={form.school_year} onValueChange={v => setForm({ ...form, school_year: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{ayOptions.map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Kelas</Label>
               <Select value={form.class_name} onValueChange={v => setForm({ ...form, class_name: v })}>
                 <SelectTrigger><SelectValue placeholder="Pilih kelas" /></SelectTrigger>
                 <SelectContent>{classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
@@ -523,10 +638,37 @@ export function BendaharaTarif() {
             </div>
             <div><Label>Nominal SPP (Rp)</Label><Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: parseInt(e.target.value) || 0 })} /></div>
             <div className="grid grid-cols-2 gap-2">
-              <div><Label>Due Date (tgl)</Label><Input type="number" min={1} max={28} value={form.due_date_day} onChange={e => setForm({ ...form, due_date_day: parseInt(e.target.value) || 10 })} /></div>
+              <div><Label>Jatuh Tempo (tgl)</Label><Input type="number" min={1} max={28} value={form.due_date_day} onChange={e => setForm({ ...form, due_date_day: parseInt(e.target.value) || 10 })} /></div>
               <div><Label>Denda (Rp)</Label><Input type="number" value={form.denda} onChange={e => setForm({ ...form, denda: parseInt(e.target.value) || 0 })} /></div>
             </div>
-            <Button onClick={save} className="w-full bg-emerald-600">Simpan</Button>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div><p className="text-sm font-medium">Status Aktif</p><p className="text-xs text-muted-foreground">Hanya tarif aktif yang bisa di-generate</p></div>
+              <Switch checked={form.is_active} onCheckedChange={v => setForm({ ...form, is_active: v })} />
+            </div>
+            <Button onClick={save} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">Simpan</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Apply Dialog */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Set Tarif Massal</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">Terapkan satu nominal yang sama ke <strong>{classes.length} kelas</strong> sekaligus.</p>
+          <div className="space-y-3">
+            <div>
+              <Label>Tahun Ajaran</Label>
+              <Select value={bulkForm.school_year} onValueChange={v => setBulkForm({ ...bulkForm, school_year: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{ayOptions.map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Nominal SPP (Rp)</Label><Input type="number" value={bulkForm.amount} onChange={e => setBulkForm({ ...bulkForm, amount: parseInt(e.target.value) || 0 })} /></div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Jatuh Tempo (tgl)</Label><Input type="number" min={1} max={28} value={bulkForm.due_date_day} onChange={e => setBulkForm({ ...bulkForm, due_date_day: parseInt(e.target.value) || 10 })} /></div>
+              <div><Label>Denda (Rp)</Label><Input type="number" value={bulkForm.denda} onChange={e => setBulkForm({ ...bulkForm, denda: parseInt(e.target.value) || 0 })} /></div>
+            </div>
+            <Button onClick={bulkApply} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">Terapkan ke {classes.length} Kelas</Button>
           </div>
         </DialogContent>
       </Dialog>
