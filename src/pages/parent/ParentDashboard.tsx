@@ -13,8 +13,9 @@ import {
   Loader2, LogOut, GraduationCap, CalendarDays, Megaphone, FileText,
   Phone, ClipboardList, BookOpen, CheckCircle2, XCircle, Clock,
   Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin, Bell,
-  Wallet, AlertCircle, Download, ExternalLink, RefreshCw, Receipt,
+  Wallet, AlertCircle, Download, ExternalLink, RefreshCw, Receipt, MoreHorizontal,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -73,14 +74,17 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   alfa: { label: "Alfa", cls: "bg-red-500 text-white" },
 };
 
-const TABS = [
+const PRIMARY_TABS = [
   { id: "home", label: "Beranda", icon: Sparkles },
   { id: "attendance", label: "Absensi", icon: ClipboardList },
   { id: "spp", label: "SPP", icon: Wallet },
   { id: "schedule", label: "Jadwal", icon: CalendarDays },
-  { id: "info", label: "Info", icon: Megaphone },
-  { id: "leave", label: "Izin", icon: FileText },
-  { id: "contact", label: "Kontak", icon: Phone },
+];
+
+const MORE_TABS = [
+  { id: "info", label: "Pengumuman", icon: Megaphone, desc: "Info & berita sekolah" },
+  { id: "leave", label: "Pengajuan Izin", icon: FileText, desc: "Ajukan izin/sakit" },
+  { id: "contact", label: "Kontak Wali Kelas", icon: Phone, desc: "Hubungi guru" },
 ];
 
 export default function ParentDashboard() {
@@ -802,11 +806,11 @@ export default function ParentDashboard() {
 
       </div>
 
-      {/* Bottom Footer Nav (mobile + desktop) */}
+      {/* Bottom Footer Nav — compact 4 tabs + More */}
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="max-w-4xl mx-auto px-2 py-1.5 overflow-x-auto">
-          <div className="flex items-center justify-between gap-1 min-w-max sm:min-w-0 sm:justify-around">
-            {TABS.map((t) => {
+        <div className="max-w-4xl mx-auto px-2 py-1.5">
+          <div className="flex items-center justify-around gap-1">
+            {PRIMARY_TABS.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
               return (
@@ -814,7 +818,7 @@ export default function ParentDashboard() {
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[58px]",
+                    "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all flex-1 max-w-[80px]",
                     active ? "text-[#5B6CF9]" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -828,6 +832,67 @@ export default function ParentDashboard() {
                 </button>
               );
             })}
+
+            {/* More button */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <button
+                  className={cn(
+                    "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all flex-1 max-w-[80px]",
+                    MORE_TABS.find((m) => m.id === tab) ? "text-[#5B6CF9]" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <div className={cn(
+                    "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
+                    MORE_TABS.find((m) => m.id === tab) ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md scale-110" : ""
+                  )}>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </div>
+                  <span className="text-[10px] font-medium">Lainnya</span>
+                </button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
+                <SheetHeader className="mb-4">
+                  <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
+                </SheetHeader>
+                <div className="grid grid-cols-1 gap-2">
+                  {MORE_TABS.map((m) => {
+                    const Icon = m.icon;
+                    const active = tab === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setTab(m.id);
+                          (document.activeElement as HTMLElement)?.blur();
+                          // close sheet via Escape simulation
+                          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+                        }}
+                        className={cn(
+                          "flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left",
+                          active
+                            ? "bg-gradient-to-br from-[#5B6CF9]/10 to-[#4c5ded]/10 border-[#5B6CF9]/30"
+                            : "bg-card border-border hover:bg-muted/50"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-11 w-11 rounded-xl flex items-center justify-center shrink-0",
+                          active
+                            ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md"
+                            : "bg-muted text-muted-foreground"
+                        )}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm">{m.label}</p>
+                          <p className="text-[11px] text-muted-foreground">{m.desc}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>
