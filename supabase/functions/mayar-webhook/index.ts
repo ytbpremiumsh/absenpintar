@@ -198,8 +198,18 @@ serve(async (req) => {
     // SPP Invoice — auto confirm + WA notif
     // ═══════════════════════════════════════════
     if (paymentMethod === 'spp') {
-      const { data: inv } = await supabaseAdmin.from('spp_invoices')
-        .select('*').eq('mayar_invoice_id', payment.mayar_transaction_id).maybeSingle();
+      const matchIds = Array.from(new Set([payment.mayar_transaction_id, ...identifiers].filter(Boolean).map(String)));
+      let inv: any = null;
+      if (matchIds.length) {
+        const { data: foundInv } = await supabaseAdmin.from('spp_invoices')
+          .select('*').in('mayar_invoice_id', matchIds).maybeSingle();
+        inv = foundInv;
+      }
+      if (!inv && paymentUrl) {
+        const { data: foundInv } = await supabaseAdmin.from('spp_invoices')
+          .select('*').eq('payment_url', paymentUrl).maybeSingle();
+        inv = foundInv;
+      }
       if (inv) {
         const gatewayFee = Math.round(inv.total_amount * 0.007) + 500; // ~0.7% + 500 estimate (configurable)
         const netAmount = inv.total_amount - gatewayFee;
