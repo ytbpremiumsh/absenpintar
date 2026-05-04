@@ -104,8 +104,8 @@ serve(async (req) => {
     // 5. SPP fallback — match directly against spp_invoices (in case payment_transactions bridge missing)
     if (!payment) {
       let sppInv: any = null;
-      if (transactionId) {
-        const { data } = await supabaseAdmin.from('spp_invoices').select('*').eq('mayar_invoice_id', transactionId).maybeSingle();
+      if (identifiers.length) {
+        const { data } = await supabaseAdmin.from('spp_invoices').select('*').in('mayar_invoice_id', identifiers).maybeSingle();
         sppInv = data;
       }
       if (!sppInv && productId) {
@@ -165,7 +165,7 @@ serve(async (req) => {
         });
       }
 
-      console.log('Transaction not found for ID:', transactionId);
+        console.log('Transaction not found for IDs:', identifiers.join(',') || transactionId || productId || paymentUrl);
       return new Response(JSON.stringify({ message: 'Transaction not found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
