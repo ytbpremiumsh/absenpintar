@@ -90,11 +90,16 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
   doc.line(M, y + 1.5, W - M, y + 1.5);
 
   // ─── TITLE ───
-  y += 12;
+  y += 10;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(91, 108, 249);
-  doc.text("INVOICE PEMBAYARAN SPP", W / 2, y, { align: "center" });
+  doc.setFontSize(14);
+  doc.setTextColor(20, 20, 20);
+  doc.text("KWITANSI / INVOICE PEMBAYARAN SPP", W / 2, y, { align: "center" });
+  // Underline title
+  const titleW = doc.getTextWidth("KWITANSI / INVOICE PEMBAYARAN SPP");
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(20, 20, 20);
+  doc.line((W - titleW) / 2, y + 1.2, (W + titleW) / 2, y + 1.2);
 
   // status badge
   y += 8;
