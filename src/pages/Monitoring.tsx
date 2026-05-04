@@ -91,7 +91,7 @@ const Monitoring = () => {
   const fetchData = useCallback(async () => {
     if (!profile?.school_id) return;
     const schoolId = profile.school_id;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getLocalDateString("Asia/Jakarta");
 
     const [studentsRes, logsRes, settingsRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, student_id, photo_url").eq("school_id", schoolId),
