@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Receipt, FileText, CreditCard, Wallet, ArrowDownToLine,
-  History, BarChart3, Settings, LogOut, ChevronRight, Crown,
+  History, BarChart3, LogOut, ChevronRight, Crown,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -12,17 +12,34 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 
-const items = [
-  { title: "Dashboard", url: "/bendahara", icon: LayoutDashboard, end: true },
-  { title: "Data Siswa", url: "/bendahara/siswa", icon: Users },
-  { title: "Tarif SPP", url: "/bendahara/tarif", icon: Receipt },
-  { title: "Generate Tagihan", url: "/bendahara/generate", icon: FileText },
-  { title: "Transaksi", url: "/bendahara/transaksi", icon: CreditCard },
-  { title: "Saldo & Ledger", url: "/bendahara/saldo", icon: Wallet },
-  { title: "Pencairan", url: "/bendahara/pencairan", icon: ArrowDownToLine },
-  { title: "Riwayat Settlement", url: "/bendahara/settlement", icon: History },
-  { title: "Laporan", url: "/bendahara/laporan", icon: BarChart3 },
-  { title: "Payment Gateway", url: "/bendahara/gateway", icon: Settings },
+const groups: { label: string; items: { title: string; url: string; icon: any; end?: boolean }[] }[] = [
+  {
+    label: "Ringkasan",
+    items: [{ title: "Dashboard", url: "/bendahara", icon: LayoutDashboard, end: true }],
+  },
+  {
+    label: "Master Data",
+    items: [
+      { title: "Data Siswa", url: "/bendahara/siswa", icon: Users },
+      { title: "Tarif SPP", url: "/bendahara/tarif", icon: Receipt },
+    ],
+  },
+  {
+    label: "Operasional",
+    items: [
+      { title: "Generate Tagihan", url: "/bendahara/generate", icon: FileText },
+      { title: "Transaksi", url: "/bendahara/transaksi", icon: CreditCard },
+    ],
+  },
+  {
+    label: "Keuangan",
+    items: [
+      { title: "Saldo & Ledger", url: "/bendahara/saldo", icon: Wallet },
+      { title: "Pencairan", url: "/bendahara/pencairan", icon: ArrowDownToLine },
+      { title: "Riwayat Settlement", url: "/bendahara/settlement", icon: History },
+      { title: "Laporan", url: "/bendahara/laporan", icon: BarChart3 },
+    ],
+  },
 ];
 
 export function BendaharaSidebar() {
