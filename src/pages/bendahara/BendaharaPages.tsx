@@ -982,14 +982,32 @@ export function BendaharaSPPDetail() {
     if (error) toast.error(error.message); else { toast.success("Tagihan dibuat"); load(); }
   };
 
-  const createPaymentLink = async (inv: any) => {
+  // Auto-mark as expired client-side based on expired_at
+  const enrichedInvoices = useMemo(() => {
+    const now = Date.now();
+    return invoices.map((i) => {
+      if (i.status === "pending" && i.expired_at && new Date(i.expired_at).getTime() < now) {
+        return { ...i, _displayStatus: "expired" };
+      }
+      return { ...i, _displayStatus: i.status };
+    });
+  }, [invoices]);
+
+  const enrichedGrid = useMemo(() => ayMonths.map(m => {
+    const inv = enrichedInvoices.find(x => x.period_month === m.month && x.period_year === m.year && x._displayStatus !== "expired")
+      || enrichedInvoices.find(x => x.period_month === m.month && x.period_year === m.year);
+    return { ...m, inv };
+  }), [ayMonths, enrichedInvoices]);
+
+  const createPaymentLink = async (inv: any, regen = false) => {
     setBusy(`link-${inv.id}`);
-    toast.loading("Membuat link Mayar...");
-    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action: "create_payment_link", invoice_id: inv.id } });
+    toast.loading(regen ? "Membuat ulang link..." : "Membuat link Mayar...");
+    const action = regen ? "regenerate_payment_link" : "create_payment_link";
+    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action, invoice_id: inv.id } });
     toast.dismiss();
     setBusy(null);
     if (error || !data?.success) { toast.error(data?.error || error?.message || "Gagal"); return; }
-    if (data.payment_url) { toast.success("Link berhasil dibuat"); load(); }
+    if (data.payment_url) { toast.success(regen ? "Link baru berhasil dibuat" : "Link berhasil dibuat"); load(); }
   };
 
   const copyLink = (url: string) => { navigator.clipboard.writeText(url); toast.success("Link disalin"); };
@@ -997,7 +1015,7 @@ export function BendaharaSPPDetail() {
   const sendWa = async (inv: any) => {
     if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
     if (!inv.payment_url) { toast.error("Buat link pembayaran dulu"); return; }
-    const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${inv.payment_url}\n\nJatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nTerima kasih.\n_ATSkolla_`;
+    const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${inv.payment_url}\n\nJatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
     setBusy(`wa-${inv.id}`);
     toast.loading("Mengirim WA...");
     const { error } = await supabase.functions.invoke("send-whatsapp", {
@@ -1010,8 +1028,27 @@ export function BendaharaSPPDetail() {
   const sendEmail = (inv: any) => {
     if (!inv.payment_url) { toast.error("Buat link dulu"); return; }
     const subject = `Tagihan SPP ${inv.period_label} - ${inv.student_name}`;
-    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\n\nLink: ${inv.payment_url}\n\nTerima kasih.`;
+    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\n\nLink: ${inv.payment_url}\n\nTerima kasih.\nAyo Pintar`;
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+  };
+
+  const downloadPdf = async (inv: any) => {
+    if (!profile?.school_id) return;
+    setBusy(`pdf-${inv.id}`);
+    try {
+      const { data: school } = await supabase.from("schools").select("name, address, npsn, logo").eq("id", profile.school_id).maybeSingle();
+      await downloadSppInvoicePDF({
+        invoice: inv,
+        student: { student_id: student?.student_id, nisn: student?.nisn, parent_name: student?.parent_name },
+        school: school || { name: "Sekolah" },
+        bendahara_name: profile.full_name || null,
+      });
+      toast.success("Invoice diunduh");
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengunduh invoice");
+    } finally {
+      setBusy(null);
+    }
   };
 
   if (loading) return <div className="p-12 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
