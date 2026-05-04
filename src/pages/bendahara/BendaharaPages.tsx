@@ -800,7 +800,7 @@ export function BendaharaGenerate() {
       if (autoSendWa && created.length > 0) {
         let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
         setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran..." });
-        // Sequential to avoid Mayar rate limits
+        // Sequential with delay to avoid Mayar rate limits / duplicate detection
         for (let i = 0; i < created.length; i++) {
           const inv = created[i];
           try {
@@ -826,6 +826,8 @@ export function BendaharaGenerate() {
             }
           } catch { linkFail++; }
           setBulkProgress({ done: i + 1, total: created.length, phase: "Membuat link & kirim WA..." });
+          // Throttle ~1.2s between Mayar calls to avoid duplicate-request 429
+          if (i < created.length - 1) await new Promise((r) => setTimeout(r, 1200));
         }
         setBulkProgress(null);
         toast.success(`Link berhasil: ${linkOk} • WA terkirim: ${waOk}${waFail ? ` • gagal kirim: ${waFail}` : ""}${waSkip ? ` • tanpa nomor WA: ${waSkip}` : ""}${linkFail ? ` • gagal link: ${linkFail}` : ""}`);
