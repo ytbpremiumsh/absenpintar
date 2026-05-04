@@ -961,6 +961,12 @@ export function BendaharaGenerate() {
             </div>
             <Switch checked={skipExisting} onCheckedChange={setSkipExisting} />
           </div>
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-[#5B6CF9]/5 border-[#5B6CF9]/20">
+            <div>
+              <p className="text-sm font-medium flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-[#5B6CF9]" /> Otomatis kirim WA ke wali murid</p>
+              <p className="text-xs text-muted-foreground">Setelah generate, sistem otomatis membuat link Mayar dan mengirim tagihan via WhatsApp</p>
+            </div>
+            <Switch checked={autoSendWa} onCheckedChange={setAutoSendWa} />
           {(preview.skipped > 0 || preview.noTariff > 0) && (
             <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3 text-xs space-y-1">
               {preview.skipped > 0 && <p className="text-amber-800 dark:text-amber-200"><strong>{preview.skipped}</strong> tagihan akan dilewati (sudah ada)</p>}
