@@ -81,6 +81,9 @@ export default function SuperAdminBendahara() {
   const [reviewing, setReviewing] = useState<Settlement | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [feePercent, setFeePercent] = useState<string>("0.7");
+  const [feeFlat, setFeeFlat] = useState<string>("500");
+  const [savingFee, setSavingFee] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
