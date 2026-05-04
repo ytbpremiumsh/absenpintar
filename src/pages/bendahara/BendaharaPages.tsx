@@ -681,87 +681,293 @@ export function BendaharaGenerate() {
   const { profile } = useAuth();
   const [classes, setClasses] = useState<string[]>([]);
   const [tariffs, setTariffs] = useState<any[]>([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [students, setStudents] = useState<any[]>([]);
+  const [existingInvs, setExistingInvs] = useState<any[]>([]);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [mode, setMode] = useState<"single" | "range">("single");
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  const [month, setMonth] = useState(currentMonth);
+  const [year, setYear] = useState(currentYear);
+  // Auto-derive AY from month/year — fully synced
+  const schoolYear = useMemo(() => academicYearOf(month, year), [month, year]);
+  const ayMonths = useMemo(() => monthsOfAcademicYear(schoolYear), [schoolYear]);
+  const [rangeFrom, setRangeFrom] = useState(0);
+  const [rangeTo, setRangeTo] = useState(ayMonths.length - 1);
+  const [skipExisting, setSkipExisting] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!profile?.school_id) return;
     Promise.all([
-      supabase.from("classes").select("name").eq("school_id", profile.school_id),
+      supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
       supabase.from("spp_tariffs").select("*").eq("school_id", profile.school_id).eq("is_active", true),
-    ]).then(([c, t]) => {
-      setClasses((c.data || []).map((x: any) => x.name));
+      supabase.from("students").select("id, name, student_id, class, parent_name, parent_phone").eq("school_id", profile.school_id),
+      supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id),
+    ]).then(([c, t, s, inv]) => {
+      const cls = (c.data || []).map((x: any) => x.name);
+      setClasses(cls);
+      setSelectedClasses(cls);
       setTariffs(t.data || []);
+      setStudents(s.data || []);
+      setExistingInvs(inv.data || []);
     });
   }, [profile?.school_id]);
 
+  // Reset range when AY changes
+  useEffect(() => { setRangeFrom(0); setRangeTo(ayMonths.length - 1); }, [schoolYear]);
+
+  const tariffByClass = useMemo(() => {
+    const map = new Map<string, any>();
+    tariffs.filter(t => t.school_year === schoolYear).forEach(t => map.set(t.class_name, t));
+    return map;
+  }, [tariffs, schoolYear]);
+
+  const periods = useMemo(() => {
+    if (mode === "single") return [{ month, year, label: `${MONTHS[month - 1]} ${year}` }];
+    return ayMonths.slice(rangeFrom, rangeTo + 1).map(p => ({ month: p.month, year: p.year, label: p.label }));
+  }, [mode, month, year, rangeFrom, rangeTo, ayMonths]);
+
+  const targetStudents = useMemo(() =>
+    students.filter(s => selectedClasses.includes(s.class)),
+    [students, selectedClasses]
+  );
+
+  const preview = useMemo(() => {
+    const list: any[] = [];
+    let skipped = 0;
+    let noTariff = 0;
+    for (const s of targetStudents) {
+      const tariff = tariffByClass.get(s.class);
+      if (!tariff) { noTariff++; continue; }
+      for (const p of periods) {
+        const exists = existingInvs.some(i => i.student_id === s.id && i.period_month === p.month && i.period_year === p.year);
+        if (exists && skipExisting) { skipped++; continue; }
+        list.push({ student: s, tariff, period: p, exists });
+      }
+    }
+    const total = list.reduce((a, x) => a + (x.tariff.amount || 0), 0);
+    return { list, skipped, noTariff, total };
+  }, [targetStudents, tariffByClass, periods, existingInvs, skipExisting]);
+
+  const toggleClass = (c: string) => {
+    setSelectedClasses(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
+  };
+
   const generate = async () => {
     if (!profile?.school_id) return;
+    if (preview.list.length === 0) { toast.error("Tidak ada tagihan untuk dibuat"); return; }
     setLoading(true);
     try {
-      const q = supabase.from("students").select("*").eq("school_id", profile.school_id);
-      const { data: students } = selectedClass ? await q.eq("class", selectedClass) : await q;
-      if (!students || students.length === 0) { toast.error("Tidak ada siswa"); return; }
-
-      const periodLabel = `${MONTHS[month - 1]} ${year}`;
-      const rows: any[] = [];
-      for (const s of students) {
-        const tariff = tariffs.find(t => t.class_name === s.class);
-        if (!tariff) continue;
-        const due = new Date(year, month - 1, tariff.due_date_day);
-        rows.push({
+      const rows = preview.list.map(({ student, tariff, period }) => {
+        const due = new Date(period.year, period.month - 1, tariff.due_date_day);
+        return {
           school_id: profile.school_id,
-          student_id: s.id,
-          invoice_number: `SPP/${year}${String(month).padStart(2,"0")}/${s.student_id}`,
-          student_name: s.name,
-          class_name: s.class,
-          parent_name: s.parent_name,
-          parent_phone: s.parent_phone,
-          period_month: month, period_year: year, period_label: periodLabel,
-          description: `${s.name} - ${s.class} - ${periodLabel}`,
-          amount: tariff.amount,
-          denda: 0,
-          total_amount: tariff.amount,
-          due_date: due.toISOString().slice(0,10),
-        });
-      }
-      if (rows.length === 0) { toast.error("Tidak ada tarif aktif untuk siswa terpilih"); return; }
+          student_id: student.id,
+          invoice_number: `SPP/${period.year}${String(period.month).padStart(2, "0")}/${student.student_id}`,
+          student_name: student.name,
+          class_name: student.class,
+          parent_name: student.parent_name,
+          parent_phone: student.parent_phone,
+          period_month: period.month, period_year: period.year, period_label: period.label,
+          description: `${student.name} - ${student.class} - ${period.label}`,
+          amount: tariff.amount, denda: 0, total_amount: tariff.amount,
+          due_date: due.toISOString().slice(0, 10),
+        };
+      });
       const { error } = await supabase.from("spp_invoices").upsert(rows, { onConflict: "school_id,student_id,period_year,period_month", ignoreDuplicates: true });
-      if (error) toast.error(error.message); else toast.success(`${rows.length} tagihan dibuat untuk ${periodLabel}`);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`${rows.length} tagihan SPP berhasil dibuat`);
+      setPreviewOpen(false);
+      // refresh existing invs to reflect new state
+      const { data } = await supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id);
+      setExistingInvs(data || []);
     } finally { setLoading(false); }
   };
 
+  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 1 + i);
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Generate Tagihan SPP</h1>
+      <PageHeader
+        icon={FileText}
+        title="Generate Tagihan SPP"
+        subtitle="Buat tagihan SPP per kelas, per bulan, atau satu tahun ajaran sekaligus"
+      />
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#5B6CF9]/10 to-transparent"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Tahun Ajaran</p><p className="text-base font-bold mt-0.5">{schoolYear}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><GraduationCap className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Kelas Dipilih</p><p className="text-xl font-bold mt-0.5">{selectedClasses.length}<span className="text-xs text-muted-foreground font-normal">/{classes.length}</span></p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><User className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Siswa</p><p className="text-xl font-bold mt-0.5">{targetStudents.length}</p></div><div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Akan Dibuat</p><p className="text-xl font-bold mt-0.5 text-[#5B6CF9]">{preview.list.length}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><Receipt className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+      </div>
+
+      {/* Mode picker */}
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-6 space-y-4">
-          <div className="grid md:grid-cols-3 gap-3">
-            <div><Label>Bulan</Label>
-              <Select value={String(month)} onValueChange={v => setMonth(parseInt(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div><Label>Tahun</Label><Input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} /></div>
-            <div><Label>Kelas (opsional)</Label>
-              <Select value={selectedClass || "all"} onValueChange={v => setSelectedClass(v === "all" ? "" : v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="all">Semua kelas</SelectItem>{classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
+        <CardContent className="p-4">
+          <Label className="text-xs uppercase tracking-wide text-muted-foreground">Mode Generate</Label>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <button onClick={() => setMode("single")} className={`rounded-lg border-2 p-3 text-left transition ${mode === "single" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-muted hover:border-muted-foreground/30"}`}>
+              <div className="flex items-center gap-2"><Receipt className={`h-4 w-4 ${mode === "single" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} /><p className="font-semibold text-sm">Satu Bulan</p></div>
+              <p className="text-xs text-muted-foreground mt-1">Generate untuk 1 periode tertentu</p>
+            </button>
+            <button onClick={() => setMode("range")} className={`rounded-lg border-2 p-3 text-left transition ${mode === "range" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-muted hover:border-muted-foreground/30"}`}>
+              <div className="flex items-center gap-2"><FileText className={`h-4 w-4 ${mode === "range" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} /><p className="font-semibold text-sm">Rentang Bulan</p></div>
+              <p className="text-xs text-muted-foreground mt-1">Generate beberapa bulan sekaligus dalam 1 TA</p>
+            </button>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-            Format deskripsi tagihan: <strong>NAMA SISWA - KELAS - BULAN TAHUN</strong> (digunakan di Mayar, dashboard wali murid, dan WhatsApp).
-          </div>
-          <Button onClick={generate} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
-            Generate Tagihan
-          </Button>
         </CardContent>
       </Card>
+
+      {/* Period selector */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Periode</Label>
+            <Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">TA {schoolYear}</Badge>
+          </div>
+          {mode === "single" ? (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Bulan</Label>
+                <Select value={String(month)} onValueChange={v => setMonth(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Tahun</Label>
+                <Select value={String(year)} onValueChange={v => setYear(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{yearOptions.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Mulai dari</Label>
+                <Select value={String(rangeFrom)} onValueChange={v => setRangeFrom(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{ayMonths.map((m, i) => <SelectItem key={i} value={String(i)} disabled={i > rangeTo}>{m.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Sampai</Label>
+                <Select value={String(rangeTo)} onValueChange={v => setRangeTo(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{ayMonths.map((m, i) => <SelectItem key={i} value={String(i)} disabled={i < rangeFrom}>{m.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2 text-xs text-muted-foreground bg-muted/40 rounded-md p-2">
+                <strong>{periods.length} bulan</strong> akan di-generate: {periods.map(p => p.label).join(" • ")}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Class picker */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Kelas Tujuan</Label>
+            <div className="flex gap-1">
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedClasses(classes)}>Pilih semua</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedClasses([])}>Kosongkan</Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {classes.map(c => {
+              const tariff = tariffByClass.get(c);
+              const sel = selectedClasses.includes(c);
+              const studentCount = students.filter(s => s.class === c).length;
+              return (
+                <button key={c} onClick={() => toggleClass(c)} className={`rounded-lg border-2 p-2.5 text-left transition ${sel ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-muted hover:border-muted-foreground/30"} ${!tariff ? "opacity-60" : ""}`}>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-sm">{c}</p>
+                    {sel && <CheckCircle2 className="h-4 w-4 text-[#5B6CF9]" />}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{studentCount} siswa</p>
+                  {tariff ? <p className="text-[11px] font-semibold text-[#5B6CF9] mt-0.5">{fmtIDR(tariff.amount)}</p> : <p className="text-[11px] text-amber-600 mt-0.5">Tarif belum diatur</p>}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Options */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <p className="text-sm font-medium">Lewati tagihan yang sudah ada</p>
+              <p className="text-xs text-muted-foreground">Hindari duplikat untuk siswa yang sudah punya tagihan di periode yang sama</p>
+            </div>
+            <Switch checked={skipExisting} onCheckedChange={setSkipExisting} />
+          </div>
+          {(preview.skipped > 0 || preview.noTariff > 0) && (
+            <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3 text-xs space-y-1">
+              {preview.skipped > 0 && <p className="text-amber-800 dark:text-amber-200"><strong>{preview.skipped}</strong> tagihan akan dilewati (sudah ada)</p>}
+              {preview.noTariff > 0 && <p className="text-amber-800 dark:text-amber-200"><strong>{preview.noTariff}</strong> siswa tidak punya tarif aktif untuk TA {schoolYear}</p>}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Action bar */}
+      <div className="sticky bottom-4 z-10">
+        <Card className="border-0 shadow-xl bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white">
+          <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-white/70">Total estimasi</p>
+              <p className="text-2xl font-bold">{fmtIDR(preview.total)}</p>
+              <p className="text-xs text-white/70 mt-0.5">{preview.list.length} tagihan • {periods.length} bulan • {selectedClasses.length} kelas</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => setPreviewOpen(true)} disabled={preview.list.length === 0} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Eye className="h-4 w-4 mr-1.5" /> Pratinjau</Button>
+              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-[#5B6CF9] hover:bg-white/90">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+                Generate Sekarang
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>Pratinjau Tagihan</DialogTitle></DialogHeader>
+          <div className="max-h-[60vh] overflow-auto rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40 sticky top-0">
+                  <TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nominal</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {preview.list.slice(0, 200).map((x, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="text-sm">{x.student.name}</TableCell>
+                    <TableCell className="text-sm"><Badge variant="secondary">{x.student.class}</Badge></TableCell>
+                    <TableCell className="text-sm">{x.period.label}</TableCell>
+                    <TableCell className="text-sm font-semibold text-right">{fmtIDR(x.tariff.amount)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {preview.list.length > 200 && <p className="text-xs text-center py-2 text-muted-foreground">+{preview.list.length - 200} baris lagi…</p>}
+          </div>
+          <Button onClick={generate} disabled={loading} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+            Konfirmasi Generate {preview.list.length} Tagihan
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
