@@ -59,7 +59,7 @@ serve(async (req) => {
     if (identifiers.length) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount, payment_method')
+        .select('id, school_id, plan_id, status, amount, payment_method, mayar_transaction_id, mayar_payment_url')
         .in('mayar_transaction_id', identifiers)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -71,7 +71,7 @@ serve(async (req) => {
     if (!payment && productId) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount, payment_method')
+        .select('id, school_id, plan_id, status, amount, payment_method, mayar_transaction_id, mayar_payment_url')
         .eq('mayar_transaction_id', productId)
         .maybeSingle();
       payment = found;
@@ -81,7 +81,7 @@ serve(async (req) => {
     if (!payment && paymentUrl) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount, payment_method')
+        .select('id, school_id, plan_id, status, amount, payment_method, mayar_transaction_id, mayar_payment_url')
         .eq('mayar_payment_url', paymentUrl)
         .eq('status', 'pending')
         .maybeSingle();
@@ -92,7 +92,7 @@ serve(async (req) => {
     if (!payment && data?.amount) {
       const { data: found } = await supabaseAdmin
         .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount, payment_method')
+        .select('id, school_id, plan_id, status, amount, payment_method, mayar_transaction_id, mayar_payment_url')
         .eq('status', 'pending')
         .eq('amount', data.amount)
         .order('created_at', { ascending: false })
