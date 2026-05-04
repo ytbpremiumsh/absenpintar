@@ -86,7 +86,7 @@ import { BendaharaLayout } from "./components/layout/BendaharaLayout";
 import {
   BendaharaDashboard, BendaharaSiswa, BendaharaTarif, BendaharaGenerate,
   BendaharaTransaksi, BendaharaSaldo, BendaharaPencairan, BendaharaSettlement,
-  BendaharaLaporan, BendaharaGateway,
+  BendaharaLaporan,
 } from "./pages/bendahara/BendaharaPages";
 
 const queryClient = new QueryClient();
@@ -124,7 +124,7 @@ function AppRoutes() {
         <Route path="/bendahara/pencairan" element={<BendaharaPencairan />} />
         <Route path="/bendahara/settlement" element={<BendaharaSettlement />} />
         <Route path="/bendahara/laporan" element={<BendaharaLaporan />} />
-        <Route path="/bendahara/gateway" element={<BendaharaGateway />} />
+        <Route path="/bendahara/gateway" element={<Navigate to="/bendahara" replace />} />
       </Route>
       <Route element={<SuperAdminLayout />}>
         <Route path="/super-admin" element={<SuperAdminDashboard />} />

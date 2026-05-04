@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
-  Receipt, ArrowDownToLine, Settings as SettingsIcon, Banknote, RefreshCw, FileText,
+  Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
@@ -107,19 +107,15 @@ export function BendaharaDashboard() {
         <p className="text-sm text-muted-foreground">Ringkasan keuangan sekolah</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* PRIMARY ROW: 4 KPI utama */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Tagihan Bulan Ini" value={fmtIDR(stats.monthBills)} icon={Receipt} gradient="from-violet-500 to-purple-600" />
-        <StatCard label="Pembayaran Berhasil" value={stats.paidCount} icon={CheckCircle2} sub="Transaksi" />
-        <StatCard label="Pending" value={stats.pendingCount} icon={AlertCircle} gradient="from-amber-500 to-orange-600" sub="Belum dibayar" />
-        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-red-500 to-rose-600" />
-        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
-        <StatCard label="Fee Gateway" value={fmtIDR(stats.totalFee)} icon={Banknote} gradient="from-slate-500 to-slate-700" />
-        <StatCard label="Fee Pencairan" value={fmtIDR(stats.settleFee)} icon={Banknote} gradient="from-slate-500 to-slate-700" />
-        <StatCard label="Saldo Pending" value={fmtIDR(stats.pendingBalance)} icon={Wallet} gradient="from-amber-500 to-orange-600" />
+        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" sub={`${stats.paidCount} transaksi`} />
         <StatCard label="Saldo Bisa Cair" value={fmtIDR(stats.availableBalance)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
-        <StatCard label="Dana Dicairkan" value={fmtIDR(stats.settled)} icon={ArrowDownToLine} gradient="from-emerald-600 to-green-700" />
+        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-red-500 to-rose-600" sub={`${stats.pendingCount} pending`} />
       </div>
 
+      {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle className="text-base">Pembayaran Bulanan</CardTitle></CardHeader>
@@ -150,6 +146,20 @@ export function BendaharaDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* SECONDARY: detail keuangan dalam satu card ringkas */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader><CardTitle className="text-base">Rincian Keuangan</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+            <div><p className="text-[11px] text-muted-foreground">Pendapatan Net</p><p className="font-bold text-emerald-600">{fmtIDR(stats.totalNet)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Fee Gateway</p><p className="font-bold">{fmtIDR(stats.totalFee)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Fee Pencairan</p><p className="font-bold">{fmtIDR(stats.settleFee)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Saldo Pending</p><p className="font-bold text-amber-600">{fmtIDR(stats.pendingBalance)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Sudah Dicairkan</p><p className="font-bold">{fmtIDR(stats.settled)}</p></div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -423,12 +433,32 @@ export function BendaharaTransaksi() {
   };
   useEffect(load, [profile?.school_id]);
 
-  const createLink = async (invoiceId: string) => {
+  const sendWa = async (inv: any, url: string) => {
+    if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    const msg =
+      `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\n` +
+      `Tagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\n` +
+      `Silakan lakukan pembayaran melalui link berikut:\n${url}\n\n` +
+      `Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\n` +
+      `Terima kasih.\n_ATSkolla - Sistem Sekolah_`;
+    toast.loading("Mengirim WA...");
+    const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
+    });
+    toast.dismiss();
+    if (error || data?.success === false) toast.error("Gagal kirim WA"); else toast.success("Link tagihan dikirim ke WA wali");
+  };
+
+  const createLink = async (inv: any) => {
     toast.loading("Membuat link Mayar...");
-    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action: "create_payment_link", invoice_id: invoiceId } });
+    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action: "create_payment_link", invoice_id: inv.id } });
     toast.dismiss();
     if (error || !data?.success) { toast.error(data?.error || error?.message || "Gagal"); return; }
-    if (data.payment_url) { window.open(data.payment_url, "_blank"); toast.success("Link dibuat"); load(); }
+    if (data.payment_url) {
+      toast.success("Link dibuat, mengirim ke WA wali...");
+      load();
+      sendWa(inv, data.payment_url);
+    }
   };
 
   const filtered = items.filter(i =>
@@ -464,26 +494,36 @@ export function BendaharaTransaksi() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Invoice</TableHead><TableHead>Deskripsi</TableHead><TableHead>Amount</TableHead>
-                  <TableHead>Fee</TableHead><TableHead>Net</TableHead><TableHead>Method</TableHead>
-                  <TableHead>Status</TableHead><TableHead>Action</TableHead>
+                  <TableHead>Invoice</TableHead><TableHead>Siswa</TableHead><TableHead>Amount</TableHead>
+                  <TableHead>Net</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Aksi</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
-                  {filtered.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Tidak ada transaksi</TableCell></TableRow>}
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Tidak ada transaksi</TableCell></TableRow>}
                   {filtered.map(i => (
                     <TableRow key={i.id}>
                       <TableCell className="text-xs font-mono">{i.invoice_number}</TableCell>
-                      <TableCell className="text-xs">{i.description}</TableCell>
+                      <TableCell className="text-xs">
+                        <p className="font-semibold">{i.student_name}</p>
+                        <p className="text-muted-foreground">{i.class_name} · {i.period_label}</p>
+                      </TableCell>
                       <TableCell className="font-semibold">{fmtIDR(i.total_amount)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{fmtIDR(i.gateway_fee)}</TableCell>
                       <TableCell className="text-xs font-semibold text-emerald-600">{fmtIDR(i.net_amount)}</TableCell>
-                      <TableCell className="text-xs">{i.payment_method || "-"}</TableCell>
                       <TableCell>{statusBadge(i.status)}</TableCell>
                       <TableCell>
-                        {i.status === "pending" && (i.payment_url ?
-                          <Button size="sm" variant="outline" onClick={() => window.open(i.payment_url, "_blank")}><LinkIcon className="h-3 w-3 mr-1" /> Buka</Button> :
-                          <Button size="sm" className="bg-emerald-600" onClick={() => createLink(i.id)}>Buat Link</Button>
-                        )}
+                        {i.status === "pending" && (i.payment_url ? (
+                          <div className="flex gap-1 justify-end">
+                            <Button size="sm" variant="outline" onClick={() => window.open(i.payment_url, "_blank")}>
+                              <LinkIcon className="h-3 w-3 mr-1" /> Buka
+                            </Button>
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => sendWa(i, i.payment_url)}>
+                              <MessageCircle className="h-3 w-3 mr-1" /> Kirim WA
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button size="sm" className="bg-emerald-600" onClick={() => createLink(i)}>
+                            <LinkIcon className="h-3 w-3 mr-1" /> Buat & Kirim
+                          </Button>
+                        ))}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -729,98 +769,5 @@ export function BendaharaLaporan() {
   );
 }
 
-// ============ PAYMENT GATEWAY ============
-export function BendaharaGateway() {
-  const { profile } = useAuth();
-  const [settings, setSettings] = useState<any>({ environment: "production", use_platform_key: true, api_key: "", secret_key: "", webhook_url: "" });
-  const [testing, setTesting] = useState(false);
-  const [status, setStatus] = useState<"idle"|"connected"|"failed">("idle");
-  const [statusMsg, setStatusMsg] = useState("");
+// Payment gateway settings dipindah ke Super Admin (mayar webhook).
 
-  useEffect(() => {
-    if (!profile?.school_id) return;
-    supabase.from("bendahara_settings").select("*").eq("school_id", profile.school_id).maybeSingle().then(({ data }) => {
-      if (data) {
-        setSettings(data);
-        if (data.last_test_status === "connected") setStatus("connected");
-        else if (data.last_test_status === "failed") setStatus("failed");
-      }
-    });
-  }, [profile?.school_id]);
-
-  const save = async () => {
-    const { error } = await supabase.from("bendahara_settings").upsert({
-      school_id: profile!.school_id,
-      environment: settings.environment,
-      use_platform_key: settings.use_platform_key,
-      api_key: settings.api_key || null,
-      secret_key: settings.secret_key || null,
-      webhook_url: settings.webhook_url || null,
-    }, { onConflict: "school_id" });
-    if (error) toast.error(error.message); else toast.success("Pengaturan disimpan");
-  };
-
-  const test = async () => {
-    setTesting(true); setStatus("idle");
-    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action: "test_connection" } });
-    setTesting(false);
-    if (error || !data?.success) { setStatus("failed"); setStatusMsg(error?.message || "Connection Failed"); return; }
-    if (data.connected) { setStatus("connected"); setStatusMsg("Mayar Connected"); toast.success("Mayar Connected"); }
-    else { setStatus("failed"); setStatusMsg(data.message || "Connection Failed"); toast.error("Connection Failed"); }
-  };
-
-  const webhookUrl = `https://bohuglednqirnaearrkj.supabase.co/functions/v1/mayar-webhook`;
-
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Pengaturan Payment Gateway</h1>
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base"><SettingsIcon className="h-4 w-4" /> Mayar Configuration</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-3">
-            <div>
-              <Label>Environment</Label>
-              <Select value={settings.environment} onValueChange={v => setSettings({ ...settings, environment: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="sandbox">Sandbox</SelectItem><SelectItem value="production">Production</SelectItem></SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end gap-2">
-              <div className="flex-1">
-                <Label className="block mb-2">Pakai API Key Platform</Label>
-                <div className="flex items-center gap-2"><Switch checked={settings.use_platform_key} onCheckedChange={v => setSettings({ ...settings, use_platform_key: v })} /><span className="text-sm text-muted-foreground">{settings.use_platform_key ? "Platform" : "Custom"}</span></div>
-              </div>
-            </div>
-          </div>
-
-          {!settings.use_platform_key && (
-            <>
-              <div><Label>API Key</Label><Input value={settings.api_key || ""} onChange={e => setSettings({ ...settings, api_key: e.target.value })} placeholder="mayar_xxx" /></div>
-              <div><Label>Secret Key</Label><Input type="password" value={settings.secret_key || ""} onChange={e => setSettings({ ...settings, secret_key: e.target.value })} /></div>
-            </>
-          )}
-          <div>
-            <Label>Webhook URL Callback (daftarkan di Mayar)</Label>
-            <Input readOnly value={webhookUrl} className="font-mono text-xs" />
-          </div>
-
-          {status !== "idle" && (
-            <div className={`p-3 rounded-lg flex items-center gap-2 text-sm ${status === "connected" ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700" : "bg-red-50 dark:bg-red-950/30 text-red-700"}`}>
-              {status === "connected" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <span className="font-semibold">{statusMsg}</span>
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={test} disabled={testing}>
-              {testing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />} Test Connection
-            </Button>
-            <Button onClick={save} className="bg-emerald-600">Simpan</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
