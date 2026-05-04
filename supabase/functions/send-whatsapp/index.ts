@@ -62,6 +62,8 @@ const sendMpwaButton = async (
     sender,
     number: recipient,
     message,
+    // MPWA /send-button mewajibkan parameter image walau hanya berupa URL gambar header
+    image: 'https://bohuglednqirnaearrkj.supabase.co/storage/v1/object/public/landing-assets/atskolla-wa-header.png',
     button: buttons.slice(0, 5),
   };
   if (footer) payload.footer = footer;
