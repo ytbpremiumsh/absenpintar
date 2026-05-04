@@ -455,14 +455,20 @@ export function BendaharaTarif() {
   const [tariffs, setTariffs] = useState<any[]>([]);
   const [classes, setClasses] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ school_year: "2025/2026", class_name: "", amount: 0, due_date_day: 10, denda: 0 });
+  const [editing, setEditing] = useState<any | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkForm, setBulkForm] = useState({ school_year: academicYearOf(new Date().getMonth() + 1, new Date().getFullYear()), amount: 0, due_date_day: 10, denda: 0 });
+  const currentAY = academicYearOf(new Date().getMonth() + 1, new Date().getFullYear());
+  const [filterAY, setFilterAY] = useState<string>(currentAY);
+  const [search, setSearch] = useState("");
+  const [form, setForm] = useState({ id: "" as string | "", school_year: currentAY, class_name: "", amount: 0, due_date_day: 10, denda: 0, is_active: true });
   const [loading, setLoading] = useState(true);
 
   const load = () => {
     if (!profile?.school_id) { setLoading(false); return; }
     Promise.all([
       supabase.from("spp_tariffs").select("*").eq("school_id", profile.school_id).order("class_name"),
-      supabase.from("classes").select("name").eq("school_id", profile.school_id),
+      supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
     ]).then(([t, c]) => {
       setTariffs(t.data || []);
       setClasses((c.data || []).map((x: any) => x.name));
@@ -471,10 +477,37 @@ export function BendaharaTarif() {
   };
   useEffect(load, [profile?.school_id]);
 
+  const ayOptions = useMemo(() => {
+    const cy = new Date().getFullYear();
+    const set = new Set<string>(academicYearList(cy));
+    tariffs.forEach(t => set.add(t.school_year));
+    return Array.from(set).sort();
+  }, [tariffs]);
+
+  const openAdd = () => {
+    setEditing(null);
+    setForm({ id: "", school_year: filterAY, class_name: "", amount: 0, due_date_day: 10, denda: 0, is_active: true });
+    setOpen(true);
+  };
+  const openEdit = (t: any) => {
+    setEditing(t);
+    setForm({ id: t.id, school_year: t.school_year, class_name: t.class_name, amount: t.amount, due_date_day: t.due_date_day, denda: t.denda, is_active: t.is_active });
+    setOpen(true);
+  };
+
   const save = async () => {
     if (!form.class_name || form.amount <= 0) { toast.error("Lengkapi data"); return; }
-    const { error } = await supabase.from("spp_tariffs").upsert({ school_id: profile!.school_id, ...form }, { onConflict: "school_id,school_year,class_name" });
-    if (error) toast.error(error.message); else { toast.success("Tarif tersimpan"); setOpen(false); load(); }
+    const payload = { school_id: profile!.school_id, school_year: form.school_year, class_name: form.class_name, amount: form.amount, due_date_day: form.due_date_day, denda: form.denda, is_active: form.is_active };
+    const { error } = editing
+      ? await supabase.from("spp_tariffs").update(payload).eq("id", editing.id)
+      : await supabase.from("spp_tariffs").upsert(payload, { onConflict: "school_id,school_year,class_name" });
+    if (error) toast.error(error.message); else { toast.success(editing ? "Tarif diperbarui" : "Tarif tersimpan"); setOpen(false); load(); }
+  };
+
+  const remove = async (t: any) => {
+    if (!confirm(`Hapus tarif ${t.class_name} (${t.school_year})?`)) return;
+    const { error } = await supabase.from("spp_tariffs").delete().eq("id", t.id);
+    if (error) toast.error(error.message); else { toast.success("Tarif dihapus"); load(); }
   };
 
   const toggle = async (t: any) => {
@@ -482,40 +515,122 @@ export function BendaharaTarif() {
     load();
   };
 
+  const bulkApply = async () => {
+    if (bulkForm.amount <= 0 || classes.length === 0) { toast.error("Tidak ada kelas / nominal kosong"); return; }
+    const rows = classes.map(c => ({ school_id: profile!.school_id, school_year: bulkForm.school_year, class_name: c, amount: bulkForm.amount, due_date_day: bulkForm.due_date_day, denda: bulkForm.denda, is_active: true }));
+    const { error } = await supabase.from("spp_tariffs").upsert(rows, { onConflict: "school_id,school_year,class_name" });
+    if (error) toast.error(error.message); else { toast.success(`${rows.length} tarif diterapkan ke semua kelas`); setBulkOpen(false); load(); }
+  };
+
+  const filtered = useMemo(() =>
+    tariffs
+      .filter(t => filterAY === "all" || t.school_year === filterAY)
+      .filter(t => !search || t.class_name.toLowerCase().includes(search.toLowerCase())),
+    [tariffs, filterAY, search]
+  );
+
+  const summary = useMemo(() => ({
+    total: filtered.length,
+    aktif: filtered.filter(t => t.is_active).length,
+    rata: filtered.length > 0 ? Math.round(filtered.reduce((a, t) => a + t.amount, 0) / filtered.length) : 0,
+    kelasBelum: classes.filter(c => !filtered.some(t => t.class_name === c)).length,
+  }), [filtered, classes]);
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">Tarif SPP</h1>
-        <Button onClick={() => setOpen(true)} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="h-4 w-4 mr-1" /> Tambah</Button>
+      <PageHeader
+        icon={Banknote}
+        title="Tarif SPP"
+        subtitle="Kelola nominal SPP per tahun ajaran & kelas"
+        actions={
+          <>
+            <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Copy className="h-4 w-4 mr-1.5" /> Set Massal</Button>
+            <Button size="sm" onClick={openAdd} className="bg-white text-[#5B6CF9] hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
+          </>
+        }
+      />
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#5B6CF9]/10 to-transparent"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Tarif</p><p className="text-xl font-bold mt-0.5">{summary.total}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><Receipt className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Aktif</p><p className="text-xl font-bold mt-0.5 text-emerald-600">{summary.aktif}</p></div><div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Rata-rata</p><p className="text-base font-bold mt-0.5">{fmtIDR(summary.rata)}</p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Kelas Belum</p><p className="text-xl font-bold mt-0.5 text-amber-600">{summary.kelasBelum}</p></div><div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center"><AlertCircle className="h-4 w-4 text-amber-600" /></div></div></CardContent></Card>
       </div>
+
+      {/* Filter bar */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Cari kelas…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9" />
+          </div>
+          <Select value={filterAY} onValueChange={setFilterAY}>
+            <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Tahun Ajaran</SelectItem>
+              {ayOptions.map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-0">
-          {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
-            <Table>
-              <TableHeader><TableRow><TableHead>Tahun Ajaran</TableHead><TableHead>Kelas</TableHead><TableHead>Nominal</TableHead><TableHead>Due Date</TableHead><TableHead>Denda</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {tariffs.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Belum ada tarif</TableCell></TableRow>}
-                {tariffs.map(t => (
-                  <TableRow key={t.id}>
-                    <TableCell>{t.school_year}</TableCell>
-                    <TableCell><Badge variant="secondary">{t.class_name}</Badge></TableCell>
-                    <TableCell className="font-semibold">{fmtIDR(t.amount)}</TableCell>
-                    <TableCell>Tanggal {t.due_date_day}</TableCell>
-                    <TableCell>{fmtIDR(t.denda)}</TableCell>
-                    <TableCell><Switch checked={t.is_active} onCheckedChange={() => toggle(t)} /></TableCell>
+          {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-[#5B6CF9]" /></div> : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40">
+                    <TableHead className="font-semibold">Tahun Ajaran</TableHead>
+                    <TableHead className="font-semibold">Kelas</TableHead>
+                    <TableHead className="font-semibold">Nominal</TableHead>
+                    <TableHead className="font-semibold">Jatuh Tempo</TableHead>
+                    <TableHead className="font-semibold">Denda</TableHead>
+                    <TableHead className="font-semibold">Aktif</TableHead>
+                    <TableHead className="font-semibold text-right">Aksi</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground text-sm">Belum ada tarif. Klik <strong>Tambah</strong> atau <strong>Set Massal</strong>.</TableCell></TableRow>}
+                  {filtered.map(t => (
+                    <TableRow key={t.id} className="hover:bg-muted/30">
+                      <TableCell className="text-sm"><Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">{t.school_year}</Badge></TableCell>
+                      <TableCell><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
+                      <TableCell className="font-bold text-[#5B6CF9]">{fmtIDR(t.amount)}</TableCell>
+                      <TableCell className="text-sm">Tanggal {t.due_date_day}</TableCell>
+                      <TableCell className="text-sm">{t.denda > 0 ? fmtIDR(t.denda) : <span className="text-muted-foreground">—</span>}</TableCell>
+                      <TableCell><Switch checked={t.is_active} onCheckedChange={() => toggle(t)} /></TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => openEdit(t)} className="h-8 px-2"><FileText className="h-3.5 w-3.5" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => remove(t)} className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"><AlertCircle className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Add/Edit Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Tambah Tarif SPP</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? "Edit Tarif SPP" : "Tambah Tarif SPP"}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div><Label>Tahun Ajaran</Label><Input value={form.school_year} onChange={e => setForm({ ...form, school_year: e.target.value })} /></div>
-            <div><Label>Kelas</Label>
+            <div>
+              <Label>Tahun Ajaran</Label>
+              <Select value={form.school_year} onValueChange={v => setForm({ ...form, school_year: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{ayOptions.map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Kelas</Label>
               <Select value={form.class_name} onValueChange={v => setForm({ ...form, class_name: v })}>
                 <SelectTrigger><SelectValue placeholder="Pilih kelas" /></SelectTrigger>
                 <SelectContent>{classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
@@ -523,10 +638,37 @@ export function BendaharaTarif() {
             </div>
             <div><Label>Nominal SPP (Rp)</Label><Input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: parseInt(e.target.value) || 0 })} /></div>
             <div className="grid grid-cols-2 gap-2">
-              <div><Label>Due Date (tgl)</Label><Input type="number" min={1} max={28} value={form.due_date_day} onChange={e => setForm({ ...form, due_date_day: parseInt(e.target.value) || 10 })} /></div>
+              <div><Label>Jatuh Tempo (tgl)</Label><Input type="number" min={1} max={28} value={form.due_date_day} onChange={e => setForm({ ...form, due_date_day: parseInt(e.target.value) || 10 })} /></div>
               <div><Label>Denda (Rp)</Label><Input type="number" value={form.denda} onChange={e => setForm({ ...form, denda: parseInt(e.target.value) || 0 })} /></div>
             </div>
-            <Button onClick={save} className="w-full bg-emerald-600">Simpan</Button>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div><p className="text-sm font-medium">Status Aktif</p><p className="text-xs text-muted-foreground">Hanya tarif aktif yang bisa di-generate</p></div>
+              <Switch checked={form.is_active} onCheckedChange={v => setForm({ ...form, is_active: v })} />
+            </div>
+            <Button onClick={save} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">Simpan</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Apply Dialog */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Set Tarif Massal</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">Terapkan satu nominal yang sama ke <strong>{classes.length} kelas</strong> sekaligus.</p>
+          <div className="space-y-3">
+            <div>
+              <Label>Tahun Ajaran</Label>
+              <Select value={bulkForm.school_year} onValueChange={v => setBulkForm({ ...bulkForm, school_year: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{ayOptions.map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Nominal SPP (Rp)</Label><Input type="number" value={bulkForm.amount} onChange={e => setBulkForm({ ...bulkForm, amount: parseInt(e.target.value) || 0 })} /></div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Jatuh Tempo (tgl)</Label><Input type="number" min={1} max={28} value={bulkForm.due_date_day} onChange={e => setBulkForm({ ...bulkForm, due_date_day: parseInt(e.target.value) || 10 })} /></div>
+              <div><Label>Denda (Rp)</Label><Input type="number" value={bulkForm.denda} onChange={e => setBulkForm({ ...bulkForm, denda: parseInt(e.target.value) || 0 })} /></div>
+            </div>
+            <Button onClick={bulkApply} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">Terapkan ke {classes.length} Kelas</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -539,87 +681,293 @@ export function BendaharaGenerate() {
   const { profile } = useAuth();
   const [classes, setClasses] = useState<string[]>([]);
   const [tariffs, setTariffs] = useState<any[]>([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [students, setStudents] = useState<any[]>([]);
+  const [existingInvs, setExistingInvs] = useState<any[]>([]);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [mode, setMode] = useState<"single" | "range">("single");
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  const [month, setMonth] = useState(currentMonth);
+  const [year, setYear] = useState(currentYear);
+  // Auto-derive AY from month/year — fully synced
+  const schoolYear = useMemo(() => academicYearOf(month, year), [month, year]);
+  const ayMonths = useMemo(() => monthsOfAcademicYear(schoolYear), [schoolYear]);
+  const [rangeFrom, setRangeFrom] = useState(0);
+  const [rangeTo, setRangeTo] = useState(ayMonths.length - 1);
+  const [skipExisting, setSkipExisting] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!profile?.school_id) return;
     Promise.all([
-      supabase.from("classes").select("name").eq("school_id", profile.school_id),
+      supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
       supabase.from("spp_tariffs").select("*").eq("school_id", profile.school_id).eq("is_active", true),
-    ]).then(([c, t]) => {
-      setClasses((c.data || []).map((x: any) => x.name));
+      supabase.from("students").select("id, name, student_id, class, parent_name, parent_phone").eq("school_id", profile.school_id),
+      supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id),
+    ]).then(([c, t, s, inv]) => {
+      const cls = (c.data || []).map((x: any) => x.name);
+      setClasses(cls);
+      setSelectedClasses(cls);
       setTariffs(t.data || []);
+      setStudents(s.data || []);
+      setExistingInvs(inv.data || []);
     });
   }, [profile?.school_id]);
 
+  // Reset range when AY changes
+  useEffect(() => { setRangeFrom(0); setRangeTo(ayMonths.length - 1); }, [schoolYear]);
+
+  const tariffByClass = useMemo(() => {
+    const map = new Map<string, any>();
+    tariffs.filter(t => t.school_year === schoolYear).forEach(t => map.set(t.class_name, t));
+    return map;
+  }, [tariffs, schoolYear]);
+
+  const periods = useMemo(() => {
+    if (mode === "single") return [{ month, year, label: `${MONTHS[month - 1]} ${year}` }];
+    return ayMonths.slice(rangeFrom, rangeTo + 1).map(p => ({ month: p.month, year: p.year, label: p.label }));
+  }, [mode, month, year, rangeFrom, rangeTo, ayMonths]);
+
+  const targetStudents = useMemo(() =>
+    students.filter(s => selectedClasses.includes(s.class)),
+    [students, selectedClasses]
+  );
+
+  const preview = useMemo(() => {
+    const list: any[] = [];
+    let skipped = 0;
+    let noTariff = 0;
+    for (const s of targetStudents) {
+      const tariff = tariffByClass.get(s.class);
+      if (!tariff) { noTariff++; continue; }
+      for (const p of periods) {
+        const exists = existingInvs.some(i => i.student_id === s.id && i.period_month === p.month && i.period_year === p.year);
+        if (exists && skipExisting) { skipped++; continue; }
+        list.push({ student: s, tariff, period: p, exists });
+      }
+    }
+    const total = list.reduce((a, x) => a + (x.tariff.amount || 0), 0);
+    return { list, skipped, noTariff, total };
+  }, [targetStudents, tariffByClass, periods, existingInvs, skipExisting]);
+
+  const toggleClass = (c: string) => {
+    setSelectedClasses(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
+  };
+
   const generate = async () => {
     if (!profile?.school_id) return;
+    if (preview.list.length === 0) { toast.error("Tidak ada tagihan untuk dibuat"); return; }
     setLoading(true);
     try {
-      const q = supabase.from("students").select("*").eq("school_id", profile.school_id);
-      const { data: students } = selectedClass ? await q.eq("class", selectedClass) : await q;
-      if (!students || students.length === 0) { toast.error("Tidak ada siswa"); return; }
-
-      const periodLabel = `${MONTHS[month - 1]} ${year}`;
-      const rows: any[] = [];
-      for (const s of students) {
-        const tariff = tariffs.find(t => t.class_name === s.class);
-        if (!tariff) continue;
-        const due = new Date(year, month - 1, tariff.due_date_day);
-        rows.push({
+      const rows = preview.list.map(({ student, tariff, period }) => {
+        const due = new Date(period.year, period.month - 1, tariff.due_date_day);
+        return {
           school_id: profile.school_id,
-          student_id: s.id,
-          invoice_number: `SPP/${year}${String(month).padStart(2,"0")}/${s.student_id}`,
-          student_name: s.name,
-          class_name: s.class,
-          parent_name: s.parent_name,
-          parent_phone: s.parent_phone,
-          period_month: month, period_year: year, period_label: periodLabel,
-          description: `${s.name} - ${s.class} - ${periodLabel}`,
-          amount: tariff.amount,
-          denda: 0,
-          total_amount: tariff.amount,
-          due_date: due.toISOString().slice(0,10),
-        });
-      }
-      if (rows.length === 0) { toast.error("Tidak ada tarif aktif untuk siswa terpilih"); return; }
+          student_id: student.id,
+          invoice_number: `SPP/${period.year}${String(period.month).padStart(2, "0")}/${student.student_id}`,
+          student_name: student.name,
+          class_name: student.class,
+          parent_name: student.parent_name,
+          parent_phone: student.parent_phone,
+          period_month: period.month, period_year: period.year, period_label: period.label,
+          description: `${student.name} - ${student.class} - ${period.label}`,
+          amount: tariff.amount, denda: 0, total_amount: tariff.amount,
+          due_date: due.toISOString().slice(0, 10),
+        };
+      });
       const { error } = await supabase.from("spp_invoices").upsert(rows, { onConflict: "school_id,student_id,period_year,period_month", ignoreDuplicates: true });
-      if (error) toast.error(error.message); else toast.success(`${rows.length} tagihan dibuat untuk ${periodLabel}`);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`${rows.length} tagihan SPP berhasil dibuat`);
+      setPreviewOpen(false);
+      // refresh existing invs to reflect new state
+      const { data } = await supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id);
+      setExistingInvs(data || []);
     } finally { setLoading(false); }
   };
 
+  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 1 + i);
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Generate Tagihan SPP</h1>
+      <PageHeader
+        icon={FileText}
+        title="Generate Tagihan SPP"
+        subtitle="Buat tagihan SPP per kelas, per bulan, atau satu tahun ajaran sekaligus"
+      />
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#5B6CF9]/10 to-transparent"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Tahun Ajaran</p><p className="text-base font-bold mt-0.5">{schoolYear}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><GraduationCap className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Kelas Dipilih</p><p className="text-xl font-bold mt-0.5">{selectedClasses.length}<span className="text-xs text-muted-foreground font-normal">/{classes.length}</span></p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><User className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Siswa</p><p className="text-xl font-bold mt-0.5">{targetStudents.length}</p></div><div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Akan Dibuat</p><p className="text-xl font-bold mt-0.5 text-[#5B6CF9]">{preview.list.length}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><Receipt className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+      </div>
+
+      {/* Mode picker */}
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-6 space-y-4">
-          <div className="grid md:grid-cols-3 gap-3">
-            <div><Label>Bulan</Label>
-              <Select value={String(month)} onValueChange={v => setMonth(parseInt(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div><Label>Tahun</Label><Input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} /></div>
-            <div><Label>Kelas (opsional)</Label>
-              <Select value={selectedClass || "all"} onValueChange={v => setSelectedClass(v === "all" ? "" : v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="all">Semua kelas</SelectItem>{classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
+        <CardContent className="p-4">
+          <Label className="text-xs uppercase tracking-wide text-muted-foreground">Mode Generate</Label>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <button onClick={() => setMode("single")} className={`rounded-lg border-2 p-3 text-left transition ${mode === "single" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-muted hover:border-muted-foreground/30"}`}>
+              <div className="flex items-center gap-2"><Receipt className={`h-4 w-4 ${mode === "single" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} /><p className="font-semibold text-sm">Satu Bulan</p></div>
+              <p className="text-xs text-muted-foreground mt-1">Generate untuk 1 periode tertentu</p>
+            </button>
+            <button onClick={() => setMode("range")} className={`rounded-lg border-2 p-3 text-left transition ${mode === "range" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-muted hover:border-muted-foreground/30"}`}>
+              <div className="flex items-center gap-2"><FileText className={`h-4 w-4 ${mode === "range" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} /><p className="font-semibold text-sm">Rentang Bulan</p></div>
+              <p className="text-xs text-muted-foreground mt-1">Generate beberapa bulan sekaligus dalam 1 TA</p>
+            </button>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-            Format deskripsi tagihan: <strong>NAMA SISWA - KELAS - BULAN TAHUN</strong> (digunakan di Mayar, dashboard wali murid, dan WhatsApp).
-          </div>
-          <Button onClick={generate} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
-            Generate Tagihan
-          </Button>
         </CardContent>
       </Card>
+
+      {/* Period selector */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Periode</Label>
+            <Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">TA {schoolYear}</Badge>
+          </div>
+          {mode === "single" ? (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Bulan</Label>
+                <Select value={String(month)} onValueChange={v => setMonth(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Tahun</Label>
+                <Select value={String(year)} onValueChange={v => setYear(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{yearOptions.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Mulai dari</Label>
+                <Select value={String(rangeFrom)} onValueChange={v => setRangeFrom(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{ayMonths.map((m, i) => <SelectItem key={i} value={String(i)} disabled={i > rangeTo}>{m.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Sampai</Label>
+                <Select value={String(rangeTo)} onValueChange={v => setRangeTo(parseInt(v))}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>{ayMonths.map((m, i) => <SelectItem key={i} value={String(i)} disabled={i < rangeFrom}>{m.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2 text-xs text-muted-foreground bg-muted/40 rounded-md p-2">
+                <strong>{periods.length} bulan</strong> akan di-generate: {periods.map(p => p.label).join(" • ")}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Class picker */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Kelas Tujuan</Label>
+            <div className="flex gap-1">
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedClasses(classes)}>Pilih semua</Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSelectedClasses([])}>Kosongkan</Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {classes.map(c => {
+              const tariff = tariffByClass.get(c);
+              const sel = selectedClasses.includes(c);
+              const studentCount = students.filter(s => s.class === c).length;
+              return (
+                <button key={c} onClick={() => toggleClass(c)} className={`rounded-lg border-2 p-2.5 text-left transition ${sel ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-muted hover:border-muted-foreground/30"} ${!tariff ? "opacity-60" : ""}`}>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-sm">{c}</p>
+                    {sel && <CheckCircle2 className="h-4 w-4 text-[#5B6CF9]" />}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{studentCount} siswa</p>
+                  {tariff ? <p className="text-[11px] font-semibold text-[#5B6CF9] mt-0.5">{fmtIDR(tariff.amount)}</p> : <p className="text-[11px] text-amber-600 mt-0.5">Tarif belum diatur</p>}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Options */}
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <p className="text-sm font-medium">Lewati tagihan yang sudah ada</p>
+              <p className="text-xs text-muted-foreground">Hindari duplikat untuk siswa yang sudah punya tagihan di periode yang sama</p>
+            </div>
+            <Switch checked={skipExisting} onCheckedChange={setSkipExisting} />
+          </div>
+          {(preview.skipped > 0 || preview.noTariff > 0) && (
+            <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3 text-xs space-y-1">
+              {preview.skipped > 0 && <p className="text-amber-800 dark:text-amber-200"><strong>{preview.skipped}</strong> tagihan akan dilewati (sudah ada)</p>}
+              {preview.noTariff > 0 && <p className="text-amber-800 dark:text-amber-200"><strong>{preview.noTariff}</strong> siswa tidak punya tarif aktif untuk TA {schoolYear}</p>}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Action bar */}
+      <div className="sticky bottom-4 z-10">
+        <Card className="border-0 shadow-xl bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white">
+          <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-white/70">Total estimasi</p>
+              <p className="text-2xl font-bold">{fmtIDR(preview.total)}</p>
+              <p className="text-xs text-white/70 mt-0.5">{preview.list.length} tagihan • {periods.length} bulan • {selectedClasses.length} kelas</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => setPreviewOpen(true)} disabled={preview.list.length === 0} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Eye className="h-4 w-4 mr-1.5" /> Pratinjau</Button>
+              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-[#5B6CF9] hover:bg-white/90">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+                Generate Sekarang
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>Pratinjau Tagihan</DialogTitle></DialogHeader>
+          <div className="max-h-[60vh] overflow-auto rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40 sticky top-0">
+                  <TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nominal</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {preview.list.slice(0, 200).map((x, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="text-sm">{x.student.name}</TableCell>
+                    <TableCell className="text-sm"><Badge variant="secondary">{x.student.class}</Badge></TableCell>
+                    <TableCell className="text-sm">{x.period.label}</TableCell>
+                    <TableCell className="text-sm font-semibold text-right">{fmtIDR(x.tariff.amount)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {preview.list.length > 200 && <p className="text-xs text-center py-2 text-muted-foreground">+{preview.list.length - 200} baris lagi…</p>}
+          </div>
+          <Button onClick={generate} disabled={loading} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+            Konfirmasi Generate {preview.list.length} Tagihan
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1213,21 +1561,69 @@ export function BendaharaImportExport() {
   const [errorRows, setErrorRows] = useState<{ row: number; error: string }[]>([]);
   const [importing, setImporting] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
+  const [classes, setClasses] = useState<string[]>([]);
+  const [school, setSchool] = useState<any>(null);
+
+  // Export filters
+  const currentAY = academicYearOf(new Date().getMonth() + 1, new Date().getFullYear());
+  const [expClass, setExpClass] = useState<string>("all");
+  const [expAY, setExpAY] = useState<string>(currentAY);
+  const [expStatus, setExpStatus] = useState<string>("all");
+  const [expCount, setExpCount] = useState({ total: 0, paid: 0, unpaid: 0, sum: 0 });
 
   useEffect(() => {
     if (!profile?.school_id) return;
-    supabase.from("students").select("id, name, student_id, class").eq("school_id", profile.school_id).then(({ data }) => setStudents(data || []));
+    Promise.all([
+      supabase.from("students").select("id, name, student_id, class, parent_name, parent_phone").eq("school_id", profile.school_id),
+      supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
+      supabase.from("schools").select("name, npsn, address").eq("id", profile.school_id).maybeSingle(),
+    ]).then(([s, c, sc]) => {
+      setStudents(s.data || []);
+      setClasses((c.data || []).map((x: any) => x.name));
+      setSchool(sc.data);
+    });
   }, [profile?.school_id]);
 
+  // Live preview count
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    let q = supabase.from("spp_invoices").select("*", { count: "exact" }).eq("school_id", profile.school_id);
+    if (expClass !== "all") q = q.eq("class_name", expClass);
+    if (expStatus !== "all") q = q.eq("status", expStatus);
+    q.then(({ data }) => {
+      const filtered = (data || []).filter(i => expAY === "all" || academicYearOf(i.period_month, i.period_year) === expAY);
+      setExpCount({
+        total: filtered.length,
+        paid: filtered.filter(i => i.status === "paid").length,
+        unpaid: filtered.filter(i => i.status !== "paid").length,
+        sum: filtered.reduce((a, i) => a + (i.total_amount || 0), 0),
+      });
+    });
+  }, [profile?.school_id, expClass, expAY, expStatus]);
+
   const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
-      ["nis", "nama_siswa", "kelas", "tahun_ajaran", "bulan", "tahun", "nominal", "tanggal_jatuh_tempo"],
-      ["12345", "Ahmad Fauzan", "VII A", "2026/2027", "1", "2027", "150000", "2027-01-10"],
-      ["12346", "Siti Nurhaliza", "VII A", "2026/2027", "1", "2027", "150000", "2027-01-10"],
-    ]);
+    const sample = students.slice(0, 5);
+    const header = ["nis", "nama_siswa", "kelas", "tahun_ajaran", "bulan", "tahun", "nominal", "tanggal_jatuh_tempo", "denda"];
+    const exampleRows = sample.length > 0
+      ? sample.map(s => [s.student_id, s.name, s.class, currentAY, "1", String(new Date().getFullYear() + 1), "150000", `${new Date().getFullYear() + 1}-01-10`, "0"])
+      : [["12345", "Ahmad Fauzan", "VII A", "2026/2027", "1", "2027", "150000", "2027-01-10", "0"]];
+    const ws = XLSX.utils.aoa_to_sheet([header, ...exampleRows]);
+    ws["!cols"] = [{ wch: 12 }, { wch: 25 }, { wch: 10 }, { wch: 14 }, { wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 18 }, { wch: 10 }];
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template SPP");
-    XLSX.writeFile(wb, "template-import-spp.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Tagihan SPP");
+
+    // Add reference sheet with classes & students
+    const refData = [
+      ["DAFTAR KELAS"], ...classes.map(c => [c]),
+      [""], ["DAFTAR SISWA (NIS — Nama — Kelas)"],
+      ...students.map(s => [s.student_id, s.name, s.class]),
+    ];
+    const wsRef = XLSX.utils.aoa_to_sheet(refData);
+    wsRef["!cols"] = [{ wch: 15 }, { wch: 30 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, wsRef, "Referensi");
+
+    XLSX.writeFile(wb, `template-import-spp-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success("Template diunduh — sheet 'Referensi' berisi daftar siswa & kelas");
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1250,16 +1646,19 @@ export function BendaharaImportExport() {
           const month = parseInt(r.bulan);
           const year = parseInt(r.tahun);
           const nominal = parseInt(r.nominal);
+          const denda = parseInt(r.denda) || 0;
           if (!nis) return errors.push({ row: rowNum, error: "NIS kosong" });
-          if (!month || month < 1 || month > 12) return errors.push({ row: rowNum, error: "Bulan tidak valid" });
+          if (!month || month < 1 || month > 12) return errors.push({ row: rowNum, error: "Bulan tidak valid (1-12)" });
           if (!year || year < 2020) return errors.push({ row: rowNum, error: "Tahun tidak valid" });
-          if (!nominal || nominal <= 0) return errors.push({ row: rowNum, error: "Nominal tidak valid" });
+          if (!nominal || nominal <= 0) return errors.push({ row: rowNum, error: "Nominal harus > 0" });
           const student = students.find(s => s.student_id === nis);
-          if (!student) return errors.push({ row: rowNum, error: `Siswa NIS ${nis} tidak ditemukan` });
-          valid.push({ ...r, _student: student, _month: month, _year: year, _nominal: nominal });
+          if (!student) return errors.push({ row: rowNum, error: `NIS ${nis} tidak ditemukan` });
+          valid.push({ ...r, _student: student, _month: month, _year: year, _nominal: nominal, _denda: denda });
         });
         setValidRows(valid);
         setErrorRows(errors);
+        if (valid.length > 0) toast.success(`${valid.length} baris valid, ${errors.length} error`);
+        else toast.error(`Semua baris gagal divalidasi (${errors.length} error)`);
       } catch (err: any) {
         toast.error("Gagal membaca file: " + err.message);
       }
@@ -1273,17 +1672,18 @@ export function BendaharaImportExport() {
     const rows = validRows.map(r => {
       const dueDate = r.tanggal_jatuh_tempo ? new Date(r.tanggal_jatuh_tempo) : new Date(r._year, r._month - 1, 10);
       const label = `${MONTHS[r._month - 1]} ${r._year}`;
+      const total = r._nominal + r._denda;
       return {
         school_id: profile!.school_id,
         student_id: r._student.id,
-        invoice_number: `SPP/${r._year}${String(r._month).padStart(2,"0")}/${r._student.student_id}`,
+        invoice_number: `SPP/${r._year}${String(r._month).padStart(2, "0")}/${r._student.student_id}`,
         student_name: r._student.name,
         class_name: r._student.class,
-        parent_name: r.nama_wali || null,
-        parent_phone: r.no_wa_wali || null,
+        parent_name: r._student.parent_name || null,
+        parent_phone: r._student.parent_phone || null,
         period_month: r._month, period_year: r._year, period_label: label,
         description: `${r._student.name} - ${r._student.class} - ${label}`,
-        amount: r._nominal, denda: 0, total_amount: r._nominal,
+        amount: r._nominal, denda: r._denda, total_amount: total,
         due_date: dueDate.toISOString().slice(0, 10),
       };
     });
@@ -1295,101 +1695,209 @@ export function BendaharaImportExport() {
 
   const exportData = async (format: "xlsx" | "csv" | "pdf") => {
     if (!profile?.school_id) return;
-    toast.loading("Menyiapkan export...");
-    const { data: invs } = await supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).order("period_year").order("period_month");
-    toast.dismiss();
-    if (!invs || invs.length === 0) { toast.error("Tidak ada data"); return; }
+    const tid = toast.loading("Menyiapkan export...");
+    let q = supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id);
+    if (expClass !== "all") q = q.eq("class_name", expClass);
+    if (expStatus !== "all") q = q.eq("status", expStatus);
+    const { data: invs } = await q.order("class_name").order("student_name").order("period_year").order("period_month");
+    toast.dismiss(tid);
+    const filtered = (invs || []).filter(i => expAY === "all" || academicYearOf(i.period_month, i.period_year) === expAY);
+    if (filtered.length === 0) { toast.error("Tidak ada data untuk filter ini"); return; }
 
-    const rows = invs.map(i => ({
-      Invoice: i.invoice_number, Siswa: i.student_name, Kelas: i.class_name,
-      Wali: i.parent_name || "", Bulan: i.period_label,
-      Nominal: i.total_amount, Status: i.status,
+    const rows = filtered.map((i, idx) => ({
+      "No": idx + 1,
+      "No. Invoice": i.invoice_number,
+      "NIS": students.find(s => s.id === i.student_id)?.student_id || "",
+      "Nama Siswa": i.student_name,
+      "Kelas": i.class_name,
+      "Tahun Ajaran": academicYearOf(i.period_month, i.period_year),
+      "Periode": i.period_label,
+      "Nama Wali": i.parent_name || "",
+      "No. WA Wali": i.parent_phone || "",
+      "Nominal": i.amount,
+      "Denda": i.denda,
+      "Total": i.total_amount,
+      "Jatuh Tempo": i.due_date ? new Date(i.due_date).toLocaleDateString("id-ID") : "",
+      "Status": i.status === "paid" ? "Lunas" : i.status === "pending" ? "Pending" : i.status === "expired" ? "Kadaluarsa" : "Belum Bayar",
       "Tgl Bayar": i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "",
-      Metode: i.payment_method || "",
+      "Metode": i.payment_method || "",
     }));
 
+    const filterTag = `${expAY === "all" ? "ALL" : expAY.replace("/", "-")}_${expClass === "all" ? "SEMUA-KELAS" : expClass.replace(/\s/g, "-")}_${expStatus.toUpperCase()}`;
+    const fname = `SPP_${filterTag}_${new Date().toISOString().slice(0, 10)}`;
+
     if (format === "xlsx") {
-      const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "SPP");
-      XLSX.writeFile(wb, `spp-${new Date().toISOString().slice(0,10)}.xlsx`);
+      // Group per class — one sheet per class (national format)
+      if (expClass === "all") {
+        const grouped = new Map<string, any[]>();
+        rows.forEach(r => {
+          const cls = String(r["Kelas"]);
+          if (!grouped.has(cls)) grouped.set(cls, []);
+          grouped.get(cls)!.push(r);
+        });
+        // Summary sheet
+        const summary = Array.from(grouped.entries()).map(([cls, list]) => ({
+          "Kelas": cls,
+          "Jumlah Tagihan": list.length,
+          "Lunas": list.filter(x => x.Status === "Lunas").length,
+          "Belum Bayar": list.filter(x => x.Status !== "Lunas").length,
+          "Total Tagihan": list.reduce((a, x) => a + (x.Total || 0), 0),
+        }));
+        const wsSum = XLSX.utils.json_to_sheet(summary);
+        wsSum["!cols"] = [{ wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 16 }];
+        XLSX.utils.book_append_sheet(wb, wsSum, "Ringkasan");
+        // Per-class sheet
+        Array.from(grouped.entries()).forEach(([cls, list]) => {
+          const ws = XLSX.utils.json_to_sheet(list);
+          ws["!cols"] = Object.keys(list[0]).map(k => ({ wch: Math.min(Math.max(k.length + 2, 10), 28) }));
+          XLSX.utils.book_append_sheet(wb, ws, cls.slice(0, 31));
+        });
+      } else {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws["!cols"] = Object.keys(rows[0]).map(k => ({ wch: Math.min(Math.max(k.length + 2, 10), 28) }));
+        XLSX.utils.book_append_sheet(wb, ws, expClass.slice(0, 31));
+      }
+      XLSX.writeFile(wb, `${fname}.xlsx`);
     } else if (format === "csv") {
       const ws = XLSX.utils.json_to_sheet(rows);
       const csv = XLSX.utils.sheet_to_csv(ws);
-      const blob = new Blob([csv], { type: "text/csv" });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = `spp-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+      const a = document.createElement("a"); a.href = url; a.download = `${fname}.csv`; a.click();
       URL.revokeObjectURL(url);
     } else {
-      const doc = new jsPDF();
-      doc.text("Laporan SPP", 14, 14);
+      const doc = new jsPDF("l", "mm", "a4");
+      doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("LAPORAN TAGIHAN SPP", 14, 14);
+      doc.setFontSize(10); doc.setFont("helvetica", "normal");
+      doc.text(school?.name || "", 14, 21);
+      doc.setFontSize(9);
+      doc.text(`NPSN: ${school?.npsn || "-"}`, 14, 27);
+      doc.text(`Tahun Ajaran: ${expAY === "all" ? "Semua" : expAY}  •  Kelas: ${expClass === "all" ? "Semua" : expClass}  •  Status: ${expStatus === "all" ? "Semua" : expStatus}`, 14, 33);
+      doc.text(`Total: ${rows.length} tagihan • ${fmtIDR(rows.reduce((a, r) => a + (r.Total || 0), 0))}`, 14, 39);
       (doc as any).autoTable({
-        startY: 20,
-        head: [Object.keys(rows[0])],
-        body: rows.map(r => Object.values(r)),
-        styles: { fontSize: 7 },
+        startY: 45,
+        head: [["No", "NIS", "Nama Siswa", "Kelas", "Periode", "Total", "Jatuh Tempo", "Status"]],
+        body: rows.map(r => [r.No, r.NIS, r["Nama Siswa"], r.Kelas, r.Periode, fmtIDR(r.Total), r["Jatuh Tempo"], r.Status]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [91, 108, 249], textColor: 255 },
+        alternateRowStyles: { fillColor: [248, 249, 252] },
       });
-      doc.save(`spp-${new Date().toISOString().slice(0,10)}.pdf`);
+      doc.save(`${fname}.pdf`);
     }
     toast.success("Export selesai");
   };
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Import & Export SPP</h1>
+      <PageHeader icon={ArrowDownToLine} title="Import & Export SPP" subtitle="Format nasional — sistematis per kelas, mendukung Excel, CSV, dan PDF" />
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#5B6CF9]/10 to-transparent"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Tagihan</p><p className="text-xl font-bold mt-0.5">{expCount.total}</p></div><div className="h-9 w-9 rounded-lg bg-[#5B6CF9]/15 flex items-center justify-center"><Receipt className="h-4 w-4 text-[#5B6CF9]" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Lunas</p><p className="text-xl font-bold mt-0.5 text-emerald-600">{expCount.paid}</p></div><div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="h-4 w-4 text-emerald-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Belum Bayar</p><p className="text-xl font-bold mt-0.5 text-amber-600">{expCount.unpaid}</p></div><div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center"><AlertCircle className="h-4 w-4 text-amber-600" /></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Nominal</p><p className="text-base font-bold mt-0.5">{fmtIDR(expCount.sum)}</p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><Banknote className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
+      </div>
 
       {/* Export */}
       <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Download className="h-4 w-4" /> Export Data</CardTitle></CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">Unduh seluruh data tagihan SPP.</p>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Download className="h-4 w-4 text-[#5B6CF9]" /> Export Data</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div>
+              <Label className="text-xs">Tahun Ajaran</Label>
+              <Select value={expAY} onValueChange={setExpAY}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua TA</SelectItem>
+                  {academicYearList(new Date().getFullYear()).map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Kelas</Label>
+              <Select value={expClass} onValueChange={setExpClass}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kelas (per-sheet)</SelectItem>
+                  {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Status</Label>
+              <Select value={expStatus} onValueChange={setExpStatus}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="paid">Lunas</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="unpaid">Belum Bayar</SelectItem>
+                  <SelectItem value="expired">Kadaluarsa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
+            <strong className="text-foreground">Format Nasional:</strong> kolom No, No. Invoice, NIS, Nama, Kelas, Tahun Ajaran, Periode, Wali, Nominal, Denda, Total, Jatuh Tempo, Status, Tgl Bayar.
+            Saat memilih "Semua Kelas", Excel akan dipisah <strong>per-sheet kelas</strong> + sheet Ringkasan.
+          </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => exportData("xlsx")} className="bg-emerald-600 hover:bg-emerald-700"><Download className="h-4 w-4 mr-2" /> Excel</Button>
+            <Button onClick={() => exportData("xlsx")} className="bg-[#5B6CF9] hover:bg-[#4c5ded]"><Download className="h-4 w-4 mr-2" /> Excel (per kelas)</Button>
             <Button onClick={() => exportData("csv")} variant="outline"><Download className="h-4 w-4 mr-2" /> CSV</Button>
-            <Button onClick={() => exportData("pdf")} variant="outline"><Download className="h-4 w-4 mr-2" /> PDF</Button>
+            <Button onClick={() => exportData("pdf")} variant="outline"><Download className="h-4 w-4 mr-2" /> PDF Laporan</Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Import */}
       <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Upload className="h-4 w-4" /> Import Tagihan</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Upload className="h-4 w-4 text-[#5B6CF9]" /> Import Tagihan</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" onClick={downloadTemplate}><FileText className="h-4 w-4 mr-2" /> Download Template</Button>
-            <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} className="max-w-xs" />
+          <div className="rounded-lg border-2 border-dashed border-[#5B6CF9]/30 bg-[#5B6CF9]/5 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Langkah 1 — Unduh Template</p>
+                <p className="text-xs text-muted-foreground">Template berisi sheet Referensi (daftar siswa & kelas Anda)</p>
+              </div>
+              <Button variant="outline" onClick={downloadTemplate}><FileText className="h-4 w-4 mr-2" /> Download Template</Button>
+            </div>
           </div>
-          <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-            Format kolom: <strong>nis, nama_siswa, kelas, tahun_ajaran, bulan, tahun, nominal, tanggal_jatuh_tempo</strong>
+          <div className="rounded-lg border-2 border-dashed border-muted-foreground/30 p-4">
+            <p className="text-sm font-semibold mb-2">Langkah 2 — Upload File</p>
+            <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} className="max-w-sm" />
+            <p className="text-[11px] text-muted-foreground mt-2">Format: <code className="bg-muted px-1 rounded">nis, nama_siswa, kelas, tahun_ajaran, bulan, tahun, nominal, tanggal_jatuh_tempo, denda</code></p>
           </div>
 
           {(validRows.length > 0 || errorRows.length > 0) && (
             <>
               <div className="flex gap-2 flex-wrap">
-                <Badge className="bg-emerald-500">Valid: {validRows.length}</Badge>
-                {errorRows.length > 0 && <Badge className="bg-red-500">Error: {errorRows.length}</Badge>}
-                <Badge variant="secondary">Total baris: {previewRows.length}</Badge>
+                <Badge className="bg-emerald-500 hover:bg-emerald-500"><CheckCircle2 className="h-3 w-3 mr-1" /> Valid: {validRows.length}</Badge>
+                {errorRows.length > 0 && <Badge className="bg-red-500 hover:bg-red-500"><AlertCircle className="h-3 w-3 mr-1" /> Error: {errorRows.length}</Badge>}
+                <Badge variant="secondary">Total: {previewRows.length}</Badge>
               </div>
 
               {errorRows.length > 0 && (
                 <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg p-3 max-h-40 overflow-y-auto">
-                  <p className="text-xs font-bold text-red-700 mb-1">Baris gagal:</p>
-                  {errorRows.map((e, i) => <p key={i} className="text-[11px] text-red-700">Baris {e.row}: {e.error}</p>)}
+                  <p className="text-xs font-bold text-red-700 dark:text-red-300 mb-1">Baris gagal divalidasi:</p>
+                  {errorRows.map((e, i) => <p key={i} className="text-[11px] text-red-700 dark:text-red-300">Baris {e.row}: {e.error}</p>)}
                 </div>
               )}
 
               {validRows.length > 0 && (
                 <div className="border rounded-lg overflow-x-auto max-h-72">
                   <Table>
-                    <TableHeader><TableRow><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nominal</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow className="bg-muted/40"><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {validRows.slice(0, 50).map((r, i) => (
                         <TableRow key={i}>
                           <TableCell className="text-xs">{r.nis}</TableCell>
                           <TableCell className="text-xs">{r._student.name}</TableCell>
-                          <TableCell className="text-xs">{r._student.class}</TableCell>
+                          <TableCell className="text-xs"><Badge variant="secondary">{r._student.class}</Badge></TableCell>
                           <TableCell className="text-xs">{MONTHS[r._month - 1]} {r._year}</TableCell>
-                          <TableCell className="text-xs font-semibold text-right">{fmtIDR(r._nominal)}</TableCell>
+                          <TableCell className="text-xs font-semibold text-right">{fmtIDR(r._nominal + r._denda)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1398,7 +1906,7 @@ export function BendaharaImportExport() {
                 </div>
               )}
 
-              <Button disabled={importing || validRows.length === 0} onClick={submitImport} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button disabled={importing || validRows.length === 0} onClick={submitImport} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
                 {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
                 Import {validRows.length} Tagihan
               </Button>
