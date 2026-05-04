@@ -82,6 +82,7 @@ const Login = () => {
 
       setLoading(false);
       if (isSuperAdmin) navigate("/super-admin");
+      else if (isBendahara) navigate("/bendahara");
       else if (isTeacher) navigate("/teacher-dashboard");
       else navigate("/dashboard");
     } else {
