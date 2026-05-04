@@ -63,6 +63,7 @@ const Login = () => {
       ]);
       const rolesList = (roles || []).map((r: any) => r.role);
       const isSuperAdmin = rolesList.includes("super_admin");
+      const isBendahara = rolesList.includes("bendahara");
       const isTeacher = rolesList.includes("teacher");
 
       let schoolName: string | null = null;
