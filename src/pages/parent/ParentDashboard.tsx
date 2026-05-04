@@ -674,7 +674,82 @@ export default function ParentDashboard() {
           </>
         )}
 
-        {/* CONTACT */}
+        {/* SPP */}
+        {tab === "spp" && (
+          <>
+            <SectionTitle icon={Wallet} title="Pembayaran SPP" />
+
+            {/* Ringkasan Tunggakan */}
+            {sppData.total_tunggakan > 0 && (
+              <Card className="p-4 border-0 shadow-card rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white">
+                <p className="text-[11px] uppercase tracking-wider text-white/80 font-semibold">Total Tunggakan</p>
+                <p className="text-2xl font-extrabold mt-1">Rp {sppData.total_tunggakan.toLocaleString("id-ID")}</p>
+                <p className="text-xs text-white/85 mt-1">{sppData.tunggakan.length} bulan belum dibayar</p>
+              </Card>
+            )}
+
+            {/* Tagihan Aktif */}
+            <SectionTitle icon={AlertCircle} title="Tagihan Aktif" />
+            {sppData.aktif.length === 0 ? <EmptyMini text="Tidak ada tagihan aktif." /> : (
+              <div className="space-y-2">
+                {sppData.aktif.map((inv) => {
+                  const isExpired = inv.status === "expired";
+                  return (
+                    <Card key={inv.id} className="p-3.5 border-0 shadow-card rounded-2xl">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate">{inv.period_label}</p>
+                          <p className="text-[11px] text-muted-foreground font-mono truncate">{inv.invoice_number}</p>
+                        </div>
+                        <Badge className={cn("border-0 text-[10px]", isExpired ? "bg-orange-500 text-white" : "bg-amber-500 text-white")}>
+                          {isExpired ? "Kadaluarsa" : "Menunggu"}
+                        </Badge>
+                      </div>
+                      <p className="text-lg font-extrabold text-[#5B6CF9]">Rp {(inv.total_amount || 0).toLocaleString("id-ID")}</p>
+                      <p className="text-[11px] text-muted-foreground mb-2.5">Jatuh tempo: {inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}</p>
+                      <Button
+                        size="sm"
+                        className={cn("w-full text-white", isExpired ? "bg-orange-600 hover:bg-orange-700" : "bg-[#5B6CF9] hover:bg-[#4c5ded]")}
+                        disabled={sppBusy === inv.id}
+                        onClick={() => paySpp(inv.id)}
+                      >
+                        {sppBusy === inv.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (
+                          isExpired ? <><RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Buat Link Baru & Bayar</> : <><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Bayar Sekarang</>
+                        )}
+                      </Button>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Riwayat Lunas */}
+            <SectionTitle icon={CheckCircle2} title="Riwayat Pembayaran" />
+            {sppData.lunas.length === 0 ? <EmptyMini text="Belum ada pembayaran." /> : (
+              <div className="space-y-2">
+                {sppData.lunas.map((inv) => (
+                  <Card key={inv.id} className="p-3.5 border-0 shadow-card rounded-2xl">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <p className="text-sm font-bold truncate">{inv.period_label}</p>
+                          <Badge className="bg-emerald-500 text-white border-0 text-[9px]">LUNAS</Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"} • {(inv.payment_method || "Mayar").toUpperCase()}</p>
+                        <p className="text-sm font-extrabold text-emerald-600 mt-0.5">Rp {(inv.total_amount || 0).toLocaleString("id-ID")}</p>
+                      </div>
+                      <Button size="sm" variant="outline" className="shrink-0" disabled={sppBusy === `pdf-${inv.id}`} onClick={() => downloadSppPdf(inv)}>
+                        {sppBusy === `pdf-${inv.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Download className="h-3.5 w-3.5 mr-1" /> Invoice</>}
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+
         {tab === "contact" && (
           <>
             <SectionTitle icon={Phone} title="Kontak Wali Kelas" />
