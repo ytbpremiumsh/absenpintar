@@ -1541,6 +1541,7 @@ export type Database = {
           denda: number
           description: string
           due_date: string
+          expired_at: string | null
           gateway_fee: number
           id: string
           invoice_number: string
@@ -1555,6 +1556,7 @@ export type Database = {
           period_month: number
           period_year: number
           qr_code: string | null
+          regenerated_from: string | null
           school_id: string
           settlement_id: string | null
           status: string
@@ -1570,6 +1572,7 @@ export type Database = {
           denda?: number
           description: string
           due_date: string
+          expired_at?: string | null
           gateway_fee?: number
           id?: string
           invoice_number: string
@@ -1584,6 +1587,7 @@ export type Database = {
           period_month: number
           period_year: number
           qr_code?: string | null
+          regenerated_from?: string | null
           school_id: string
           settlement_id?: string | null
           status?: string
@@ -1599,6 +1603,7 @@ export type Database = {
           denda?: number
           description?: string
           due_date?: string
+          expired_at?: string | null
           gateway_fee?: number
           id?: string
           invoice_number?: string
@@ -1613,6 +1618,7 @@ export type Database = {
           period_month?: number
           period_year?: number
           qr_code?: string | null
+          regenerated_from?: string | null
           school_id?: string
           settlement_id?: string | null
           status?: string
