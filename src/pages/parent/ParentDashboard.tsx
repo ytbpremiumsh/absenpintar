@@ -13,8 +13,10 @@ import {
   Loader2, LogOut, GraduationCap, CalendarDays, Megaphone, FileText,
   Phone, ClipboardList, BookOpen, CheckCircle2, XCircle, Clock,
   Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin, Bell,
+  Wallet, AlertCircle, Download, ExternalLink, RefreshCw, Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const STATUS_COLORS: Record<string, string> = {
