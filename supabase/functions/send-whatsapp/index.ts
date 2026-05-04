@@ -7,6 +7,79 @@ const corsHeaders = {
 };
 
 const MPWA_SEND_URL = 'https://app.ayopintar.com/send-message';
+const MPWA_BUTTON_URL = 'https://app.ayopintar.com/send-button';
+
+/**
+ * Detect if a message should be sent as a button message.
+ * Returns button payload spec or null.
+ */
+const detectButtons = (message: string, messageType?: string): {
+  buttons: Array<Record<string, any>>;
+  footer?: string;
+} | null => {
+  // 1) OTP — kode 4-8 digit dalam *...* atau angka 6 digit ketika tipe OTP
+  const isOtpType = messageType === 'parent_otp' || messageType === 'password_reset_otp' || /kode.*(login|otp|verifikasi|reset)/i.test(message);
+  if (isOtpType) {
+    const otpMatch = message.match(/\*(\d{4,8})\*/) || message.match(/\b(\d{6})\b/);
+    if (otpMatch) {
+      return {
+        buttons: [{ type: 'copy', displayText: 'Salin Kode OTP', copyText: otpMatch[1] }],
+        footer: 'ATSkolla',
+      };
+    }
+  }
+
+  // 2) SPP / payment link — cari URL pertama dalam pesan
+  const urlMatch = message.match(/https?:\/\/[^\s)]+/);
+  if (urlMatch) {
+    const url = urlMatch[0].replace(/[.,)]+$/, '');
+    const isSpp = messageType === 'spp_invoice' || messageType === 'spp_reminder' || /spp|tagihan|invoice/i.test(message);
+    const isPayment = isSpp || /mayar\.|payment|bayar/i.test(url) || /bayar/i.test(message);
+    if (isPayment) {
+      return {
+        buttons: [{ type: 'url', displayText: 'Bayar SPP Sekarang', url }],
+        footer: 'ATSkolla — Pembayaran Aman',
+      };
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Send a button message via MPWA /send-button endpoint.
+ */
+const sendMpwaButton = async (
+  apiKey: string,
+  sender: string,
+  recipient: string,
+  message: string,
+  buttons: Array<Record<string, any>>,
+  footer?: string,
+): Promise<{ ok: boolean; data: any }> => {
+  const payload: Record<string, any> = {
+    api_key: apiKey,
+    sender,
+    number: recipient,
+    message,
+    button: buttons.slice(0, 5),
+  };
+  if (footer) payload.footer = footer;
+  console.log(`MPWA send-button | sender:${sender} | to:${recipient} | btns:${buttons.length}`);
+  try {
+    const r = await fetch(MPWA_BUTTON_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const text = await r.text();
+    const parsed = parseJsonSafely(text);
+    console.log(`MPWA send-button response: status=${r.status} body=${text.substring(0, 300)}`);
+    return { ok: r.ok && parsed?.status !== false, data: parsed };
+  } catch (err) {
+    return { ok: false, data: { status: false, msg: String(err) } };
+  }
+};
 
 const parseJsonSafely = (text: string) => {
   try {
@@ -193,15 +266,24 @@ serve(async (req) => {
     const results: { target: string; ok: boolean; data: any }[] = [];
 
     if (gatewayType === 'mpwa') {
-      // ═══ MPWA Gateway - same /send-message for phone & group ═══
+      const buttonSpec = detectButtons(message, message_type);
+
       if (phone) {
         const formattedPhone = formatPhoneNumber(phone);
-        const result = await sendMpwaMessage(finalApiKey, mpwaSenderNum, formattedPhone, message);
-        results.push({ target: `phone:${formattedPhone}`, ...result });
+        const result = buttonSpec
+          ? await sendMpwaButton(finalApiKey, mpwaSenderNum, formattedPhone, message, buttonSpec.buttons, buttonSpec.footer)
+          : await sendMpwaMessage(finalApiKey, mpwaSenderNum, formattedPhone, message);
+        // Fallback to plain text if button send fails
+        if (!result.ok && buttonSpec) {
+          const fallback = await sendMpwaMessage(finalApiKey, mpwaSenderNum, formattedPhone, message);
+          results.push({ target: `phone:${formattedPhone}`, ...fallback });
+        } else {
+          results.push({ target: `phone:${formattedPhone}`, ...result });
+        }
       }
 
       if (group_id) {
-        // Send to group using the same /send-message endpoint with isGroup flag
+        // Buttons not supported for groups in MPWA; always plain text
         const result = await sendMpwaMessage(finalApiKey, mpwaSenderNum, group_id, message, true);
         results.push({ target: `group:${group_id}`, ...result });
       }
