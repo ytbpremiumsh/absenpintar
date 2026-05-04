@@ -23,6 +23,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
 
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -981,14 +982,32 @@ export function BendaharaSPPDetail() {
     if (error) toast.error(error.message); else { toast.success("Tagihan dibuat"); load(); }
   };
 
-  const createPaymentLink = async (inv: any) => {
+  // Auto-mark as expired client-side based on expired_at
+  const enrichedInvoices = useMemo(() => {
+    const now = Date.now();
+    return invoices.map((i) => {
+      if (i.status === "pending" && i.expired_at && new Date(i.expired_at).getTime() < now) {
+        return { ...i, _displayStatus: "expired" };
+      }
+      return { ...i, _displayStatus: i.status };
+    });
+  }, [invoices]);
+
+  const enrichedGrid = useMemo(() => ayMonths.map(m => {
+    const inv = enrichedInvoices.find(x => x.period_month === m.month && x.period_year === m.year && x._displayStatus !== "expired")
+      || enrichedInvoices.find(x => x.period_month === m.month && x.period_year === m.year);
+    return { ...m, inv };
+  }), [ayMonths, enrichedInvoices]);
+
+  const createPaymentLink = async (inv: any, regen = false) => {
     setBusy(`link-${inv.id}`);
-    toast.loading("Membuat link Mayar...");
-    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action: "create_payment_link", invoice_id: inv.id } });
+    toast.loading(regen ? "Membuat ulang link..." : "Membuat link Mayar...");
+    const action = regen ? "regenerate_payment_link" : "create_payment_link";
+    const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action, invoice_id: inv.id } });
     toast.dismiss();
     setBusy(null);
     if (error || !data?.success) { toast.error(data?.error || error?.message || "Gagal"); return; }
-    if (data.payment_url) { toast.success("Link berhasil dibuat"); load(); }
+    if (data.payment_url) { toast.success(regen ? "Link baru berhasil dibuat" : "Link berhasil dibuat"); load(); }
   };
 
   const copyLink = (url: string) => { navigator.clipboard.writeText(url); toast.success("Link disalin"); };
@@ -996,7 +1015,7 @@ export function BendaharaSPPDetail() {
   const sendWa = async (inv: any) => {
     if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
     if (!inv.payment_url) { toast.error("Buat link pembayaran dulu"); return; }
-    const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${inv.payment_url}\n\nJatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nTerima kasih.\n_ATSkolla_`;
+    const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${inv.payment_url}\n\nJatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
     setBusy(`wa-${inv.id}`);
     toast.loading("Mengirim WA...");
     const { error } = await supabase.functions.invoke("send-whatsapp", {
@@ -1009,8 +1028,27 @@ export function BendaharaSPPDetail() {
   const sendEmail = (inv: any) => {
     if (!inv.payment_url) { toast.error("Buat link dulu"); return; }
     const subject = `Tagihan SPP ${inv.period_label} - ${inv.student_name}`;
-    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\n\nLink: ${inv.payment_url}\n\nTerima kasih.`;
+    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\n\nLink: ${inv.payment_url}\n\nTerima kasih.\nAyo Pintar`;
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+  };
+
+  const downloadPdf = async (inv: any) => {
+    if (!profile?.school_id) return;
+    setBusy(`pdf-${inv.id}`);
+    try {
+      const { data: school } = await supabase.from("schools").select("name, address, npsn, logo").eq("id", profile.school_id).maybeSingle();
+      await downloadSppInvoicePDF({
+        invoice: inv,
+        student: { student_id: student?.student_id, nisn: student?.nisn, parent_name: student?.parent_name },
+        school: school || { name: "Sekolah" },
+        bendahara_name: profile.full_name || null,
+      });
+      toast.success("Invoice diunduh");
+    } catch (e: any) {
+      toast.error(e.message || "Gagal mengunduh invoice");
+    } finally {
+      setBusy(null);
+    }
   };
 
   if (loading) return <div className="p-12 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
@@ -1073,13 +1111,14 @@ export function BendaharaSPPDetail() {
         <CardHeader><CardTitle className="text-base">Status Per Bulan – TA {ay}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {grid.map(g => {
-              const status = g.inv?.status || "unpaid";
+            {enrichedGrid.map(g => {
+              const status = g.inv?._displayStatus || g.inv?.status || "unpaid";
               const colorMap: any = {
                 paid: "border-emerald-500/40 bg-emerald-500/5",
                 pending: "border-amber-500/40 bg-amber-500/5",
                 unpaid: "border-slate-300 dark:border-slate-700",
                 failed: "border-red-500/40 bg-red-500/5",
+                expired: "border-orange-500/40 bg-orange-500/5",
               };
               return (
                 <div key={`${g.year}-${g.month}`} className={`relative rounded-xl border-2 p-3 ${colorMap[status]}`}>
@@ -1109,35 +1148,49 @@ export function BendaharaSPPDetail() {
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {grid.filter(g => g.inv).length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Belum ada tagihan</TableCell></TableRow>}
-                {grid.filter(g => g.inv).map(g => {
-                  const inv = g.inv;
+                {enrichedInvoices.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Belum ada tagihan</TableCell></TableRow>}
+                {enrichedInvoices
+                  .filter((inv) => {
+                    const a = academicYearOf(inv.period_month, inv.period_year);
+                    return a === ay;
+                  })
+                  .sort((a, b) => (a.period_year - b.period_year) || (a.period_month - b.period_month) || (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()))
+                  .map((inv) => {
+                  const dStatus = inv._displayStatus || inv.status;
                   return (
-                    <TableRow key={inv.id}>
-                      <TableCell className="font-medium text-sm">{g.label}</TableCell>
+                    <TableRow key={inv.id} className={inv.status === "expired" ? "opacity-60" : ""}>
+                      <TableCell className="font-medium text-sm">{inv.period_label}</TableCell>
                       <TableCell className="text-xs font-mono">{inv.invoice_number}</TableCell>
                       <TableCell className="font-semibold">{fmtIDR(inv.total_amount)}</TableCell>
                       <TableCell className="text-xs">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
                       <TableCell className="text-xs">{inv.payment_method || "-"}</TableCell>
-                      <TableCell><StatusBadge status={inv.status} /></TableCell>
+                      <TableCell><StatusBadge status={dStatus} /></TableCell>
                       <TableCell className="text-right">
-                        {inv.status === "pending" ? (
+                        {dStatus === "pending" ? (
                           <div className="flex flex-wrap gap-1 justify-end">
                             {!inv.payment_url ? (
-                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
+                              <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
                                 {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><LinkIcon className="h-3 w-3 mr-1" /> Buat Link</>}
                               </Button>
                             ) : (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => copyLink(inv.payment_url)}><Copy className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="outline" onClick={() => window.open(inv.payment_url, "_blank")}><LinkIcon className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => copyLink(inv.payment_url)} title="Salin"><Copy className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => window.open(inv.payment_url, "_blank")} title="Buka"><LinkIcon className="h-3 w-3" /></Button>
                                 <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `wa-${inv.id}`} onClick={() => sendWa(inv)}><MessageCircle className="h-3 w-3 mr-1" /> WA</Button>
-                                <Button size="sm" variant="outline" onClick={() => sendEmail(inv)}><Mail className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
                             )}
                           </div>
-                        ) : inv.status === "paid" ? (
-                          <Button size="sm" variant="ghost" className="text-emerald-600"><CheckCircle2 className="h-3 w-3 mr-1" /> Lunas</Button>
+                        ) : dStatus === "expired" ? (
+                          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)}>
+                            {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 mr-1" /> Buat Ulang Link</>}
+                          </Button>
+                        ) : dStatus === "paid" ? (
+                          <div className="flex flex-wrap gap-1 justify-end">
+                            <Button size="sm" variant="outline" disabled={busy === `pdf-${inv.id}`} onClick={() => downloadPdf(inv)}>
+                              {busy === `pdf-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Download className="h-3 w-3 mr-1" /> Invoice</>}
+                            </Button>
+                          </div>
                         ) : null}
                       </TableCell>
                     </TableRow>
