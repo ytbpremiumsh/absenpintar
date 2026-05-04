@@ -34,6 +34,58 @@ const genToken = () => {
 
 const genOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+const isPaidMayarStatus = (status: unknown) => {
+  const s = String(status || "").toLowerCase();
+  return ["paid", "settled", "success", "completed"].includes(s);
+};
+
+async function syncSppInvoicesFromMayar(invoices: any[]) {
+  const apiKey = Deno.env.get("MAYAR_API_KEY");
+  if (!apiKey) return invoices;
+  const synced: any[] = [];
+  for (const inv of invoices) {
+    if (inv.status === "paid" || !inv.mayar_invoice_id) { synced.push(inv); continue; }
+    try {
+      const res = await fetch(`https://api.mayar.id/hl/v1/invoice/${encodeURIComponent(inv.mayar_invoice_id)}`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      const detail = await res.json().catch(() => null);
+      const data = detail?.data;
+      if (!res.ok || !isPaidMayarStatus(data?.status)) { synced.push(inv); continue; }
+
+      const paidAt = new Date().toISOString();
+      const gatewayFee = Math.round((inv.total_amount || 0) * 0.007) + 500;
+      const netAmount = Math.max(0, (inv.total_amount || 0) - gatewayFee);
+      const paymentMethod = data?.paymentMethod || data?.payment_method || "mayar";
+      await supabase.from("spp_invoices").update({
+        status: "paid",
+        paid_at: paidAt,
+        payment_method: paymentMethod,
+        gateway_fee: gatewayFee,
+        net_amount: netAmount,
+      }).eq("id", inv.id);
+      await supabase.from("payment_transactions").update({
+        status: "paid",
+        paid_at: paidAt,
+        payment_method: "spp",
+      }).eq("school_id", inv.school_id).eq("mayar_transaction_id", inv.mayar_invoice_id).eq("status", "pending");
+      await supabase.from("spp_logs").insert({
+        school_id: inv.school_id,
+        invoice_id: inv.id,
+        event_type: "mayar_sync",
+        status: "paid",
+        payload: detail,
+        message: "SPP paid (parent sync)",
+      });
+      synced.push({ ...inv, status: "paid", paid_at: paidAt, payment_method: paymentMethod, gateway_fee: gatewayFee, net_amount: netAmount });
+    } catch (e) {
+      console.error("Mayar SPP sync failed", inv.id, e);
+      synced.push(inv);
+    }
+  }
+  return synced;
+}
+
 function phoneVariants(phone: string): string[] {
   const digits = (phone || "").replace(/\D/g, "");
   const variants = new Set<string>();
@@ -344,13 +396,14 @@ Deno.serve(async (req) => {
     if (action === "spp_list") {
       const { data } = await supabase
         .from("spp_invoices")
-        .select("id, invoice_number, period_month, period_year, period_label, total_amount, amount, denda, due_date, status, payment_url, paid_at, payment_method, expired_at, mayar_invoice_id")
+        .select("id, school_id, invoice_number, period_month, period_year, period_label, total_amount, amount, denda, due_date, status, payment_url, paid_at, payment_method, expired_at, mayar_invoice_id")
         .eq("student_id", studentId)
         .order("period_year", { ascending: false })
         .order("period_month", { ascending: false });
+      const syncedData = await syncSppInvoicesFromMayar(data || []);
       // Auto-mark as expired if past expiry and not paid
       const now = Date.now();
-      const list = (data || []).map((i: any) => {
+      const list = syncedData.map((i: any) => {
         if (i.status === "pending" && i.expired_at && new Date(i.expired_at).getTime() < now) {
           return { ...i, status: "expired" };
         }
