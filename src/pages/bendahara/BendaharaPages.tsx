@@ -260,20 +260,26 @@ export function BendaharaDashboard() {
 
 // ============ DATA SISWA ============
 export function BendaharaSiswa() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [students, setStudents] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [classList, setClassList] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const [filterClass, setFilterClass] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!profile?.school_id) { setLoading(false); return; }
     Promise.all([
       supabase.from("students").select("*").eq("school_id", profile.school_id),
       supabase.from("spp_invoices").select("student_id, status, total_amount").eq("school_id", profile.school_id),
-    ]).then(([s, i]) => {
+      supabase.from("classes").select("name").eq("school_id", profile.school_id),
+    ]).then(([s, i, c]) => {
       setStudents(s.data || []);
       setInvoices(i.data || []);
+      setClassList((c.data || []).map((x: any) => x.name));
       setLoading(false);
     });
   }, [profile?.school_id]);
@@ -287,51 +293,157 @@ export function BendaharaSiswa() {
       map.set(i.student_id, e);
     });
     return students
-      .filter(s => !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.student_id.includes(search))
+      .filter(s => filterClass === "all" || s.class === filterClass)
+      .filter(s => !search || s.name.toLowerCase().includes(search.toLowerCase()) || (s.student_id || "").toLowerCase().includes(search.toLowerCase()))
       .map(s => ({ ...s, ...(map.get(s.id) || { paid: 0, pending: 0, tunggakan: 0 }) }));
-  }, [students, invoices, search]);
+  }, [students, invoices, search, filterClass]);
+
+  const grouped = useMemo(() => {
+    const m = new Map<string, any[]>();
+    enriched.forEach(s => {
+      const k = s.class || "Tanpa Kelas";
+      if (!m.has(k)) m.set(k, []);
+      m.get(k)!.push(s);
+    });
+    return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [enriched]);
+
+  // Auto-expand first 2 classes
+  useEffect(() => {
+    if (grouped.length && expanded.size === 0) {
+      setExpanded(new Set(grouped.slice(0, 2).map(([k]) => k)));
+    }
+  }, [grouped.length]);
+
+  const toggle = (k: string) => {
+    setExpanded(prev => {
+      const n = new Set(prev);
+      n.has(k) ? n.delete(k) : n.add(k);
+      return n;
+    });
+  };
+
+  const summary = useMemo(() => ({
+    total: enriched.length,
+    lunas: enriched.filter(s => s.tunggakan === 0 && s.paid > 0).length,
+    nunggak: enriched.filter(s => s.tunggakan > 0).length,
+    totalSisa: enriched.reduce((sum, s) => sum + s.tunggakan, 0),
+  }), [enriched]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">Data Siswa Keuangan</h1>
-        <div className="relative">
-          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Cari nama / NIS" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 w-64" />
-        </div>
+    <div className="space-y-5">
+      <PageHeader
+        icon={User}
+        title="Data Siswa Keuangan"
+        subtitle="Ringkasan pembayaran SPP per siswa, dikelompokkan per kelas"
+      />
+
+      {/* Summary mini */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Total Siswa" value={summary.total} icon={User} gradient="from-[#5B6CF9] to-[#4c5ded]" />
+        <StatCard label="Lunas" value={summary.lunas} icon={CheckCircle2} gradient="from-emerald-500 to-teal-600" />
+        <StatCard label="Menunggak" value={summary.nunggak} icon={AlertCircle} gradient="from-red-500 to-rose-600" />
+        <StatCard label="Total Tunggakan" value={fmtIDR(summary.totalSisa)} icon={Banknote} gradient="from-amber-500 to-orange-600" />
       </div>
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-0">
-          {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Wali</TableHead>
-                  <TableHead>WhatsApp</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Tunggakan</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {enriched.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Tidak ada data</TableCell></TableRow>}
-                  {enriched.map(s => (
-                    <TableRow key={s.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-xs font-bold text-emerald-700">{s.name[0]}</div>
-                          <div><p className="text-sm font-semibold">{s.name}</p><p className="text-[11px] text-muted-foreground">NIS {s.student_id}</p></div>
-                        </div>
-                      </TableCell>
-                      <TableCell><Badge variant="secondary">{s.class}</Badge></TableCell>
-                      <TableCell className="text-sm">{s.parent_name}</TableCell>
-                      <TableCell className="text-xs">{s.parent_phone}</TableCell>
-                      <TableCell>{s.tunggakan > 0 ? <Badge className="bg-red-500">Tunggakan</Badge> : <Badge className="bg-emerald-500">Lunas</Badge>}</TableCell>
-                      <TableCell className="text-right font-semibold">{fmtIDR(s.tunggakan)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+
+      {/* Filter Bar */}
+      <Card className="border border-border/50 shadow-sm">
+        <CardContent className="p-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="sm:col-span-2 relative">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Cari nama / NIS" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 text-sm" />
             </div>
-          )}
+            <Select value={filterClass} onValueChange={setFilterClass}>
+              <SelectTrigger className="text-sm"><SelectValue placeholder="Filter Kelas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kelas</SelectItem>
+                {classList.map(c => <SelectItem key={c} value={c}>Kelas {c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Per-Class Cards */}
+      {loading ? (
+        <Card className="border border-border/50 shadow-sm"><CardContent className="p-12 text-center"><Loader2 className="h-6 w-6 animate-spin text-[#5B6CF9] mx-auto" /></CardContent></Card>
+      ) : grouped.length === 0 ? (
+        <Card className="border border-border/50 shadow-sm"><CardContent className="p-12 text-center text-muted-foreground">
+          <User className="h-10 w-10 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Belum ada data siswa</p>
+        </CardContent></Card>
+      ) : (
+        <div className="space-y-3">
+          {grouped.map(([cls, list]) => {
+            const isOpen = expanded.has(cls);
+            const lunas = list.filter(s => s.tunggakan === 0 && s.paid > 0).length;
+            const nunggak = list.filter(s => s.tunggakan > 0).length;
+            return (
+              <Card key={cls} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <button onClick={() => toggle(cls)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left">
+                  {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+                  <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
+                    <GraduationCap className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-sm text-foreground">Kelas {cls}</span>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{list.length} siswa</p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
+                    <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
+                  </div>
+                  <div className="flex sm:hidden items-center gap-1">
+                    <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
+                    <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
+                  </div>
+                </button>
+                {isOpen && (
+                  <div className="border-t border-border/50 p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {list.map(s => (
+                      <Card key={s.id}
+                        onClick={() => navigate(`/bendahara/transaksi/${s.id}`)}
+                        className="border border-border/50 shadow-sm hover:shadow-md hover:border-[#5B6CF9]/40 transition-all cursor-pointer overflow-hidden">
+                        <CardContent className="p-3.5 space-y-2.5">
+                          <div className="flex items-start gap-2.5">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                              {s.name[0]?.toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-foreground truncate hover:underline">{s.name}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">NIS {s.student_id}</p>
+                            </div>
+                            {s.tunggakan > 0
+                              ? <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak</Badge>
+                              : <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas</Badge>}
+                          </div>
+                          {s.parent_name && (
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              Wali: {s.parent_name}{s.parent_phone ? ` · ${s.parent_phone}` : ""}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">Tunggakan</p>
+                              <p className={`text-sm font-bold ${s.tunggakan > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                                {s.tunggakan > 0 ? fmtIDR(s.tunggakan) : "Lunas"}
+                              </p>
+                            </div>
+                            <Button size="sm" className="h-7 px-2.5 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white text-xs shadow-sm">
+                              <Eye className="h-3.5 w-3.5 mr-1" /> Detail
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
