@@ -39,9 +39,27 @@ const isPaidMayarStatus = (status: unknown) => {
   return ["paid", "settled", "success", "completed"].includes(s);
 };
 
+async function getGatewayFeeConfig(): Promise<{ percent: number; flat: number }> {
+  try {
+    const { data } = await supabase
+      .from('platform_settings')
+      .select('key,value')
+      .in('key', ['gateway_fee_percent', 'gateway_fee_flat']);
+    const map: Record<string, string> = {};
+    (data || []).forEach((r: any) => { map[r.key] = r.value; });
+    const percent = parseFloat(map['gateway_fee_percent'] ?? '0.7');
+    const flat = parseInt(map['gateway_fee_flat'] ?? '500', 10);
+    return {
+      percent: isNaN(percent) ? 0.7 : percent,
+      flat: isNaN(flat) ? 500 : flat,
+    };
+  } catch { return { percent: 0.7, flat: 500 }; }
+}
+
 async function syncSppInvoicesFromMayar(invoices: any[]) {
   const apiKey = Deno.env.get("MAYAR_API_KEY");
   if (!apiKey) return invoices;
+  const feeCfg = await getGatewayFeeConfig();
   const synced: any[] = [];
   for (const inv of invoices) {
     if (inv.status === "paid" || !inv.mayar_invoice_id) { synced.push(inv); continue; }
