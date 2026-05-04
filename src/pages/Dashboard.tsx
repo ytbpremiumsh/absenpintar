@@ -110,7 +110,7 @@ const Dashboard = () => {
   const fetchData = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
     const schoolId = profile.school_id;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getLocalDateString("Asia/Jakarta");
 
     const [studentsRes, logsRes, classesRes, waliRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, photo_url").eq("school_id", schoolId),
