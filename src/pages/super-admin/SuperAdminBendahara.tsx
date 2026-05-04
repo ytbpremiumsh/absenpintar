@@ -212,6 +212,36 @@ export default function SuperAdminBendahara() {
     setReviewOpen(true);
   };
 
+  const saveFeeConfig = async () => {
+    const pNum = parseFloat(feePercent);
+    const fNum = parseInt(feeFlat, 10);
+    if (isNaN(pNum) || pNum < 0 || pNum > 100) {
+      toast.error("Persentase fee harus 0–100");
+      return;
+    }
+    if (isNaN(fNum) || fNum < 0) {
+      toast.error("Biaya tetap fee harus angka ≥ 0");
+      return;
+    }
+    setSavingFee(true);
+    try {
+      const { error: e1 } = await supabase.from("platform_settings").upsert(
+        { key: "gateway_fee_percent", value: String(pNum) },
+        { onConflict: "key" }
+      );
+      const { error: e2 } = await supabase.from("platform_settings").upsert(
+        { key: "gateway_fee_flat", value: String(fNum) },
+        { onConflict: "key" }
+      );
+      if (e1 || e2) throw e1 || e2;
+      toast.success("Konfigurasi fee gateway disimpan");
+    } catch (e: any) {
+      toast.error("Gagal menyimpan: " + e.message);
+    } finally {
+      setSavingFee(false);
+    }
+  };
+
   const updateSettlement = async (newStatus: "approved" | "paid" | "rejected") => {
     if (!reviewing) return;
     setActionLoading(true);
