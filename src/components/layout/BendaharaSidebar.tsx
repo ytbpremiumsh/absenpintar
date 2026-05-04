@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Receipt, FileText, CreditCard, Wallet, ArrowDownToLine,
-  History, BarChart3, LogOut, ChevronRight, Crown,
+  History, BarChart3, LogOut, ChevronRight, Crown, Upload,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -28,7 +28,8 @@ const groups: { label: string; items: { title: string; url: string; icon: any; e
     label: "Operasional",
     items: [
       { title: "Generate Tagihan", url: "/bendahara/generate", icon: FileText },
-      { title: "Transaksi", url: "/bendahara/transaksi", icon: CreditCard },
+      { title: "Pembayaran SPP", url: "/bendahara/transaksi", icon: CreditCard },
+      { title: "Import / Export", url: "/bendahara/import-export", icon: Upload },
     ],
   },
   {
