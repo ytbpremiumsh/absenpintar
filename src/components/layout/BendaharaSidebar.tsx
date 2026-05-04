@@ -1,0 +1,122 @@
+import { useEffect, useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard, Users, Receipt, FileText, CreditCard, Wallet, ArrowDownToLine,
+  History, BarChart3, Settings, LogOut, ChevronRight, Crown,
+} from "lucide-react";
+import {
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, SidebarHeader, useSidebar,
+} from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import atskollaLogo from "@/assets/Logo_atskolla.png";
+
+const items = [
+  { title: "Dashboard", url: "/bendahara", icon: LayoutDashboard, end: true },
+  { title: "Data Siswa", url: "/bendahara/siswa", icon: Users },
+  { title: "Tarif SPP", url: "/bendahara/tarif", icon: Receipt },
+  { title: "Generate Tagihan", url: "/bendahara/generate", icon: FileText },
+  { title: "Transaksi", url: "/bendahara/transaksi", icon: CreditCard },
+  { title: "Saldo & Ledger", url: "/bendahara/saldo", icon: Wallet },
+  { title: "Pencairan", url: "/bendahara/pencairan", icon: ArrowDownToLine },
+  { title: "Riwayat Settlement", url: "/bendahara/settlement", icon: History },
+  { title: "Laporan", url: "/bendahara/laporan", icon: BarChart3 },
+  { title: "Payment Gateway", url: "/bendahara/gateway", icon: Settings },
+];
+
+export function BendaharaSidebar() {
+  const { isMobile, setOpenMobile } = useSidebar();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { signOut, profile } = useAuth();
+  const [school, setSchool] = useState<{ name: string; logo: string | null } | null>(null);
+
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    supabase.from("schools").select("name, logo").eq("id", profile.school_id).single().then(({ data }) => {
+      if (data) setSchool(data);
+    });
+  }, [profile?.school_id]);
+
+  const isActive = (url: string, end?: boolean) => end ? pathname === url : pathname.startsWith(url);
+
+  return (
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border/30 font-['Inter',sans-serif]">
+      <SidebarHeader className="p-3 pb-2">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 p-3 shadow-lg shadow-emerald-600/15">
+          <div className="absolute -top-4 -right-4 h-16 w-16 rounded-full bg-white/10 blur-xl" />
+          <div className="relative z-10 flex items-center gap-2.5">
+            <div className="h-10 w-10 rounded-lg bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 overflow-hidden">
+              <img src={school?.logo || atskollaLogo} alt="logo" className="h-8 w-8 object-contain" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[13px] font-extrabold text-white tracking-tight truncate leading-tight">
+                {school?.name || "ATSkolla"}
+              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-white/95 bg-white/20 backdrop-blur-sm px-1.5 py-[1px] rounded-md border border-white/15">
+                  <Crown className="h-2.5 w-2.5" /> Bendahara
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent className="px-2 overflow-y-auto">
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.18em] font-bold px-3 mb-1.5 text-muted-foreground/60">
+            Menu Keuangan
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {items.map((it) => {
+                const active = isActive(it.url, it.end);
+                return (
+                  <SidebarMenuItem key={it.url}>
+                    <SidebarMenuButton asChild isActive={active}>
+                      <NavLink
+                        to={it.url}
+                        end={it.end}
+                        onClick={() => isMobile && setOpenMobile(false)}
+                        className={`relative rounded-xl px-3 py-2.5 transition-all duration-200 gap-3 ${
+                          active
+                            ? "bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-semibold shadow-lg shadow-emerald-600/20"
+                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                        }`}
+                      >
+                        <div className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${active ? "bg-white/20" : "bg-muted/80"}`}>
+                          <it.icon className={`h-[15px] w-[15px] ${active ? "text-white" : ""}`} />
+                        </div>
+                        <span className={`text-[13px] truncate flex-1 ${active ? "text-white" : ""}`}>{it.title}</span>
+                        {active && <ChevronRight className="h-3.5 w-3.5 ml-auto opacity-70 text-white" />}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="p-3">
+        <div className="mb-2 mx-2 h-px bg-gradient-to-r from-transparent via-sidebar-border/60 to-transparent" />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-xl px-3 py-2.5"
+              onClick={async () => { await signOut(); navigate("/login"); }}
+            >
+              <div className="h-7 w-7 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                <LogOut className="h-[15px] w-[15px]" />
+              </div>
+              <span className="text-[13px] font-medium">Keluar</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
