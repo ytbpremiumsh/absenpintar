@@ -120,6 +120,8 @@ function AppRoutes() {
         <Route path="/bendahara/tarif" element={<BendaharaTarif />} />
         <Route path="/bendahara/generate" element={<BendaharaGenerate />} />
         <Route path="/bendahara/transaksi" element={<BendaharaTransaksi />} />
+        <Route path="/bendahara/transaksi/:studentId" element={<BendaharaSPPDetail />} />
+        <Route path="/bendahara/import-export" element={<BendaharaImportExport />} />
         <Route path="/bendahara/saldo" element={<BendaharaSaldo />} />
         <Route path="/bendahara/pencairan" element={<BendaharaPencairan />} />
         <Route path="/bendahara/settlement" element={<BendaharaSettlement />} />
