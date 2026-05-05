@@ -35,7 +35,7 @@ const groups: { label: string; items: { title: string; url: string; icon: any; e
   {
     label: "Keuangan",
     items: [
-      { title: "Saldo & Ledger", url: "/bendahara/saldo", icon: Wallet },
+      { title: "Saldo & Riwayat", url: "/bendahara/saldo", icon: Wallet },
       { title: "Pencairan & Settlement", url: "/bendahara/pencairan", icon: ArrowDownToLine },
       { title: "Laporan & Export", url: "/bendahara/laporan", icon: BarChart3 },
     ],

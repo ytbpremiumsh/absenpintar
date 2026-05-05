@@ -436,6 +436,7 @@ export function BendaharaSiswa() {
         icon={User}
         title="Data Siswa Keuangan"
         subtitle="Ringkasan pembayaran SPP per siswa, dikelompokkan per kelas"
+        variant="emerald"
       />
 
       {/* Summary mini */}
@@ -666,10 +667,11 @@ export function BendaharaTarif() {
         icon={Banknote}
         title="Tarif SPP"
         subtitle="Kelola nominal SPP per tahun ajaran & kelas"
+        variant="emerald"
         actions={
           <>
             <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Copy className="h-4 w-4 mr-1.5" /> Set Massal</Button>
-            <Button size="sm" onClick={openAdd} className="bg-white text-[#5B6CF9] hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
+            <Button size="sm" onClick={openAdd} className="bg-white text-emerald-700 hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
           </>
         }
       />
@@ -990,6 +992,7 @@ export function BendaharaGenerate() {
         icon={FileText}
         title="Generate Tagihan SPP"
         subtitle="Buat tagihan SPP per kelas, per bulan, atau satu tahun ajaran sekaligus"
+        variant="emerald"
       />
 
       {/* Summary cards */}
@@ -1274,6 +1277,7 @@ export function BendaharaTransaksi() {
         icon={Wallet}
         title="Pembayaran SPP"
         subtitle="Per siswa, per tahun ajaran, per bulan"
+        variant="emerald"
         actions={
           <Button
             variant="secondary"
@@ -2131,7 +2135,7 @@ export function BendaharaImportExport() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon={Upload} title="Import Tagihan SPP" subtitle="Unggah tagihan massal dari Excel/CSV. Untuk export laporan, buka menu Laporan & Export." />
+      <PageHeader icon={Upload} title="Import Tagihan SPP" subtitle="Unggah tagihan massal dari Excel/CSV. Untuk export laporan, buka menu Laporan & Export." variant="emerald" />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -2319,10 +2323,10 @@ export function BendaharaSaldo() {
         </CardContent>
       </Card>
 
-      {/* Tabel Ledger */}
+      {/* Tabel Riwayat */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Ledger Transaksi Paid</CardTitle>
+          <CardTitle className="text-base">Riwayat Transaksi Lunas</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
@@ -2427,6 +2431,7 @@ export function BendaharaPencairan() {
         icon={ArrowDownToLine}
         title="Pencairan Dana"
         subtitle="Ajukan pencairan saldo SPP dan pantau riwayat settlement"
+        variant="emerald"
       />
 
       {/* KPI ringkas */}
@@ -2680,6 +2685,7 @@ export function BendaharaLaporan() {
         icon={BarChart3}
         title="Laporan & Export Keuangan"
         subtitle="Ringkasan tahunan, statistik per kelas, dan export data SPP — semua dalam satu tempat."
+        variant="emerald"
         actions={
           <div className="flex items-center gap-2">
             <Label className="text-xs text-white/90 whitespace-nowrap">Tahun:</Label>
