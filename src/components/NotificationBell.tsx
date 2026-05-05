@@ -38,7 +38,7 @@ export function NotificationBell() {
   const filterForRole = (list: Notification[]) => {
     let filtered = list.filter((n) => !n.title.includes("Pembayaran Masuk"));
     // Non school-admin users: hide system-generated notifications (created_by IS NULL)
-    if (!isSchoolAdmin) {
+    if (!canSeeSystemNotifs) {
       filtered = filtered.filter((n) => n.created_by !== null);
     }
     return filtered;
@@ -71,7 +71,7 @@ export function NotificationBell() {
           if (!newNotif.school_id || newNotif.school_id === profile.school_id) {
             // Apply role-based filter for incoming events too
             if (newNotif.title.includes("Pembayaran Masuk")) return;
-            if (!isSchoolAdmin && newNotif.created_by === null) return;
+            if (!canSeeSystemNotifs && newNotif.created_by === null) return;
             setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
           }
         }
@@ -82,7 +82,7 @@ export function NotificationBell() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile, isSchoolAdmin]);
+  }, [profile, canSeeSystemNotifs]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
