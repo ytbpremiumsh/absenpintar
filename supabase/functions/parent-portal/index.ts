@@ -95,6 +95,33 @@ async function syncSppInvoicesFromMayar(invoices: any[]) {
         payload: detail,
         message: "SPP paid (parent sync)",
       });
+
+      // Notif dashboard sekolah
+      await supabase.from("notifications").insert({
+        school_id: inv.school_id,
+        title: "Pembayaran SPP Diterima",
+        message: `Pembayaran SPP ${inv.student_name} (${inv.class_name}) untuk ${inv.period_label} sebesar Rp ${(inv.total_amount || 0).toLocaleString("id-ID")} telah diterima.`,
+        type: "success",
+      });
+
+      // Kirim WA ke wali murid
+      if (inv.parent_phone) {
+        try {
+          const { data: integ } = await supabase.from("school_integrations")
+            .select("api_url, api_key, is_active").eq("school_id", inv.school_id).eq("is_active", true).maybeSingle();
+          if (integ?.api_url && integ?.api_key) {
+            let phone = String(inv.parent_phone).replace(/\D/g, "");
+            if (phone.startsWith("0")) phone = "62" + phone.substring(1);
+            const msg = `Halo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda:\n*${inv.student_name} - ${inv.class_name} - ${inv.period_label}*\nsebesar Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\ntelah berhasil diterima.\n\nTerima kasih.`;
+            await fetch(integ.api_url, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${integ.api_key}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ recipient_type: "individual", to: phone, type: "text", text: { body: msg } }),
+            });
+          }
+        } catch (waErr) { console.error("SPP WA notif (parent sync) error", waErr); }
+      }
+
       synced.push({ ...inv, status: "paid", paid_at: paidAt, payment_method: paymentMethod, gateway_fee: gatewayFee, net_amount: netAmount });
     } catch (e) {
       console.error("Mayar SPP sync failed", inv.id, e);
