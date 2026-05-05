@@ -129,6 +129,7 @@ export default function SuperAdminAutoCaption() {
 
   // Generate state
   const [platform, setPlatform] = useState("facebook");
+  const [contentType, setContentType] = useState("caption_sosmed");
   const [tone, setTone] = useState("persuasif");
   const [length, setLength] = useState("sedang");
   const [topic, setTopic] = useState("");
@@ -142,6 +143,7 @@ export default function SuperAdminAutoCaption() {
   const [sourceText, setSourceText] = useState("");
   const [rewriteStyle, setRewriteStyle] = useState("improve");
   const [customInstruction, setCustomInstruction] = useState("");
+  const [referenceText, setReferenceText] = useState("");
   const [rewriteVariants, setRewriteVariants] = useState(1);
 
   const [loading, setLoading] = useState(false);
@@ -153,7 +155,7 @@ export default function SuperAdminAutoCaption() {
     if (!topic.trim()) return toast.error("Isi topik konten dulu");
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("auto-caption", {
-      body: { mode: "generate", platform, tone, length, topic, audience, cta, variants, emoji, hashtags },
+      body: { mode: "generate", platform, content_type: contentType, tone, length, topic, audience, cta, variants, emoji, hashtags },
     });
     setLoading(false);
     if (error || !data?.success) {
