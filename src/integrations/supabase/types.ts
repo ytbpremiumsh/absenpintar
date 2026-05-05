@@ -338,6 +338,99 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_type: string
+          id: string
+          school_id: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_type: string
+          id?: string
+          school_id?: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_type?: string
+          id?: string
+          school_id?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
+      email_settings: {
+        Row: {
+          created_at: string
+          from_email: string
+          from_name: string
+          id: string
+          is_active: boolean
+          send_on_register: boolean
+          send_on_spp_paid: boolean
+          smtp_host: string
+          smtp_password: string
+          smtp_port: number
+          smtp_secure: boolean
+          smtp_username: string
+          template_register_html: string
+          template_register_subject: string
+          template_spp_html: string
+          template_spp_subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_email: string
+          from_name?: string
+          id?: string
+          is_active?: boolean
+          send_on_register?: boolean
+          send_on_spp_paid?: boolean
+          smtp_host: string
+          smtp_password: string
+          smtp_port?: number
+          smtp_secure?: boolean
+          smtp_username: string
+          template_register_html?: string
+          template_register_subject?: string
+          template_spp_html?: string
+          template_spp_subject?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_email?: string
+          from_name?: string
+          id?: string
+          is_active?: boolean
+          send_on_register?: boolean
+          send_on_spp_paid?: boolean
+          smtp_host?: string
+          smtp_password?: string
+          smtp_port?: number
+          smtp_secure?: boolean
+          smtp_username?: string
+          template_register_html?: string
+          template_register_subject?: string
+          template_spp_html?: string
+          template_spp_subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       id_card_designs: {
         Row: {
           created_at: string
