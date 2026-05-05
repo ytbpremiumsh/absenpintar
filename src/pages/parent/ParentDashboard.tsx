@@ -904,7 +904,17 @@ export default function ParentDashboard() {
         open={!!paymentIframe}
         paymentUrl={paymentIframe}
         title="Pembayaran SPP — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); loadTab(); }}
+        pollIntervalMs={4000}
+        checkPaid={async () => {
+          if (!payingInvoiceId || !selectedStudent) return false;
+          try {
+            const d = await invoke("spp_list", { student_id: selectedStudent });
+            const lunas: any[] = d?.lunas || [];
+            return lunas.some((x: any) => x.id === payingInvoiceId);
+          } catch { return false; }
+        }}
+        onPaid={() => { /* refresh dilakukan saat onClose */ }}
+        onClose={() => { setPaymentIframe(null); setPayingInvoiceId(null); loadTab(); }}
       />
     </div>
   );
