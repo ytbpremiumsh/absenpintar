@@ -934,64 +934,73 @@ export function BendaharaGenerate() {
       const { data: inserted, error } = await supabase.from("spp_invoices").insert(toInsert).select("*");
       if (error) { toast.error(error.message); return; }
       const created = inserted || [];
-      toast.success(`${created.length} tagihan SPP berhasil dibuat${created.length < rows.length ? ` (${rows.length - created.length} dilewati karena sudah ada)` : ""}`);
+      toast.success(
+        `${created.length} tagihan SPP berhasil dibuat${created.length < rows.length ? ` (${rows.length - created.length} dilewati karena sudah ada)` : ""}` +
+        (created.length > 0 ? ` • Link pembayaran & WA dikirim di latar belakang` : "")
+      );
 
-      // === Auto generate Mayar link + kirim WA (selalu aktif) ===
-      if (created.length > 0) {
-        let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
-        const failedInvs: any[] = [];
-        setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran & kirim WA..." });
-
-        const processOne = async (inv: any) => {
-          try {
-            const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
-              body: { action: "create_payment_link", invoice_id: inv.id },
-            });
-            const paymentUrl = linkRes?.payment_url;
-            if (paymentUrl) {
-              linkOk++;
-              const phone = inv.parent_phone;
-              if (phone) {
-                const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-                const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
-                const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
-                  body: { school_id: profile.school_id, phone, message: msg, message_type: "spp_invoice" },
-                });
-                if (waErr) waFail++; else waOk++;
-              } else {
-                waSkip++;
-              }
-              return true;
-            }
-            return false;
-          } catch { return false; }
-        };
-
-        for (let i = 0; i < created.length; i++) {
-          const inv = created[i];
-          const success = await processOne(inv);
-          if (!success) failedInvs.push(inv);
-          setBulkProgress({ done: i + 1, total: created.length, phase: "Membuat link & kirim WA..." });
-          if (i < created.length - 1) await new Promise((r) => setTimeout(r, 1800));
-        }
-
-        // Retry yang gagal sekali lagi setelah jeda lebih panjang
-        if (failedInvs.length > 0) {
-          setBulkProgress({ done: 0, total: failedInvs.length, phase: `Mencoba ulang ${failedInvs.length} tagihan...` });
-          await new Promise((r) => setTimeout(r, 3000));
-          for (let i = 0; i < failedInvs.length; i++) {
-            const success = await processOne(failedInvs[i]);
-            if (!success) linkFail++;
-            setBulkProgress({ done: i + 1, total: failedInvs.length, phase: "Mencoba ulang..." });
-            if (i < failedInvs.length - 1) await new Promise((r) => setTimeout(r, 2500));
-          }
-        }
-
-        setBulkProgress(null);
-        toast.success(`Link berhasil: ${linkOk} • WA terkirim: ${waOk}${waFail ? ` • gagal kirim: ${waFail}` : ""}${waSkip ? ` • tanpa nomor WA: ${waSkip}` : ""}${linkFail ? ` • gagal link: ${linkFail}` : ""}`);
-      }
-
+      // Tutup dialog langsung — proses link Mayar + WA berjalan di background
       setPreviewOpen(false);
+
+      // === Background: generate Mayar link + kirim WA (tidak menahan UI) ===
+      if (created.length > 0) {
+        const schoolId = profile.school_id;
+        (async () => {
+          let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
+
+          const processOne = async (inv: any) => {
+            try {
+              const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
+                body: { action: "create_payment_link", invoice_id: inv.id },
+              });
+              const paymentUrl = linkRes?.payment_url;
+              if (paymentUrl) {
+                linkOk++;
+                const phone = inv.parent_phone;
+                if (phone) {
+                  const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
+                  const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+                  const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
+                    body: { school_id: schoolId, phone, message: msg, message_type: "spp_invoice" },
+                  });
+                  if (waErr) waFail++; else waOk++;
+                } else {
+                  waSkip++;
+                }
+                return true;
+              }
+              return false;
+            } catch { return false; }
+          };
+
+          // Proses paralel dalam batch kecil agar tidak overload Mayar (max 4 paralel)
+          const BATCH = 4;
+          const failedInvs: any[] = [];
+          for (let i = 0; i < created.length; i += BATCH) {
+            const slice = created.slice(i, i + BATCH);
+            const results = await Promise.all(slice.map(processOne));
+            results.forEach((ok, idx) => { if (!ok) failedInvs.push(slice[idx]); });
+          }
+
+          // Retry yang gagal sekali lagi (paralel juga)
+          if (failedInvs.length > 0) {
+            await new Promise((r) => setTimeout(r, 1500));
+            for (let i = 0; i < failedInvs.length; i += BATCH) {
+              const slice = failedInvs.slice(i, i + BATCH);
+              const results = await Promise.all(slice.map(processOne));
+              results.forEach((ok) => { if (!ok) linkFail++; });
+            }
+          }
+
+          toast.success(
+            `Selesai: ${linkOk} link dibuat • ${waOk} WA terkirim` +
+            `${waFail ? ` • ${waFail} WA gagal` : ""}` +
+            `${waSkip ? ` • ${waSkip} tanpa nomor` : ""}` +
+            `${linkFail ? ` • ${linkFail} link gagal` : ""}`,
+            { duration: 6000 }
+          );
+        })();
+      }
       // refresh existing invs to reflect new state
       const { data } = await supabase.from("spp_invoices").select("student_id, period_month, period_year").eq("school_id", profile.school_id);
       setExistingInvs(data || []);
