@@ -2431,6 +2431,7 @@ export function BendaharaPencairan() {
         icon={ArrowDownToLine}
         title="Pencairan Dana"
         subtitle="Ajukan pencairan saldo SPP dan pantau riwayat settlement"
+        variant="emerald"
       />
 
       {/* KPI ringkas */}
