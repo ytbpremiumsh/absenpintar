@@ -342,6 +342,22 @@ export default function SuperAdminAutoCaption() {
                   </Select>
                 </div>
                 <div>
+                  <Label className="text-xs">Jenis Konten / Tujuan</Label>
+                  <Select value={contentType} onValueChange={setContentType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-[320px]">
+                      {CONTENT_TYPES.map(c => (
+                        <SelectItem key={c.v} value={c.v}>
+                          <div className="flex flex-col py-0.5">
+                            <span className="font-medium">{c.label}</span>
+                            <span className="text-[10px] text-muted-foreground">{c.desc}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label className="text-xs">Topik Konten</Label>
                   <Textarea value={topic} onChange={(e) => setTopic(e.target.value)} rows={3} placeholder="Misal: Perkenalan fitur Face Recognition AI" />
                   <div className="flex flex-wrap gap-1.5 mt-2">
