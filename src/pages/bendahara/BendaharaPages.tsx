@@ -1405,28 +1405,21 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
         const isOpen = openClass[className] ?? false;
 
-        // Rotasi gradient berbeda per kelas agar berwarna
-        const palettes = [
-          { grad: "from-emerald-500 via-teal-500 to-emerald-600", ring: "ring-emerald-200", chip: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-          { grad: "from-[#5B6CF9] via-indigo-500 to-violet-600", ring: "ring-indigo-200", chip: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-          { grad: "from-amber-500 via-orange-500 to-rose-500", ring: "ring-amber-200", chip: "bg-amber-50 text-amber-700 border-amber-200" },
-          { grad: "from-sky-500 via-cyan-500 to-blue-600", ring: "ring-sky-200", chip: "bg-sky-50 text-sky-700 border-sky-200" },
-          { grad: "from-fuchsia-500 via-pink-500 to-rose-500", ring: "ring-pink-200", chip: "bg-pink-50 text-pink-700 border-pink-200" },
-          { grad: "from-lime-500 via-green-500 to-emerald-600", ring: "ring-lime-200", chip: "bg-lime-50 text-lime-700 border-lime-200" },
-        ];
-        const pal = palettes[idx % palettes.length];
+        // Semua kelas pakai palette emerald/teal (seragam seperti TKR 1)
+        const pal = {
+          grad: "from-emerald-500 via-teal-500 to-emerald-600",
+          ring: "ring-emerald-200",
+          chip: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        };
 
-        // Avatar gradient palette per siswa
-        const avatarGrads = [
-          "from-rose-400 to-pink-600",
-          "from-amber-400 to-orange-600",
-          "from-emerald-400 to-teal-600",
-          "from-sky-400 to-blue-600",
-          "from-violet-400 to-purple-600",
-          "from-fuchsia-400 to-pink-600",
-          "from-cyan-400 to-sky-600",
-          "from-lime-400 to-green-600",
-        ];
+        // Avatar berdasarkan gender: ungu (indigo/violet) = laki-laki, merah (rose) = perempuan
+        const avatarFor = (gender?: string) => {
+          const g = (gender || "").toString().toUpperCase();
+          const isFemale = g === "P" || g === "F" || g.startsWith("PEREMPUAN") || g.startsWith("FEMALE");
+          return isFemale
+            ? "from-rose-400 to-red-600"
+            : "from-[#5B6CF9] via-indigo-500 to-violet-600";
+        };
         const initials = (n: string) => n.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase();
 
         return (
