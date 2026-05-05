@@ -336,7 +336,7 @@ export function BendaharaDashboard() {
                       <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-[11px] font-bold">
+                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-rose-400 to-red-600 text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
                             {(t.student_name || "?")[0]}
                           </div>
                           <span>{t.student_name}</span>
