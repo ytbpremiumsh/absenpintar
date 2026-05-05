@@ -342,9 +342,18 @@ export function BendaharaDashboard() {
                       <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-rose-400 to-red-600 text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
-                            {(t.student_name || "?")[0]}
-                          </div>
+                          {(() => {
+                            const g = studentGender[t.student_id] || "";
+                            const isFemale = g === "P" || g === "F" || g.startsWith("PEREMPUAN") || g.startsWith("FEMALE");
+                            const grad = isFemale
+                              ? "from-rose-400 to-red-600"
+                              : "from-[#5B6CF9] via-indigo-500 to-violet-600";
+                            return (
+                              <div className={`h-7 w-7 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center text-[11px] font-bold shadow-sm`}>
+                                {(t.student_name || "?")[0]}
+                              </div>
+                            );
+                          })()}
                           <span>{t.student_name}</span>
                         </div>
                       </TableCell>
