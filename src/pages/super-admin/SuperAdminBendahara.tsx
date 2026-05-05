@@ -214,13 +214,9 @@ export default function SuperAdminBendahara() {
 
   const saveFeeConfig = async () => {
     const pNum = parseFloat(feePercent);
-    const fNum = parseInt(feeFlat, 10);
+    const fNum = 0; // Biaya tetap dihilangkan; dipaksa 0
     if (isNaN(pNum) || pNum < 0 || pNum > 100) {
-      toast.error("Persentase fee harus 0–100");
-      return;
-    }
-    if (isNaN(fNum) || fNum < 0) {
-      toast.error("Biaya tetap fee harus angka ≥ 0");
+      toast.error("Persentase biaya layanan harus 0–100");
       return;
     }
     setSavingFee(true);
@@ -234,7 +230,8 @@ export default function SuperAdminBendahara() {
         { onConflict: "key" }
       );
       if (e1 || e2) throw e1 || e2;
-      toast.success("Konfigurasi fee gateway disimpan");
+      setFeeFlat("0");
+      toast.success("Konfigurasi biaya layanan disimpan");
     } catch (e: any) {
       toast.error("Gagal menyimpan: " + e.message);
     } finally {
