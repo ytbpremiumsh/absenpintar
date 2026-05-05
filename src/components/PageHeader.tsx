@@ -7,9 +7,15 @@ interface PageHeaderProps {
   title: string;
   subtitle: string;
   actions?: React.ReactNode;
+  variant?: "primary" | "emerald";
 }
 
-export const PageHeader = ({ icon: Icon, title, subtitle, actions }: PageHeaderProps) => {
+const VARIANTS: Record<NonNullable<PageHeaderProps["variant"]>, string> = {
+  primary: "from-[#5B6CF9] to-[#4c5ded]",
+  emerald: "from-emerald-600 to-teal-700",
+};
+
+export const PageHeader = ({ icon: Icon, title, subtitle, actions, variant = "primary" }: PageHeaderProps) => {
   const [showShapes, setShowShapes] = useState(true);
 
   useEffect(() => {
