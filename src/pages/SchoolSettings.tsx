@@ -280,7 +280,15 @@ const SchoolSettings = () => {
                 <p className="font-semibold text-foreground mb-1">
                   {timezone === "Asia/Jakarta" ? "WIB (UTC+7)" : timezone === "Asia/Makassar" ? "WITA (UTC+8)" : "WIT (UTC+9)"}
                 </p>
-                <p>Waktu saat ini: {new Date().toLocaleTimeString("id-ID", { timeZone: timezone, hour: "2-digit", minute: "2-digit", second: "2-digit" })}</p>
+                <p>Waktu saat ini: {(() => {
+                  const tzMap: Record<string, string> = { WIB: "Asia/Jakarta", WITA: "Asia/Makassar", WIT: "Asia/Jayapura" };
+                  const validTz = tzMap[timezone] || timezone || "Asia/Jakarta";
+                  try {
+                    return new Date().toLocaleTimeString("id-ID", { timeZone: validTz, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                  } catch {
+                    return new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                  }
+                })()}</p>
               </div>
             </div>
           </div>
