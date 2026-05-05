@@ -1081,12 +1081,12 @@ export function BendaharaGenerate() {
             </div>
             <Switch checked={skipExisting} onCheckedChange={setSkipExisting} />
           </div>
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-[#5B6CF9]/5 border-[#5B6CF9]/20">
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900">
             <div>
-              <p className="text-sm font-medium flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-[#5B6CF9]" /> Otomatis kirim WA ke wali murid</p>
-              <p className="text-xs text-muted-foreground">Setelah generate, sistem otomatis membuat link Mayar dan mengirim tagihan via WhatsApp</p>
+              <p className="text-sm font-medium flex items-center gap-1.5 text-emerald-800 dark:text-emerald-200"><Send className="h-3.5 w-3.5" /> Otomatis buat link & kirim WA</p>
+              <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">Setelah generate, sistem langsung membuat link Mayar dan mengirim tagihan ke WA wali murid — tidak perlu langkah tambahan</p>
             </div>
-            <Switch checked={autoSendWa} onCheckedChange={setAutoSendWa} />
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-white/70 dark:bg-emerald-900/40 px-2 py-1 rounded-md">Aktif</span>
           </div>
           {(preview.skipped > 0 || preview.noTariff > 0) && (
             <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3 text-xs space-y-1">
