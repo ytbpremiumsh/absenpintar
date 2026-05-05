@@ -125,8 +125,8 @@ export function BendaharaDashboard() {
     if (!profile?.school_id) return;
     const channel = supabase
       .channel("bendahara-dashboard-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "spp_invoices", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData(false))
-      .on("postgres_changes", { event: "*", schema: "public", table: "spp_settlements", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData(false))
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_invoices", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_settlements", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [profile?.school_id, fetchDashboardData]);
