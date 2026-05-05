@@ -2722,6 +2722,116 @@ export function BendaharaLaporan() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* DIALOG — Detail Siswa per Kelas */}
+      <Dialog open={!!openClass} onOpenChange={(o) => !o && setOpenClass(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">
+              Detail Pembayaran — Kelas {openClass} <span className="text-muted-foreground font-normal">({year})</span>
+            </DialogTitle>
+          </DialogHeader>
+          {openClass && (() => {
+            const classInvs = items.filter(i => i.class_name === openClass);
+            const filtered = classInvs.filter(i =>
+              (detailMonth === 0 || i.period_month === detailMonth) &&
+              (detailStatus === "all" || (detailStatus === "paid" ? i.status === "paid" : i.status !== "paid"))
+            ).sort((a, b) =>
+              (a.period_month - b.period_month) ||
+              (a.student_name || "").localeCompare(b.student_name || "")
+            );
+            const totTagihan = filtered.reduce((s, i) => s + (i.total_amount || 0), 0);
+            const totPaid = filtered.filter(i => i.status === "paid").reduce((s, i) => s + (i.total_amount || 0), 0);
+            const lunasCount = filtered.filter(i => i.status === "paid").length;
+            return (
+              <div className="space-y-3">
+                {/* Filter */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Bulan</Label>
+                    <Select value={String(detailMonth)} onValueChange={v => setDetailMonth(parseInt(v))}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Semua Bulan</SelectItem>
+                        {MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m} {year}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Status</Label>
+                    <Select value={detailStatus} onValueChange={setDetailStatus}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua</SelectItem>
+                        <SelectItem value="paid">Hanya Lunas</SelectItem>
+                        <SelectItem value="unpaid">Hanya Belum</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* KPI Total */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="rounded-lg border bg-card p-3"><p className="text-[10px] text-muted-foreground uppercase">Tagihan</p><p className="text-sm font-bold mt-0.5">{filtered.length}</p></div>
+                  <div className="rounded-lg border bg-emerald-50 dark:bg-emerald-950/20 p-3"><p className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase">Lunas</p><p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">{lunasCount}</p></div>
+                  <div className="rounded-lg border bg-rose-50 dark:bg-rose-950/20 p-3"><p className="text-[10px] text-rose-700 dark:text-rose-400 uppercase">Belum</p><p className="text-sm font-bold text-rose-700 dark:text-rose-400 mt-0.5">{filtered.length - lunasCount}</p></div>
+                  <div className="rounded-lg border bg-[#5B6CF9]/10 p-3"><p className="text-[10px] text-[#5B6CF9] uppercase">Pendapatan</p><p className="text-sm font-bold text-[#5B6CF9] mt-0.5">{fmtIDR(totPaid)}</p><p className="text-[9px] text-muted-foreground">dari {fmtIDR(totTagihan)}</p></div>
+                </div>
+
+                {/* Tabel Siswa */}
+                <div className="overflow-x-auto rounded-lg border">
+                  <Table className="text-xs">
+                    <TableHeader>
+                      <TableRow className="bg-muted/40">
+                        <TableHead className="font-bold w-10 text-center">No</TableHead>
+                        <TableHead className="font-bold">NIS</TableHead>
+                        <TableHead className="font-bold">Nama Siswa</TableHead>
+                        <TableHead className="font-bold">Periode</TableHead>
+                        <TableHead className="font-bold text-right">Nominal</TableHead>
+                        <TableHead className="font-bold text-center">Status</TableHead>
+                        <TableHead className="font-bold">Tgl Bayar</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filtered.length === 0 ? (
+                        <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Tidak ada tagihan untuk filter ini</TableCell></TableRow>
+                      ) : filtered.map((i, idx) => {
+                        const stu = students.find(s => s.id === i.student_id);
+                        return (
+                          <TableRow key={i.id} className="hover:bg-muted/20">
+                            <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
+                            <TableCell className="font-mono text-[11px]">{stu?.student_id || "-"}</TableCell>
+                            <TableCell className="font-medium">{i.student_name}</TableCell>
+                            <TableCell className="text-[11px]">{i.period_label || `${MONTHS[i.period_month-1]} ${i.period_year}`}</TableCell>
+                            <TableCell className="text-right font-semibold">{fmtIDR(i.total_amount || 0)}</TableCell>
+                            <TableCell className="text-center">
+                              {i.status === "paid"
+                                ? <span className="status-pill status-pill-paid"><span className="dot" />Lunas</span>
+                                : i.status === "pending"
+                                  ? <span className="status-pill status-pill-pending"><span className="dot" />Pending</span>
+                                  : <span className="status-pill status-pill-unpaid"><span className="dot" />Belum</span>}
+                            </TableCell>
+                            <TableCell className="text-[11px] text-muted-foreground">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                    {filtered.length > 0 && (
+                      <TableFooter>
+                        <TableRow className="bg-muted/40 font-bold">
+                          <TableCell colSpan={4} className="text-right">TOTAL DITERIMA</TableCell>
+                          <TableCell className="text-right text-emerald-600">{fmtIDR(totPaid)}</TableCell>
+                          <TableCell colSpan={2} className="text-[10px] text-muted-foreground">dari total tagihan {fmtIDR(totTagihan)}</TableCell>
+                        </TableRow>
+                      </TableFooter>
+                    )}
+                  </Table>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
