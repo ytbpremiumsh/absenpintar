@@ -66,6 +66,7 @@ const TOPIC_PRESETS = [
 
 const REWRITE_STYLES = [
   { v: "improve", label: "Tingkatkan Kualitas" },
+  { v: "mimic", label: "🎯 Tiru Gaya Contoh (Style Mimic)" },
   { v: "shorter", label: "Lebih Singkat" },
   { v: "longer", label: "Lebih Panjang" },
   { v: "professional", label: "Lebih Profesional" },
@@ -77,6 +78,22 @@ const REWRITE_STYLES = [
   { v: "translate_en", label: "Terjemahkan ke Inggris" },
   { v: "translate_id", label: "Terjemahkan ke Indonesia" },
   { v: "custom", label: "Custom (instruksi sendiri)" },
+];
+
+const CONTENT_TYPES = [
+  { v: "caption_sosmed", label: "Caption Media Sosial", desc: "Hook + body + CTA singkat (FB/IG)" },
+  { v: "deskripsi_produk", label: "Deskripsi Produk", desc: "Untuk landing page / marketplace" },
+  { v: "iklan_fb", label: "Iklan Facebook Ads", desc: "Format AIDA untuk iklan berbayar" },
+  { v: "iklan_google", label: "Iklan Google Ads", desc: "3 headline + 2 deskripsi pendek" },
+  { v: "headline", label: "Headline / Judul Iklan", desc: "5-10 alternatif headline kuat" },
+  { v: "artikel_blog", label: "Artikel Blog SEO", desc: "Artikel panjang dengan H1, H2, kesimpulan" },
+  { v: "artikel_press", label: "Press Release / Siaran Pers", desc: "Format jurnalistik formal" },
+  { v: "email_marketing", label: "Email Marketing", desc: "Subject + body + CTA tombol" },
+  { v: "whatsapp_broadcast", label: "WhatsApp Broadcast", desc: "Pesan WA personal & ringkas" },
+  { v: "script_video", label: "Script Video Pendek", desc: "Reels/TikTok 30-60 detik scene-by-scene" },
+  { v: "testimoni", label: "Testimoni / Review", desc: "Cerita storytelling dari user" },
+  { v: "faq", label: "FAQ Produk", desc: "5-7 Q&A yang sering ditanya" },
+  { v: "thread_twitter", label: "Thread Twitter/X", desc: "5-8 tweet bernomor" },
 ];
 
 // ===== Unicode text styling helpers (works on FB / IG / WA) =====
