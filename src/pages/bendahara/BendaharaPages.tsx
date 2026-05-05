@@ -436,6 +436,7 @@ export function BendaharaSiswa() {
         icon={User}
         title="Data Siswa Keuangan"
         subtitle="Ringkasan pembayaran SPP per siswa, dikelompokkan per kelas"
+        variant="emerald"
       />
 
       {/* Summary mini */}
