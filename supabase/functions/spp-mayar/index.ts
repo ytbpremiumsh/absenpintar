@@ -24,10 +24,13 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   // recent payloads). We embed an invisible token in the description, which
   // does not affect what the user sees on the payment page meaningfully.
   const uniq = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  // Mayar requires integer amount (IDR, no decimals). Force-cast to avoid
+  // mismatch when DB returns numeric/string with decimals.
+  const safeAmount = Math.max(1000, Math.round(Number(inv.total_amount) || 0));
   const payload = {
     name: `${buildInvoiceTitle(inv)} #${uniq.slice(-6).toUpperCase()}`,
-    amount: inv.total_amount,
-    description: `Pembayaran SPP ${inv.period_label} — ${inv.student_name} (${inv.class_name}) [${uniq}]`,
+    amount: safeAmount,
+    description: `Pembayaran SPP ${inv.period_label} — ${inv.student_name} (${inv.class_name}) — Total Rp ${safeAmount.toLocaleString("id-ID")} [${uniq}]`,
     email: "spp@atskolla.com",
     mobile: (inv.parent_phone || "08000000000").replace(/\D/g, ""),
     redirectUrl: "https://atskolla.com/parent",
