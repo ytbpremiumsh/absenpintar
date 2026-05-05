@@ -29,7 +29,7 @@ const groups: { label: string; items: { title: string; url: string; icon: any; e
     items: [
       { title: "Generate Tagihan", url: "/bendahara/generate", icon: FileText },
       { title: "Pembayaran SPP", url: "/bendahara/transaksi", icon: CreditCard },
-      { title: "Import / Export", url: "/bendahara/import-export", icon: Upload },
+      { title: "Import Tagihan", url: "/bendahara/import-export", icon: Upload },
     ],
   },
   {
@@ -37,7 +37,7 @@ const groups: { label: string; items: { title: string; url: string; icon: any; e
     items: [
       { title: "Saldo & Ledger", url: "/bendahara/saldo", icon: Wallet },
       { title: "Pencairan & Settlement", url: "/bendahara/pencairan", icon: ArrowDownToLine },
-      { title: "Laporan", url: "/bendahara/laporan", icon: BarChart3 },
+      { title: "Laporan & Export", url: "/bendahara/laporan", icon: BarChart3 },
     ],
   },
 ];

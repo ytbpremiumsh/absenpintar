@@ -1987,7 +1987,7 @@ export function BendaharaImportExport() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon={ArrowDownToLine} title="Import & Export SPP" subtitle="Format nasional — sistematis per kelas, mendukung Excel, CSV, dan PDF" />
+      <PageHeader icon={Upload} title="Import Tagihan SPP" subtitle="Unggah tagihan massal dari Excel/CSV. Untuk export laporan, buka menu Laporan & Export." />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1996,57 +1996,6 @@ export function BendaharaImportExport() {
         <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Belum Bayar</p><p className="text-xl font-bold mt-0.5 text-amber-600">{expCount.unpaid}</p></div><div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center"><AlertCircle className="h-4 w-4 text-amber-600" /></div></div></CardContent></Card>
         <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Nominal</p><p className="text-base font-bold mt-0.5">{fmtIDR(expCount.sum)}</p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><Banknote className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
       </div>
-
-      {/* Export */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Download className="h-4 w-4 text-[#5B6CF9]" /> Export Data</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div>
-              <Label className="text-xs">Tahun Ajaran</Label>
-              <Select value={expAY} onValueChange={setExpAY}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua TA</SelectItem>
-                  {academicYearList(new Date().getFullYear()).map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Kelas</Label>
-              <Select value={expClass} onValueChange={setExpClass}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kelas (per-sheet)</SelectItem>
-                  {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Status</Label>
-              <Select value={expStatus} onValueChange={setExpStatus}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="paid">Lunas</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="unpaid">Belum Bayar</SelectItem>
-                  <SelectItem value="expired">Kadaluarsa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
-            <strong className="text-foreground">Format Nasional:</strong> kolom No, No. Invoice, NIS, Nama, Kelas, Tahun Ajaran, Periode, Wali, Nominal, Denda, Total, Jatuh Tempo, Status, Tgl Bayar.
-            Saat memilih "Semua Kelas", Excel akan dipisah <strong>per-sheet kelas</strong> + sheet Ringkasan.
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => exportData("xlsx")} className="bg-[#5B6CF9] hover:bg-[#4c5ded]"><Download className="h-4 w-4 mr-2" /> Excel (per kelas)</Button>
-            <Button onClick={() => exportData("csv")} variant="outline"><Download className="h-4 w-4 mr-2" /> CSV</Button>
-            <Button onClick={() => exportData("pdf")} variant="outline"><Download className="h-4 w-4 mr-2" /> PDF Laporan</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Import */}
       <Card className="border-0 shadow-sm">
