@@ -239,7 +239,7 @@ export function BendaharaDashboard() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
             <div><p className="text-[11px] text-muted-foreground">Pendapatan Net</p><p className="font-bold text-emerald-600">{fmtIDR(stats.totalNet)}</p></div>
-            <div><p className="text-[11px] text-muted-foreground">Fee Gateway</p><p className="font-bold">{fmtIDR(stats.totalFee)}</p></div>
+            <div><p className="text-[11px] text-muted-foreground">Biaya Layanan</p><p className="font-bold">{fmtIDR(stats.totalFee)}</p></div>
             <div><p className="text-[11px] text-muted-foreground">Fee Pencairan</p><p className="font-bold">{fmtIDR(stats.settleFee)}</p></div>
             <div><p className="text-[11px] text-muted-foreground">Saldo Pending</p><p className="font-bold text-amber-600">{fmtIDR(stats.pendingBalance)}</p></div>
             <div><p className="text-[11px] text-muted-foreground">Sudah Dicairkan</p><p className="font-bold">{fmtIDR(stats.settled)}</p></div>
@@ -2197,36 +2197,31 @@ export function BendaharaSaldo() {
         <StatCard label="Total Fee Dibebankan" value={fmtIDR(totals.fee)} sub="lihat rincian" icon={Banknote} gradient="from-slate-500 to-slate-700" />
       </div>
 
-      {/* Detail Fee Gateway - Transparan per komponen */}
+      {/* Rincian Biaya Layanan - Transparan per komponen */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Banknote className="h-4 w-4 text-slate-600" /> Rincian Fee (Transparan)
+            <Banknote className="h-4 w-4 text-slate-600" /> Rincian Biaya (Transparan)
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Fee dipecah per komponen agar mudah dibaca. Bukan satu nilai besar.
+            Biaya dipecah per komponen agar mudah dibaca. Bukan satu nilai besar.
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/30 p-3">
-              <p className="text-[11px] text-muted-foreground">Fee Persen Gateway</p>
+              <p className="text-[11px] text-muted-foreground">Biaya Layanan</p>
               <p className="text-xs text-muted-foreground mt-0.5">{feeCfg.percent}% × bruto</p>
               <p className="text-lg font-bold text-slate-700 dark:text-slate-200 mt-1">{fmtIDR(feePercentTotal)}</p>
             </div>
-            <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/30 p-3">
-              <p className="text-[11px] text-muted-foreground">Fee Flat per Transaksi</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Rp {feeCfg.flat.toLocaleString("id-ID")} × {txCount} trx</p>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-200 mt-1">{fmtIDR(feeFlatTotal)}</p>
-            </div>
             <div className="rounded-lg border bg-violet-50 dark:bg-violet-950/30 p-3">
-              <p className="text-[11px] text-muted-foreground">Fee Pencairan</p>
+              <p className="text-[11px] text-muted-foreground">Biaya Pencairan</p>
               <p className="text-xs text-muted-foreground mt-0.5">Rp 3.000 × {settlements.filter(s => s.status === "paid").length} pencairan cair</p>
               <p className="text-lg font-bold text-violet-700 dark:text-violet-300 mt-1">{fmtIDR(settledFeePencairan)}</p>
             </div>
           </div>
           <div className="text-[11px] text-muted-foreground bg-muted/40 rounded p-2">
-            Tarif fee bersifat dinamis dan dikelola Super Admin. Komponen di atas dihitung dari konfigurasi terbaru ({feeCfg.percent}% + Rp {feeCfg.flat.toLocaleString("id-ID")} per transaksi).
+            Komponen di atas dihitung dari tarif terbaru ({feeCfg.percent}%).
           </div>
         </CardContent>
       </Card>
@@ -2244,24 +2239,21 @@ export function BendaharaSaldo() {
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Deskripsi</TableHead>
                   <TableHead className="text-right">Bruto</TableHead>
-                  <TableHead className="text-right">Fee {feeCfg.percent}%</TableHead>
-                  <TableHead className="text-right">Fee Flat</TableHead>
+                  <TableHead className="text-right">Biaya Layanan ({feeCfg.percent}%)</TableHead>
                   <TableHead className="text-right">Net</TableHead>
                   <TableHead>Status Cair</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Belum ada transaksi paid</TableCell></TableRow>}
+                {items.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Belum ada transaksi paid</TableCell></TableRow>}
                 {items.map(i => {
-                  const feePct = Math.round((i.total_amount || 0) * (feeCfg.percent / 100));
-                  const feeFl = feeCfg.flat;
+                  const feePct = (i.gateway_fee != null) ? i.gateway_fee : Math.round((i.total_amount || 0) * (feeCfg.percent / 100));
                   return (
                     <TableRow key={i.id}>
                       <TableCell className="text-xs">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
                       <TableCell className="text-xs">{i.description}</TableCell>
                       <TableCell className="text-sm text-right">{fmtIDR(i.total_amount)}</TableCell>
                       <TableCell className="text-xs text-right text-muted-foreground">{fmtIDR(feePct)}</TableCell>
-                      <TableCell className="text-xs text-right text-muted-foreground">{fmtIDR(feeFl)}</TableCell>
                       <TableCell className="text-sm text-right font-semibold text-emerald-600">{fmtIDR(i.net_amount)}</TableCell>
                       <TableCell>
                         {i.settlement_id
@@ -2365,9 +2357,9 @@ export function BendaharaPencairan() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                 <div><p className="text-xs text-muted-foreground">Total Transaksi</p><p className="font-bold">{available.count}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total Bruto</p><p className="font-bold">{fmtIDR(available.gross)}</p></div>
-                <div><p className="text-xs text-muted-foreground">Fee Gateway</p><p className="font-bold">{fmtIDR(available.fee)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Biaya Layanan</p><p className="font-bold">{fmtIDR(available.fee)}</p></div>
                 <div><p className="text-xs text-muted-foreground">Total Net</p><p className="font-bold">{fmtIDR(available.net)}</p></div>
-                <div><p className="text-xs text-muted-foreground">Fee Pencairan</p><p className="font-bold">- {fmtIDR(3000)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Biaya Pencairan</p><p className="font-bold">- {fmtIDR(3000)}</p></div>
                 <div className="border-t md:border-t-0 md:border-l pt-2 md:pt-0 md:pl-3">
                   <p className="text-xs text-muted-foreground">Final Payout</p>
                   <p className="text-xl font-extrabold text-emerald-600">{fmtIDR(finalPayout)}</p>
@@ -2385,7 +2377,7 @@ export function BendaharaPencairan() {
             <CardContent className="p-0">
               {loadingHistory ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
                 <Table>
-                  <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Fee Gw</TableHead><TableHead>Fee Pcr</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Biaya Layanan</TableHead><TableHead>Biaya Pencairan</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {history.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Belum ada settlement</TableCell></TableRow>}
                     {history.map(s => (
