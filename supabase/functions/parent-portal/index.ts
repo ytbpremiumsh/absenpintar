@@ -441,7 +441,7 @@ Deno.serve(async (req) => {
     if (action === "spp_list") {
       const { data } = await supabase
         .from("spp_invoices")
-        .select("id, school_id, invoice_number, period_month, period_year, period_label, total_amount, amount, denda, due_date, status, payment_url, paid_at, payment_method, expired_at, mayar_invoice_id")
+        .select("id, school_id, invoice_number, period_month, period_year, period_label, total_amount, amount, denda, due_date, status, payment_url, paid_at, payment_method, expired_at, mayar_invoice_id, student_name, class_name, parent_name, parent_phone")
         .eq("student_id", studentId)
         .order("period_year", { ascending: false })
         .order("period_month", { ascending: false });
