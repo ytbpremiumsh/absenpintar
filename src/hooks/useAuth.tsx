@@ -37,7 +37,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Safety timeout: never let the app stay in "loading" forever.
+    const safety = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 4000);
+
+    const handleSession = (session: any) => {
+      if (!mounted) return;
+      if (session?.user) {
+        setUser(session.user);
+        // Fire-and-forget — never block the loading flag on network.
+        // Layout guards re-render once roles arrive.
+        fetchUserData(session.user.id).finally(() => {
+          if (mounted) setLoading(false);
+        });
+      } else {
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+        setLoading(false);
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       if (event === 'TOKEN_REFRESHED' && !session) {
         setUser(null);
@@ -46,38 +68,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         return;
       }
-      if (session?.user) {
-        setUser(session.user);
-        // Wait for profile + roles BEFORE flipping loading to false,
-        // so guards (e.g. BendaharaLayout) don't see empty roles and redirect.
-        await fetchUserData(session.user.id);
-      } else {
-        setUser(null);
-        setProfile(null);
-        setRoles([]);
-      }
-      if (mounted) setLoading(false);
+      // IMPORTANT: do NOT await inside this callback (Supabase deadlock pattern).
+      handleSession(session);
     });
 
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!mounted) return;
-      if (error || !session?.user) {
-        if (error) {
-          console.warn("Session restore failed, clearing state:", error.message);
-          supabase.auth.signOut().catch(() => {});
-        }
+      if (error) {
+        console.warn("Session restore failed, clearing state:", error.message);
+        supabase.auth.signOut().catch(() => {});
         setUser(null);
         setProfile(null);
         setRoles([]);
-      } else {
-        setUser(session.user);
-        await fetchUserData(session.user.id);
+        setLoading(false);
+        return;
       }
+      handleSession(session);
+    }).catch(() => {
       if (mounted) setLoading(false);
     });
 
     return () => {
       mounted = false;
+      clearTimeout(safety);
       subscription.unsubscribe();
     };
   }, []);
