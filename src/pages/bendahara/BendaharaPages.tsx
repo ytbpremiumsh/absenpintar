@@ -230,8 +230,8 @@ export function BendaharaDashboard() {
       {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Pembayaran Bulanan */}
-        <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-sky-900/5 ring-1 ring-sky-100 dark:ring-sky-900/30">
-          <div className="bg-gradient-to-r from-sky-600 via-blue-500 to-cyan-500 px-5 py-3.5 flex items-center justify-between">
+        <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-indigo-900/5 ring-1 ring-indigo-100 dark:ring-indigo-900/30">
+          <div className="bg-gradient-to-r from-indigo-600 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
                 <TrendingUp className="h-4 w-4 text-white" />
@@ -243,20 +243,20 @@ export function BendaharaDashboard() {
             </div>
             <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20 text-[10px]">Total {fmtIDR(stats.totalGross)}</Badge>
           </div>
-          <div className="p-4 bg-gradient-to-b from-sky-50/40 to-transparent dark:from-sky-950/10">
+          <div className="p-4 bg-gradient-to-b from-indigo-50/40 to-transparent dark:from-indigo-950/10">
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={monthlyChart}>
                 <defs>
                   <linearGradient id="lineSky" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(199 89% 48%)" />
-                    <stop offset="100%" stopColor="hsl(217 91% 60%)" />
+                    <stop offset="0%" stopColor="hsl(243 75% 59%)" />
+                    <stop offset="100%" stopColor="hsl(262 83% 58%)" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v/1000000).toFixed(1)}jt`} />
-                <Tooltip formatter={(v: any) => fmtIDR(v)} contentStyle={{ borderRadius: 12, border: "1px solid hsl(199 60% 85%)" }} />
-                <Line type="monotone" dataKey="value" stroke="url(#lineSky)" strokeWidth={3} dot={{ r: 4, fill: "hsl(199 89% 48%)" }} activeDot={{ r: 6 }} />
+                <Tooltip formatter={(v: any) => fmtIDR(v)} contentStyle={{ borderRadius: 12, border: "1px solid hsl(243 60% 88%)" }} />
+                <Line type="monotone" dataKey="value" stroke="url(#lineSky)" strokeWidth={3} dot={{ r: 4, fill: "hsl(243 75% 59%)" }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
