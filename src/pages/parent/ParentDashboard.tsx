@@ -163,7 +163,7 @@ export default function ParentDashboard() {
     const d = await invoke("spp_pay", { student_id: selectedStudent, invoice_id: invoiceId });
     setSppBusy(null);
     if (d?.error) { toast.error(d.error); return; }
-    if (d?.payment_url) { setPaymentIframe(d.payment_url); toast.success("Membuka halaman pembayaran..."); }
+    if (d?.payment_url) { setPayingInvoiceId(invoiceId); setPaymentIframe(d.payment_url); toast.success("Membuka halaman pembayaran..."); }
   };
 
   const downloadSppPdf = async (inv: any) => {
