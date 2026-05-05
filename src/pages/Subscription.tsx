@@ -40,6 +40,7 @@ const Subscription = () => {
   const [currentSub, setCurrentSub] = useState<any>(null);
   const [currentPlan, setCurrentPlan] = useState<any>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const [usage, setUsage] = useState<UsageStats>({ classCount: 0, studentCount: 0, maxClasses: 2, maxStudentsPerClass: 10, maxStudentsTotal: 20 });
   const [subscriptionHistory, setSubscriptionHistory] = useState<any[]>([]);
@@ -199,8 +200,8 @@ const Subscription = () => {
         toast.success("Paket berhasil diaktifkan!");
         window.location.reload();
       } else if (result?.payment_url) {
-        toast.success("Membuka halaman pembayaran Mayar...");
-        window.open(result.payment_url, "_blank");
+        toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentIframe(result.payment_url);
       } else {
         toast.error("Gagal mendapatkan link pembayaran");
       }
