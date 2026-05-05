@@ -232,6 +232,45 @@ export type Database = {
           },
         ]
       }
+      bendahara_bank_accounts: {
+        Row: {
+          account_holder: string
+          account_number: string
+          bank_name: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_default: boolean
+          notes: string | null
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder: string
+          account_number: string
+          bank_name: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string
+          account_number?: string
+          bank_name?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bendahara_settings: {
         Row: {
           api_key: string | null
