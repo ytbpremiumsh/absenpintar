@@ -336,7 +336,7 @@ export function BendaharaDashboard() {
                       <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-[11px] font-bold">
+                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-rose-400 to-red-600 text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
                             {(t.student_name || "?")[0]}
                           </div>
                           <span>{t.student_name}</span>
@@ -489,35 +489,50 @@ export function BendaharaSiswa() {
                     <span className="font-semibold text-sm text-foreground">Kelas {cls}</span>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{list.length} siswa</p>
                   </div>
-                  <div className="hidden sm:flex items-center gap-1.5">
-                    <span className="status-pill status-pill-paid"><span className="dot" />Lunas {lunas}</span>
-                    <span className="status-pill status-pill-unpaid"><span className="dot" />Nunggak {nunggak}</span>
+                  <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold">
+                    <span className="inline-flex items-center gap-1.5 text-emerald-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Lunas {lunas}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-rose-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                      Nunggak {nunggak}
+                    </span>
                   </div>
-                  <div className="flex sm:hidden items-center gap-1">
-                    <span className="status-pill status-pill-paid !px-2 !py-0"><span className="dot" />{lunas}</span>
-                    <span className="status-pill status-pill-unpaid !px-2 !py-0"><span className="dot" />{nunggak}</span>
+                  <div className="flex sm:hidden items-center gap-2 text-[11px] font-semibold">
+                    <span className="inline-flex items-center gap-1 text-emerald-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />{lunas}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-rose-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />{nunggak}
+                    </span>
                   </div>
                 </button>
                 {isOpen && (
                   <div className="border-t border-border/50 p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {list.map(s => (
+                    {list.map(s => {
+                      const isLunas = s.tunggakan === 0 && s.paid > 0;
+                      const isNunggak = s.tunggakan > 0;
+                      const accent = isNunggak
+                        ? "hover:border-red-300 hover:shadow-red-500/20 hover:bg-red-50/40 dark:hover:bg-red-500/5"
+                        : isLunas
+                          ? "hover:border-emerald-300 hover:shadow-emerald-500/20 hover:bg-emerald-50/40 dark:hover:bg-emerald-500/5"
+                          : "hover:border-slate-300 hover:shadow-slate-500/10";
+                      const cornerColor = isNunggak ? "bg-red-500/5 group-hover:bg-red-500/15" : isLunas ? "bg-emerald-500/5 group-hover:bg-emerald-500/15" : "bg-slate-500/5 group-hover:bg-slate-500/10";
+                      return (
                       <Card key={s.id}
                         onClick={() => navigate(`/bendahara/transaksi/${s.id}`)}
-                        className="border border-border/50 shadow-sm hover:shadow-md hover:border-[#5B6CF9]/40 transition-all cursor-pointer overflow-hidden">
-                        <CardContent className="p-3.5 space-y-2.5">
+                        className={`group relative border border-border/50 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden ${accent}`}>
+                        <div className={`absolute top-0 right-0 w-16 h-16 rounded-bl-[2.5rem] transition-all duration-500 group-hover:w-24 group-hover:h-24 ${cornerColor}`} />
+                        <CardContent className="relative p-3.5 space-y-2.5">
                           <div className="flex items-start gap-2.5">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-rose-400 to-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
                               {s.name[0]?.toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-sm text-foreground truncate hover:underline">{s.name}</p>
                               <p className="text-[10px] text-muted-foreground font-mono">NIS {s.student_id}</p>
                             </div>
-                            {s.tunggakan > 0
-                              ? <span className="status-pill status-pill-unpaid"><span className="dot" />Nunggak</span>
-                              : s.paid > 0
-                                ? <span className="status-pill status-pill-paid"><span className="dot" />Lunas</span>
-                                : <span className="status-pill status-pill-neutral"><span className="dot" />Belum</span>}
                           </div>
                           {s.parent_name && (
                             <p className="text-[11px] text-muted-foreground truncate">
@@ -527,8 +542,8 @@ export function BendaharaSiswa() {
                           <div className="flex items-center justify-between pt-1 border-t border-border/40">
                             <div>
                               <p className="text-[10px] text-muted-foreground">Tunggakan</p>
-                              <p className={`text-sm font-bold ${s.tunggakan > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                                {s.tunggakan > 0 ? fmtIDR(s.tunggakan) : "Lunas"}
+                              <p className={`text-sm font-bold ${isNunggak ? "text-red-600" : "text-emerald-600"}`}>
+                                {isNunggak ? fmtIDR(s.tunggakan) : "Lunas"}
                               </p>
                             </div>
                             <Button size="sm" className="h-7 px-2.5 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white text-xs shadow-sm">
@@ -537,7 +552,8 @@ export function BendaharaSiswa() {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </Card>
