@@ -2245,9 +2245,15 @@ export function BendaharaSaldo() {
   const [settlements, setSettlements] = useState<any[]>([]);
   const [feeCfg, setFeeCfg] = useState({ percent: 0.7, flat: 500 });
   const [loading, setLoading] = useState(true);
+  const syncingRef = useRef(false);
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (syncGateway = false) => {
     if (!profile?.school_id) { setLoading(false); return; }
+    if (syncGateway && !syncingRef.current) {
+      syncingRef.current = true;
+      await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
+      syncingRef.current = false;
+    }
     const [invRes, stlRes, psRes] = await Promise.all([
       supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").order("paid_at", { ascending: false }),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
@@ -2263,7 +2269,7 @@ export function BendaharaSaldo() {
     setLoading(false);
   }, [profile?.school_id]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { fetchAll(true); }, [fetchAll]);
 
   // Realtime: refresh saat ada perubahan invoice/settlement
   useEffect(() => {
