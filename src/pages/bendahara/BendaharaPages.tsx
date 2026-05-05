@@ -526,9 +526,16 @@ export function BendaharaSiswa() {
                         <div className={`absolute top-0 right-0 w-16 h-16 rounded-bl-[2.5rem] transition-all duration-500 group-hover:w-24 group-hover:h-24 ${cornerColor}`} />
                         <CardContent className="relative p-3.5 space-y-2.5">
                           <div className="flex items-start gap-2.5">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-rose-400 to-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
-                              {s.name[0]?.toUpperCase()}
-                            </div>
+                            {(() => {
+                              const g = (s.gender || "").toString().toUpperCase();
+                              const isFemale = g === "P" || g === "F" || g.startsWith("PEREMPUAN") || g.startsWith("FEMALE");
+                              const ag = isFemale ? "from-rose-400 to-red-600" : "from-[#5B6CF9] via-indigo-500 to-violet-600";
+                              return (
+                                <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${ag} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm`}>
+                                  {s.name[0]?.toUpperCase()}
+                                </div>
+                              );
+                            })()}
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-sm text-foreground truncate hover:underline">{s.name}</p>
                               <p className="text-[10px] text-muted-foreground font-mono">NIS {s.student_id}</p>
