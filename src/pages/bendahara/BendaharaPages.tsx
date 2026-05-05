@@ -2742,60 +2742,82 @@ export function BendaharaLaporan() {
           </Card>
         </TabsContent>
 
-        {/* TAB 2 — STATISTIK PER KELAS */}
+        {/* TAB 2 — STATISTIK PER KELAS (CARD) */}
         <TabsContent value="kelas" className="mt-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Rekap per Kelas — {year}</CardTitle>
-              <p className="text-xs text-muted-foreground">Total tagihan, lunas, dan persentase pelunasan tiap kelas.</p>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40">
-                      <TableHead className="font-bold">Kelas</TableHead>
-                      <TableHead className="text-center font-bold">Jumlah Tagihan</TableHead>
-                      <TableHead className="text-center font-bold">Lunas</TableHead>
-                      <TableHead className="text-center font-bold">Belum</TableHead>
-                      <TableHead className="text-right font-bold">Total Tagihan</TableHead>
-                      <TableHead className="text-right font-bold">Total Lunas</TableHead>
-                      <TableHead className="text-center font-bold">% Pelunasan</TableHead>
-                      <TableHead className="w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {perClassRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground text-sm">Belum ada data tagihan untuk {year}</TableCell></TableRow>
-                    ) : perClassRows.map(r => {
-                      const pct = r.totalTagihan > 0 ? Math.round((r.totalBayar / r.totalTagihan) * 100) : 0;
-                      return (
-                        <TableRow
-                          key={r.cls}
-                          className="hover:bg-[#5B6CF9]/5 cursor-pointer transition-colors"
-                          onClick={() => { setOpenClass(r.cls); setDetailMonth(0); setDetailStatus("all"); }}
-                        >
-                          <TableCell className="font-semibold text-sm text-[#5B6CF9]">{r.cls}</TableCell>
-                          <TableCell className="text-center text-sm">{r.totalCount}</TableCell>
-                          <TableCell className="text-center text-sm text-emerald-600 font-semibold">{r.paidCount}</TableCell>
-                          <TableCell className="text-center text-sm text-amber-600 font-semibold">{r.totalCount - r.paidCount}</TableCell>
-                          <TableCell className="text-right text-sm">{fmtIDR(r.totalTagihan)}</TableCell>
-                          <TableCell className="text-right text-sm text-emerald-600 font-semibold">{fmtIDR(r.totalBayar)}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge className={pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-500" : "bg-rose-500"}>{pct}%</Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground"><ChevronRight className="h-4 w-4" /></TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="px-4 py-2.5 border-t bg-muted/20 text-[11px] text-muted-foreground">
-                Klik baris kelas untuk melihat detail siswa & rincian per bulan.
-              </div>
-            </CardContent>
-          </Card>
+          {perClassRows.length === 0 ? (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                Belum ada data tagihan untuk {year}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {perClassRows.map(r => {
+                const pct = r.totalTagihan > 0 ? Math.round((r.totalBayar / r.totalTagihan) * 100) : 0;
+                const sisaTotal = Math.max(0, r.totalTagihan - r.totalBayar);
+                const belum = r.totalCount - r.paidCount;
+                return (
+                  <button
+                    key={r.cls}
+                    onClick={() => { setOpenClass(r.cls); setDetailMonth(0); setDetailStatus("all"); }}
+                    className="text-left rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+                  >
+                    {/* Header gradient seperti card SPP */}
+                    <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white">
+                      <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
+                      <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/10 blur-xl" />
+                      <div className="relative z-10 flex items-center gap-3 px-4 py-3">
+                        <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 flex items-center justify-center shrink-0 shadow-md">
+                          <Users className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-[15px] text-white truncate">Kelas {r.cls}</span>
+                            <span className="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded-full border border-white/20">{r.totalCount} tagihan</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <span className="text-[10px] font-semibold bg-emerald-600/80 px-2 py-0.5 rounded-full">{r.paidCount} Lunas</span>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${belum > 0 ? "bg-rose-500/90" : "bg-white/20"}`}>{belum} Belum</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-[10px] uppercase tracking-wide text-white/80">Pelunasan</div>
+                          <div className="text-xl font-extrabold leading-none">{pct}%</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Body — netral, profesional */}
+                    <div className="p-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[11px] text-muted-foreground">Total Tagihan</p>
+                          <p className="text-sm font-bold text-foreground">{fmtIDR(r.totalTagihan)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-muted-foreground">Sudah Lunas</p>
+                          <p className="text-sm font-bold text-foreground">{fmtIDR(r.totalBayar)}</p>
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="space-y-1">
+                        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all"
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                          <span>Sisa: <span className="font-semibold text-foreground">{fmtIDR(sisaTotal)}</span></span>
+                          <span className="inline-flex items-center gap-1 text-[#5B6CF9] font-medium">Lihat detail <ChevronRight className="h-3 w-3" /></span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
         {/* TAB 5 — EXPORT DATA */}
         <TabsContent value="export" className="mt-4">
