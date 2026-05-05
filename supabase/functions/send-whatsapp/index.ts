@@ -276,7 +276,7 @@ serve(async (req) => {
       if (phone) {
         const formattedPhone = formatPhoneNumber(phone);
         const result = buttonSpec
-          ? await sendMpwaButton(finalApiKey, mpwaSenderNum, formattedPhone, message, buttonSpec.buttons, buttonSpec.footer)
+          ? await sendMpwaButton(finalApiKey, mpwaSenderNum, formattedPhone, message, buttonSpec.buttons, buttonSpec.footer, buttonSpec.imageUrl)
           : await sendMpwaMessage(finalApiKey, mpwaSenderNum, formattedPhone, message);
         // Fallback to plain text if button send fails
         if (!result.ok && buttonSpec) {
