@@ -2634,14 +2634,45 @@ export function BendaharaPencairan() {
               Mohon cek kembali — pastikan nomor rekening sudah benar. Pencairan ke rekening salah tidak dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3 pt-2 max-h-[70vh] overflow-y-auto">
+            {/* Rekening Tujuan */}
             <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-2">
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-amber-700 dark:text-amber-400">Rekening Tujuan</p>
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Bank</span><span className="font-bold">{bank.bank_name}</span></div>
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">No. Rekening</span><span className="font-mono font-bold tracking-wider">{bank.account_number}</span></div>
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Atas Nama</span><span className="font-bold">{bank.account_holder}</span></div>
-              <div className="border-t pt-2 flex justify-between text-sm"><span className="text-muted-foreground">Final Payout</span><span className="font-extrabold text-emerald-600">{fmtIDR(finalPayout)}</span></div>
             </div>
-            <p className="text-xs text-center text-muted-foreground">Apakah nomor rekening di atas sudah benar dan sesuai?</p>
+
+            {/* Rincian Perhitungan */}
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 space-y-2">
+              <p className="text-[11px] uppercase tracking-wider font-semibold text-emerald-700 dark:text-emerald-400">Rincian Perhitungan</p>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Tagihan Lunas</span>
+                <span className="font-semibold">{available.count} transaksi</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Bruto (dari siswa)</span>
+                <span className="font-bold">{fmtIDR(available.gross)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-rose-600 dark:text-rose-400">
+                <span>(−) Biaya Layanan Gateway</span>
+                <span className="font-semibold">−{fmtIDR(available.fee)}</span>
+              </div>
+              <div className="border-t border-emerald-300 dark:border-emerald-700 pt-2 flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal Bersih</span>
+                <span className="font-bold">{fmtIDR(available.net)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-rose-600 dark:text-rose-400">
+                <span>(−) Biaya Pencairan</span>
+                <span className="font-semibold">−{fmtIDR(3000)}</span>
+              </div>
+              <div className="border-t-2 border-emerald-400 dark:border-emerald-600 pt-2 flex justify-between items-center">
+                <span className="text-sm font-semibold">Diterima di Rekening</span>
+                <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{fmtIDR(finalPayout)}</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-center text-muted-foreground">Pastikan nomor rekening &amp; rincian sudah benar. Pencairan tidak dapat dibatalkan.</p>
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" onClick={() => { setConfirmOpen(false); setBankManageOpen(true); }} disabled={submitting}>
                 Periksa / Ubah
