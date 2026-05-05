@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Sparkles, Loader2, Copy, Facebook, Instagram, Twitter, MessageCircle, Linkedin, Music2, FileText, Wand2 } from "lucide-react";
+import {
+  Sparkles, Loader2, Copy, Facebook, Instagram, Twitter, MessageCircle, Linkedin,
+  Music2, FileText, Wand2, Bold, Italic, Underline, Strikethrough, RefreshCw,
+  Type, ListOrdered, Quote, ArrowRight,
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 
 const SAMPLE_FB = `🚀 Sekolah Anda masih repot dengan absensi manual? Saatnya naik level dengan ATSkolla — sistem absensi sekolah cerdas berbasis AI & QR Code.
@@ -57,30 +62,81 @@ const TOPIC_PRESETS = [
   "Keunggulan absensi via Face Recognition untuk SMA/SMK",
   "Manfaat notifikasi WhatsApp otomatis untuk orang tua",
   "Promo Trial Premium 7 hari gratis",
-  "Solusi Wali Kelas: kelola kehadiran kelas lebih mudah",
-  "Pembayaran SPP online tanpa antre",
-  "Studi kasus sekolah yang sukses pakai ATSkolla",
-  "Cara migrasi dari sistem absensi lama ke ATSkolla",
 ];
 
+const REWRITE_STYLES = [
+  { v: "improve", label: "Tingkatkan Kualitas" },
+  { v: "shorter", label: "Lebih Singkat" },
+  { v: "longer", label: "Lebih Panjang" },
+  { v: "professional", label: "Lebih Profesional" },
+  { v: "casual", label: "Lebih Santai" },
+  { v: "persuasive", label: "Lebih Persuasif" },
+  { v: "engaging", label: "Lebih Engaging" },
+  { v: "fix_grammar", label: "Perbaiki Tata Bahasa" },
+  { v: "seo", label: "Optimasi SEO" },
+  { v: "translate_en", label: "Terjemahkan ke Inggris" },
+  { v: "translate_id", label: "Terjemahkan ke Indonesia" },
+  { v: "custom", label: "Custom (instruksi sendiri)" },
+];
+
+// ===== Unicode text styling helpers (works on FB / IG / WA) =====
+const boldMap = (c: string) => {
+  const code = c.codePointAt(0)!;
+  if (code >= 65 && code <= 90) return String.fromCodePoint(0x1d400 + code - 65);
+  if (code >= 97 && code <= 122) return String.fromCodePoint(0x1d41a + code - 97);
+  if (code >= 48 && code <= 57) return String.fromCodePoint(0x1d7ce + code - 48);
+  return c;
+};
+const italicMap = (c: string) => {
+  const code = c.codePointAt(0)!;
+  if (code === 104) return "\u210e"; // h italic
+  if (code >= 65 && code <= 90) return String.fromCodePoint(0x1d434 + code - 65);
+  if (code >= 97 && code <= 122) return String.fromCodePoint(0x1d44e + code - 97);
+  return c;
+};
+const boldItalicMap = (c: string) => {
+  const code = c.codePointAt(0)!;
+  if (code >= 65 && code <= 90) return String.fromCodePoint(0x1d468 + code - 65);
+  if (code >= 97 && code <= 122) return String.fromCodePoint(0x1d482 + code - 97);
+  return c;
+};
+const transform = (text: string, fn: (c: string) => string) =>
+  Array.from(text).map(fn).join("");
+const underlineText = (text: string) => Array.from(text).map(c => c + "\u0332").join("");
+const strikeText = (text: string) => Array.from(text).map(c => c + "\u0336").join("");
+
+type FormatType = "bold" | "italic" | "bolditalic" | "underline" | "strike" | "bullet" | "number" | "quote" | "uppercase" | "arrow";
+
 export default function SuperAdminAutoCaption() {
-  const [platform, setPlatform] = useState<string>("facebook");
-  const [tone, setTone] = useState<string>("persuasif");
-  const [length, setLength] = useState<string>("sedang");
+  const [tab, setTab] = useState<"generate" | "rewrite">("generate");
+
+  // Generate state
+  const [platform, setPlatform] = useState("facebook");
+  const [tone, setTone] = useState("persuasif");
+  const [length, setLength] = useState("sedang");
   const [topic, setTopic] = useState("");
   const [audience, setAudience] = useState("Kepala sekolah & yayasan SMA/SMK di Indonesia");
   const [cta, setCta] = useState("Daftar gratis di absenpintar.online");
   const [variants, setVariants] = useState(2);
   const [emoji, setEmoji] = useState(true);
   const [hashtags, setHashtags] = useState(true);
+
+  // Rewrite state
+  const [sourceText, setSourceText] = useState("");
+  const [rewriteStyle, setRewriteStyle] = useState("improve");
+  const [customInstruction, setCustomInstruction] = useState("");
+  const [rewriteVariants, setRewriteVariants] = useState(1);
+
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<string[]>([SAMPLE_FB]);
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
   const generate = async () => {
     if (!topic.trim()) return toast.error("Isi topik konten dulu");
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("auto-caption", {
-      body: { platform, tone, length, topic, audience, cta, variants, emoji, hashtags },
+      body: { mode: "generate", platform, tone, length, topic, audience, cta, variants, emoji, hashtags },
     });
     setLoading(false);
     if (error || !data?.success) {
@@ -91,117 +147,277 @@ export default function SuperAdminAutoCaption() {
     toast.success(`${data.variants.length} varian berhasil dibuat`);
   };
 
+  const rewrite = async () => {
+    if (!sourceText.trim()) return toast.error("Isi teks yang ingin direwrite");
+    if (rewriteStyle === "custom" && !customInstruction.trim())
+      return toast.error("Isi instruksi custom-nya");
+    setLoading(true);
+    const { data, error } = await supabase.functions.invoke("auto-caption", {
+      body: {
+        mode: "rewrite",
+        source_text: sourceText,
+        rewrite_style: rewriteStyle,
+        custom_instruction: customInstruction,
+        variants: rewriteVariants,
+        platform,
+      },
+    });
+    setLoading(false);
+    if (error || !data?.success) {
+      toast.error("Gagal: " + (data?.error || error?.message || "unknown"));
+      return;
+    }
+    setResults(data.variants);
+    toast.success(`Rewrite selesai (${data.variants.length} versi)`);
+  };
+
   const copy = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Caption disalin ke clipboard");
+    toast.success("Disalin ke clipboard — siap di-paste ke FB/IG/WA");
+  };
+
+  // Apply formatting to selected text in textarea
+  const applyFormat = (idx: number, type: FormatType) => {
+    const ta = textareaRefs.current[idx];
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const original = results[idx];
+    if (start === end) {
+      toast.error("Pilih (highlight) teks dulu, lalu klik tombol format");
+      return;
+    }
+    const selected = original.slice(start, end);
+    let formatted = selected;
+    switch (type) {
+      case "bold": formatted = transform(selected, boldMap); break;
+      case "italic": formatted = transform(selected, italicMap); break;
+      case "bolditalic": formatted = transform(selected, boldItalicMap); break;
+      case "underline": formatted = underlineText(selected); break;
+      case "strike": formatted = strikeText(selected); break;
+      case "uppercase": formatted = selected.toUpperCase(); break;
+      case "bullet":
+        formatted = selected.split("\n").map(l => l.trim() ? "• " + l : l).join("\n");
+        break;
+      case "number":
+        formatted = selected.split("\n").map((l, i) => l.trim() ? `${i + 1}. ${l}` : l).join("\n");
+        break;
+      case "quote":
+        formatted = selected.split("\n").map(l => l.trim() ? "> " + l : l).join("\n");
+        break;
+      case "arrow":
+        formatted = selected.split("\n").map(l => l.trim() ? "👉 " + l : l).join("\n");
+        break;
+    }
+    const newText = original.slice(0, start) + formatted + original.slice(end);
+    const next = [...results];
+    next[idx] = newText;
+    setResults(next);
+    // restore focus & selection
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(start, start + formatted.length);
+    });
+  };
+
+  const updateText = (idx: number, val: string) => {
+    const next = [...results];
+    next[idx] = val;
+    setResults(next);
+  };
+
+  const sendToRewrite = (text: string) => {
+    setSourceText(text);
+    setTab("rewrite");
+    toast.info("Teks dipindahkan ke tab Rewrite");
   };
 
   const PlatformIcon = platforms.find(p => p.v === platform)?.icon || Facebook;
+
+  const FormatToolbar = ({ idx }: { idx: number }) => (
+    <div className="flex flex-wrap items-center gap-1 px-3 py-2 bg-muted/40 border-b border-border/60">
+      <span className="text-[10px] font-bold text-muted-foreground mr-1">FORMAT:</span>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Bold (Tebal)" onClick={() => applyFormat(idx, "bold")}>
+        <Bold className="h-3.5 w-3.5" />
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Italic (Miring)" onClick={() => applyFormat(idx, "italic")}>
+        <Italic className="h-3.5 w-3.5" />
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 px-1.5 text-[11px] font-bold italic" title="Bold Italic" onClick={() => applyFormat(idx, "bolditalic")}>
+        BI
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Underline (Garis bawah)" onClick={() => applyFormat(idx, "underline")}>
+        <Underline className="h-3.5 w-3.5" />
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Strikethrough (Coret)" onClick={() => applyFormat(idx, "strike")}>
+        <Strikethrough className="h-3.5 w-3.5" />
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="UPPERCASE" onClick={() => applyFormat(idx, "uppercase")}>
+        <Type className="h-3.5 w-3.5" />
+      </Button>
+      <div className="w-px h-5 bg-border mx-1" />
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Bullet list" onClick={() => applyFormat(idx, "bullet")}>
+        <span className="text-sm leading-none">•</span>
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Numbered list" onClick={() => applyFormat(idx, "number")}>
+        <ListOrdered className="h-3.5 w-3.5" />
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Quote" onClick={() => applyFormat(idx, "quote")}>
+        <Quote className="h-3.5 w-3.5" />
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Arrow CTA" onClick={() => applyFormat(idx, "arrow")}>
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Button>
+      <div className="ml-auto flex items-center gap-1">
+        <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={() => sendToRewrite(results[idx])}>
+          <RefreshCw className="h-3 w-3 mr-1" /> Rewrite
+        </Button>
+        <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={() => copy(results[idx])}>
+          <Copy className="h-3 w-3 mr-1" /> Salin
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
       <PageHeader
         icon={Wand2}
         title="Auto Caption AI"
-        subtitle="Generate konten marketing ATSkolla untuk Facebook, Instagram, TikTok, WhatsApp, dan lainnya."
+        subtitle="Generate konten ATSkolla, rewrite teks, dan format Bold/Italic/Underline siap paste ke Facebook/IG/WA."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Form */}
         <Card className="lg:col-span-2">
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> Pengaturan Konten
+              <Sparkles className="h-4 w-4 text-primary" /> Pengaturan
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <Label className="text-xs">Platform</Label>
-              <Select value={platform} onValueChange={setPlatform}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {platforms.map(p => (
-                    <SelectItem key={p.v} value={p.v}>
-                      <span className="flex items-center gap-2"><p.icon className="h-3.5 w-3.5" /> {p.label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <CardContent>
+            <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+              <TabsList className="grid grid-cols-2 w-full">
+                <TabsTrigger value="generate"><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Generate</TabsTrigger>
+                <TabsTrigger value="rewrite"><RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Rewrite</TabsTrigger>
+              </TabsList>
 
-            <div>
-              <Label className="text-xs">Topik Konten</Label>
-              <Textarea
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                rows={3}
-                placeholder="Misal: Perkenalan fitur Face Recognition AI untuk SMA"
-              />
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {TOPIC_PRESETS.slice(0, 4).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTopic(t)}
-                    className="text-[10px] px-2 py-1 rounded-full bg-muted hover:bg-primary/10 hover:text-primary transition border"
-                  >
-                    {t.length > 40 ? t.slice(0, 40) + "…" : t}
-                  </button>
-                ))}
-              </div>
-            </div>
+              {/* GENERATE */}
+              <TabsContent value="generate" className="space-y-3 mt-4">
+                <div>
+                  <Label className="text-xs">Platform</Label>
+                  <Select value={platform} onValueChange={setPlatform}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {platforms.map(p => (
+                        <SelectItem key={p.v} value={p.v}>
+                          <span className="flex items-center gap-2"><p.icon className="h-3.5 w-3.5" /> {p.label}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Topik Konten</Label>
+                  <Textarea value={topic} onChange={(e) => setTopic(e.target.value)} rows={3} placeholder="Misal: Perkenalan fitur Face Recognition AI" />
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {TOPIC_PRESETS.map((t) => (
+                      <button key={t} onClick={() => setTopic(t)} className="text-[10px] px-2 py-1 rounded-full bg-muted hover:bg-primary/10 hover:text-primary transition border">
+                        {t.length > 36 ? t.slice(0, 36) + "…" : t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Tone</Label>
+                    <Select value={tone} onValueChange={setTone}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{tones.map(t => <SelectItem key={t.v} value={t.v}>{t.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Panjang</Label>
+                    <Select value={length} onValueChange={setLength}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pendek">Pendek</SelectItem>
+                        <SelectItem value="sedang">Sedang</SelectItem>
+                        <SelectItem value="panjang">Panjang</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Target Audiens</Label>
+                  <Input value={audience} onChange={(e) => setAudience(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">CTA</Label>
+                  <Input value={cta} onChange={(e) => setCta(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-3 gap-2 items-end">
+                  <div>
+                    <Label className="text-xs">Varian</Label>
+                    <Input type="number" min={1} max={5} value={variants} onChange={(e) => setVariants(parseInt(e.target.value) || 1)} />
+                  </div>
+                  <div className="flex items-center gap-2 pb-2">
+                    <Switch checked={emoji} onCheckedChange={setEmoji} id="emoji" />
+                    <Label htmlFor="emoji" className="text-xs">Emoji</Label>
+                  </div>
+                  <div className="flex items-center gap-2 pb-2">
+                    <Switch checked={hashtags} onCheckedChange={setHashtags} id="ht" />
+                    <Label htmlFor="ht" className="text-xs">Hashtag</Label>
+                  </div>
+                </div>
+                <Button onClick={generate} disabled={loading} className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                  Generate Caption
+                </Button>
+              </TabsContent>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs">Tone / Gaya</Label>
-                <Select value={tone} onValueChange={setTone}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {tones.map(t => <SelectItem key={t.v} value={t.v}>{t.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Panjang</Label>
-                <Select value={length} onValueChange={setLength}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pendek">Pendek</SelectItem>
-                    <SelectItem value="sedang">Sedang</SelectItem>
-                    <SelectItem value="panjang">Panjang</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-xs">Target Audiens</Label>
-              <Input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Misal: Kepala sekolah SMP/SMA" />
-            </div>
-
-            <div>
-              <Label className="text-xs">Call To Action (CTA)</Label>
-              <Input value={cta} onChange={(e) => setCta(e.target.value)} placeholder="Misal: Daftar gratis di absenpintar.online" />
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 items-end">
-              <div>
-                <Label className="text-xs">Varian</Label>
-                <Input type="number" min={1} max={5} value={variants} onChange={(e) => setVariants(parseInt(e.target.value) || 1)} />
-              </div>
-              <div className="flex items-center gap-2 pb-2">
-                <Switch checked={emoji} onCheckedChange={setEmoji} id="emoji" />
-                <Label htmlFor="emoji" className="text-xs">Emoji</Label>
-              </div>
-              <div className="flex items-center gap-2 pb-2">
-                <Switch checked={hashtags} onCheckedChange={setHashtags} id="ht" />
-                <Label htmlFor="ht" className="text-xs">Hashtag</Label>
-              </div>
-            </div>
-
-            <Button onClick={generate} disabled={loading} className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              Generate Caption
-            </Button>
+              {/* REWRITE */}
+              <TabsContent value="rewrite" className="space-y-3 mt-4">
+                <div>
+                  <Label className="text-xs">Teks yang ingin di-rewrite</Label>
+                  <Textarea
+                    value={sourceText}
+                    onChange={(e) => setSourceText(e.target.value)}
+                    rows={8}
+                    placeholder="Tempel teks lama di sini, lalu pilih gaya rewrite di bawah..."
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">{sourceText.length} karakter • {sourceText.split(/\s+/).filter(Boolean).length} kata</p>
+                </div>
+                <div>
+                  <Label className="text-xs">Gaya Rewrite</Label>
+                  <Select value={rewriteStyle} onValueChange={setRewriteStyle}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {REWRITE_STYLES.map(s => <SelectItem key={s.v} value={s.v}>{s.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {rewriteStyle === "custom" && (
+                  <div>
+                    <Label className="text-xs">Instruksi Custom</Label>
+                    <Textarea
+                      value={customInstruction}
+                      onChange={(e) => setCustomInstruction(e.target.value)}
+                      rows={2}
+                      placeholder="Misal: ubah jadi puisi pendek bertema sekolah modern"
+                    />
+                  </div>
+                )}
+                <div>
+                  <Label className="text-xs">Jumlah Versi</Label>
+                  <Input type="number" min={1} max={5} value={rewriteVariants} onChange={(e) => setRewriteVariants(parseInt(e.target.value) || 1)} />
+                </div>
+                <Button onClick={rewrite} disabled={loading} className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                  Rewrite Sekarang
+                </Button>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
@@ -210,37 +426,51 @@ export default function SuperAdminAutoCaption() {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <PlatformIcon className="h-4 w-4 text-primary" />
-              Hasil Caption ({results.length})
+              Hasil ({results.length})
             </h3>
-            {results.length > 0 && results[0] === SAMPLE_FB && (
-              <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                Contoh — Facebook
-              </span>
-            )}
+            <span className="text-[10px] text-muted-foreground">
+              Pilih teks untuk format Bold/Italic/dll • Bisa diedit langsung
+            </span>
           </div>
 
           {results.length === 0 && (
             <Card><CardContent className="p-8 text-center text-muted-foreground text-sm">
-              Belum ada caption. Isi form di kiri lalu klik <b>Generate</b>.
+              Belum ada hasil. Pilih tab <b>Generate</b> atau <b>Rewrite</b> di kiri.
             </CardContent></Card>
           )}
 
           {results.map((text, i) => (
             <Card key={i} className="overflow-hidden border-l-4 border-l-primary">
-              <CardHeader className="py-2.5 px-4 bg-muted/40 flex flex-row items-center justify-between space-y-0">
+              <CardHeader className="py-2 px-4 flex flex-row items-center justify-between space-y-0">
                 <span className="text-xs font-bold text-primary">VARIAN {i + 1}</span>
-                <div className="flex gap-2">
-                  <span className="text-[10px] text-muted-foreground">{text.length} karakter • {text.split(/\s+/).length} kata</span>
-                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => copy(text)}>
-                    <Copy className="h-3.5 w-3.5 mr-1" /> Salin
-                  </Button>
-                </div>
+                <span className="text-[10px] text-muted-foreground">{text.length} karakter • {text.split(/\s+/).filter(Boolean).length} kata</span>
               </CardHeader>
-              <CardContent className="p-4">
-                <pre className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-foreground">{text}</pre>
+              <FormatToolbar idx={i} />
+              <CardContent className="p-0">
+                <Textarea
+                  ref={(el) => (textareaRefs.current[i] = el)}
+                  value={text}
+                  onChange={(e) => updateText(i, e.target.value)}
+                  onFocus={() => setEditingIdx(i)}
+                  rows={Math.min(20, Math.max(6, text.split("\n").length + 1))}
+                  className="border-0 rounded-none resize-y font-sans text-[13px] leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
               </CardContent>
             </Card>
           ))}
+
+          {results.length > 0 && (
+            <Card className="bg-muted/30 border-dashed">
+              <CardContent className="p-3 text-[11px] text-muted-foreground">
+                <p className="font-semibold text-foreground mb-1">💡 Tips Format:</p>
+                <ul className="space-y-0.5 list-disc list-inside">
+                  <li><b>Bold/Italic</b> menggunakan unicode — langsung tampil tebal/miring saat di-paste ke Facebook, Instagram, WhatsApp, Twitter, LinkedIn.</li>
+                  <li>Highlight teks dulu → klik tombol format (B / I / U / dll).</li>
+                  <li>Tombol <b>Rewrite</b> di toolbar mengirim teks ke tab Rewrite untuk diolah ulang.</li>
+                </ul>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
