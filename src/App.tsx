@@ -144,6 +144,7 @@ function AppRoutes() {
         <Route path="/super-admin/landing" element={<SuperAdminLanding />} />
         <Route path="/super-admin/registration-wa" element={<SuperAdminRegistrationWA />} />
         <Route path="/super-admin/email" element={<SuperAdminEmail />} />
+        <Route path="/super-admin/auto-caption" element={<SuperAdminAutoCaption />} />
         <Route path="/super-admin/fitur" element={<SuperAdminPresentation />} />
         <Route path="/super-admin/business-model" element={<SuperAdminBusinessModel />} />
         <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />
