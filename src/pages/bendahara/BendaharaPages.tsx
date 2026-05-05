@@ -1277,6 +1277,7 @@ export function BendaharaTransaksi() {
         icon={Wallet}
         title="Pembayaran SPP"
         subtitle="Per siswa, per tahun ajaran, per bulan"
+        variant="emerald"
         actions={
           <Button
             variant="secondary"
