@@ -419,16 +419,6 @@ export default function SuperAdminAutoCaption() {
               {/* REWRITE */}
               <TabsContent value="rewrite" className="space-y-3 mt-4">
                 <div>
-                  <Label className="text-xs">Teks yang ingin di-rewrite</Label>
-                  <Textarea
-                    value={sourceText}
-                    onChange={(e) => setSourceText(e.target.value)}
-                    rows={8}
-                    placeholder="Tempel teks lama di sini, lalu pilih gaya rewrite di bawah..."
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1">{sourceText.length} karakter • {sourceText.split(/\s+/).filter(Boolean).length} kata</p>
-                </div>
-                <div>
                   <Label className="text-xs">Gaya Rewrite</Label>
                   <Select value={rewriteStyle} onValueChange={setRewriteStyle}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -437,6 +427,49 @@ export default function SuperAdminAutoCaption() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {rewriteStyle === "mimic" ? (
+                  <>
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 p-2.5">
+                      <p className="text-[11px] text-foreground/80 leading-relaxed">
+                        <b>Mode Tiru Gaya:</b> Tempel contoh teks dari iklan/postingan orang lain. AI akan menulis ulang dengan <b>struktur, gaya, & nada yang sama persis</b>, tapi isinya tentang ATSkolla.
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Teks Referensi (contoh dari orang lain)</Label>
+                      <Textarea
+                        value={referenceText}
+                        onChange={(e) => setReferenceText(e.target.value)}
+                        rows={8}
+                        placeholder="Tempel iklan / caption / artikel orang lain yang ingin ditiru gayanya..."
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {referenceText.length} karakter • {referenceText.split(/\s+/).filter(Boolean).length} kata
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Topik / Poin tentang ATSkolla (opsional)</Label>
+                      <Textarea
+                        value={sourceText}
+                        onChange={(e) => setSourceText(e.target.value)}
+                        rows={3}
+                        placeholder="Misal: highlight Face Recognition & notifikasi WA. Kosongkan untuk auto."
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <Label className="text-xs">Teks yang ingin di-rewrite</Label>
+                    <Textarea
+                      value={sourceText}
+                      onChange={(e) => setSourceText(e.target.value)}
+                      rows={8}
+                      placeholder="Tempel teks lama di sini..."
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">{sourceText.length} karakter • {sourceText.split(/\s+/).filter(Boolean).length} kata</p>
+                  </div>
+                )}
+
                 {rewriteStyle === "custom" && (
                   <div>
                     <Label className="text-xs">Instruksi Custom</Label>
@@ -454,7 +487,7 @@ export default function SuperAdminAutoCaption() {
                 </div>
                 <Button onClick={rewrite} disabled={loading} className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                  Rewrite Sekarang
+                  {rewriteStyle === "mimic" ? "Tiru Gaya & Tulis Ulang" : "Rewrite Sekarang"}
                 </Button>
               </TabsContent>
             </Tabs>
