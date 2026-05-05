@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -97,21 +97,35 @@ export function BendaharaDashboard() {
     localStorage.setItem("bendahara_show_recent_paid", next ? "1" : "0");
   };
 
-  useEffect(() => {
+  const fetchDashboardData = useCallback(async (syncGateway = false) => {
     if (!profile?.school_id) { setLoading(false); return; }
-    Promise.all([
+    if (syncGateway) {
+      await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
+    }
+    const [i, s, st] = await Promise.all([
       supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
       supabase.from("students").select("id, gender").eq("school_id", profile.school_id),
-    ]).then(([i, s, st]) => {
-      setInvoices(i.data || []);
-      setSettlements(s.data || []);
-      const map: Record<string, string> = {};
-      (st.data || []).forEach((x: any) => { map[x.id] = (x.gender || "").toString().toUpperCase(); });
-      setStudentGender(map);
-      setLoading(false);
-    });
+    ]);
+    setInvoices(i.data || []);
+    setSettlements(s.data || []);
+    const map: Record<string, string> = {};
+    (st.data || []).forEach((x: any) => { map[x.id] = (x.gender || "").toString().toUpperCase(); });
+    setStudentGender(map);
+    setLoading(false);
   }, [profile?.school_id]);
+
+  useEffect(() => { fetchDashboardData(true); }, [fetchDashboardData]);
+
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    const channel = supabase
+      .channel("bendahara-dashboard-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_invoices", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData(false))
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_settlements", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData(false))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [profile?.school_id, fetchDashboardData]);
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -2239,9 +2253,15 @@ export function BendaharaSaldo() {
   const [settlements, setSettlements] = useState<any[]>([]);
   const [feeCfg, setFeeCfg] = useState({ percent: 0.7, flat: 500 });
   const [loading, setLoading] = useState(true);
+  const syncingRef = useRef(false);
 
-  const fetchAll = useCallback(async () => {
+  const fetchAll = useCallback(async (syncGateway = false) => {
     if (!profile?.school_id) { setLoading(false); return; }
+    if (syncGateway && !syncingRef.current) {
+      syncingRef.current = true;
+      await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
+      syncingRef.current = false;
+    }
     const [invRes, stlRes, psRes] = await Promise.all([
       supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").order("paid_at", { ascending: false }),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
@@ -2257,7 +2277,7 @@ export function BendaharaSaldo() {
     setLoading(false);
   }, [profile?.school_id]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { fetchAll(true); }, [fetchAll]);
 
   // Realtime: refresh saat ada perubahan invoice/settlement
   useEffect(() => {
@@ -2406,6 +2426,7 @@ export function BendaharaPencairan() {
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const syncingRef = useRef(false);
 
   // Auto-open bank manager via ?manage=bank
   useEffect(() => {
@@ -2429,10 +2450,18 @@ export function BendaharaPencairan() {
 
   useEffect(() => {
     if (!profile?.school_id) { setLoadingHistory(false); return; }
-    Promise.all([
-      supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").is("settlement_id", null),
-      supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
-    ]).then(([avRes, hRes]) => {
+    let cancelled = false;
+    const load = async () => {
+      if (!syncingRef.current) {
+        syncingRef.current = true;
+        await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
+        syncingRef.current = false;
+      }
+      const [avRes, hRes] = await Promise.all([
+        supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").is("settlement_id", null),
+        supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
+      ]);
+      if (cancelled) return;
       const items = avRes.data || [];
       setAvailable({
         count: items.length,
@@ -2442,8 +2471,10 @@ export function BendaharaPencairan() {
       });
       setHistory(hRes.data || []);
       setLoadingHistory(false);
-    });
+    };
+    load();
     loadAccounts();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.school_id, open, refreshKey]);
 
