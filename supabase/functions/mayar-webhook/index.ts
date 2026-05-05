@@ -166,22 +166,24 @@ serve(async (req) => {
           type: 'success',
         });
 
-        // WA notif ke ortu
+        // WA notif ke ortu — pakai send-whatsapp agar mendukung MPWA + OneSender + fallback platform
         if (sppInv.parent_phone) {
           try {
-            const { data: integ } = await supabaseAdmin.from('school_integrations')
-              .select('api_url, api_key, is_active').eq('school_id', sppInv.school_id).eq('is_active', true).maybeSingle();
-            if (integ?.api_url && integ?.api_key) {
-              let phone = sppInv.parent_phone.replace(/\D/g, '');
-              if (phone.startsWith('0')) phone = '62' + phone.substring(1);
-              const paidDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-              const msg = `*ATSkolla — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${sppInv.parent_name || ''},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${sppInv.student_name}\n• Kelas   : ${sppInv.class_name}\n• Periode : ${sppInv.period_label}\n• Nominal : Rp${(sppInv.total_amount).toLocaleString('id-ID')}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
-              await fetch(integ.api_url, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${integ.api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recipient_type: 'individual', to: phone, type: 'text', text: { body: msg } }),
-              });
-            }
+            let phone = String(sppInv.parent_phone).replace(/\D/g, '');
+            if (phone.startsWith('0')) phone = '62' + phone.substring(1);
+            else if (phone.startsWith('8')) phone = '62' + phone;
+            const paidDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const msg = `*ATSkolla — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${sppInv.parent_name || ''},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${sppInv.student_name}\n• Kelas   : ${sppInv.class_name}\n• Periode : ${sppInv.period_label}\n• Nominal : Rp${(sppInv.total_amount).toLocaleString('id-ID')}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+            const waRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-whatsapp`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                'apikey': Deno.env.get('SUPABASE_ANON_KEY')!,
+              },
+              body: JSON.stringify({ school_id: sppInv.school_id, phone, message: msg, message_type: 'spp_paid' }),
+            });
+            console.log('SPP WA notif (direct fallback):', waRes.status, await waRes.text());
           } catch (waErr) { console.error('SPP WA notif error', waErr); }
         }
 
