@@ -57,19 +57,27 @@ async function getGatewayFeeConfig(): Promise<{ percent: number; flat: number }>
   } catch { return { percent: 0.7, flat: 500 }; }
 }
 
-function buildSppPaidMessage(inv: any, paidAt: string) {
+function buildSppPaidMessage(inv: any, paidAt: string, schoolName: string) {
   const paidDate = new Date(paidAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-  return `*ATSkolla — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+  return `*${schoolName} — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla - Platform Digital Sekolah_`;
+}
+
+async function getSchoolNameById(schoolId: string): Promise<string> {
+  try {
+    const { data } = await supabase.from("schools").select("name").eq("id", schoolId).maybeSingle();
+    return data?.name || "Sekolah";
+  } catch { return "Sekolah"; }
 }
 
 async function sendSppPaidWhatsApp(inv: any, paidAt: string) {
   if (!inv.parent_phone) return { sent: false, reason: "no_phone" };
   const phone = normalizePhone(inv.parent_phone);
+  const schoolName = await getSchoolNameById(inv.school_id);
   const { data, error } = await supabase.functions.invoke("send-whatsapp", {
     body: {
       school_id: inv.school_id,
       phone,
-      message: buildSppPaidMessage(inv, paidAt),
+      message: buildSppPaidMessage(inv, paidAt, schoolName),
       message_type: "spp_paid",
       student_name: inv.student_name,
     },
