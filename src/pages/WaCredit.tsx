@@ -225,6 +225,12 @@ const WaCredit = () => {
           </Card>
         </motion.div>
       </div>
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembelian Kredit WhatsApp — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+      />
     </div>
   );
 };
