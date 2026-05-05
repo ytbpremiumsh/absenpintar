@@ -516,8 +516,8 @@ export default function ParentDashboard() {
                     <div className="space-y-3">
                       {days.map((d) => {
                         const isToday = d === dow;
-                        // Seragamkan warna header semua hari (mengikuti gaya hari Selasa)
-                        const dayGradient = "from-violet-500 to-fuchsia-500";
+                        // Seragamkan warna header semua hari menggunakan brand gradient
+                        const dayGradient = "from-[#5B6CF9] to-[#4c5ded]";
                         return (
                           <Card key={d} className="border-0 shadow-card rounded-2xl overflow-hidden">
                             {/* Day Header */}
