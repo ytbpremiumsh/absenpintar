@@ -2685,6 +2685,7 @@ export function BendaharaLaporan() {
         icon={BarChart3}
         title="Laporan & Export Keuangan"
         subtitle="Ringkasan tahunan, statistik per kelas, dan export data SPP — semua dalam satu tempat."
+        variant="emerald"
         actions={
           <div className="flex items-center gap-2">
             <Label className="text-xs text-white/90 whitespace-nowrap">Tahun:</Label>
