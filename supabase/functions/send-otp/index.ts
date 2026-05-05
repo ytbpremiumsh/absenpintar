@@ -87,7 +87,7 @@ serve(async (req) => {
       formattedPhone = '62' + formattedPhone.substring(1);
     }
 
-    const message = `🔐 *Kode OTP Reset Password ATSkolla*\n\nKode OTP Anda: *${otpCode}*\n\nKode ini berlaku selama 5 menit.\n⚠️ Jangan bagikan kode ini kepada siapapun.\n\n_Pesan otomatis dari ATSkolla_`;
+    const message = `*Kode OTP Reset Password ATSkolla*\n\nKode OTP Anda: ${otpCode}\n\nKode ini berlaku selama 5 menit.\nJangan bagikan kode ini kepada siapapun.\n\n_Pesan otomatis dari ATSkolla_`;
 
     // ═══ Try to find a working gateway ═══
     let sent = false;
