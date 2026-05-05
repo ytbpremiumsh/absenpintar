@@ -97,11 +97,8 @@ export function BendaharaDashboard() {
     localStorage.setItem("bendahara_show_recent_paid", next ? "1" : "0");
   };
 
-  const fetchDashboardData = useCallback(async (syncGateway = false) => {
+  const fetchDashboardData = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
-    if (syncGateway) {
-      await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
-    }
     const [i, s, st] = await Promise.all([
       supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
@@ -115,7 +112,14 @@ export function BendaharaDashboard() {
     setLoading(false);
   }, [profile?.school_id]);
 
-  useEffect(() => { fetchDashboardData(true); }, [fetchDashboardData]);
+  // Render dashboard segera dari DB lokal (cepat). Sync gateway Mayar dijalankan
+  // di background — realtime channel akan auto-refresh kalau ada invoice baru lunas.
+  useEffect(() => {
+    fetchDashboardData();
+    if (profile?.school_id) {
+      supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
+    }
+  }, [fetchDashboardData, profile?.school_id]);
 
   useEffect(() => {
     if (!profile?.school_id) return;
