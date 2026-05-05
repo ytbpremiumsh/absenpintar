@@ -1098,13 +1098,13 @@ export function BendaharaGenerate() {
               const sel = selectedClasses.includes(c);
               const studentCount = students.filter(s => s.class === c).length;
               return (
-                <button key={c} onClick={() => toggleClass(c)} className={`rounded-lg border-2 p-2.5 text-left transition ${sel ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-muted hover:border-muted-foreground/30"} ${!tariff ? "opacity-60" : ""}`}>
+                <button key={c} onClick={() => toggleClass(c)} className={`rounded-lg border-2 p-2.5 text-left transition ${sel ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20" : "border-muted hover:border-muted-foreground/30"} ${!tariff ? "opacity-60" : ""}`}>
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-sm">{c}</p>
-                    {sel && <CheckCircle2 className="h-4 w-4 text-[#5B6CF9]" />}
+                    {sel && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-0.5">{studentCount} siswa</p>
-                  {tariff ? <p className="text-[11px] font-semibold text-[#5B6CF9] mt-0.5">{fmtIDR(tariff.amount)}</p> : <p className="text-[11px] text-amber-600 mt-0.5">Tarif belum diatur</p>}
+                  {tariff ? <p className="text-[11px] font-semibold text-emerald-600 mt-0.5">{fmtIDR(tariff.amount)}</p> : <p className="text-[11px] text-amber-600 mt-0.5">Tarif belum diatur</p>}
                 </button>
               );
             })}
