@@ -263,6 +263,26 @@ serve(async (req) => {
       }
     }
 
+    // Send email registration notification (custom SMTP)
+    if (email) {
+      try {
+        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            'apikey': Deno.env.get('SUPABASE_ANON_KEY')!,
+          },
+          body: JSON.stringify({
+            event_type: 'register',
+            to: email,
+            school_id: resolvedSchoolId,
+            vars: { name: full_name || '', school: school_name || '', email },
+          }),
+        });
+      } catch (mailErr) { console.error('register email error', mailErr); }
+    }
+
     return new Response(JSON.stringify({ success: true, user_id: userId, school_id: resolvedSchoolId }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
