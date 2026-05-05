@@ -48,6 +48,7 @@ import SuperAdminAnnouncements from "./pages/super-admin/SuperAdminAnnouncements
 import SuperAdminTickets from "./pages/super-admin/SuperAdminTickets";
 import SuperAdminLanding from "./pages/super-admin/SuperAdminLanding";
 import SuperAdminRegistrationWA from "./pages/super-admin/SuperAdminRegistrationWA";
+import SuperAdminEmail from "./pages/super-admin/SuperAdminEmail";
 import SuperAdminPresentation from "./pages/super-admin/SuperAdminPresentation";
 import SuperAdminBusinessModel from "./pages/super-admin/SuperAdminBusinessModel";
 import SuperAdminTestimonials from "./pages/super-admin/SuperAdminTestimonials";
@@ -141,6 +142,7 @@ function AppRoutes() {
         <Route path="/super-admin/tickets" element={<SuperAdminTickets />} />
         <Route path="/super-admin/landing" element={<SuperAdminLanding />} />
         <Route path="/super-admin/registration-wa" element={<SuperAdminRegistrationWA />} />
+        <Route path="/super-admin/email" element={<SuperAdminEmail />} />
         <Route path="/super-admin/fitur" element={<SuperAdminPresentation />} />
         <Route path="/super-admin/business-model" element={<SuperAdminBusinessModel />} />
         <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />

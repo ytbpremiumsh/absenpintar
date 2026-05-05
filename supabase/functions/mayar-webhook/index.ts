@@ -276,6 +276,32 @@ serve(async (req) => {
             }
           } catch (waErr) { console.error('SPP WA notif error', waErr); }
         }
+
+        // Email notif ke wali (SMTP custom)
+        if (inv.parent_email) {
+          try {
+            await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                'apikey': Deno.env.get('SUPABASE_ANON_KEY')!,
+              },
+              body: JSON.stringify({
+                event_type: 'spp_paid',
+                to: inv.parent_email,
+                school_id: inv.school_id,
+                vars: {
+                  name: inv.parent_name || inv.student_name || '',
+                  invoice: inv.invoice_number || '',
+                  amount: `Rp${(inv.total_amount || 0).toLocaleString('id-ID')}`,
+                  period: inv.period_label || '',
+                  school: inv.class_name || '',
+                },
+              }),
+            });
+          } catch (mailErr) { console.error('SPP email notif error', mailErr); }
+        }
       }
       return new Response(JSON.stringify({ success: true, type: 'spp' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
