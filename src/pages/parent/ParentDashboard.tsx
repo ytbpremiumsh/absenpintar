@@ -898,6 +898,13 @@ export default function ParentDashboard() {
           </div>
         </div>
       </nav>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembayaran SPP — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); loadTab(); }}
+      />
     </div>
   );
 }
