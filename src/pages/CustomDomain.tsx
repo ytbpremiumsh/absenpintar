@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 
 const CustomDomain = () => {
   const { profile } = useAuth();
@@ -21,6 +22,7 @@ const CustomDomain = () => {
   const [savingDomain, setSavingDomain] = useState(false);
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("platform_settings").select("value").eq("key", "addon_custom_domain_enabled").maybeSingle().then(({ data }) => {
@@ -55,7 +57,8 @@ const CustomDomain = () => {
         toast.success("Custom Domain berhasil diaktifkan!");
         window.location.reload();
       } else if (data?.payment_url) {
-        window.open(data.payment_url, "_blank");
+        toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentIframe(data.payment_url);
       }
     } catch (e: any) {
       toast.error(e.message || "Gagal membuat pembayaran");
