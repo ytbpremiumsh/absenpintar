@@ -30,7 +30,7 @@ const detectButtons = (message: string, messageType?: string): {
     if (isPayment) {
       return {
         buttons: [{ type: 'url', displayText: 'Bayar SPP Sekarang', url }],
-        footer: 'ATSkolla — Pembayaran Aman',
+        footer: 'ATSkolla - Platform Digital Sekolah',
       };
     }
   }

@@ -50,13 +50,21 @@ function normalizePhone(raw: string) {
   return phone;
 }
 
-function buildPaidMessage(inv: any, paidAt: string) {
+function buildPaidMessage(inv: any, paidAt: string, schoolName: string) {
   const paidDate = new Date(paidAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-  return `*ATSkolla — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+  return `*${schoolName} — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla - Platform Digital Sekolah_`;
+}
+
+async function getSchoolName(supabaseAdmin: any, schoolId: string): Promise<string> {
+  try {
+    const { data } = await supabaseAdmin.from("schools").select("name").eq("id", schoolId).maybeSingle();
+    return data?.name || "Sekolah";
+  } catch { return "Sekolah"; }
 }
 
 async function notifySppPaid(supabaseAdmin: any, inv: any, paidAt: string) {
   if (!inv.parent_phone) return { sent: false, reason: "no_phone" };
+  const schoolName = await getSchoolName(supabaseAdmin, inv.school_id);
   const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-whatsapp`, {
     method: "POST",
     headers: {
@@ -67,7 +75,7 @@ async function notifySppPaid(supabaseAdmin: any, inv: any, paidAt: string) {
     body: JSON.stringify({
       school_id: inv.school_id,
       phone: normalizePhone(inv.parent_phone),
-      message: buildPaidMessage(inv, paidAt),
+      message: buildPaidMessage(inv, paidAt, schoolName),
       message_type: "spp_paid",
       student_name: inv.student_name,
     }),

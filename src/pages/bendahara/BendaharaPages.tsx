@@ -961,6 +961,8 @@ export function BendaharaGenerate() {
       // === Background: generate Mayar link + kirim WA (tidak menahan UI) ===
       if (created.length > 0) {
         const schoolId = profile.school_id;
+        const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", schoolId).maybeSingle();
+        const schoolName = schoolRow?.name || "Sekolah";
         (async () => {
           let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
 
@@ -975,7 +977,7 @@ export function BendaharaGenerate() {
                 const phone = inv.parent_phone;
                 if (phone) {
                   const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-                  const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+                  const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla - Platform Digital Sekolah_`;
                   const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
                     body: { school_id: schoolId, phone, message: msg, message_type: "spp_invoice" },
                   });
@@ -1453,6 +1455,8 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
 
     setBulkBusy(className);
     setBulkProgress({ done: 0, total: targetInvs.length });
+    const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", schoolId).maybeSingle();
+    const schoolName = schoolRow?.name || "Sekolah";
     let waOk = 0, waFail = 0, linkFail = 0;
     for (let i = 0; i < targetInvs.length; i++) {
       const inv = targetInvs[i];
@@ -1466,7 +1470,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         }
         if (!paymentUrl) { linkFail++; setBulkProgress({ done: i + 1, total: targetInvs.length }); continue; }
         const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-        const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+        const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla - Platform Digital Sekolah_`;
         const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
           body: { school_id: schoolId, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
         });
@@ -1723,7 +1727,9 @@ export function BendaharaSPPDetail() {
   const sendWa = async (inv: any) => {
     if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
     if (!inv.payment_url) { toast.error("Buat link pembayaran dulu"); return; }
-    const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+    const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
+    const schoolName = schoolRow?.name || "Sekolah";
+    const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.\n_ATSkolla - Platform Digital Sekolah_`;
     setBusy(`wa-${inv.id}`);
     toast.loading("Mengirim WA...");
     const { error } = await supabase.functions.invoke("send-whatsapp", {
@@ -1736,7 +1742,7 @@ export function BendaharaSPPDetail() {
   const sendEmail = (inv: any) => {
     if (!inv.payment_url) { toast.error("Buat link dulu"); return; }
     const subject = `Tagihan SPP ${inv.period_label} - ${inv.student_name}`;
-    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\nMetode pembayaran: QRIS / Transfer Bank.\n\nLink: ${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.\nATSkolla — Sistem Absensi & SPP Sekolah`;
+    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\nMetode pembayaran: QRIS / Transfer Bank.\n\nLink: ${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.\nATSkolla - Platform Digital Sekolah`;
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
