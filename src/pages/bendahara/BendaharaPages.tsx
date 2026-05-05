@@ -1399,58 +1399,92 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
 
   return (
     <div className="space-y-3">
-      {grouped.map(([className, list]) => {
+      {grouped.map(([className, list], idx) => {
         const lunas = list.filter(s => s.aggStatus === "paid").length;
         const nunggak = list.filter(s => s.sisa > 0).length;
         const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
         const isOpen = openClass[className] ?? false;
+
+        // Rotasi gradient berbeda per kelas agar berwarna
+        const palettes = [
+          { grad: "from-emerald-500 via-teal-500 to-emerald-600", ring: "ring-emerald-200", chip: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+          { grad: "from-[#5B6CF9] via-indigo-500 to-violet-600", ring: "ring-indigo-200", chip: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+          { grad: "from-amber-500 via-orange-500 to-rose-500", ring: "ring-amber-200", chip: "bg-amber-50 text-amber-700 border-amber-200" },
+          { grad: "from-sky-500 via-cyan-500 to-blue-600", ring: "ring-sky-200", chip: "bg-sky-50 text-sky-700 border-sky-200" },
+          { grad: "from-fuchsia-500 via-pink-500 to-rose-500", ring: "ring-pink-200", chip: "bg-pink-50 text-pink-700 border-pink-200" },
+          { grad: "from-lime-500 via-green-500 to-emerald-600", ring: "ring-lime-200", chip: "bg-lime-50 text-lime-700 border-lime-200" },
+        ];
+        const pal = palettes[idx % palettes.length];
+
+        // Avatar gradient palette per siswa
+        const avatarGrads = [
+          "from-rose-400 to-pink-600",
+          "from-amber-400 to-orange-600",
+          "from-emerald-400 to-teal-600",
+          "from-sky-400 to-blue-600",
+          "from-violet-400 to-purple-600",
+          "from-fuchsia-400 to-pink-600",
+          "from-cyan-400 to-sky-600",
+          "from-lime-400 to-green-600",
+        ];
+        const initials = (n: string) => n.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase();
+
         return (
-          <div key={className} className="rounded-xl border border-border/60 bg-card overflow-hidden">
-            {/* Header kelas — minimal, 1 baris */}
-            <div className="flex items-center">
-              <button
-                onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
-                className="flex-1 min-w-0 flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
-              >
-                {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
-                    <span className="text-[11px] text-muted-foreground">· {list.length} siswa</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    <span className="text-emerald-600 font-medium">{lunas} lunas</span>
-                    {" · "}
-                    <span className={nunggak > 0 ? "text-red-600 font-medium" : ""}>{nunggak} nunggak</span>
-                    {totalSisa > 0 && <> · sisa <span className="font-semibold text-foreground">{fmtIDR(totalSisa)}</span></>}
-                  </p>
-                </div>
-              </button>
-              {nunggak > 0 && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
-                  disabled={bulkBusy === className}
-                  className="h-8 mr-2 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 text-xs"
-                  title={`Kirim WA tagihan ke ${nunggak} wali murid`}
+          <div key={className} className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            {/* Header kelas — gradient berwarna */}
+            <div className={`relative overflow-hidden bg-gradient-to-r ${pal.grad} text-white`}>
+              <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
+              <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/10 blur-xl" />
+              <div className="relative z-10 flex items-center gap-2 px-4 py-3">
+                <button
+                  onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
+                  className="flex-1 min-w-0 flex items-center gap-3 text-left"
                 >
-                  {bulkBusy === className ? (
-                    <><Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" /><span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span></>
-                  ) : (
-                    <><Send className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline">Kirim WA</span></>
-                  )}
-                </Button>
-              )}
+                  <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 flex items-center justify-center shrink-0 shadow-md">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-[15px] text-white truncate">Kelas {className}</span>
+                      <span className="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded-full border border-white/20">{list.length} siswa</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      <span className="text-[10px] font-semibold bg-emerald-500/90 px-2 py-0.5 rounded-full">{lunas} Lunas</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${nunggak > 0 ? "bg-red-500/90" : "bg-white/20"}`}>{nunggak} Nunggak</span>
+                      {totalSisa > 0 && (
+                        <span className="text-[10px] font-bold bg-white text-rose-700 px-2 py-0.5 rounded-full shadow-sm">Sisa {fmtIDR(totalSisa)}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center shrink-0 transition-colors">
+                    {isOpen ? <ChevronDown className="h-4 w-4 text-white" /> : <ChevronRight className="h-4 w-4 text-white" />}
+                  </div>
+                </button>
+                {nunggak > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
+                    disabled={bulkBusy === className}
+                    className="h-8 bg-white text-emerald-700 hover:bg-white/90 text-xs font-semibold shadow-sm shrink-0"
+                    title={`Kirim WA tagihan ke ${nunggak} wali murid`}
+                  >
+                    {bulkBusy === className ? (
+                      <><Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" /><span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span></>
+                    ) : (
+                      <><Send className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline">Kirim WA</span></>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
 
-            {/* Tabel siswa — bersih, tanpa banyak shape */}
+            {/* Tabel siswa — dengan avatar berwarna */}
             {isOpen && (
-              <div className="border-t border-border/60">
+              <div className="border-t border-border/60 bg-gradient-to-b from-secondary/20 to-transparent">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-secondary/30 hover:bg-secondary/30 border-border/40">
-                      <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Nama Siswa</TableHead>
+                    <TableRow className="bg-secondary/40 hover:bg-secondary/40 border-border/40">
+                      <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Siswa</TableHead>
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground hidden md:table-cell">NIS</TableHead>
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-center">Bulan</TableHead>
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-right">Sisa Tagihan</TableHead>
@@ -1459,34 +1493,46 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {list.map(s => (
-                      <TableRow
-                        key={s.id}
-                        onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
-                        className="cursor-pointer hover:bg-[#5B6CF9]/5 border-border/40"
-                      >
-                        <TableCell className="py-2.5">
-                          <p className="font-medium text-sm text-foreground truncate">{s.name}</p>
-                          {s.parent_name && (
-                            <p className="text-[11px] text-muted-foreground truncate">Wali: {s.parent_name}</p>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-2.5 hidden md:table-cell text-xs font-mono text-muted-foreground">{s.student_id || "-"}</TableCell>
-                        <TableCell className="py-2.5 text-center text-xs">
-                          <span className="text-emerald-600 font-semibold">{s.lunas}</span>
-                          <span className="text-muted-foreground">/{s.total}</span>
-                        </TableCell>
-                        <TableCell className={`py-2.5 text-right text-sm font-semibold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                          {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
-                        </TableCell>
-                        <TableCell className="py-2.5 text-center">
-                          <StatusBadge status={s.aggStatus} />
-                        </TableCell>
-                        <TableCell className="py-2.5 text-right pr-3">
-                          <ChevronRight className="h-4 w-4 text-muted-foreground inline" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {list.map((s, i) => {
+                      const ag = avatarGrads[(s.name?.charCodeAt(0) || i) % avatarGrads.length];
+                      return (
+                        <TableRow
+                          key={s.id}
+                          onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
+                          className="cursor-pointer hover:bg-[#5B6CF9]/5 border-border/40"
+                        >
+                          <TableCell className="py-2.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${ag} flex items-center justify-center text-white text-[11px] font-bold shadow-sm shrink-0 ring-2 ring-white`}>
+                                {initials(s.name || "?")}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm text-foreground truncate">{s.name}</p>
+                                {s.parent_name && (
+                                  <p className="text-[11px] text-muted-foreground truncate">Wali: {s.parent_name}</p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2.5 hidden md:table-cell text-xs font-mono text-muted-foreground">{s.student_id || "-"}</TableCell>
+                          <TableCell className="py-2.5 text-center">
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${pal.chip}`}>
+                              <CheckCircle2 className="h-3 w-3" />
+                              {s.lunas}/{s.total}
+                            </span>
+                          </TableCell>
+                          <TableCell className={`py-2.5 text-right text-sm font-bold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                            {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
+                          </TableCell>
+                          <TableCell className="py-2.5 text-center">
+                            <StatusBadge status={s.aggStatus} />
+                          </TableCell>
+                          <TableCell className="py-2.5 text-right pr-3">
+                            <ChevronRight className="h-4 w-4 text-muted-foreground inline" />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
