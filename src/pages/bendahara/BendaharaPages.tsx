@@ -2600,8 +2600,13 @@ export function BendaharaPencairan() {
                   </div>
                 );
               })()}
-              <Button disabled={available.count === 0} onClick={requestSubmit} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700">
-                <ArrowDownToLine className="h-4 w-4 mr-2" /> Ajukan Pencairan
+              <Button
+                disabled={available.count === 0}
+                onClick={requestSubmit}
+                className="w-full md:w-auto group relative overflow-hidden bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-teal-700 text-white font-bold shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 px-6 py-5 rounded-xl"
+              >
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700" />
+                <ArrowDownToLine className="h-4 w-4 mr-2 group-hover:animate-bounce" /> Ajukan Pencairan
               </Button>
             </CardContent>
           </Card>
