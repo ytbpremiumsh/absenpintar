@@ -482,7 +482,7 @@ export function BendaharaSiswa() {
               <Card key={cls} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                 <button onClick={() => toggle(cls)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left">
                   {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
-                  <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-sm">
                     <GraduationCap className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
