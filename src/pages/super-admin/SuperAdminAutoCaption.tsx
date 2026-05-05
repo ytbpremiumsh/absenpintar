@@ -66,6 +66,7 @@ const TOPIC_PRESETS = [
 
 const REWRITE_STYLES = [
   { v: "improve", label: "Tingkatkan Kualitas" },
+  { v: "mimic", label: "🎯 Tiru Gaya Contoh (Style Mimic)" },
   { v: "shorter", label: "Lebih Singkat" },
   { v: "longer", label: "Lebih Panjang" },
   { v: "professional", label: "Lebih Profesional" },
@@ -77,6 +78,22 @@ const REWRITE_STYLES = [
   { v: "translate_en", label: "Terjemahkan ke Inggris" },
   { v: "translate_id", label: "Terjemahkan ke Indonesia" },
   { v: "custom", label: "Custom (instruksi sendiri)" },
+];
+
+const CONTENT_TYPES = [
+  { v: "caption_sosmed", label: "Caption Media Sosial", desc: "Hook + body + CTA singkat (FB/IG)" },
+  { v: "deskripsi_produk", label: "Deskripsi Produk", desc: "Untuk landing page / marketplace" },
+  { v: "iklan_fb", label: "Iklan Facebook Ads", desc: "Format AIDA untuk iklan berbayar" },
+  { v: "iklan_google", label: "Iklan Google Ads", desc: "3 headline + 2 deskripsi pendek" },
+  { v: "headline", label: "Headline / Judul Iklan", desc: "5-10 alternatif headline kuat" },
+  { v: "artikel_blog", label: "Artikel Blog SEO", desc: "Artikel panjang dengan H1, H2, kesimpulan" },
+  { v: "artikel_press", label: "Press Release / Siaran Pers", desc: "Format jurnalistik formal" },
+  { v: "email_marketing", label: "Email Marketing", desc: "Subject + body + CTA tombol" },
+  { v: "whatsapp_broadcast", label: "WhatsApp Broadcast", desc: "Pesan WA personal & ringkas" },
+  { v: "script_video", label: "Script Video Pendek", desc: "Reels/TikTok 30-60 detik scene-by-scene" },
+  { v: "testimoni", label: "Testimoni / Review", desc: "Cerita storytelling dari user" },
+  { v: "faq", label: "FAQ Produk", desc: "5-7 Q&A yang sering ditanya" },
+  { v: "thread_twitter", label: "Thread Twitter/X", desc: "5-8 tweet bernomor" },
 ];
 
 // ===== Unicode text styling helpers (works on FB / IG / WA) =====
@@ -112,6 +129,7 @@ export default function SuperAdminAutoCaption() {
 
   // Generate state
   const [platform, setPlatform] = useState("facebook");
+  const [contentType, setContentType] = useState("caption_sosmed");
   const [tone, setTone] = useState("persuasif");
   const [length, setLength] = useState("sedang");
   const [topic, setTopic] = useState("");
@@ -125,6 +143,7 @@ export default function SuperAdminAutoCaption() {
   const [sourceText, setSourceText] = useState("");
   const [rewriteStyle, setRewriteStyle] = useState("improve");
   const [customInstruction, setCustomInstruction] = useState("");
+  const [referenceText, setReferenceText] = useState("");
   const [rewriteVariants, setRewriteVariants] = useState(1);
 
   const [loading, setLoading] = useState(false);
@@ -136,7 +155,7 @@ export default function SuperAdminAutoCaption() {
     if (!topic.trim()) return toast.error("Isi topik konten dulu");
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("auto-caption", {
-      body: { mode: "generate", platform, tone, length, topic, audience, cta, variants, emoji, hashtags },
+      body: { mode: "generate", platform, content_type: contentType, tone, length, topic, audience, cta, variants, emoji, hashtags },
     });
     setLoading(false);
     if (error || !data?.success) {
@@ -148,7 +167,11 @@ export default function SuperAdminAutoCaption() {
   };
 
   const rewrite = async () => {
-    if (!sourceText.trim()) return toast.error("Isi teks yang ingin direwrite");
+    if (rewriteStyle === "mimic") {
+      if (!referenceText.trim()) return toast.error("Tempel teks referensi (contoh dari orang lain) dulu");
+    } else {
+      if (!sourceText.trim()) return toast.error("Isi teks yang ingin direwrite");
+    }
     if (rewriteStyle === "custom" && !customInstruction.trim())
       return toast.error("Isi instruksi custom-nya");
     setLoading(true);
@@ -158,6 +181,7 @@ export default function SuperAdminAutoCaption() {
         source_text: sourceText,
         rewrite_style: rewriteStyle,
         custom_instruction: customInstruction,
+        reference_text: referenceText,
         variants: rewriteVariants,
         platform,
       },
@@ -318,6 +342,22 @@ export default function SuperAdminAutoCaption() {
                   </Select>
                 </div>
                 <div>
+                  <Label className="text-xs">Jenis Konten / Tujuan</Label>
+                  <Select value={contentType} onValueChange={setContentType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-[320px]">
+                      {CONTENT_TYPES.map(c => (
+                        <SelectItem key={c.v} value={c.v}>
+                          <div className="flex flex-col py-0.5">
+                            <span className="font-medium">{c.label}</span>
+                            <span className="text-[10px] text-muted-foreground">{c.desc}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label className="text-xs">Topik Konten</Label>
                   <Textarea value={topic} onChange={(e) => setTopic(e.target.value)} rows={3} placeholder="Misal: Perkenalan fitur Face Recognition AI" />
                   <div className="flex flex-wrap gap-1.5 mt-2">
@@ -379,16 +419,6 @@ export default function SuperAdminAutoCaption() {
               {/* REWRITE */}
               <TabsContent value="rewrite" className="space-y-3 mt-4">
                 <div>
-                  <Label className="text-xs">Teks yang ingin di-rewrite</Label>
-                  <Textarea
-                    value={sourceText}
-                    onChange={(e) => setSourceText(e.target.value)}
-                    rows={8}
-                    placeholder="Tempel teks lama di sini, lalu pilih gaya rewrite di bawah..."
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1">{sourceText.length} karakter • {sourceText.split(/\s+/).filter(Boolean).length} kata</p>
-                </div>
-                <div>
                   <Label className="text-xs">Gaya Rewrite</Label>
                   <Select value={rewriteStyle} onValueChange={setRewriteStyle}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -397,6 +427,49 @@ export default function SuperAdminAutoCaption() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {rewriteStyle === "mimic" ? (
+                  <>
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 p-2.5">
+                      <p className="text-[11px] text-foreground/80 leading-relaxed">
+                        <b>Mode Tiru Gaya:</b> Tempel contoh teks dari iklan/postingan orang lain. AI akan menulis ulang dengan <b>struktur, gaya, & nada yang sama persis</b>, tapi isinya tentang ATSkolla.
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Teks Referensi (contoh dari orang lain)</Label>
+                      <Textarea
+                        value={referenceText}
+                        onChange={(e) => setReferenceText(e.target.value)}
+                        rows={8}
+                        placeholder="Tempel iklan / caption / artikel orang lain yang ingin ditiru gayanya..."
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {referenceText.length} karakter • {referenceText.split(/\s+/).filter(Boolean).length} kata
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Topik / Poin tentang ATSkolla (opsional)</Label>
+                      <Textarea
+                        value={sourceText}
+                        onChange={(e) => setSourceText(e.target.value)}
+                        rows={3}
+                        placeholder="Misal: highlight Face Recognition & notifikasi WA. Kosongkan untuk auto."
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <Label className="text-xs">Teks yang ingin di-rewrite</Label>
+                    <Textarea
+                      value={sourceText}
+                      onChange={(e) => setSourceText(e.target.value)}
+                      rows={8}
+                      placeholder="Tempel teks lama di sini..."
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">{sourceText.length} karakter • {sourceText.split(/\s+/).filter(Boolean).length} kata</p>
+                  </div>
+                )}
+
                 {rewriteStyle === "custom" && (
                   <div>
                     <Label className="text-xs">Instruksi Custom</Label>
@@ -414,7 +487,7 @@ export default function SuperAdminAutoCaption() {
                 </div>
                 <Button onClick={rewrite} disabled={loading} className="w-full bg-gradient-to-r from-primary to-indigo-600 text-white">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                  Rewrite Sekarang
+                  {rewriteStyle === "mimic" ? "Tiru Gaya & Tulis Ulang" : "Rewrite Sekarang"}
                 </Button>
               </TabsContent>
             </Tabs>

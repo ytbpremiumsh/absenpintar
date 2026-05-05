@@ -108,14 +108,19 @@ serve(async (req) => {
 
     if (mode === "rewrite") {
       const b = raw as RewriteBody;
-      if (!b.source_text?.trim()) {
+      if (!b.source_text?.trim() && b.rewrite_style !== "mimic") {
         return new Response(JSON.stringify({ success: false, error: "Teks sumber wajib diisi" }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (b.rewrite_style === "mimic" && !b.reference_text?.trim()) {
+        return new Response(JSON.stringify({ success: false, error: "Teks referensi (contoh dari orang lain) wajib diisi untuk mode Tiru Gaya" }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const styleGuide = REWRITE_STYLE_GUIDE[b.rewrite_style] || REWRITE_STYLE_GUIDE.improve;
 
-      sys = `Kamu adalah copywriter & editor profesional. Tugasmu: REWRITE / parafrase teks yang diberikan user.
+      sys = `Kamu adalah copywriter & editor profesional. Tugasmu: REWRITE / parafrase teks untuk produk ATSkolla.
 
 KONTEKS PRODUK (jangan tambah klaim fitur di luar konteks ini):
 ${PRODUCT_CONTEXT}
@@ -123,14 +128,20 @@ ${PRODUCT_CONTEXT}
 ATURAN REWRITE:
 - ${styleGuide}
 ${b.rewrite_style === "custom" && b.custom_instruction ? `- Instruksi tambahan dari user: ${b.custom_instruction}` : ""}
-- Pertahankan informasi faktual yang sudah ada di teks asli.
+${b.rewrite_style === "mimic" ? `- WAJIB ikuti POLA berikut dari teks referensi: panjang & jumlah paragraf, struktur (hook/body/CTA), gaya kalimat (panjang/pendek), penggunaan emoji & simbol, posisi hashtag, nada bicara, level formalitas, pemakaian bullet/list, gaya CTA.
+- Ganti SEMUA referensi produk/brand di teks referensi menjadi ATSkolla beserta fitur ATSkolla yang relevan.
+- Jangan menyalin kata demi kata — buat seolah-olah penulis yang sama menulis ulang untuk produk ATSkolla.` : "- Pertahankan informasi faktual yang sudah ada di teks asli."}
 - Jangan menambahkan fitur produk yang tidak ada di konteks.
 - Output HANYA teks hasil rewrite, tanpa pengantar seperti "Berikut hasil rewrite:".
 ${b.platform ? `- Format output disesuaikan untuk platform: ${b.platform}.` : ""}
 
 ${variants > 1 ? `Hasilkan ${variants} versi rewrite berbeda. Pisahkan setiap versi dengan baris "---VARIAN-{nomor}---" di awal.` : "Hasilkan 1 versi rewrite saja, langsung tanpa header."}`;
 
-      user = `Teks asli:\n"""\n${b.source_text}\n"""\n\nLakukan rewrite sesuai aturan di atas.`;
+      if (b.rewrite_style === "mimic") {
+        user = `TEKS REFERENSI (contoh gaya orang lain yang ingin ditiru):\n"""\n${b.reference_text}\n"""\n\n${b.source_text?.trim() ? `Topik / poin yang ingin disampaikan untuk ATSkolla:\n"""\n${b.source_text}\n"""` : `Topik: promosi umum ATSkolla (sesuaikan otomatis dengan tema teks referensi).`}\n\nTulis ulang dengan gaya & struktur PERSIS seperti teks referensi, tetapi isi tentang ATSkolla.`;
+      } else {
+        user = `Teks asli:\n"""\n${b.source_text}\n"""\n\nLakukan rewrite sesuai aturan di atas.`;
+      }
     } else {
       const b = raw as GenerateBody;
       const lengthGuide = {
@@ -149,10 +160,16 @@ ${variants > 1 ? `Hasilkan ${variants} versi rewrite berbeda. Pisahkan setiap ve
         blog: "Format Blog/Artikel: paragraf terstruktur dengan heading, intro-isi-penutup yang jelas, SEO-friendly.",
       };
 
+      const ct = b.content_type || "caption_sosmed";
+      const contentTypeGuide = CONTENT_TYPE_GUIDE[ct] || CONTENT_TYPE_GUIDE.caption_sosmed;
+
       sys = `Kamu adalah copywriter marketing senior khusus produk SaaS pendidikan Indonesia. Tugasmu: membuat konten promosi yang konversi tinggi untuk produk ATSkolla.
 
 KONTEKS PRODUK:
 ${PRODUCT_CONTEXT}
+
+JENIS KONTEN: ${ct.toUpperCase().replace(/_/g, " ")}
+PEDOMAN JENIS KONTEN: ${contentTypeGuide}
 
 ATURAN OUTPUT:
 - Bahasa Indonesia natural, mudah dipahami audiens guru/kepala sekolah/yayasan.
@@ -161,14 +178,14 @@ ATURAN OUTPUT:
 - Tone: ${b.tone}.
 - Panjang: ${lengthGuide}.
 - ${b.emoji === false ? "JANGAN gunakan emoji." : "Gunakan emoji secukupnya untuk memperkuat pesan."}
-- ${b.hashtags === false ? "JANGAN sertakan hashtag." : "Sertakan hashtag relevan di akhir jika sesuai platform."}
-- Platform: ${b.platform.toUpperCase()}. ${platformGuide[b.platform]}
+- ${b.hashtags === false ? "JANGAN sertakan hashtag." : "Sertakan hashtag relevan di akhir jika sesuai."}
+- Platform target: ${b.platform.toUpperCase()}. ${platformGuide[b.platform]}
 ${b.audience ? `- Target audiens: ${b.audience}.` : ""}
 ${b.cta ? `- CTA wajib: ${b.cta}` : "- Akhiri dengan CTA yang relevan (chat WA, daftar gratis, kunjungi website)."}
 
-Hasilkan ${variants} varian caption berbeda. Pisahkan setiap varian dengan baris "---VARIAN-{nomor}---" di awal.`;
+Hasilkan ${variants} varian berbeda. Pisahkan setiap varian dengan baris "---VARIAN-{nomor}---" di awal.`;
 
-      user = `Buatkan ${variants} varian konten ${b.platform} tentang topik: "${b.topic}"`;
+      user = `Buatkan ${variants} varian ${ct.replace(/_/g, " ")} untuk platform ${b.platform} tentang topik: "${b.topic}"`;
     }
 
     const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
