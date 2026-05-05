@@ -18,6 +18,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
+import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -105,6 +106,7 @@ export default function ParentDashboard() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [sppData, setSppData] = useState<{ aktif: any[]; tunggakan: any[]; lunas: any[]; total_tunggakan: number }>({ aktif: [], tunggakan: [], lunas: [], total_tunggakan: 0 });
   const [sppBusy, setSppBusy] = useState<string | null>(null);
+  const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
 
   const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
 
@@ -160,7 +162,7 @@ export default function ParentDashboard() {
     const d = await invoke("spp_pay", { student_id: selectedStudent, invoice_id: invoiceId });
     setSppBusy(null);
     if (d?.error) { toast.error(d.error); return; }
-    if (d?.payment_url) { window.open(d.payment_url, "_blank"); toast.success("Membuka halaman pembayaran..."); loadTab(); }
+    if (d?.payment_url) { setPaymentIframe(d.payment_url); toast.success("Membuka halaman pembayaran..."); }
   };
 
   const downloadSppPdf = async (inv: any) => {
@@ -896,6 +898,13 @@ export default function ParentDashboard() {
           </div>
         </div>
       </nav>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembayaran SPP — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); loadTab(); }}
+      />
     </div>
   );
 }

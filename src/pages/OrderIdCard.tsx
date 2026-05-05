@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 
 import idcardDesign1 from "@/assets/idcard-design-1.png";
 import idcardDesign2 from "@/assets/idcard-design-2.png";
@@ -53,6 +54,7 @@ const OrderIdCard = () => {
   const [detailItems, setDetailItems] = useState<any[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
+  const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("status") === "success") {
@@ -134,7 +136,7 @@ const OrderIdCard = () => {
 
       if (payError) throw payError;
       if (payData?.payment_url) {
-        window.open(payData.payment_url, "_blank");
+        setPaymentIframe(payData.payment_url);
       }
 
       const { data: newOrders } = await supabase.from("id_card_orders")
@@ -158,7 +160,7 @@ const OrderIdCard = () => {
         body: { addon_type: "idcard", order_id: order.id, school_id: profile?.school_id },
       });
       if (error) throw error;
-      if (data?.payment_url) window.open(data.payment_url, "_blank");
+      if (data?.payment_url) setPaymentIframe(data.payment_url);
     } catch (e: any) {
       toast.error(e.message || "Gagal membuat pembayaran");
     }
@@ -661,6 +663,13 @@ const OrderIdCard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembayaran ID Card — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+      />
     </div>
   );
 };

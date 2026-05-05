@@ -25,6 +25,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
+import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -936,7 +937,7 @@ export function BendaharaGenerate() {
               const phone = inv.parent_phone;
               if (phone) {
                 const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-                const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${paymentUrl}\n\nJatuh tempo: ${due}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
+                const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
                 const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
                   body: { school_id: profile.school_id, phone, message: msg, message_type: "spp_invoice" },
                 });
@@ -1107,7 +1108,7 @@ export function BendaharaGenerate() {
           <div className="flex items-center justify-between rounded-lg border p-3 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900">
             <div>
               <p className="text-sm font-medium flex items-center gap-1.5 text-emerald-800 dark:text-emerald-200"><Send className="h-3.5 w-3.5" /> Otomatis buat link & kirim WA</p>
-              <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">Setelah generate, sistem langsung membuat link Mayar dan mengirim tagihan ke WA wali murid — tidak perlu langkah tambahan</p>
+              <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">Setelah generate, sistem langsung membuat link pembayaran (QRIS / Transfer Bank) dan mengirim tagihan ke WA wali murid — tidak perlu langkah tambahan</p>
             </div>
             <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-white/70 dark:bg-emerald-900/40 px-2 py-1 rounded-md">Aktif</span>
           </div>
@@ -1422,7 +1423,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         }
         if (!paymentUrl) { linkFail++; setBulkProgress({ done: i + 1, total: targetInvs.length }); continue; }
         const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-        const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${paymentUrl}\n\nJatuh tempo: ${due}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
+        const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
         const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
           body: { school_id: schoolId, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
         });
@@ -1592,6 +1593,7 @@ export function BendaharaSPPDetail() {
   const [ay, setAY] = useState(initAY);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
 
   const load = () => {
     if (!profile?.school_id || !studentId) { setLoading(false); return; }
@@ -1664,7 +1666,7 @@ export function BendaharaSPPDetail() {
 
   const createPaymentLink = async (inv: any, regen = false) => {
     setBusy(`link-${inv.id}`);
-    toast.loading(regen ? "Membuat ulang link..." : "Membuat link Mayar...");
+    toast.loading(regen ? "Membuat ulang link pembayaran..." : "Membuat link pembayaran (QRIS / Transfer Bank)...");
     const action = regen ? "regenerate_payment_link" : "create_payment_link";
     const { data, error } = await supabase.functions.invoke("spp-mayar", { body: { action, invoice_id: inv.id } });
     toast.dismiss();
@@ -1678,7 +1680,7 @@ export function BendaharaSPPDetail() {
   const sendWa = async (inv: any) => {
     if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
     if (!inv.payment_url) { toast.error("Buat link pembayaran dulu"); return; }
-    const msg = `Yth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP siswa *${inv.student_name}* (${inv.class_name}) periode *${inv.period_label}* sebesar *${fmtIDR(inv.total_amount)}*.\n\nSilakan bayar melalui link:\n${inv.payment_url}\n\nJatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nTerima kasih.\n_Ayo Pintar (ATSkolla)_`;
+    const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${inv.payment_url}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
     setBusy(`wa-${inv.id}`);
     toast.loading("Mengirim WA...");
     const { error } = await supabase.functions.invoke("send-whatsapp", {
@@ -1691,7 +1693,7 @@ export function BendaharaSPPDetail() {
   const sendEmail = (inv: any) => {
     if (!inv.payment_url) { toast.error("Buat link dulu"); return; }
     const subject = `Tagihan SPP ${inv.period_label} - ${inv.student_name}`;
-    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\n\nLink: ${inv.payment_url}\n\nTerima kasih.\nAyo Pintar`;
+    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\nMetode pembayaran: QRIS / Transfer Bank.\n\nLink: ${inv.payment_url}\n\nTerima kasih.\nATSkolla — Sistem Absensi & SPP Sekolah`;
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
@@ -1838,7 +1840,7 @@ export function BendaharaSPPDetail() {
                             ) : (
                               <>
                                 <Button size="sm" variant="outline" onClick={() => copyLink(inv.payment_url)} title="Salin"><Copy className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="outline" onClick={() => window.open(inv.payment_url, "_blank")} title="Buka"><LinkIcon className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => setPaymentIframe(inv.payment_url)} title="Buka di dashboard"><LinkIcon className="h-3 w-3" /></Button>
                                 <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `wa-${inv.id}`} onClick={() => sendWa(inv)}><MessageCircle className="h-3 w-3 mr-1" /> WA</Button>
                                 <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
@@ -1864,6 +1866,13 @@ export function BendaharaSPPDetail() {
           </div>
         </CardContent>
       </Card>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pratinjau Pembayaran — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); load(); }}
+      />
     </div>
   );
 }
