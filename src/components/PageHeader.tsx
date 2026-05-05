@@ -33,7 +33,7 @@ export const PageHeader = ({ icon: Icon, title, subtitle, actions, variant = "pr
   }, []);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] p-5 sm:p-6 text-white shadow-xl">
+    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${VARIANTS[variant]} p-5 sm:p-6 text-white shadow-xl`}>
       {showShapes && (
         <>
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
