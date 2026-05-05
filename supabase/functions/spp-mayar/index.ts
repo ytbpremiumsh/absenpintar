@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { brandPaymentUrl } from "../_shared/brandUrl.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -107,7 +108,7 @@ serve(async (req) => {
 
       const result = await ensureFreshLink(supabaseAdmin, inv);
       if (!result.success) return err(result.error || "Gagal");
-      return ok({ payment_url: result.payment_url, invoice_id: result.invoice_id });
+      return ok({ payment_url: brandPaymentUrl(result.payment_url), invoice_id: result.invoice_id });
     }
 
     // ====== SCHOOL ACTIONS (require school admin/bendahara JWT) ======
@@ -154,7 +155,7 @@ serve(async (req) => {
 
       const result = await ensureFreshLink(supabaseAdmin, inv, action === "regenerate_payment_link");
       if (!result.success) return err(result.error || "Gagal");
-      return ok({ payment_url: result.payment_url, invoice_id: result.invoice_id });
+      return ok({ payment_url: brandPaymentUrl(result.payment_url), invoice_id: result.invoice_id });
     }
 
     return err("Unknown action");

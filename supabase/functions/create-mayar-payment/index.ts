@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { brandPaymentUrl } from "../_shared/brandUrl.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,7 +89,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_idcard" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: existing.mayar_payment_url }), {
+        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -110,7 +111,7 @@ serve(async (req) => {
 
       await supabaseAdmin.from("id_card_orders").update({ payment_transaction_id: txn?.id || null }).eq("id", order_id);
 
-      return new Response(JSON.stringify({ success: true, payment_url: paymentLink.link }), {
+      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -125,7 +126,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_custom_domain" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: existing.mayar_payment_url }), {
+        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -151,7 +152,7 @@ serve(async (req) => {
         payment_transaction_id: txn?.id || null, expires_at: subRes?.data?.expires_at || null,
       }, { onConflict: "school_id,addon_type" });
 
-      return new Response(JSON.stringify({ success: true, payment_url: paymentLink.link }), {
+      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -174,7 +175,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_wa_credit" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: existing.mayar_payment_url }), {
+        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -194,7 +195,7 @@ serve(async (req) => {
         payment_method: "addon_wa_credit",
       });
 
-      return new Response(JSON.stringify({ success: true, payment_url: paymentLink.link }), {
+      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -233,7 +234,7 @@ serve(async (req) => {
 
     const existing = await findRecentPending({ school_id: schoolId, plan_id: plan.id });
     if (existing?.mayar_payment_url) {
-      return new Response(JSON.stringify({ success: true, payment_url: existing.mayar_payment_url }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const redirectUrl = `${siteUrl}/subscription?status=success`;
@@ -249,7 +250,7 @@ serve(async (req) => {
       mayar_transaction_id: paymentLink?.id || null, mayar_payment_url: paymentLink?.link || null,
     });
 
-    return new Response(JSON.stringify({ success: true, payment_url: paymentLink.link }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error) {
     console.error("create-mayar-payment error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {

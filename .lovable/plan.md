@@ -1,110 +1,83 @@
 ## Tujuan
-Memperbaiki seluruh notifikasi WhatsApp SPP, mengganti branding "Ayo Pintar" → "ATSkolla", mengganti label "Mayar" → "QRIS / Transfer Bank", dan mengubah seluruh halaman pembayaran agar dibuka di dalam **iframe modal** pada dashboard (bukan tab baru).
+Mengganti domain pada link pembayaran yang **dilihat user** (WA, email, tombol di dashboard, iframe) dari `https://ayopintarindonesia.myr.id/...` menjadi `https://bayar.atskolla.com/...` — dengan tetap mempertahankan URL asli Mayar di database supaya webhook auto-approval tidak rusak.
+
+Asumsi: domain `bayar.atskolla.com` sudah Anda setup (Cloudflare Worker / Redirect Rule) dan sudah meneruskan ke `ayopintarindonesia.myr.id` dengan path utuh.
 
 ---
 
-## 1. Perbaikan Notifikasi WhatsApp SPP
+## 1. Helper baru `brandPaymentUrl()`
 
-### a. Notif "Tagihan Baru" (saat bendahara generate / kirim tagihan)
-File: `src/pages/bendahara/BendaharaPages.tsx` (3 lokasi: generate batch, kirim ulang, kirim WA manual)
-- Rapikan template menjadi:
-  ```
-  *ATSkolla — Tagihan SPP Baru*
-  
-  Yth. Bapak/Ibu {parent_name},
-  
-  Tagihan SPP ananda:
-  • Nama   : {student_name}
-  • Kelas  : {class_name}
-  • Periode: {period_label}
-  • Nominal: Rp {total}
-  • Jatuh tempo: {due_date}
-  
-  Silakan lakukan pembayaran via QRIS / Transfer Bank pada link berikut:
-  {payment_url}
-  
-  Terima kasih.
-  _ATSkolla — Sistem Absensi & SPP Sekolah_
-  ```
-- Hapus seluruh string "Ayo Pintar" / "(ATSkolla)" lama.
+File: `src/lib/utils.ts` — tambahkan:
+```ts
+export const PAYMENT_BRAND_DOMAIN = "bayar.atskolla.com";
 
-### b. Notif "Pembayaran SPP Berhasil" (otomatis dari webhook)
-File: `supabase/functions/mayar-webhook/index.ts` (2 lokasi: SPP direct fallback line ~177, SPP normal line ~270)
-- Template baru:
-  ```
-  *ATSkolla — Pembayaran SPP Berhasil ✓*
-  
-  Halo Ayah/Bunda {parent_name},
-  
-  Pembayaran SPP ananda telah kami terima:
-  • Nama   : {student_name}
-  • Kelas  : {class_name}
-  • Periode: {period_label}
-  • Nominal: Rp {total}
-  • Metode : QRIS / Transfer Bank
-  • Tanggal: {paid_at}
-  
-  Terima kasih atas kepercayaan Bapak/Ibu.
-  _ATSkolla — Sistem Absensi & SPP Sekolah_
-  ```
-- Pastikan terkirim ke `parent_phone` via `send-whatsapp` (sudah ada, tinggal teks diperbaiki).
-- Tambahkan juga notifikasi WA balasan ke **bendahara/admin sekolah** (opsional ringkas) → "Pembayaran SPP {student_name} {period_label} masuk Rp {total}".
+export function brandPaymentUrl(url?: string | null): string {
+  if (!url) return "";
+  return url.replace(/^https?:\/\/[^/]*myr\.id/i, `https://${PAYMENT_BRAND_DOMAIN}`);
+}
+```
 
-### c. Notif tambahan: Pengiriman Sukses
-- Pastikan setiap kali bendahara klik "Kirim WA" tampil toast `Notifikasi terkirim ke {parent_phone}` jika `send-whatsapp` mengembalikan sukses (sudah sebagian, dirapikan).
+Helper kembar untuk edge function (Deno tidak share `src/`):  
+File baru `supabase/functions/_shared/brandUrl.ts`:
+```ts
+export function brandPaymentUrl(url?: string | null): string {
+  if (!url) return "";
+  return url.replace(/^https?:\/\/[^/]*myr\.id/i, "https://bayar.atskolla.com");
+}
+```
 
 ---
 
-## 2. Rebranding "Ayo Pintar" & "Mayar"
+## 2. Terapkan di Edge Functions (output ke client/WA)
 
-### Ganti "Ayo Pintar" → "ATSkolla"
-Lokasi yang harus diubah:
-- `supabase/functions/spp-mayar/index.ts` line 34 (`merchantName: "Ayo Pintar"` → `"ATSkolla"`) & line 130 (test koneksi nama).
-- `supabase/functions/mayar-webhook/index.ts` line 177, 270 (template WA).
-- `src/pages/bendahara/BendaharaPages.tsx` line 939, 1425, 1681, 1694 (semua template WA & email).
+**a. `supabase/functions/spp-mayar/index.ts`**
+- Saat `ensureFreshLink` mengembalikan `payment_url` ke client (line 110, 157, 254) → bungkus dengan `brandPaymentUrl(link.link)`.
+- DB tetap simpan URL asli Mayar (line 238 `payment_url: link.link`) — JANGAN diubah, supaya webhook tetap bisa cocokkan via `payment_url`.
 
-### Ganti label "Mayar" (yang dilihat user) → "QRIS / Transfer Bank"
-> Catatan: nama field internal di kode (`mayar_invoice_id`, `mayar_transaction_id`, dst.) **tidak diubah** karena itu skema database. Hanya teks user-facing.
-- `src/pages/Subscription.tsx` line 201: `"Membuka halaman pembayaran Mayar..."` → `"Membuka halaman pembayaran (QRIS / Transfer Bank)..."`.
-- `src/pages/bendahara/BendaharaPages.tsx` line 1110 (subtitle "membuat link Mayar dan mengirim..." → "membuat link pembayaran QRIS/Transfer dan mengirim...").
-- `src/pages/super-admin/SuperAdminBendahara.tsx`, `SuperAdminPayments.tsx`, `SuperAdminSubscriptions.tsx` — cek & ganti label visible "Mayar" menjadi "QRIS / Transfer" (mis. status `payment_method: "mayar"` ditampilkan sebagai "QRIS / Transfer Bank").
-- Webhook Mayar URL card di `SuperAdminPayments.tsx` tetap berjudul "Webhook Pembayaran" (bukan "Mayar Webhook URL"), tapi URL tetap.
+**b. `supabase/functions/create-mayar-payment/index.ts`**
+- Semua `return ... payment_url: paymentLink.link` & `payment_url: existing.mayar_payment_url` → bungkus `brandPaymentUrl(...)` (≈8 lokasi).
+- Field DB `mayar_payment_url` tetap URL Mayar asli.
 
----
+**c. `supabase/functions/parent-portal/index.ts`** (line 483)
+- `payment_url: sppJson.payment_url` → `brandPaymentUrl(sppJson.payment_url)` (jaga2 jika belum di-brand di hulu).
 
-## 3. Pembayaran Iframe (tidak buka tab baru)
-
-Buat komponen baru `src/components/PaymentIframeDialog.tsx`:
-- `Dialog` shadcn full-width (max-w-3xl, h-[85vh])
-- Header: judul "Pembayaran QRIS / Transfer Bank" + tombol "Buka di tab baru" (fallback) + tombol close
-- Body: `<iframe src={paymentUrl} className="w-full h-full rounded-lg border" allow="payment" />`
-- Setelah close: panggil callback `onClose()` untuk reload data tagihan/langganan agar status terbaru ke-fetch.
-
-Ganti seluruh `window.open(payment_url, "_blank")` → buka iframe modal:
-1. `src/pages/parent/ParentDashboard.tsx` line 163 (parent bayar SPP).
-2. `src/pages/Subscription.tsx` line 202 (sekolah upgrade paket).
-3. `src/pages/CustomDomain.tsx` line 58 (beli custom domain add-on).
-4. `src/pages/bendahara/BendaharaPages.tsx` line 1841 (tombol "Buka" di tabel invoice) — buka iframe alih-alih tab baru.
-5. Add-ons lain (`Addons.tsx`, `OrderIdCard.tsx`, `WaCredit.tsx`) — cek `window.open` payment dan ganti.
-
-> Catatan teknis: Mayar payment page mendukung dimuat di iframe (cek `X-Frame-Options`). Jika ada blokir frame untuk metode tertentu, tombol "Buka di tab baru" tetap tersedia sebagai fallback.
+**d. `supabase/functions/mayar-webhook/index.ts`**
+- Pesan WA "Pembayaran SPP Berhasil" tidak menyertakan link pembayaran → tidak perlu diubah.
+- Logika pencocokan webhook lewat `payment_url` & `mayar_payment_url` di DB tetap pakai URL Mayar asli → AMAN.
 
 ---
 
-## Detail Teknis (untuk referensi)
+## 3. Terapkan di Frontend (UI & WA)
 
-**Files yang diubah:**
-1. `supabase/functions/mayar-webhook/index.ts` — template WA SPP berhasil (×2 lokasi).
-2. `supabase/functions/spp-mayar/index.ts` — `merchantName` & test name → ATSkolla.
-3. `src/pages/bendahara/BendaharaPages.tsx` — template WA tagihan baru (×3), kirim email, label subtitle.
-4. `src/components/PaymentIframeDialog.tsx` — **baru**, modal iframe.
-5. `src/pages/parent/ParentDashboard.tsx` — pakai modal iframe untuk bayar SPP.
-6. `src/pages/Subscription.tsx` — pakai modal iframe + ganti teks "Mayar".
-7. `src/pages/CustomDomain.tsx`, `src/pages/Addons.tsx`, `src/pages/OrderIdCard.tsx`, `src/pages/WaCredit.tsx` — ganti `window.open` ke modal.
-8. `src/pages/super-admin/SuperAdminPayments.tsx`, `SuperAdminBendahara.tsx`, `SuperAdminSubscriptions.tsx` — label visible "Mayar" → "QRIS / Transfer".
+Import: `import { brandPaymentUrl } from "@/lib/utils";`
 
-**Tidak diubah:** nama kolom DB (`mayar_*`), nama edge function (`spp-mayar`, `mayar-webhook`), endpoint Mayar API.
+**a. `src/pages/bendahara/BendaharaPages.tsx`**
+- Line 1707 (template WA "Tagihan SPP Baru"): `${inv.payment_url}` → `${brandPaymentUrl(inv.payment_url)}`.
+- Line 1720 (template Email): sama.
+- Line 953 (kirim WA setelah create batch): `paymentUrl` di teks pesan → di-brand.
+- Line 1446 (kirim ulang WA): sama.
+- Line 1866 `copyLink(inv.payment_url)` → `copyLink(brandPaymentUrl(inv.payment_url))` (yang disalin = link branded).
+- Line 1867 `setPaymentIframe(inv.payment_url)` → `setPaymentIframe(brandPaymentUrl(inv.payment_url))` (iframe load via domain branded).
+
+**b. `src/pages/parent/ParentDashboard.tsx`** (line 166)
+- `setPaymentIframe(d.payment_url)` → `setPaymentIframe(brandPaymentUrl(d.payment_url))`.
+
+**c. `src/pages/Subscription.tsx`** (line 204), `src/pages/CustomDomain.tsx` (line 61), `src/pages/OrderIdCard.tsx` (line 139, 163), `src/pages/WaCredit.tsx` (line 77)
+- Semua `setPaymentIframe(...payment_url)` → `setPaymentIframe(brandPaymentUrl(...))`.
 
 ---
 
-Setuju untuk saya implementasikan?
+## 4. QA Manual (setelah deploy)
+1. Bendahara → Generate tagihan SPP → cek pesan WA: link harus `https://bayar.atskolla.com/...`.
+2. Klik link di WA → harus terbuka halaman pembayaran Mayar (via redirect Worker).
+3. Bayar tagihan test (nominal kecil) → webhook tetap masuk → status invoice jadi `paid` → WA konfirmasi terkirim.
+4. Tombol "Buka di dashboard" di tabel invoice → iframe load via `bayar.atskolla.com`.
+5. Parent dashboard → "Bayar Sekarang" → iframe juga branded.
+
+---
+
+## Detail Teknis Penting
+- **Database tidak diubah**: kolom `payment_url` & `mayar_payment_url` tetap URL `myr.id` asli → webhook matching aman.
+- **Hanya output ke user yang di-brand**: prinsip "store raw, display branded".
+- **Iframe via `bayar.atskolla.com`**: bekerja selama Cloudflare Worker meneruskan path & query string utuh dengan `Location: 302` ke `myr.id`. Jika Worker pakai `fetch + return` (proxy mode) malah lebih bagus karena URL bar tetap `bayar.atskolla.com`.
+- **File yang diubah**: 2 helper baru + 4 edge function + 6 page frontend. Migrasi DB: tidak ada.
