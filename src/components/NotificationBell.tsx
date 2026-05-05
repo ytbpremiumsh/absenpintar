@@ -78,6 +78,7 @@ export function NotificationBell() {
           if (!newNotif.school_id || newNotif.school_id === profile.school_id) {
             // Apply role-based filter for incoming events too
             if (newNotif.title.includes("Pembayaran Masuk")) return;
+            if (isBendahara && !isSchoolAdmin && !isSuperAdmin && !isSppPaymentNotif(newNotif)) return;
             if (!canSeeSystemNotifs && newNotif.created_by === null) return;
             setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
           }
