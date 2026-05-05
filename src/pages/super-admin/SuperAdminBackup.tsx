@@ -17,8 +17,6 @@ interface BackupStats {
   stats: Record<string, number>;
 }
 
-
-
 const SuperAdminBackup = () => {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -26,10 +24,12 @@ const SuperAdminBackup = () => {
   const [currentStats, setCurrentStats] = useState<BackupStats | null>(null);
   const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
   const [lastBackupStats, setLastBackupStats] = useState<BackupStats | null>(null);
+  const [lastBackupErrors, setLastBackupErrors] = useState<Record<string, string>>({});
   const [gdriveBackingUp, setGdriveBackingUp] = useState(false);
   const [lastGdriveBackupAt, setLastGdriveBackupAt] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [googleClientId, setGoogleClientId] = useState<string>("");
+  const [showAllTables, setShowAllTables] = useState(false);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -82,9 +82,15 @@ const SuperAdminBackup = () => {
       URL.revokeObjectURL(url);
 
       setExportProgress(100);
-      toast.success(`Backup berhasil! ${data.meta.total_rows} baris dari ${data.meta.tables} tabel`);
+      const errCount = data.meta.errors ? Object.keys(data.meta.errors).length : 0;
+      if (errCount > 0) {
+        toast.warning(`Backup selesai dengan ${errCount} tabel error. ${data.meta.total_rows} baris dari ${data.meta.tables} tabel.`);
+      } else {
+        toast.success(`Backup berhasil! ${data.meta.total_rows} baris dari ${data.meta.tables} tabel`);
+      }
       setLastBackupAt(data.meta.exported_at);
       setLastBackupStats({ tables: data.meta.tables, total_rows: data.meta.total_rows, stats: data.meta.stats });
+      setLastBackupErrors(data.meta.errors || {});
     } catch (err: any) {
       toast.error("Gagal export: " + err.message);
     }
@@ -190,9 +196,10 @@ const SuperAdminBackup = () => {
     catch { return iso; }
   };
 
-  const topTables = currentStats?.stats
-    ? Object.entries(currentStats.stats).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  const allTables = currentStats?.stats
+    ? Object.entries(currentStats.stats).sort((a, b) => (b[1] as number) - (a[1] as number))
     : [];
+  const topTables = showAllTables ? allTables : allTables.slice(0, 10);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -297,6 +304,19 @@ const SuperAdminBackup = () => {
                 {lastBackupStats.total_rows?.toLocaleString("id-ID")} record dari {lastBackupStats.tables} tabel •{" "}
                 {lastBackupAt && formatDate(lastBackupAt)}
               </p>
+            </div>
+          )}
+
+          {Object.keys(lastBackupErrors).length > 0 && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.04] p-3">
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">
+                {Object.keys(lastBackupErrors).length} tabel gagal di-backup
+              </p>
+              <ul className="text-[11px] text-muted-foreground space-y-0.5">
+                {Object.entries(lastBackupErrors).slice(0, 5).map(([t, e]) => (
+                  <li key={t}><code className="text-foreground">{t}</code>: {e}</li>
+                ))}
+              </ul>
             </div>
           )}
         </CardContent>
@@ -477,7 +497,7 @@ const SuperAdminBackup = () => {
           <CardContent className="p-4">
             <div className="space-y-2.5">
               {topTables.map(([table, count]) => {
-                const maxCount = topTables[0][1] as number;
+                const maxCount = (allTables[0]?.[1] as number) || 1;
                 const pct = maxCount > 0 ? ((count as number) / maxCount) * 100 : 0;
                 return (
                   <div key={table} className="flex items-center gap-3">
@@ -498,10 +518,12 @@ const SuperAdminBackup = () => {
               })}
             </div>
 
-            {currentStats?.stats && Object.keys(currentStats.stats).length > 8 && (
-              <p className="text-[10px] text-muted-foreground mt-3 text-center">
-                + {Object.keys(currentStats.stats).length - 8} tabel lainnya
-              </p>
+            {allTables.length > 10 && (
+              <div className="mt-3 text-center">
+                <Button variant="ghost" size="sm" onClick={() => setShowAllTables(!showAllTables)} className="text-[11px] h-7">
+                  {showAllTables ? "Tampilkan 10 teratas" : `Tampilkan semua ${allTables.length} tabel`}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
