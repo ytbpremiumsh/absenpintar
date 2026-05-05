@@ -2658,7 +2658,206 @@ export function BendaharaLaporan() {
           </Card>
         </TabsContent>
 
-        {/* TAB 3 — EXPORT DATA */}
+        {/* TAB 3 — MATRIX KELAS x BULAN (format rekap nasional) */}
+        <TabsContent value="matrix" className="mt-4">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="flex flex-row items-start justify-between gap-2 flex-wrap">
+              <div>
+                <CardTitle className="text-base">Rekap Tagihan SPP — Kelas × Bulan ({year})</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Format rekap resmi: tiap baris adalah kelas, tiap kolom adalah bulan. Angka <strong className="text-emerald-600">hijau</strong> = sudah lunas, <strong className="text-rose-600">merah</strong> = belum.
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table className="text-xs">
+                  <TableHeader>
+                    <TableRow className="bg-[#5B6CF9]/10 hover:bg-[#5B6CF9]/10 border-b-2 border-[#5B6CF9]/30">
+                      <TableHead className="font-bold text-foreground sticky left-0 bg-[#eef0fe] z-10 min-w-[90px]">KELAS</TableHead>
+                      {MONTHS.map((m, i) => (
+                        <TableHead key={i} className="text-center font-bold text-foreground border-l border-border/50 min-w-[78px]">
+                          {m.slice(0, 3).toUpperCase()}
+                        </TableHead>
+                      ))}
+                      <TableHead className="text-center font-bold text-foreground border-l-2 border-[#5B6CF9]/30 bg-[#eef0fe] min-w-[110px]">TOTAL</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {perClassRows.length === 0 ? (
+                      <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">Belum ada data tagihan tahun {year}</TableCell></TableRow>
+                    ) : perClassRows.map(r => (
+                      <TableRow key={r.cls} className="hover:bg-muted/30">
+                        <TableCell className="font-bold text-sm sticky left-0 bg-card z-10 border-r">{r.cls}</TableCell>
+                        {r.months.map((mo, i) => {
+                          if (mo.count === 0) return <TableCell key={i} className="text-center text-muted-foreground/40 border-l border-border/30">–</TableCell>;
+                          const pct = mo.total > 0 ? Math.round((mo.paid / mo.total) * 100) : 0;
+                          const allPaid = mo.paidCount === mo.count;
+                          return (
+                            <TableCell key={i} className="text-center border-l border-border/30 p-1.5">
+                              <div className={`text-[11px] font-bold ${allPaid ? "text-emerald-600" : pct > 0 ? "text-amber-600" : "text-rose-600"}`}>
+                                {mo.paidCount}/{mo.count}
+                              </div>
+                              <div className="text-[9px] text-muted-foreground mt-0.5">{(mo.paid/1000).toFixed(0)}rb</div>
+                            </TableCell>
+                          );
+                        })}
+                        <TableCell className="text-center border-l-2 border-[#5B6CF9]/30 bg-[#eef0fe]/40">
+                          <div className="text-[11px] font-bold text-foreground">{r.paidCount}/{r.totalCount}</div>
+                          <div className="text-[9px] text-emerald-600 font-semibold">{fmtIDR(r.totalBayar)}</div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                  {perClassRows.length > 0 && (
+                    <TableFooter>
+                      <TableRow className="bg-[#5B6CF9]/10 font-bold border-t-2 border-[#5B6CF9]/30">
+                        <TableCell className="sticky left-0 bg-[#eef0fe] z-10 text-foreground">TOTAL</TableCell>
+                        {MONTHS.map((_, i) => {
+                          const sum = perClassRows.reduce((a, r) => ({ paid: a.paid + r.months[i].paid, total: a.total + r.months[i].total, paidCount: a.paidCount + r.months[i].paidCount, count: a.count + r.months[i].count }), { paid: 0, total: 0, paidCount: 0, count: 0 });
+                          return (
+                            <TableCell key={i} className="text-center border-l border-border/30 p-1.5">
+                              <div className="text-[11px] text-foreground">{sum.paidCount}/{sum.count}</div>
+                              <div className="text-[9px] text-emerald-600">{(sum.paid/1000000).toFixed(1)}jt</div>
+                            </TableCell>
+                          );
+                        })}
+                        <TableCell className="text-center border-l-2 border-[#5B6CF9]/30 bg-[#eef0fe]">
+                          <div className="text-[11px] text-foreground">{yearTotals.bayar > 0 ? Math.round((yearTotals.bayar/yearTotals.tagihan)*100) : 0}%</div>
+                          <div className="text-[9px] text-emerald-600">{fmtIDR(yearTotals.bayar)}</div>
+                        </TableCell>
+                      </TableRow>
+                    </TableFooter>
+                  )}
+                </Table>
+              </div>
+              <div className="px-4 py-3 border-t bg-muted/20 text-[11px] text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+                <span><strong className="text-foreground">Format sel:</strong> Lunas/Total · nominal terkumpul</span>
+                <span className="text-emerald-600">● Semua lunas</span>
+                <span className="text-amber-600">● Sebagian</span>
+                <span className="text-rose-600">● Belum ada</span>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB 4 — DETAIL SISWA PER BULAN */}
+        <TabsContent value="siswa" className="mt-4">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Detail Pembayaran Siswa per Bulan</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">Lihat siapa saja yang sudah lunas / menunggak pada bulan & kelas tertentu beserta total pendapatan.</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs">Bulan</Label>
+                  <Select value={String(detailMonth)} onValueChange={v => setDetailMonth(parseInt(v))}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {MONTHS.map((m, i) => <SelectItem key={i} value={String(i+1)}>{m} {year}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Kelas</Label>
+                  <Select value={detailClass} onValueChange={setDetailClass}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Kelas</SelectItem>
+                      {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Status</Label>
+                  <Select value={detailStatus} onValueChange={setDetailStatus}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="paid">Hanya Lunas</SelectItem>
+                      <SelectItem value="unpaid">Hanya Belum</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {(() => {
+                const monthInvs = items.filter(i =>
+                  i.period_month === detailMonth &&
+                  (detailClass === "all" || i.class_name === detailClass) &&
+                  (detailStatus === "all" || (detailStatus === "paid" ? i.status === "paid" : i.status !== "paid"))
+                ).sort((a, b) => (a.class_name || "").localeCompare(b.class_name || "") || (a.student_name || "").localeCompare(b.student_name || ""));
+
+                const totTagihan = monthInvs.reduce((s, i) => s + (i.total_amount || 0), 0);
+                const totPaid = monthInvs.filter(i => i.status === "paid").reduce((s, i) => s + (i.total_amount || 0), 0);
+                const lunasCount = monthInvs.filter(i => i.status === "paid").length;
+
+                return (
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="rounded-lg border bg-card p-3"><p className="text-[10px] text-muted-foreground uppercase">Tagihan</p><p className="text-sm font-bold mt-0.5">{monthInvs.length}</p></div>
+                      <div className="rounded-lg border bg-emerald-50 dark:bg-emerald-950/20 p-3"><p className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase">Lunas</p><p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">{lunasCount}</p></div>
+                      <div className="rounded-lg border bg-rose-50 dark:bg-rose-950/20 p-3"><p className="text-[10px] text-rose-700 dark:text-rose-400 uppercase">Belum</p><p className="text-sm font-bold text-rose-700 dark:text-rose-400 mt-0.5">{monthInvs.length - lunasCount}</p></div>
+                      <div className="rounded-lg border bg-[#5B6CF9]/10 p-3"><p className="text-[10px] text-[#5B6CF9] uppercase">Pendapatan</p><p className="text-sm font-bold text-[#5B6CF9] mt-0.5">{fmtIDR(totPaid)}</p><p className="text-[9px] text-muted-foreground">dari {fmtIDR(totTagihan)}</p></div>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-lg border">
+                      <Table className="text-xs">
+                        <TableHeader>
+                          <TableRow className="bg-muted/40">
+                            <TableHead className="font-bold w-12 text-center">No</TableHead>
+                            <TableHead className="font-bold">NIS</TableHead>
+                            <TableHead className="font-bold">Nama Siswa</TableHead>
+                            <TableHead className="font-bold">Kelas</TableHead>
+                            <TableHead className="font-bold text-right">Nominal</TableHead>
+                            <TableHead className="font-bold text-center">Status</TableHead>
+                            <TableHead className="font-bold">Tgl Bayar</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {monthInvs.length === 0 ? (
+                            <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Tidak ada tagihan untuk filter ini</TableCell></TableRow>
+                          ) : monthInvs.map((i, idx) => {
+                            const stu = students.find(s => s.id === i.student_id);
+                            return (
+                              <TableRow key={i.id} className="hover:bg-muted/20">
+                                <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
+                                <TableCell className="font-mono text-[11px]">{stu?.student_id || "-"}</TableCell>
+                                <TableCell className="font-medium">{i.student_name}</TableCell>
+                                <TableCell>{i.class_name}</TableCell>
+                                <TableCell className="text-right font-semibold">{fmtIDR(i.total_amount || 0)}</TableCell>
+                                <TableCell className="text-center">
+                                  {i.status === "paid"
+                                    ? <span className="status-pill status-pill-paid"><span className="dot" />Lunas</span>
+                                    : i.status === "pending"
+                                      ? <span className="status-pill status-pill-pending"><span className="dot" />Pending</span>
+                                      : <span className="status-pill status-pill-unpaid"><span className="dot" />Belum</span>}
+                                </TableCell>
+                                <TableCell className="text-[11px] text-muted-foreground">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                        {monthInvs.length > 0 && (
+                          <TableFooter>
+                            <TableRow className="bg-muted/40 font-bold">
+                              <TableCell colSpan={4} className="text-right">TOTAL DITERIMA</TableCell>
+                              <TableCell className="text-right text-emerald-600">{fmtIDR(totPaid)}</TableCell>
+                              <TableCell colSpan={2} className="text-[10px] text-muted-foreground">dari total tagihan {fmtIDR(totTagihan)}</TableCell>
+                            </TableRow>
+                          </TableFooter>
+                        )}
+                      </Table>
+                    </div>
+                  </>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB 5 — EXPORT DATA */}
         <TabsContent value="export" className="mt-4">
           <Card className="border-0 shadow-sm">
             <CardHeader>
