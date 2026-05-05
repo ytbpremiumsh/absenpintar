@@ -68,7 +68,24 @@ const REWRITE_STYLE_GUIDE: Record<string, string> = {
   translate_id: "Terjemahkan ke Bahasa Indonesia yang natural & fasih (bukan terjemahan kaku).",
   engaging: "Buat lebih engaging untuk media sosial: hook menarik di awal, gunakan emoji secukupnya, baris pendek.",
   seo: "Optimasi untuk SEO: gunakan kata kunci natural seputar 'absensi sekolah', 'aplikasi sekolah', struktur paragraf SEO-friendly, hindari keyword stuffing.",
+  mimic: "TIRU GAYA & STRUKTUR teks referensi (lihat di bawah) sepersis mungkin, tapi ganti subjek/produk menjadi ATSkolla.",
   custom: "Ikuti instruksi custom dari user di bawah ini.",
+};
+
+const CONTENT_TYPE_GUIDE: Record<string, string> = {
+  caption_sosmed: "Caption media sosial: hook 1 kalimat di awal, body singkat, CTA jelas di akhir. Cocok untuk feed FB/IG.",
+  deskripsi_produk: "Deskripsi produk untuk landing page / marketplace: jelaskan WHAT, WHY, HOW, fitur utama dalam bullet, manfaat untuk user, akhiri dengan CTA.",
+  iklan_fb: "Iklan Facebook Ads: format AIDA (Attention-Interest-Desire-Action). Headline pendek menohok, pain point audiens, solusi, social proof singkat, CTA tegas. Maksimal 125 karakter primary text idealnya.",
+  iklan_google: "Iklan Google Ads: 3 headline pendek (max 30 karakter masing-masing) + 2 deskripsi (max 90 karakter). Format: 'Headline 1 | Headline 2 | Headline 3' lalu deskripsi.",
+  headline: "Hanya headline / judul iklan: 5-10 alternatif headline kuat, masing-masing 1 baris, gaya copywriting (curiosity, benefit, urgency, fear).",
+  artikel_blog: "Artikel blog SEO: struktur lengkap dengan judul (H1), pembuka, sub-heading (H2), 3-5 poin pembahasan, kesimpulan + CTA. Gunakan format markdown.",
+  artikel_press: "Press release / siaran pers: gaya formal jurnalistik, lead paragraf 5W1H, body fakta-fakta, quote dari pihak sekolah/perusahaan, kontak di akhir.",
+  email_marketing: "Email marketing: subject line menarik (di baris pertama 'Subject: ...'), salam pembuka, body singkat-jelas dengan benefit, CTA tombol, signature.",
+  whatsapp_broadcast: "Pesan WhatsApp broadcast: salam ramah, isi singkat dengan bullet (•), CTA berupa link/nomor, hindari kesan spam.",
+  script_video: "Script video pendek (Reels/TikTok 30-60 detik): scene-by-scene, ada [HOOK 0-3 detik], [PROBLEM], [SOLUTION], [PROOF], [CTA]. Sertakan saran visual & voice-over.",
+  testimoni: "Testimoni / review pelanggan: format storytelling dari sudut pandang user (kepala sekolah/wali murid), problem sebelum pakai → setelah pakai → hasil konkret.",
+  faq: "Daftar FAQ: 5-7 pertanyaan-jawaban yang sering ditanyakan calon pengguna. Format Q: ... A: ...",
+  thread_twitter: "Thread Twitter/X: 5-8 tweet bernomor (1/8, 2/8, dst), tiap tweet max 280 karakter, hook di tweet 1.",
 };
 
 serve(async (req) => {
