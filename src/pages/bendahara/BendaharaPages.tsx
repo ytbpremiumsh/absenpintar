@@ -26,6 +26,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
+import { brandPaymentUrl } from "@/lib/utils";
 
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -1704,7 +1705,7 @@ export function BendaharaSPPDetail() {
   const sendWa = async (inv: any) => {
     if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
     if (!inv.payment_url) { toast.error("Buat link pembayaran dulu"); return; }
-    const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${inv.payment_url}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+    const msg = `*ATSkolla — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
     setBusy(`wa-${inv.id}`);
     toast.loading("Mengirim WA...");
     const { error } = await supabase.functions.invoke("send-whatsapp", {
@@ -1717,7 +1718,7 @@ export function BendaharaSPPDetail() {
   const sendEmail = (inv: any) => {
     if (!inv.payment_url) { toast.error("Buat link dulu"); return; }
     const subject = `Tagihan SPP ${inv.period_label} - ${inv.student_name}`;
-    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\nMetode pembayaran: QRIS / Transfer Bank.\n\nLink: ${inv.payment_url}\n\nTerima kasih.\nATSkolla — Sistem Absensi & SPP Sekolah`;
+    const body = `Yth. ${inv.parent_name || "Wali"},\n\nTagihan SPP ${inv.student_name} (${inv.class_name}) periode ${inv.period_label}: ${fmtIDR(inv.total_amount)}.\nMetode pembayaran: QRIS / Transfer Bank.\n\nLink: ${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.\nATSkolla — Sistem Absensi & SPP Sekolah`;
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
@@ -1863,8 +1864,8 @@ export function BendaharaSPPDetail() {
                               </Button>
                             ) : (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => copyLink(inv.payment_url)} title="Salin"><Copy className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="outline" onClick={() => setPaymentIframe(inv.payment_url)} title="Buka di dashboard"><LinkIcon className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => copyLink(brandPaymentUrl(inv.payment_url))} title="Salin"><Copy className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => setPaymentIframe(brandPaymentUrl(inv.payment_url))} title="Buka di dashboard"><LinkIcon className="h-3 w-3" /></Button>
                                 <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `wa-${inv.id}`} onClick={() => sendWa(inv)}><MessageCircle className="h-3 w-3 mr-1" /> WA</Button>
                                 <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
