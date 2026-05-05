@@ -16,10 +16,10 @@ const MPWA_BUTTON_URL = 'https://app.ayopintar.com/send-button';
 const detectButtons = (message: string, messageType?: string): {
   buttons: Array<Record<string, any>>;
   footer?: string;
+  imageUrl?: string;
 } | null => {
-  // 1) OTP — TIDAK menggunakan tombol salin. Kirim sebagai pesan teks biasa
-  //    supaya kode OTP tampil normal di WhatsApp tanpa tombol "Salin Kode OTP".
-  //    (Sebelumnya kami render tombol copy, namun user meminta tampilan polos.)
+  const IMG_PAID = 'https://bohuglednqirnaearrkj.supabase.co/storage/v1/object/public/landing-assets/wa-spp-berhasil.jpg';
+  const IMG_INVOICE = 'https://bohuglednqirnaearrkj.supabase.co/storage/v1/object/public/landing-assets/wa-tagihan-spp.jpg';
 
   // 2) SPP / payment link — cari URL pertama dalam pesan
   const urlMatch = message.match(/https?:\/\/[^\s)]+/);
@@ -31,6 +31,7 @@ const detectButtons = (message: string, messageType?: string): {
       return {
         buttons: [{ type: 'url', displayText: 'Bayar SPP Sekarang', url }],
         footer: 'ATSkolla - Platform Digital Sekolah',
+        imageUrl: IMG_INVOICE,
       };
     }
   }
@@ -40,6 +41,7 @@ const detectButtons = (message: string, messageType?: string): {
     return {
       buttons: [{ type: 'url', displayText: 'Lihat Riwayat Pembayaran', url: 'https://atskolla.com/parent' }],
       footer: 'ATSkolla - Platform Digital Sekolah',
+      imageUrl: IMG_PAID,
     };
   }
 
