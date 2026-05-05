@@ -41,10 +41,10 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   });
   const json = await res.json().catch(() => ({}));
 
-  // Retry on 429 (Mayar rate-limit / duplicate detection) with backoff
+  // Retry on 429 (Mayar rate-limit / duplicate detection) with longer backoff
   const isDuplicate = res.status === 429 || /duplicate/i.test(json?.message || "");
-  if (isDuplicate && attempt < 3) {
-    const backoff = 1500 + attempt * 1500 + Math.floor(Math.random() * 800);
+  if (isDuplicate && attempt < 5) {
+    const backoff = 2000 + attempt * 2000 + Math.floor(Math.random() * 1200);
     console.log(`Mayar 429/duplicate — retry #${attempt + 1} after ${backoff}ms`);
     await sleep(backoff);
     return createMayarLink(apiKey, inv, attempt + 1);

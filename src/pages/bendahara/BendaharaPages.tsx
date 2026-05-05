@@ -896,13 +896,13 @@ export function BendaharaGenerate() {
       const created = inserted || [];
       toast.success(`${created.length} tagihan SPP berhasil dibuat${created.length < rows.length ? ` (${rows.length - created.length} dilewati karena sudah ada)` : ""}`);
 
-      // === Auto generate Mayar link + kirim WA (opsional) ===
-      if (autoSendWa && created.length > 0) {
+      // === Auto generate Mayar link + kirim WA (selalu aktif) ===
+      if (created.length > 0) {
         let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
-        setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran..." });
-        // Sequential with delay to avoid Mayar rate limits / duplicate detection
-        for (let i = 0; i < created.length; i++) {
-          const inv = created[i];
+        const failedInvs: any[] = [];
+        setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran & kirim WA..." });
+
+        const processOne = async (inv: any) => {
           try {
             const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
               body: { action: "create_payment_link", invoice_id: inv.id },
@@ -921,14 +921,32 @@ export function BendaharaGenerate() {
               } else {
                 waSkip++;
               }
-            } else {
-              linkFail++;
+              return true;
             }
-          } catch { linkFail++; }
+            return false;
+          } catch { return false; }
+        };
+
+        for (let i = 0; i < created.length; i++) {
+          const inv = created[i];
+          const success = await processOne(inv);
+          if (!success) failedInvs.push(inv);
           setBulkProgress({ done: i + 1, total: created.length, phase: "Membuat link & kirim WA..." });
-          // Throttle ~1.2s between Mayar calls to avoid duplicate-request 429
-          if (i < created.length - 1) await new Promise((r) => setTimeout(r, 1200));
+          if (i < created.length - 1) await new Promise((r) => setTimeout(r, 1800));
         }
+
+        // Retry yang gagal sekali lagi setelah jeda lebih panjang
+        if (failedInvs.length > 0) {
+          setBulkProgress({ done: 0, total: failedInvs.length, phase: `Mencoba ulang ${failedInvs.length} tagihan...` });
+          await new Promise((r) => setTimeout(r, 3000));
+          for (let i = 0; i < failedInvs.length; i++) {
+            const success = await processOne(failedInvs[i]);
+            if (!success) linkFail++;
+            setBulkProgress({ done: i + 1, total: failedInvs.length, phase: "Mencoba ulang..." });
+            if (i < failedInvs.length - 1) await new Promise((r) => setTimeout(r, 2500));
+          }
+        }
+
         setBulkProgress(null);
         toast.success(`Link berhasil: ${linkOk} • WA terkirim: ${waOk}${waFail ? ` • gagal kirim: ${waFail}` : ""}${waSkip ? ` • tanpa nomor WA: ${waSkip}` : ""}${linkFail ? ` • gagal link: ${linkFail}` : ""}`);
       }
@@ -1063,12 +1081,12 @@ export function BendaharaGenerate() {
             </div>
             <Switch checked={skipExisting} onCheckedChange={setSkipExisting} />
           </div>
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-[#5B6CF9]/5 border-[#5B6CF9]/20">
+          <div className="flex items-center justify-between rounded-lg border p-3 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900">
             <div>
-              <p className="text-sm font-medium flex items-center gap-1.5"><Send className="h-3.5 w-3.5 text-[#5B6CF9]" /> Otomatis kirim WA ke wali murid</p>
-              <p className="text-xs text-muted-foreground">Setelah generate, sistem otomatis membuat link Mayar dan mengirim tagihan via WhatsApp</p>
+              <p className="text-sm font-medium flex items-center gap-1.5 text-emerald-800 dark:text-emerald-200"><Send className="h-3.5 w-3.5" /> Otomatis buat link & kirim WA</p>
+              <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80">Setelah generate, sistem langsung membuat link Mayar dan mengirim tagihan ke WA wali murid — tidak perlu langkah tambahan</p>
             </div>
-            <Switch checked={autoSendWa} onCheckedChange={setAutoSendWa} />
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-white/70 dark:bg-emerald-900/40 px-2 py-1 rounded-md">Aktif</span>
           </div>
           {(preview.skipped > 0 || preview.noTariff > 0) && (
             <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 p-3 text-xs space-y-1">
