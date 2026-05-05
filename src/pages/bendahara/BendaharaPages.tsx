@@ -667,10 +667,11 @@ export function BendaharaTarif() {
         icon={Banknote}
         title="Tarif SPP"
         subtitle="Kelola nominal SPP per tahun ajaran & kelas"
+        variant="emerald"
         actions={
           <>
             <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Copy className="h-4 w-4 mr-1.5" /> Set Massal</Button>
-            <Button size="sm" onClick={openAdd} className="bg-white text-[#5B6CF9] hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
+            <Button size="sm" onClick={openAdd} className="bg-white text-emerald-700 hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
           </>
         }
       />
