@@ -1,6 +1,7 @@
 // Parent Dashboard API — handles login (WA OTP), session validation, and data access.
 // verify_jwt = false because parents do not have Supabase auth users; we use custom session tokens.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { brandPaymentUrl } from "../_shared/brandUrl.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
