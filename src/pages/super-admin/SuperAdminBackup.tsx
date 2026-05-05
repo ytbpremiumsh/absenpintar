@@ -497,7 +497,7 @@ const SuperAdminBackup = () => {
           <CardContent className="p-4">
             <div className="space-y-2.5">
               {topTables.map(([table, count]) => {
-                const maxCount = topTables[0][1] as number;
+                const maxCount = (allTables[0]?.[1] as number) || 1;
                 const pct = maxCount > 0 ? ((count as number) / maxCount) * 100 : 0;
                 return (
                   <div key={table} className="flex items-center gap-3">
