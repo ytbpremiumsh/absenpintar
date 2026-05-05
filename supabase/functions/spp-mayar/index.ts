@@ -31,7 +31,7 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
     email: "spp@atskolla.com",
     mobile: (inv.parent_phone || "08000000000").replace(/\D/g, ""),
     redirectUrl: "https://atskolla.com/parent",
-    merchantName: "Ayo Pintar",
+    merchantName: "ATSkolla",
     expiredAt: expiry.toISOString(),
   };
   const res = await fetch("https://api.mayar.id/hl/v1/payment/create", {
@@ -127,7 +127,7 @@ serve(async (req) => {
         const res = await fetch("https://api.mayar.id/hl/v1/payment/create", {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ name: "Test Koneksi - Ayo Pintar", amount: 1000, description: "test", email: "test@atskolla.com", mobile: "08000000000" }),
+          body: JSON.stringify({ name: "Test Koneksi - ATSkolla", amount: 1000, description: "test", email: "test@atskolla.com", mobile: "08000000000" }),
         });
         const json = await res.json();
         const connected = res.ok && json?.data?.link;
