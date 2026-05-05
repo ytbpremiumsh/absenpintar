@@ -480,7 +480,7 @@ Deno.serve(async (req) => {
       });
       const sppJson = await sppRes.json();
       if (!sppJson?.success) return json({ error: sppJson?.error || "Gagal" });
-      return json({ ok: true, payment_url: sppJson.payment_url, invoice_id: sppJson.invoice_id });
+      return json({ ok: true, payment_url: brandPaymentUrl(sppJson.payment_url), invoice_id: sppJson.invoice_id });
     }
 
     if (action === "school_info") {
