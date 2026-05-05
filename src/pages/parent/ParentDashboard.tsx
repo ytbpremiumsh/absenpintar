@@ -107,6 +107,7 @@ export default function ParentDashboard() {
   const [sppData, setSppData] = useState<{ aktif: any[]; tunggakan: any[]; lunas: any[]; total_tunggakan: number }>({ aktif: [], tunggakan: [], lunas: [], total_tunggakan: 0 });
   const [sppBusy, setSppBusy] = useState<string | null>(null);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
 
   const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
 
@@ -162,7 +163,7 @@ export default function ParentDashboard() {
     const d = await invoke("spp_pay", { student_id: selectedStudent, invoice_id: invoiceId });
     setSppBusy(null);
     if (d?.error) { toast.error(d.error); return; }
-    if (d?.payment_url) { setPaymentIframe(d.payment_url); toast.success("Membuka halaman pembayaran..."); }
+    if (d?.payment_url) { setPayingInvoiceId(invoiceId); setPaymentIframe(d.payment_url); toast.success("Membuka halaman pembayaran..."); }
   };
 
   const downloadSppPdf = async (inv: any) => {
@@ -903,7 +904,17 @@ export default function ParentDashboard() {
         open={!!paymentIframe}
         paymentUrl={paymentIframe}
         title="Pembayaran SPP — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); loadTab(); }}
+        pollIntervalMs={4000}
+        checkPaid={async () => {
+          if (!payingInvoiceId || !selectedStudent) return false;
+          try {
+            const d = await invoke("spp_list", { student_id: selectedStudent });
+            const lunas: any[] = d?.lunas || [];
+            return lunas.some((x: any) => x.id === payingInvoiceId);
+          } catch { return false; }
+        }}
+        onPaid={() => { /* refresh dilakukan saat onClose */ }}
+        onClose={() => { setPaymentIframe(null); setPayingInvoiceId(null); loadTab(); }}
       />
     </div>
   );
