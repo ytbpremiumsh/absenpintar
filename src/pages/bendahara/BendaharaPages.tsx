@@ -295,36 +295,6 @@ export function BendaharaDashboard() {
         </div>
       </div>
 
-      {/* RINCIAN KEUANGAN — colorful tile grid (no card) */}
-      <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70 dark:ring-slate-800/60">
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 px-5 py-3.5 flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-            <Wallet className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-white leading-tight">Rincian Keuangan</p>
-            <p className="text-[10px] text-white/70 leading-tight">Ringkasan total kas masuk dan biaya</p>
-          </div>
-        </div>
-        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { label: "Pendapatan Net", value: fmtIDR(stats.totalNet), grad: "from-emerald-500 to-teal-600", icon: TrendingUp },
-            { label: "Biaya Layanan", value: fmtIDR(stats.totalFee), grad: "from-sky-500 to-blue-600", icon: Receipt },
-            { label: "Fee Pencairan", value: fmtIDR(stats.settleFee), grad: "from-violet-500 to-purple-600", icon: ArrowDownToLine },
-            { label: "Saldo Pending", value: fmtIDR(stats.pendingBalance), grad: "from-amber-500 to-orange-600", icon: Loader2 },
-            { label: "Sudah Dicairkan", value: fmtIDR(stats.settled), grad: "from-rose-500 to-pink-600", icon: Banknote },
-          ].map((t) => (
-            <div key={t.label} className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 ring-1 ring-slate-200/70 dark:ring-slate-800/60 hover:-translate-y-0.5 hover:shadow-md transition-all">
-              <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${t.grad} flex items-center justify-center mb-2 shadow-sm`}>
-                <t.icon className="h-4 w-4 text-white" />
-              </div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.label}</p>
-              <p className="text-sm font-extrabold mt-0.5 truncate">{t.value}</p>
-              <div className={`absolute -right-6 -bottom-6 h-16 w-16 rounded-full bg-gradient-to-br ${t.grad} opacity-10 blur-xl`} />
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* RIWAYAT SISWA MEMBAYAR */}
       <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-emerald-900/5 ring-1 ring-emerald-100 dark:ring-emerald-900/30">
