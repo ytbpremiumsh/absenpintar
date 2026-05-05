@@ -97,27 +97,35 @@ export function BendaharaDashboard() {
     localStorage.setItem("bendahara_show_recent_paid", next ? "1" : "0");
   };
 
-  useEffect(() => {
+  const fetchDashboardData = useCallback(async (syncGateway = false) => {
     if (!profile?.school_id) { setLoading(false); return; }
-    let cancelled = false;
-    const load = async () => {
+    if (syncGateway) {
       await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
-      const [i, s, st] = await Promise.all([
-        supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id),
-        supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
-        supabase.from("students").select("id, gender").eq("school_id", profile.school_id),
-      ]);
-      if (cancelled) return;
-      setInvoices(i.data || []);
-      setSettlements(s.data || []);
-      const map: Record<string, string> = {};
-      (st.data || []).forEach((x: any) => { map[x.id] = (x.gender || "").toString().toUpperCase(); });
-      setStudentGender(map);
-      setLoading(false);
-    };
-    load();
-    return () => { cancelled = true; };
+    }
+    const [i, s, st] = await Promise.all([
+      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id),
+      supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
+      supabase.from("students").select("id, gender").eq("school_id", profile.school_id),
+    ]);
+    setInvoices(i.data || []);
+    setSettlements(s.data || []);
+    const map: Record<string, string> = {};
+    (st.data || []).forEach((x: any) => { map[x.id] = (x.gender || "").toString().toUpperCase(); });
+    setStudentGender(map);
+    setLoading(false);
   }, [profile?.school_id]);
+
+  useEffect(() => { fetchDashboardData(true); }, [fetchDashboardData]);
+
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    const channel = supabase
+      .channel("bendahara-dashboard-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_invoices", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData(false))
+      .on("postgres_changes", { event: "*", schema: "public", table: "spp_settlements", filter: `school_id=eq.${profile.school_id}` }, () => fetchDashboardData(false))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [profile?.school_id, fetchDashboardData]);
 
   const stats = useMemo(() => {
     const now = new Date();
