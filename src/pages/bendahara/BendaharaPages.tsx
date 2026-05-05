@@ -1140,7 +1140,7 @@ export function BendaharaGenerate() {
 
       {/* Action bar */}
       <div className="sticky bottom-4 z-10">
-        <Card className="border-0 shadow-xl bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white">
+        <Card className="border-0 shadow-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white">
           <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs text-white/70">Total estimasi</p>
@@ -1149,7 +1149,7 @@ export function BendaharaGenerate() {
             </div>
             <div className="flex gap-2">
               <Button variant="secondary" onClick={() => setPreviewOpen(true)} disabled={preview.list.length === 0} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Eye className="h-4 w-4 mr-1.5" /> Pratinjau</Button>
-              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-[#5B6CF9] hover:bg-white/90">
+              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-emerald-700 hover:bg-white/90">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
                 Generate Sekarang
               </Button>
