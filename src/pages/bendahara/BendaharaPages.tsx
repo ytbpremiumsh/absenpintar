@@ -992,6 +992,7 @@ export function BendaharaGenerate() {
         icon={FileText}
         title="Generate Tagihan SPP"
         subtitle="Buat tagihan SPP per kelas, per bulan, atau satu tahun ajaran sekaligus"
+        variant="emerald"
       />
 
       {/* Summary cards */}
