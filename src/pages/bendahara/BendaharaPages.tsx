@@ -2323,10 +2323,10 @@ export function BendaharaSaldo() {
         </CardContent>
       </Card>
 
-      {/* Tabel Ledger */}
+      {/* Tabel Riwayat */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Ledger Transaksi Paid</CardTitle>
+          <CardTitle className="text-base">Riwayat Transaksi Lunas</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
