@@ -518,10 +518,12 @@ const SuperAdminBackup = () => {
               })}
             </div>
 
-            {currentStats?.stats && Object.keys(currentStats.stats).length > 8 && (
-              <p className="text-[10px] text-muted-foreground mt-3 text-center">
-                + {Object.keys(currentStats.stats).length - 8} tabel lainnya
-              </p>
+            {allTables.length > 10 && (
+              <div className="mt-3 text-center">
+                <Button variant="ghost" size="sm" onClick={() => setShowAllTables(!showAllTables)} className="text-[11px] h-7">
+                  {showAllTables ? "Tampilkan 10 teratas" : `Tampilkan semua ${allTables.length} tabel`}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
