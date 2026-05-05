@@ -85,12 +85,6 @@ export function BendaharaLayout() {
                 <DropdownMenuItem onClick={() => navigate("/bendahara/pencairan?manage=bank")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <Landmark className="h-4 w-4 mr-2.5 text-muted-foreground" /> Rekening Pencairan
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/account-settings")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
-                  <KeyRound className="h-4 w-4 mr-2.5 text-muted-foreground" /> Ganti Password
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
-                  <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" /> Bantuan
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <LogOut className="h-4 w-4 mr-2.5" /> Keluar
