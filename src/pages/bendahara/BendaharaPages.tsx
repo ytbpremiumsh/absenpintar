@@ -2259,13 +2259,8 @@ export function BendaharaSaldo() {
   const [loading, setLoading] = useState(true);
   const syncingRef = useRef(false);
 
-  const fetchAll = useCallback(async (syncGateway = false) => {
+  const fetchAll = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
-    if (syncGateway && !syncingRef.current) {
-      syncingRef.current = true;
-      await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
-      syncingRef.current = false;
-    }
     const [invRes, stlRes, psRes] = await Promise.all([
       supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").order("paid_at", { ascending: false }),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
@@ -2281,7 +2276,16 @@ export function BendaharaSaldo() {
     setLoading(false);
   }, [profile?.school_id]);
 
-  useEffect(() => { fetchAll(true); }, [fetchAll]);
+  // Render dulu dari DB lokal; sync gateway berjalan di background.
+  useEffect(() => {
+    fetchAll();
+    if (profile?.school_id && !syncingRef.current) {
+      syncingRef.current = true;
+      supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } })
+        .catch(() => null)
+        .finally(() => { syncingRef.current = false; });
+    }
+  }, [fetchAll, profile?.school_id]);
 
   // Realtime: refresh saat ada perubahan invoice/settlement
   useEffect(() => {
