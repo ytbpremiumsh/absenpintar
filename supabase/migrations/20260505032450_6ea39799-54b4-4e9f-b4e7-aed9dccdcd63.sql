@@ -1,0 +1,1 @@
+ALTER TABLE public.spp_invoices ADD COLUMN IF NOT EXISTS parent_email TEXT;

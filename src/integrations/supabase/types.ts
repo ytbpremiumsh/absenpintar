@@ -1641,6 +1641,7 @@ export type Database = {
           mayar_invoice_id: string | null
           net_amount: number
           paid_at: string | null
+          parent_email: string | null
           parent_name: string | null
           parent_phone: string | null
           payment_method: string | null
@@ -1672,6 +1673,7 @@ export type Database = {
           mayar_invoice_id?: string | null
           net_amount?: number
           paid_at?: string | null
+          parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           payment_method?: string | null
@@ -1703,6 +1705,7 @@ export type Database = {
           mayar_invoice_id?: string | null
           net_amount?: number
           paid_at?: string | null
+          parent_email?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           payment_method?: string | null
