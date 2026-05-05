@@ -42,6 +42,7 @@ const navItems = [
   { title: "Email Server (SMTP)", url: "/super-admin/email", icon: Mail, group: "comms" },
 
   // KONTEN PUBLIK
+  { title: "Auto Caption AI", url: "/super-admin/auto-caption", icon: Wand2, group: "content" },
   { title: "Branding & Landing", url: "/super-admin/landing", icon: Palette, group: "content" },
   { title: "Testimoni & Sekolah", url: "/super-admin/testimonials", icon: School, group: "content" },
   { title: "Halaman Fitur", url: "/super-admin/fitur", icon: Presentation, group: "content" },
