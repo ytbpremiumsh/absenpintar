@@ -58,6 +58,7 @@ const sendMpwaButton = async (
   message: string,
   buttons: Array<Record<string, any>>,
   footer?: string,
+  imageUrl?: string,
 ): Promise<{ ok: boolean; data: any }> => {
   const payload: Record<string, any> = {
     api_key: apiKey,
@@ -65,7 +66,7 @@ const sendMpwaButton = async (
     number: recipient,
     message,
     // MPWA /send-button mewajibkan parameter image walau hanya berupa URL gambar header
-    image: 'https://bohuglednqirnaearrkj.supabase.co/storage/v1/object/public/landing-assets/atskolla-wa-header.png',
+    image: imageUrl || 'https://bohuglednqirnaearrkj.supabase.co/storage/v1/object/public/landing-assets/atskolla-wa-header.png',
     button: buttons.slice(0, 5),
   };
   if (footer) payload.footer = footer;
