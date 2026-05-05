@@ -1405,110 +1405,93 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
         const isOpen = openClass[className] ?? false;
         return (
-          <Card key={className} className="border border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-            <div className="flex items-stretch">
+          <div key={className} className="rounded-xl border border-border/60 bg-card overflow-hidden">
+            {/* Header kelas — minimal, 1 baris */}
+            <div className="flex items-center">
               <button
                 onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
                 className="flex-1 min-w-0 flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
               >
                 {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
-                <div className="h-9 w-9 rounded-lg bg-[#5B6CF9] flex items-center justify-center shrink-0 shadow-sm">
-                  <GraduationCap className="h-4 w-4 text-white" />
-                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-baseline gap-2">
                     <span className="font-semibold text-sm text-foreground">Kelas {className}</span>
-                    <Badge variant="secondary" className="text-[10px] h-5">{list.length} siswa</Badge>
+                    <span className="text-[11px] text-muted-foreground">· {list.length} siswa</span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
-                </div>
-                <div className="hidden md:flex items-center gap-1.5">
-                  <span className="status-pill status-pill-paid"><span className="dot" />Lunas {lunas}</span>
-                  <span className="status-pill status-pill-unpaid"><span className="dot" />Nunggak {nunggak}</span>
-                  <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
-                </div>
-                <div className="flex md:hidden items-center gap-1">
-                  <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
-                  <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <span className="text-emerald-600 font-medium">{lunas} lunas</span>
+                    {" · "}
+                    <span className={nunggak > 0 ? "text-red-600 font-medium" : ""}>{nunggak} nunggak</span>
+                    {totalSisa > 0 && <> · sisa <span className="font-semibold text-foreground">{fmtIDR(totalSisa)}</span></>}
+                  </p>
                 </div>
               </button>
               {nunggak > 0 && (
-                <div className="flex items-center pr-2 sm:pr-3 border-l border-border/40 bg-secondary/20">
-                  <Button
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
-                    disabled={bulkBusy === className}
-                    className="h-8 px-2.5 ml-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs shadow-sm"
-                    title={`Kirim WA tagihan ke ${nunggak} wali murid kelas ${className}`}
-                  >
-                    {bulkBusy === className ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
-                        <span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-3.5 w-3.5 sm:mr-1.5" />
-                        <span className="hidden sm:inline">Kirim WA</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
+                  disabled={bulkBusy === className}
+                  className="h-8 mr-2 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 text-xs"
+                  title={`Kirim WA tagihan ke ${nunggak} wali murid`}
+                >
+                  {bulkBusy === className ? (
+                    <><Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" /><span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span></>
+                  ) : (
+                    <><Send className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline">Kirim WA</span></>
+                  )}
+                </Button>
               )}
             </div>
+
+            {/* Tabel siswa — bersih, tanpa banyak shape */}
             {isOpen && (
-              <div className="border-t border-border/50">
-                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {list.map(s => {
-                    const pct = s.total > 0 ? Math.round((s.lunas / s.total) * 100) : 0;
-                    return (
-                      <Card
+              <div className="border-t border-border/60">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-secondary/30 hover:bg-secondary/30 border-border/40">
+                      <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Nama Siswa</TableHead>
+                      <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground hidden md:table-cell">NIS</TableHead>
+                      <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-center">Bulan</TableHead>
+                      <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-right">Sisa Tagihan</TableHead>
+                      <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-center">Status</TableHead>
+                      <TableHead className="h-9 w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {list.map(s => (
+                      <TableRow
                         key={s.id}
                         onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
-                        className="border border-border/50 shadow-sm hover:shadow-md hover:border-[#5B6CF9]/40 transition-all cursor-pointer overflow-hidden"
+                        className="cursor-pointer hover:bg-[#5B6CF9]/5 border-border/40"
                       >
-                        <CardContent className="p-3.5 space-y-2.5">
-                          <div className="flex items-start gap-2.5">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
-                              {s.name[0]?.toUpperCase()}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm text-foreground truncate hover:underline">{s.name}</p>
-                              <p className="text-[10px] text-muted-foreground font-mono">NIS {s.student_id}</p>
-                            </div>
-                            <StatusBadge status={s.aggStatus} />
-                          </div>
+                        <TableCell className="py-2.5">
+                          <p className="font-medium text-sm text-foreground truncate">{s.name}</p>
                           {s.parent_name && (
-                            <p className="text-[11px] text-muted-foreground truncate">
-                              Wali: {s.parent_name}{s.parent_phone ? ` · ${s.parent_phone}` : ""}
-                            </p>
+                            <p className="text-[11px] text-muted-foreground truncate">Wali: {s.parent_name}</p>
                           )}
-                          <div>
-                            <div className="flex items-center justify-between text-[10px] mb-1">
-                              <span className="font-medium text-muted-foreground">{s.lunas}/{s.total} bulan lunas</span>
-                              <span className="font-semibold text-[#5B6CF9]">{pct}%</span>
-                            </div>
-                            <Progress value={pct} className="h-1.5" />
-                          </div>
-                          <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                            <div>
-                              <p className="text-[10px] text-muted-foreground">Sisa Tagihan</p>
-                              <p className={`text-sm font-bold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                                {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
-                              </p>
-                            </div>
-                            <Button size="sm" className="h-7 px-2.5 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white text-xs shadow-sm">
-                              <Eye className="h-3.5 w-3.5 mr-1" /> Detail
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                        </TableCell>
+                        <TableCell className="py-2.5 hidden md:table-cell text-xs font-mono text-muted-foreground">{s.student_id || "-"}</TableCell>
+                        <TableCell className="py-2.5 text-center text-xs">
+                          <span className="text-emerald-600 font-semibold">{s.lunas}</span>
+                          <span className="text-muted-foreground">/{s.total}</span>
+                        </TableCell>
+                        <TableCell className={`py-2.5 text-right text-sm font-semibold ${s.sisa > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                          {s.sisa > 0 ? fmtIDR(s.sisa) : "Lunas"}
+                        </TableCell>
+                        <TableCell className="py-2.5 text-center">
+                          <StatusBadge status={s.aggStatus} />
+                        </TableCell>
+                        <TableCell className="py-2.5 text-right pr-3">
+                          <ChevronRight className="h-4 w-4 text-muted-foreground inline" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
-          </Card>
+          </div>
         );
       })}
     </div>
