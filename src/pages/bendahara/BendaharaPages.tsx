@@ -2456,8 +2456,14 @@ export function BendaharaPencairan() {
 
   const requestSubmit = () => {
     if (available.count === 0) { toast.error("Tidak ada saldo"); return; }
-    if (!bank.bank_name || !bank.account_number || !bank.account_holder) { toast.error("Lengkapi data rekening"); return; }
-    setOpen(false);
+    if (savedAccounts.length === 0) {
+      toast.error("Belum ada rekening tersimpan. Tambahkan rekening dulu.");
+      setBankManageOpen(true);
+      return;
+    }
+    const acc = savedAccounts.find((x: any) => x.is_default) || savedAccounts[0];
+    setBank({ bank_name: acc.bank_name, account_number: acc.account_number, account_holder: acc.account_holder, notes: acc.notes || "" });
+    setSelectedAccountId(acc.id);
     setConfirmOpen(true);
   };
 
