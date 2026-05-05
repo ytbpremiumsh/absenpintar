@@ -1353,8 +1353,8 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                   <p className="text-[11px] text-muted-foreground mt-0.5">TA {filterAY}</p>
                 </div>
                 <div className="hidden md:flex items-center gap-1.5">
-                  <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
-                  <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
+                  <span className="status-pill status-pill-paid"><span className="dot" />Lunas {lunas}</span>
+                  <span className="status-pill status-pill-unpaid"><span className="dot" />Nunggak {nunggak}</span>
                   <Badge variant="outline" className="text-[11px] font-semibold border-border/60">{fmtIDR(totalSisa)}</Badge>
                 </div>
                 <div className="flex md:hidden items-center gap-1">
