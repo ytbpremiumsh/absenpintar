@@ -2625,60 +2625,13 @@ export function BendaharaPencairan() {
         </TabsContent>
       </Tabs>
 
-      {/* Step 1: Pilih rekening */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Pilih Rekening Tujuan</DialogTitle>
-            <DialogDescription>Pilih rekening tersimpan atau isi manual.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            {savedAccounts.length > 0 ? (
-              <div className="space-y-2">
-                <Label>Rekening Tersimpan</Label>
-                <div className="space-y-2 max-h-56 overflow-auto">
-                  {savedAccounts.map((a: any) => (
-                    <button key={a.id} type="button" onClick={() => handleSelectAccount(a.id)}
-                      className={`w-full text-left p-3 rounded-lg border-2 transition ${selectedAccountId === a.id ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" : "border-border hover:border-emerald-300"}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-sm">{a.bank_name} {a.is_default && <Badge className="ml-2 bg-emerald-600 text-[10px]">Utama</Badge>}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{a.account_number}</p>
-                          <p className="text-xs text-muted-foreground">a.n. {a.account_holder}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setBankManageOpen(true)} className="text-xs">
-                  + Kelola rekening
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-xs text-muted-foreground">Belum ada rekening tersimpan. Isi manual atau simpan dulu via Kelola Rekening.</p>
-                <div><Label>Nama Bank</Label><Input value={bank.bank_name} onChange={e => setBank({ ...bank, bank_name: e.target.value })} placeholder="BCA / BRI / Mandiri" /></div>
-                <div><Label>Nomor Rekening</Label><Input value={bank.account_number} onChange={e => setBank({ ...bank, account_number: e.target.value })} /></div>
-                <div><Label>Atas Nama</Label><Input value={bank.account_holder} onChange={e => setBank({ ...bank, account_holder: e.target.value })} /></div>
-              </div>
-            )}
-            <div className="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-lg text-sm">
-              Final payout: <strong className="text-emerald-600">{fmtIDR(finalPayout)}</strong>
-            </div>
-            <Button onClick={requestSubmit} className="w-full bg-emerald-600 hover:bg-emerald-700">
-              Lanjut
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Step 2: Konfirmasi */}
+      {/* Konfirmasi Pencairan */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Konfirmasi Pencairan</DialogTitle>
             <DialogDescription>
-              Pastikan nomor rekening sudah benar. Pencairan ke rekening salah tidak dapat dibatalkan.
+              Mohon cek kembali — pastikan nomor rekening sudah benar. Pencairan ke rekening salah tidak dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-2">
@@ -2688,10 +2641,10 @@ export function BendaharaPencairan() {
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Atas Nama</span><span className="font-bold">{bank.account_holder}</span></div>
               <div className="border-t pt-2 flex justify-between text-sm"><span className="text-muted-foreground">Final Payout</span><span className="font-extrabold text-emerald-600">{fmtIDR(finalPayout)}</span></div>
             </div>
-            <p className="text-xs text-center text-muted-foreground">Apakah nomor rekening di atas sudah benar?</p>
+            <p className="text-xs text-center text-muted-foreground">Apakah nomor rekening di atas sudah benar dan sesuai?</p>
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => { setConfirmOpen(false); setOpen(true); }} disabled={submitting}>
-                Periksa Lagi
+              <Button variant="outline" onClick={() => { setConfirmOpen(false); setBankManageOpen(true); }} disabled={submitting}>
+                Periksa / Ubah
               </Button>
               <Button onClick={submit} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ya, Cairkan"}
