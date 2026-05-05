@@ -663,6 +663,14 @@ const Subscription = () => {
         </motion.div>
       )}
     </div>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembayaran Langganan — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+      />
+    </>
   );
 };
 
