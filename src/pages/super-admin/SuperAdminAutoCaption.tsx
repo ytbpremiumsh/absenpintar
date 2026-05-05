@@ -167,7 +167,11 @@ export default function SuperAdminAutoCaption() {
   };
 
   const rewrite = async () => {
-    if (!sourceText.trim()) return toast.error("Isi teks yang ingin direwrite");
+    if (rewriteStyle === "mimic") {
+      if (!referenceText.trim()) return toast.error("Tempel teks referensi (contoh dari orang lain) dulu");
+    } else {
+      if (!sourceText.trim()) return toast.error("Isi teks yang ingin direwrite");
+    }
     if (rewriteStyle === "custom" && !customInstruction.trim())
       return toast.error("Isi instruksi custom-nya");
     setLoading(true);
@@ -177,6 +181,7 @@ export default function SuperAdminAutoCaption() {
         source_text: sourceText,
         rewrite_style: rewriteStyle,
         custom_instruction: customInstruction,
+        reference_text: referenceText,
         variants: rewriteVariants,
         platform,
       },
