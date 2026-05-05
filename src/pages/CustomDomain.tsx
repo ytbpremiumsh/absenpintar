@@ -288,6 +288,13 @@ const CustomDomain = () => {
           )}
         </Card>
       )}
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembayaran Custom Domain — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+      />
     </div>
   );
 };
@@ -296,7 +303,7 @@ function DnsTutorial({ domain }: { domain?: string }) {
   const steps = [
     {
       title: "1. Beli Add-on Custom Domain",
-      desc: "Klik tombol \"Beli Sekarang\" dan selesaikan pembayaran melalui Mayar.",
+      desc: "Klik tombol \"Beli Sekarang\" dan selesaikan pembayaran via QRIS / Transfer Bank.",
       icon: Crown,
     },
     {
@@ -375,13 +382,6 @@ function DnsTutorial({ domain }: { domain?: string }) {
           <li>Hubungi admin jika domain tidak terverifikasi setelah 48 jam</li>
         </ul>
       </div>
-
-      <PaymentIframeDialog
-        open={!!paymentIframe}
-        paymentUrl={paymentIframe}
-        title="Pembayaran Custom Domain — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
-      />
     </div>
   );
 }
