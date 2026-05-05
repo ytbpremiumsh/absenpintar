@@ -1593,6 +1593,7 @@ export function BendaharaSPPDetail() {
   const [ay, setAY] = useState(initAY);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
 
   const load = () => {
     if (!profile?.school_id || !studentId) { setLoading(false); return; }
@@ -1839,7 +1840,7 @@ export function BendaharaSPPDetail() {
                             ) : (
                               <>
                                 <Button size="sm" variant="outline" onClick={() => copyLink(inv.payment_url)} title="Salin"><Copy className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="outline" onClick={() => window.open(inv.payment_url, "_blank")} title="Buka"><LinkIcon className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" onClick={() => setPaymentIframe(inv.payment_url)} title="Buka di dashboard"><LinkIcon className="h-3 w-3" /></Button>
                                 <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `wa-${inv.id}`} onClick={() => sendWa(inv)}><MessageCircle className="h-3 w-3 mr-1" /> WA</Button>
                                 <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
@@ -1865,6 +1866,13 @@ export function BendaharaSPPDetail() {
           </div>
         </CardContent>
       </Card>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pratinjau Pembayaran — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); load(); }}
+      />
     </div>
   );
 }
