@@ -1,21 +1,121 @@
+import { useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, X, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 
 interface PaymentIframeDialogProps {
   open: boolean;
   paymentUrl: string | null;
   title?: string;
   onClose: () => void;
+  /**
+   * Async checker yang dipanggil periodik untuk cek status pembayaran.
+   * Return `true` jika pembayaran sudah berhasil → dialog akan auto-close.
+   */
+  checkPaid?: () => Promise<boolean>;
+  /** Interval polling dalam ms. Default 4000. */
+  pollIntervalMs?: number;
+  /** Dipanggil saat terdeteksi pembayaran berhasil (sebelum onClose). */
+  onPaid?: () => void;
 }
 
 /**
  * Modal pembayaran in-dashboard.
  * Memuat halaman gateway (QRIS / Transfer Bank) di dalam iframe sehingga
- * pengguna tidak berpindah tab. Tetap menyediakan tombol "Buka di tab baru"
- * sebagai fallback bila gateway memblokir frame embedding.
+ * pengguna tidak berpindah tab. Mendukung auto-close ketika pembayaran
+ * berhasil — baik via postMessage dari gateway, navigasi iframe ke URL
+ * sukses pada same-origin, maupun polling status melalui `checkPaid`.
  */
-export const PaymentIframeDialog = ({ open, paymentUrl, title = "Pembayaran QRIS / Transfer Bank", onClose }: PaymentIframeDialogProps) => {
+export const PaymentIframeDialog = ({
+  open,
+  paymentUrl,
+  title = "Pembayaran QRIS / Transfer Bank",
+  onClose,
+  checkPaid,
+  pollIntervalMs = 4000,
+  onPaid,
+}: PaymentIframeDialogProps) => {
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const closedRef = useRef(false);
+
+  const handlePaid = () => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    try { onPaid?.(); } catch {}
+    toast.success("Pembayaran berhasil. Terima kasih!");
+    onClose();
+  };
+
+  // Reset guard setiap dialog dibuka kembali
+  useEffect(() => {
+    if (open) closedRef.current = false;
+  }, [open, paymentUrl]);
+
+  // 1) Listener postMessage dari gateway (jika gateway mengirim event)
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MessageEvent) => {
+      const data: any = e.data;
+      if (!data) return;
+      const str = typeof data === "string" ? data.toLowerCase() : "";
+      const obj = typeof data === "object" ? data : {};
+      const status = String(obj.status || obj.event || obj.type || "").toLowerCase();
+      if (
+        status.includes("paid") ||
+        status.includes("success") ||
+        status.includes("settle") ||
+        str.includes("payment_success") ||
+        str.includes("paid")
+      ) {
+        handlePaid();
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // 2) Cek navigasi iframe — kalau berpindah ke same-origin URL sukses
+  useEffect(() => {
+    if (!open) return;
+    const onLoad = () => {
+      try {
+        const href = iframeRef.current?.contentWindow?.location?.href || "";
+        if (/success|paid|thank|berhasil|complete/i.test(href)) handlePaid();
+      } catch {
+        // cross-origin → diabaikan
+      }
+    };
+    const el = iframeRef.current;
+    el?.addEventListener("load", onLoad);
+    return () => el?.removeEventListener("load", onLoad);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, paymentUrl]);
+
+  // 3) Polling status via checker yang disediakan parent
+  useEffect(() => {
+    if (!open || !checkPaid) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const ok = await checkPaid();
+        if (!cancelled && ok) handlePaid();
+      } catch {
+        // abaikan, lanjut tick berikutnya
+      }
+    };
+    const id = window.setInterval(tick, Math.max(1500, pollIntervalMs));
+    // jalankan sekali segera setelah jeda singkat
+    const first = window.setTimeout(tick, 1500);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+      window.clearTimeout(first);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, paymentUrl, checkPaid, pollIntervalMs]);
+
   if (!paymentUrl) return null;
 
   return (
@@ -55,6 +155,7 @@ export const PaymentIframeDialog = ({ open, paymentUrl, title = "Pembayaran QRIS
         {/* Iframe */}
         <div className="min-h-0 flex-1 bg-muted/30">
           <iframe
+            ref={iframeRef}
             src={paymentUrl}
             title="Halaman Pembayaran"
             className="w-full h-full border-0"
