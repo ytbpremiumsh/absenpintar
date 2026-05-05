@@ -2628,16 +2628,21 @@ export function BendaharaLaporan() {
                       <TableHead className="text-right font-bold">Total Tagihan</TableHead>
                       <TableHead className="text-right font-bold">Total Lunas</TableHead>
                       <TableHead className="text-center font-bold">% Pelunasan</TableHead>
+                      <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {perClassRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-sm">Belum ada data tagihan untuk {year}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground text-sm">Belum ada data tagihan untuk {year}</TableCell></TableRow>
                     ) : perClassRows.map(r => {
                       const pct = r.totalTagihan > 0 ? Math.round((r.totalBayar / r.totalTagihan) * 100) : 0;
                       return (
-                        <TableRow key={r.cls} className="hover:bg-muted/30">
-                          <TableCell className="font-semibold text-sm">{r.cls}</TableCell>
+                        <TableRow
+                          key={r.cls}
+                          className="hover:bg-[#5B6CF9]/5 cursor-pointer transition-colors"
+                          onClick={() => { setOpenClass(r.cls); setDetailMonth(0); setDetailStatus("all"); }}
+                        >
+                          <TableCell className="font-semibold text-sm text-[#5B6CF9]">{r.cls}</TableCell>
                           <TableCell className="text-center text-sm">{r.totalCount}</TableCell>
                           <TableCell className="text-center text-sm text-emerald-600 font-semibold">{r.paidCount}</TableCell>
                           <TableCell className="text-center text-sm text-amber-600 font-semibold">{r.totalCount - r.paidCount}</TableCell>
@@ -2646,9 +2651,19 @@ export function BendaharaLaporan() {
                           <TableCell className="text-center">
                             <Badge className={pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-500" : "bg-rose-500"}>{pct}%</Badge>
                           </TableCell>
+                          <TableCell className="text-muted-foreground"><ChevronRight className="h-4 w-4" /></TableCell>
                         </TableRow>
                       );
                     })}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="px-4 py-2.5 border-t bg-muted/20 text-[11px] text-muted-foreground">
+                Klik baris kelas untuk melihat detail siswa & rincian per bulan.
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
                   </TableBody>
                 </Table>
               </div>
