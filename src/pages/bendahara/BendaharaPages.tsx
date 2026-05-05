@@ -2418,6 +2418,7 @@ export function BendaharaPencairan() {
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const syncingRef = useRef(false);
 
   // Auto-open bank manager via ?manage=bank
   useEffect(() => {
@@ -2441,10 +2442,18 @@ export function BendaharaPencairan() {
 
   useEffect(() => {
     if (!profile?.school_id) { setLoadingHistory(false); return; }
-    Promise.all([
-      supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").is("settlement_id", null),
-      supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
-    ]).then(([avRes, hRes]) => {
+    let cancelled = false;
+    const load = async () => {
+      if (!syncingRef.current) {
+        syncingRef.current = true;
+        await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
+        syncingRef.current = false;
+      }
+      const [avRes, hRes] = await Promise.all([
+        supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").is("settlement_id", null),
+        supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
+      ]);
+      if (cancelled) return;
       const items = avRes.data || [];
       setAvailable({
         count: items.length,
@@ -2454,8 +2463,10 @@ export function BendaharaPencairan() {
       });
       setHistory(hRes.data || []);
       setLoadingHistory(false);
-    });
+    };
+    load();
     loadAccounts();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.school_id, open, refreshKey]);
 
