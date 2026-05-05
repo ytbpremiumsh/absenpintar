@@ -663,6 +663,13 @@ const OrderIdCard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembayaran ID Card — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+      />
     </div>
   );
 };

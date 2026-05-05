@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { toast } from "sonner";
 
 const WaCredit = () => {
@@ -22,6 +23,7 @@ const WaCredit = () => {
   const [purchasing, setPurchasing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
+  const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("status") === "success") {
@@ -71,8 +73,8 @@ const WaCredit = () => {
       });
       if (error) throw error;
       if (data?.payment_url) {
-        toast.success("Membuka halaman pembayaran...");
-        window.location.href = data.payment_url;
+        toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentIframe(data.payment_url);
       } else {
         throw new Error(data?.error || "Tidak mendapatkan link pembayaran");
       }
