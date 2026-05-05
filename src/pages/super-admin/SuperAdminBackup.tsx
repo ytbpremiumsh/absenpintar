@@ -17,8 +17,6 @@ interface BackupStats {
   stats: Record<string, number>;
 }
 
-
-
 const SuperAdminBackup = () => {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -26,10 +24,12 @@ const SuperAdminBackup = () => {
   const [currentStats, setCurrentStats] = useState<BackupStats | null>(null);
   const [lastBackupAt, setLastBackupAt] = useState<string | null>(null);
   const [lastBackupStats, setLastBackupStats] = useState<BackupStats | null>(null);
+  const [lastBackupErrors, setLastBackupErrors] = useState<Record<string, string>>({});
   const [gdriveBackingUp, setGdriveBackingUp] = useState(false);
   const [lastGdriveBackupAt, setLastGdriveBackupAt] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [googleClientId, setGoogleClientId] = useState<string>("");
+  const [showAllTables, setShowAllTables] = useState(false);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -82,9 +82,15 @@ const SuperAdminBackup = () => {
       URL.revokeObjectURL(url);
 
       setExportProgress(100);
-      toast.success(`Backup berhasil! ${data.meta.total_rows} baris dari ${data.meta.tables} tabel`);
+      const errCount = data.meta.errors ? Object.keys(data.meta.errors).length : 0;
+      if (errCount > 0) {
+        toast.warning(`Backup selesai dengan ${errCount} tabel error. ${data.meta.total_rows} baris dari ${data.meta.tables} tabel.`);
+      } else {
+        toast.success(`Backup berhasil! ${data.meta.total_rows} baris dari ${data.meta.tables} tabel`);
+      }
       setLastBackupAt(data.meta.exported_at);
       setLastBackupStats({ tables: data.meta.tables, total_rows: data.meta.total_rows, stats: data.meta.stats });
+      setLastBackupErrors(data.meta.errors || {});
     } catch (err: any) {
       toast.error("Gagal export: " + err.message);
     }
@@ -190,9 +196,10 @@ const SuperAdminBackup = () => {
     catch { return iso; }
   };
 
-  const topTables = currentStats?.stats
-    ? Object.entries(currentStats.stats).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  const allTables = currentStats?.stats
+    ? Object.entries(currentStats.stats).sort((a, b) => (b[1] as number) - (a[1] as number))
     : [];
+  const topTables = showAllTables ? allTables : allTables.slice(0, 10);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
