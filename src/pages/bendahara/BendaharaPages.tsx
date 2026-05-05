@@ -205,8 +205,8 @@ export function BendaharaDashboard() {
 
       {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle className="text-base">Pembayaran Bulanan</CardTitle></CardHeader>
+        <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
+          <CardHeader><CardTitle className="text-base text-emerald-700 dark:text-emerald-400">Pembayaran Bulanan</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={monthlyChart}>
@@ -219,8 +219,8 @@ export function BendaharaDashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle className="text-base">Pembayaran per Kelas</CardTitle></CardHeader>
+        <Card className="border-0 shadow-sm border-l-4 border-l-teal-500">
+          <CardHeader><CardTitle className="text-base text-teal-700 dark:text-teal-400">Pembayaran per Kelas</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={classChart}>
@@ -236,8 +236,8 @@ export function BendaharaDashboard() {
       </div>
 
       {/* SECONDARY: detail keuangan dalam satu card ringkas */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base">Rincian Keuangan</CardTitle></CardHeader>
+      <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
+        <CardHeader><CardTitle className="text-base text-emerald-700 dark:text-emerald-400">Rincian Keuangan</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
             <div><p className="text-[11px] text-muted-foreground">Pendapatan Net</p><p className="font-bold text-emerald-600">{fmtIDR(stats.totalNet)}</p></div>
