@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
   Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle, Mail, Copy,
-  Download, Upload, ArrowLeft, User, ChevronRight, ChevronDown, Eye, GraduationCap, Send,
+  Download, Upload, ArrowLeft, User, Users, ChevronRight, ChevronDown, Eye, GraduationCap, Send, BarChart3,
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import * as XLSX from "xlsx";
@@ -1987,7 +1987,7 @@ export function BendaharaImportExport() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon={ArrowDownToLine} title="Import & Export SPP" subtitle="Format nasional — sistematis per kelas, mendukung Excel, CSV, dan PDF" />
+      <PageHeader icon={Upload} title="Import Tagihan SPP" subtitle="Unggah tagihan massal dari Excel/CSV. Untuk export laporan, buka menu Laporan & Export." />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1996,57 +1996,6 @@ export function BendaharaImportExport() {
         <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Belum Bayar</p><p className="text-xl font-bold mt-0.5 text-amber-600">{expCount.unpaid}</p></div><div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center"><AlertCircle className="h-4 w-4 text-amber-600" /></div></div></CardContent></Card>
         <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Total Nominal</p><p className="text-base font-bold mt-0.5">{fmtIDR(expCount.sum)}</p></div><div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center"><Banknote className="h-4 w-4 text-sky-600" /></div></div></CardContent></Card>
       </div>
-
-      {/* Export */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Download className="h-4 w-4 text-[#5B6CF9]" /> Export Data</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div>
-              <Label className="text-xs">Tahun Ajaran</Label>
-              <Select value={expAY} onValueChange={setExpAY}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua TA</SelectItem>
-                  {academicYearList(new Date().getFullYear()).map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Kelas</Label>
-              <Select value={expClass} onValueChange={setExpClass}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kelas (per-sheet)</SelectItem>
-                  {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Status</Label>
-              <Select value={expStatus} onValueChange={setExpStatus}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="paid">Lunas</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="unpaid">Belum Bayar</SelectItem>
-                  <SelectItem value="expired">Kadaluarsa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
-            <strong className="text-foreground">Format Nasional:</strong> kolom No, No. Invoice, NIS, Nama, Kelas, Tahun Ajaran, Periode, Wali, Nominal, Denda, Total, Jatuh Tempo, Status, Tgl Bayar.
-            Saat memilih "Semua Kelas", Excel akan dipisah <strong>per-sheet kelas</strong> + sheet Ringkasan.
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => exportData("xlsx")} className="bg-[#5B6CF9] hover:bg-[#4c5ded]"><Download className="h-4 w-4 mr-2" /> Excel (per kelas)</Button>
-            <Button onClick={() => exportData("csv")} variant="outline"><Download className="h-4 w-4 mr-2" /> CSV</Button>
-            <Button onClick={() => exportData("pdf")} variant="outline"><Download className="h-4 w-4 mr-2" /> PDF Laporan</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Import */}
       <Card className="border-0 shadow-sm">
@@ -2427,44 +2376,337 @@ export function BendaharaSettlement() {
 export function BendaharaLaporan() {
   const { profile } = useAuth();
   const [items, setItems] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [classes, setClasses] = useState<string[]>([]);
+  const [school, setSchool] = useState<any>(null);
   const [year, setYear] = useState(new Date().getFullYear());
+
+  // Export filters
+  const currentAY = academicYearOf(new Date().getMonth() + 1, new Date().getFullYear());
+  const [expClass, setExpClass] = useState<string>("all");
+  const [expAY, setExpAY] = useState<string>(currentAY);
+  const [expStatus, setExpStatus] = useState<string>("all");
 
   useEffect(() => {
     if (!profile?.school_id) return;
-    supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("period_year", year).then(({ data }) => setItems(data || []));
+    Promise.all([
+      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("period_year", year),
+      supabase.from("students").select("id, name, student_id, class").eq("school_id", profile.school_id),
+      supabase.from("classes").select("name").eq("school_id", profile.school_id).order("name"),
+      supabase.from("schools").select("name, npsn, address").eq("id", profile.school_id).maybeSingle(),
+    ]).then(([inv, st, cl, sc]) => {
+      setItems(inv.data || []);
+      setStudents(st.data || []);
+      setClasses((cl.data || []).map((x: any) => x.name));
+      setSchool(sc.data);
+    });
   }, [profile?.school_id, year]);
 
+  // ===== Ringkasan bulanan =====
   const monthly = MONTHS.map((m, i) => {
     const filtered = items.filter(x => x.period_month === i + 1);
-    return {
-      name: m.slice(0,3),
-      tagihan: filtered.reduce((s, x) => s + (x.total_amount || 0), 0),
-      bayar: filtered.filter(x => x.status === "paid").reduce((s, x) => s + (x.total_amount || 0), 0),
-    };
+    const tagihan = filtered.reduce((s, x) => s + (x.total_amount || 0), 0);
+    const bayar = filtered.filter(x => x.status === "paid").reduce((s, x) => s + (x.total_amount || 0), 0);
+    return { name: m.slice(0, 3), tagihan, bayar, sisa: Math.max(0, tagihan - bayar) };
   });
+  const yearTotals = monthly.reduce((a, x) => ({
+    tagihan: a.tagihan + x.tagihan,
+    bayar: a.bayar + x.bayar,
+  }), { tagihan: 0, bayar: 0 });
+  const collectionRate = yearTotals.tagihan > 0 ? Math.round((yearTotals.bayar / yearTotals.tagihan) * 100) : 0;
+
+  // ===== Statistik per kelas (matrix bulan) =====
+  const perClassRows = classes.map(cls => {
+    const ci = items.filter(x => x.class_name === cls);
+    const months = MONTHS.map((_, i) => {
+      const f = ci.filter(x => x.period_month === i + 1);
+      const total = f.reduce((s, x) => s + (x.total_amount || 0), 0);
+      const paid = f.filter(x => x.status === "paid").reduce((s, x) => s + (x.total_amount || 0), 0);
+      return { total, paid, count: f.length, paidCount: f.filter(x => x.status === "paid").length };
+    });
+    const totalTagihan = months.reduce((s, m) => s + m.total, 0);
+    const totalBayar = months.reduce((s, m) => s + m.paid, 0);
+    const totalCount = months.reduce((s, m) => s + m.count, 0);
+    const paidCount = months.reduce((s, m) => s + m.paidCount, 0);
+    return { cls, months, totalTagihan, totalBayar, totalCount, paidCount };
+  }).filter(r => r.totalCount > 0);
+
+  // ===== Export =====
+  const exportData = async (format: "xlsx" | "csv" | "pdf") => {
+    if (!profile?.school_id) return;
+    const tid = toast.loading("Menyiapkan export...");
+    let q = supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id);
+    if (expClass !== "all") q = q.eq("class_name", expClass);
+    if (expStatus !== "all") q = q.eq("status", expStatus);
+    const { data: invs } = await q.order("class_name").order("student_name").order("period_year").order("period_month");
+    toast.dismiss(tid);
+    const filtered = (invs || []).filter(i => expAY === "all" || academicYearOf(i.period_month, i.period_year) === expAY);
+    if (filtered.length === 0) { toast.error("Tidak ada data untuk filter ini"); return; }
+
+    const rows = filtered.map((i, idx) => ({
+      "No": idx + 1,
+      "No. Invoice": i.invoice_number,
+      "NIS": students.find(s => s.id === i.student_id)?.student_id || "",
+      "Nama Siswa": i.student_name,
+      "Kelas": i.class_name,
+      "Tahun Ajaran": academicYearOf(i.period_month, i.period_year),
+      "Periode": i.period_label,
+      "Nama Wali": i.parent_name || "",
+      "No. WA Wali": i.parent_phone || "",
+      "Nominal": i.amount,
+      "Denda": i.denda,
+      "Total": i.total_amount,
+      "Jatuh Tempo": i.due_date ? new Date(i.due_date).toLocaleDateString("id-ID") : "",
+      "Status": i.status === "paid" ? "Lunas" : i.status === "pending" ? "Pending" : i.status === "expired" ? "Kadaluarsa" : "Belum Bayar",
+      "Tgl Bayar": i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "",
+      "Metode": i.payment_method || "",
+    }));
+
+    const filterTag = `${expAY === "all" ? "ALL" : expAY.replace("/", "-")}_${expClass === "all" ? "SEMUA-KELAS" : expClass.replace(/\s/g, "-")}_${expStatus.toUpperCase()}`;
+    const fname = `SPP_${filterTag}_${new Date().toISOString().slice(0, 10)}`;
+
+    if (format === "xlsx") {
+      const wb = XLSX.utils.book_new();
+      if (expClass === "all") {
+        const grouped = new Map<string, any[]>();
+        rows.forEach(r => {
+          const cls = String(r["Kelas"]);
+          if (!grouped.has(cls)) grouped.set(cls, []);
+          grouped.get(cls)!.push(r);
+        });
+        const summary = Array.from(grouped.entries()).map(([cls, list]) => ({
+          "Kelas": cls,
+          "Jumlah Tagihan": list.length,
+          "Lunas": list.filter(x => x.Status === "Lunas").length,
+          "Belum Bayar": list.filter(x => x.Status !== "Lunas").length,
+          "Total Tagihan": list.reduce((a, x) => a + (x.Total || 0), 0),
+        }));
+        const wsSum = XLSX.utils.json_to_sheet(summary);
+        wsSum["!cols"] = [{ wch: 12 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 16 }];
+        XLSX.utils.book_append_sheet(wb, wsSum, "Ringkasan");
+        Array.from(grouped.entries()).forEach(([cls, list]) => {
+          const ws = XLSX.utils.json_to_sheet(list);
+          ws["!cols"] = Object.keys(list[0]).map(k => ({ wch: Math.min(Math.max(k.length + 2, 10), 28) }));
+          XLSX.utils.book_append_sheet(wb, ws, cls.slice(0, 31));
+        });
+      } else {
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws["!cols"] = Object.keys(rows[0]).map(k => ({ wch: Math.min(Math.max(k.length + 2, 10), 28) }));
+        XLSX.utils.book_append_sheet(wb, ws, expClass.slice(0, 31));
+      }
+      XLSX.writeFile(wb, `${fname}.xlsx`);
+    } else if (format === "csv") {
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = `${fname}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const doc = new jsPDF("l", "mm", "a4");
+      doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("LAPORAN TAGIHAN SPP", 14, 14);
+      doc.setFontSize(10); doc.setFont("helvetica", "normal");
+      doc.text(school?.name || "", 14, 21);
+      doc.setFontSize(9);
+      doc.text(`NPSN: ${school?.npsn || "-"}`, 14, 27);
+      doc.text(`Tahun Ajaran: ${expAY === "all" ? "Semua" : expAY}  •  Kelas: ${expClass === "all" ? "Semua" : expClass}  •  Status: ${expStatus === "all" ? "Semua" : expStatus}`, 14, 33);
+      doc.text(`Total: ${rows.length} tagihan • ${fmtIDR(rows.reduce((a, r) => a + (r.Total || 0), 0))}`, 14, 39);
+      (doc as any).autoTable({
+        startY: 45,
+        head: [["No", "NIS", "Nama Siswa", "Kelas", "Periode", "Total", "Jatuh Tempo", "Status"]],
+        body: rows.map(r => [r.No, r.NIS, r["Nama Siswa"], r.Kelas, r.Periode, fmtIDR(r.Total), r["Jatuh Tempo"], r.Status]),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [91, 108, 249], textColor: 255 },
+        alternateRowStyles: { fillColor: [248, 249, 252] },
+      });
+      doc.save(`${fname}.pdf`);
+    }
+    toast.success("Export selesai");
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">Laporan Keuangan</h1>
-        <Input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} className="w-32" />
+      <PageHeader
+        icon={BarChart3}
+        title="Laporan & Export Keuangan"
+        subtitle="Ringkasan tahunan, statistik per kelas, dan export data SPP — semua dalam satu tempat."
+        actions={
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-white/90 whitespace-nowrap">Tahun:</Label>
+            <Input
+              type="number"
+              value={year}
+              onChange={e => setYear(parseInt(e.target.value) || new Date().getFullYear())}
+              className="w-24 h-9 bg-white/15 border-white/20 text-white"
+            />
+          </div>
+        }
+      />
+
+      {/* KPI Ringkasan tahun */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-[#5B6CF9]/10 to-transparent">
+          <CardContent className="p-4">
+            <p className="text-[11px] text-muted-foreground">Total Tagihan {year}</p>
+            <p className="text-base font-bold mt-1">{fmtIDR(yearTotals.tagihan)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-500/10 to-transparent">
+          <CardContent className="p-4">
+            <p className="text-[11px] text-muted-foreground">Sudah Lunas</p>
+            <p className="text-base font-bold mt-1 text-emerald-600">{fmtIDR(yearTotals.bayar)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-500/10 to-transparent">
+          <CardContent className="p-4">
+            <p className="text-[11px] text-muted-foreground">Belum Lunas</p>
+            <p className="text-base font-bold mt-1 text-amber-600">{fmtIDR(yearTotals.tagihan - yearTotals.bayar)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-violet-500/10 to-transparent">
+          <CardContent className="p-4">
+            <p className="text-[11px] text-muted-foreground">Tingkat Pelunasan</p>
+            <p className="text-base font-bold mt-1 text-violet-600">{collectionRate}%</p>
+          </CardContent>
+        </Card>
       </div>
-      <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base">Tagihan vs Pembayaran ({year})</CardTitle></CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={monthly}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v/1000000).toFixed(0)}jt`} />
-              <Tooltip formatter={(v: any) => fmtIDR(v)} />
-              <Legend />
-              <Bar dataKey="tagihan" fill="hsl(220 80% 60%)" name="Tagihan" radius={[4,4,0,0]} />
-              <Bar dataKey="bayar" fill="hsl(160 84% 39%)" name="Pembayaran" radius={[4,4,0,0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+
+      <Tabs defaultValue="ringkasan" className="w-full">
+        <TabsList className="grid grid-cols-3 w-full md:w-auto rounded-xl">
+          <TabsTrigger value="ringkasan" className="gap-2 text-xs"><BarChart3 className="h-3.5 w-3.5" /> Ringkasan Bulanan</TabsTrigger>
+          <TabsTrigger value="kelas" className="gap-2 text-xs"><Users className="h-3.5 w-3.5" /> Statistik per Kelas</TabsTrigger>
+          <TabsTrigger value="export" className="gap-2 text-xs"><Download className="h-3.5 w-3.5" /> Export Data</TabsTrigger>
+        </TabsList>
+
+        {/* TAB 1 — RINGKASAN */}
+        <TabsContent value="ringkasan" className="mt-4">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Tagihan vs Pembayaran ({year})</CardTitle>
+              <p className="text-xs text-muted-foreground">Bandingkan total tagihan dan pembayaran tiap bulan untuk tahun {year}.</p>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={monthly}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v/1000000).toFixed(0)}jt`} />
+                  <Tooltip formatter={(v: any) => fmtIDR(v)} />
+                  <Legend />
+                  <Bar dataKey="tagihan" fill="hsl(220 80% 60%)" name="Tagihan" radius={[4,4,0,0]} />
+                  <Bar dataKey="bayar" fill="hsl(160 84% 39%)" name="Pembayaran" radius={[4,4,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB 2 — STATISTIK PER KELAS */}
+        <TabsContent value="kelas" className="mt-4">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Rekap per Kelas — {year}</CardTitle>
+              <p className="text-xs text-muted-foreground">Total tagihan, lunas, dan persentase pelunasan tiap kelas.</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead className="font-bold">Kelas</TableHead>
+                      <TableHead className="text-center font-bold">Jumlah Tagihan</TableHead>
+                      <TableHead className="text-center font-bold">Lunas</TableHead>
+                      <TableHead className="text-center font-bold">Belum</TableHead>
+                      <TableHead className="text-right font-bold">Total Tagihan</TableHead>
+                      <TableHead className="text-right font-bold">Total Lunas</TableHead>
+                      <TableHead className="text-center font-bold">% Pelunasan</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {perClassRows.length === 0 ? (
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-sm">Belum ada data tagihan untuk {year}</TableCell></TableRow>
+                    ) : perClassRows.map(r => {
+                      const pct = r.totalTagihan > 0 ? Math.round((r.totalBayar / r.totalTagihan) * 100) : 0;
+                      return (
+                        <TableRow key={r.cls} className="hover:bg-muted/30">
+                          <TableCell className="font-semibold text-sm">{r.cls}</TableCell>
+                          <TableCell className="text-center text-sm">{r.totalCount}</TableCell>
+                          <TableCell className="text-center text-sm text-emerald-600 font-semibold">{r.paidCount}</TableCell>
+                          <TableCell className="text-center text-sm text-amber-600 font-semibold">{r.totalCount - r.paidCount}</TableCell>
+                          <TableCell className="text-right text-sm">{fmtIDR(r.totalTagihan)}</TableCell>
+                          <TableCell className="text-right text-sm text-emerald-600 font-semibold">{fmtIDR(r.totalBayar)}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-500" : "bg-rose-500"}>{pct}%</Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB 3 — EXPORT DATA */}
+        <TabsContent value="export" className="mt-4">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Download className="h-4 w-4 text-[#5B6CF9]" /> Export Data SPP
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Pilih filter, lalu unduh ke Excel (per kelas), CSV, atau PDF resmi.</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs">Tahun Ajaran</Label>
+                  <Select value={expAY} onValueChange={setExpAY}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua TA</SelectItem>
+                      {academicYearList(new Date().getFullYear()).map(ay => <SelectItem key={ay} value={ay}>{ay}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Kelas</Label>
+                  <Select value={expClass} onValueChange={setExpClass}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Kelas (per-sheet)</SelectItem>
+                      {classes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Status</Label>
+                  <Select value={expStatus} onValueChange={setExpStatus}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="paid">Lunas</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="unpaid">Belum Bayar</SelectItem>
+                      <SelectItem value="expired">Kadaluarsa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
+                <strong className="text-foreground">Format Nasional:</strong> kolom No, No. Invoice, NIS, Nama, Kelas, TA, Periode, Wali, Nominal, Denda, Total, Jatuh Tempo, Status, Tgl Bayar.
+                Saat memilih "Semua Kelas", Excel dipisah <strong>per-sheet kelas</strong> + sheet Ringkasan.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => exportData("xlsx")} className="bg-[#5B6CF9] hover:bg-[#4c5ded]"><Download className="h-4 w-4 mr-2" /> Excel (per kelas)</Button>
+                <Button onClick={() => exportData("csv")} variant="outline"><Download className="h-4 w-4 mr-2" /> CSV</Button>
+                <Button onClick={() => exportData("pdf")} variant="outline"><Download className="h-4 w-4 mr-2" /> PDF Laporan</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
