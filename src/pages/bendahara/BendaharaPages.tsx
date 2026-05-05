@@ -2543,9 +2543,19 @@ export function BendaharaPencairan() {
       </div>
 
       <Tabs defaultValue="pencairan" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:w-fit">
-          <TabsTrigger value="pencairan" className="gap-2"><ArrowDownToLine className="h-4 w-4" /> Ajukan Pencairan</TabsTrigger>
-          <TabsTrigger value="riwayat" className="gap-2"><FileText className="h-4 w-4" /> Riwayat Settlement</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 md:w-fit gap-1 bg-emerald-50 dark:bg-emerald-950/40 p-1 rounded-xl border border-emerald-200/60 dark:border-emerald-800/60">
+          <TabsTrigger
+            value="pencairan"
+            className="gap-2 rounded-lg font-semibold text-emerald-700 dark:text-emerald-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/30 transition-all duration-300"
+          >
+            <ArrowDownToLine className="h-4 w-4" /> Ajukan Pencairan
+          </TabsTrigger>
+          <TabsTrigger
+            value="riwayat"
+            className="gap-2 rounded-lg font-semibold text-emerald-700 dark:text-emerald-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/30 transition-all duration-300"
+          >
+            <FileText className="h-4 w-4" /> Riwayat Settlement
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pencairan" className="space-y-4 mt-4">
