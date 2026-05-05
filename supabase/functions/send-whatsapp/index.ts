@@ -17,17 +17,9 @@ const detectButtons = (message: string, messageType?: string): {
   buttons: Array<Record<string, any>>;
   footer?: string;
 } | null => {
-  // 1) OTP — kode 4-8 digit dalam *...* atau angka 6 digit ketika tipe OTP
-  const isOtpType = messageType === 'parent_otp' || messageType === 'password_reset_otp' || /kode.*(login|otp|verifikasi|reset)/i.test(message);
-  if (isOtpType) {
-    const otpMatch = message.match(/\*(\d{4,8})\*/) || message.match(/\b(\d{6})\b/);
-    if (otpMatch) {
-      return {
-        buttons: [{ type: 'copy', displayText: 'Salin Kode OTP', copyText: otpMatch[1] }],
-        footer: 'ATSkolla',
-      };
-    }
-  }
+  // 1) OTP — TIDAK menggunakan tombol salin. Kirim sebagai pesan teks biasa
+  //    supaya kode OTP tampil normal di WhatsApp tanpa tombol "Salin Kode OTP".
+  //    (Sebelumnya kami render tombol copy, namun user meminta tampilan polos.)
 
   // 2) SPP / payment link — cari URL pertama dalam pesan
   const urlMatch = message.match(/https?:\/\/[^\s)]+/);
