@@ -420,12 +420,12 @@ export function BendaharaSiswa() {
                     <p className="text-[11px] text-muted-foreground mt-0.5">{list.length} siswa</p>
                   </div>
                   <div className="hidden sm:flex items-center gap-1.5">
-                    <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas {lunas}</Badge>
-                    <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak {nunggak}</Badge>
+                    <span className="status-pill status-pill-paid"><span className="dot" />Lunas {lunas}</span>
+                    <span className="status-pill status-pill-unpaid"><span className="dot" />Nunggak {nunggak}</span>
                   </div>
                   <div className="flex sm:hidden items-center gap-1">
-                    <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] h-5 px-1.5">{lunas}</Badge>
-                    <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px] h-5 px-1.5">{nunggak}</Badge>
+                    <span className="status-pill status-pill-paid !px-2 !py-0"><span className="dot" />{lunas}</span>
+                    <span className="status-pill status-pill-unpaid !px-2 !py-0"><span className="dot" />{nunggak}</span>
                   </div>
                 </button>
                 {isOpen && (
@@ -444,8 +444,10 @@ export function BendaharaSiswa() {
                               <p className="text-[10px] text-muted-foreground font-mono">NIS {s.student_id}</p>
                             </div>
                             {s.tunggakan > 0
-                              ? <Badge className="bg-red-500 hover:bg-red-500 text-white text-[10px]">Nunggak</Badge>
-                              : <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px]">Lunas</Badge>}
+                              ? <span className="status-pill status-pill-unpaid"><span className="dot" />Nunggak</span>
+                              : s.paid > 0
+                                ? <span className="status-pill status-pill-paid"><span className="dot" />Lunas</span>
+                                : <span className="status-pill status-pill-neutral"><span className="dot" />Belum</span>}
                           </div>
                           {s.parent_name && (
                             <p className="text-[11px] text-muted-foreground truncate">
