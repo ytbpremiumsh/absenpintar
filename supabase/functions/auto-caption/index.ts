@@ -8,6 +8,7 @@ const corsHeaders = {
 interface GenerateBody {
   mode?: "generate";
   platform: "facebook" | "instagram" | "tiktok" | "twitter" | "whatsapp" | "linkedin" | "blog";
+  content_type?: string; // caption, deskripsi_produk, artikel, iklan_fb, iklan_google, headline, email, script_video, dll
   topic: string;
   tone: string;
   length: "pendek" | "sedang" | "panjang";
@@ -22,19 +23,11 @@ interface RewriteBody {
   mode: "rewrite";
   source_text: string;
   rewrite_style:
-    | "improve"
-    | "shorter"
-    | "longer"
-    | "professional"
-    | "casual"
-    | "persuasive"
-    | "fix_grammar"
-    | "translate_en"
-    | "translate_id"
-    | "engaging"
-    | "seo"
-    | "custom";
+    | "improve" | "shorter" | "longer" | "professional" | "casual"
+    | "persuasive" | "fix_grammar" | "translate_en" | "translate_id"
+    | "engaging" | "seo" | "mimic" | "custom";
   custom_instruction?: string;
+  reference_text?: string; // untuk mode mimic - contoh teks orang lain
   variants?: number;
   platform?: string;
 }
