@@ -250,7 +250,7 @@ export function BendaharaDashboard() {
       </Card>
 
       {/* Riwayat Siswa Membayar SPP */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Riwayat Siswa Membayar SPP
