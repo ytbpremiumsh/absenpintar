@@ -57,6 +57,27 @@ async function getGatewayFeeConfig(): Promise<{ percent: number; flat: number }>
   } catch { return { percent: 0.7, flat: 500 }; }
 }
 
+function buildSppPaidMessage(inv: any, paidAt: string) {
+  const paidDate = new Date(paidAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  return `*ATSkolla — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+}
+
+async function sendSppPaidWhatsApp(inv: any, paidAt: string) {
+  if (!inv.parent_phone) return { sent: false, reason: "no_phone" };
+  const phone = normalizePhone(inv.parent_phone);
+  const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+    body: {
+      school_id: inv.school_id,
+      phone,
+      message: buildSppPaidMessage(inv, paidAt),
+      message_type: "spp_paid",
+      student_name: inv.student_name,
+    },
+  });
+  if (error || data?.success === false) return { sent: false, error: error?.message || data?.error || "send_failed", details: data };
+  return { sent: true, details: data };
+}
+
 async function syncSppInvoicesFromMayar(invoices: any[]) {
   const apiKey = Deno.env.get("MAYAR_API_KEY");
   if (!apiKey) return invoices;
@@ -105,23 +126,8 @@ async function syncSppInvoicesFromMayar(invoices: any[]) {
         type: "success",
       });
 
-      // Kirim WA ke wali murid
-      if (inv.parent_phone) {
-        try {
-          const { data: integ } = await supabase.from("school_integrations")
-            .select("api_url, api_key, is_active").eq("school_id", inv.school_id).eq("is_active", true).maybeSingle();
-          if (integ?.api_url && integ?.api_key) {
-            let phone = String(inv.parent_phone).replace(/\D/g, "");
-            if (phone.startsWith("0")) phone = "62" + phone.substring(1);
-            const msg = `Halo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda:\n*${inv.student_name} - ${inv.class_name} - ${inv.period_label}*\nsebesar Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\ntelah berhasil diterima.\n\nTerima kasih.`;
-            await fetch(integ.api_url, {
-              method: "POST",
-              headers: { Authorization: `Bearer ${integ.api_key}`, "Content-Type": "application/json" },
-              body: JSON.stringify({ recipient_type: "individual", to: phone, type: "text", text: { body: msg } }),
-            });
-          }
-        } catch (waErr) { console.error("SPP WA notif (parent sync) error", waErr); }
-      }
+      const waResult = await sendSppPaidWhatsApp(inv, paidAt).catch((waErr) => ({ sent: false, error: String(waErr) }));
+      console.log("SPP WA notif (parent sync):", JSON.stringify(waResult));
 
       synced.push({ ...inv, status: "paid", paid_at: paidAt, payment_method: paymentMethod, gateway_fee: gatewayFee, net_amount: netAmount });
     } catch (e) {
