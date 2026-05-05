@@ -941,12 +941,31 @@ function StatCard({ icon: Icon, label, value, color }: any) {
 
 function SectionTitle({ icon: Icon, title, onMore }: any) {
   return (
-    <div className="flex items-center justify-between mt-1">
-      <h3 className="text-sm font-bold flex items-center gap-1.5">
-        <Icon className="h-4 w-4 text-[#5B6CF9]" /> {title}
-      </h3>
+    <div className="flex items-center justify-between mt-1 group">
+      <div className="flex items-center gap-2.5 min-w-0">
+        {/* Icon chip dengan gradient brand */}
+        <div className="relative shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shadow-[0_6px_16px_-6px_rgba(91,108,249,0.55)] ring-1 ring-white/40">
+            <Icon className="h-4 w-4 text-white" />
+          </div>
+          <span className="absolute -inset-0.5 rounded-xl bg-[#5B6CF9]/20 blur-md -z-10 opacity-70" />
+        </div>
+        {/* Title + accent bar */}
+        <div className="min-w-0 flex items-center gap-2">
+          <span className="h-4 w-0.5 rounded-full bg-gradient-to-b from-[#5B6CF9] to-[#4c5ded]" />
+          <h3 className="text-[13px] font-bold tracking-tight truncate bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            {title}
+          </h3>
+        </div>
+      </div>
       {onMore && (
-        <button onClick={onMore} className="text-[11px] text-[#5B6CF9] font-semibold hover:underline">Lihat semua →</button>
+        <button
+          onClick={onMore}
+          className="shrink-0 inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#5B6CF9] bg-[#5B6CF9]/10 hover:bg-[#5B6CF9]/15 active:bg-[#5B6CF9]/20 px-2.5 py-1 rounded-full ring-1 ring-[#5B6CF9]/20 transition-all hover:gap-1.5"
+        >
+          Lihat semua
+          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+        </button>
       )}
     </div>
   );
