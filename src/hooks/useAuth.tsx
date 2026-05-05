@@ -20,18 +20,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUserData = async (userId: string) => {
-    const [profileRes, rolesRes] = await Promise.all([
-      supabase.from("profiles").select("full_name, school_id, avatar_url").eq("user_id", userId).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", userId),
-    ]);
-    if (profileRes.data) setProfile(profileRes.data);
-    if (rolesRes.data) setRoles(rolesRes.data.map((r) => r.role));
+    try {
+      const [profileRes, rolesRes] = await Promise.all([
+        supabase.from("profiles").select("full_name, school_id, avatar_url").eq("user_id", userId).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+      ]);
+      setProfile(profileRes.data ?? null);
+      setRoles(rolesRes.data ? rolesRes.data.map((r) => r.role) : []);
+    } catch (e) {
+      console.warn("fetchUserData failed", e);
+      setProfile(null);
+      setRoles([]);
+    }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
       if (event === 'TOKEN_REFRESHED' && !session) {
-        // Refresh token failed - clear stale state
         setUser(null);
         setProfile(null);
         setRoles([]);
@@ -40,18 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (session?.user) {
         setUser(session.user);
-        setTimeout(() => fetchUserData(session.user.id), 0);
+        // Wait for profile + roles BEFORE flipping loading to false,
+        // so guards (e.g. BendaharaLayout) don't see empty roles and redirect.
+        await fetchUserData(session.user.id);
       } else {
         setUser(null);
         setProfile(null);
         setRoles([]);
       }
-      setLoading(false);
+      if (mounted) setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (!mounted) return;
       if (error || !session?.user) {
-        // Handle invalid refresh token / stale session
         if (error) {
           console.warn("Session restore failed, clearing state:", error.message);
           supabase.auth.signOut().catch(() => {});
@@ -61,12 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles([]);
       } else {
         setUser(session.user);
-        fetchUserData(session.user.id);
+        await fetchUserData(session.user.id);
       }
-      setLoading(false);
+      if (mounted) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
