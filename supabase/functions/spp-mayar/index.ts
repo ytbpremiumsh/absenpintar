@@ -18,6 +18,136 @@ function buildInvoiceTitle(inv: { student_name: string; class_name: string; peri
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const isPaidMayarStatus = (status: unknown) => {
+  const s = String(status || "").toLowerCase();
+  return ["paid", "settled", "success", "completed"].includes(s) || status === true;
+};
+
+async function getGatewayFeeConfig(supabaseAdmin: any): Promise<{ percent: number; flat: number }> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("platform_settings")
+      .select("key,value")
+      .in("key", ["gateway_fee_percent", "gateway_fee_flat"]);
+    const map: Record<string, string> = {};
+    (data || []).forEach((r: any) => { map[r.key] = r.value; });
+    const percent = parseFloat(map.gateway_fee_percent ?? "0.7");
+    const flat = parseInt(map.gateway_fee_flat ?? "500", 10);
+    return { percent: Number.isFinite(percent) ? percent : 0.7, flat: Number.isFinite(flat) ? flat : 500 };
+  } catch {
+    return { percent: 0.7, flat: 500 };
+  }
+}
+
+function calcGatewayFee(amount: number, cfg: { percent: number; flat: number }) {
+  return Math.round((Number(amount) || 0) * (cfg.percent / 100)) + (cfg.flat || 0);
+}
+
+function normalizePhone(raw: string) {
+  let phone = String(raw || "").replace(/\D/g, "");
+  if (phone.startsWith("0")) phone = "62" + phone.slice(1);
+  else if (phone.startsWith("8")) phone = "62" + phone;
+  return phone;
+}
+
+function buildPaidMessage(inv: any, paidAt: string) {
+  const paidDate = new Date(paidAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  return `*ATSkolla — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla — Sistem Absensi & SPP Sekolah_`;
+}
+
+async function notifySppPaid(supabaseAdmin: any, inv: any, paidAt: string) {
+  if (!inv.parent_phone) return { sent: false, reason: "no_phone" };
+  const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-whatsapp`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      "apikey": Deno.env.get("SUPABASE_ANON_KEY")!,
+    },
+    body: JSON.stringify({
+      school_id: inv.school_id,
+      phone: normalizePhone(inv.parent_phone),
+      message: buildPaidMessage(inv, paidAt),
+      message_type: "spp_paid",
+      student_name: inv.student_name,
+    }),
+  });
+  const text = await res.text().catch(() => "");
+  return { sent: res.ok && !/"success"\s*:\s*false/.test(text), status: res.status, body: text.slice(0, 300) };
+}
+
+async function syncPaidInvoicesFromMayar(supabaseAdmin: any, schoolId: string) {
+  const apiKey = Deno.env.get("MAYAR_API_KEY");
+  if (!apiKey) return { checked: 0, paid: 0, wa_sent: 0, error: "MAYAR_API_KEY belum dikonfigurasi" };
+
+  const { data: invoices } = await supabaseAdmin
+    .from("spp_invoices")
+    .select("*")
+    .eq("school_id", schoolId)
+    .neq("status", "paid")
+    .not("mayar_invoice_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(75);
+
+  const feeCfg = await getGatewayFeeConfig(supabaseAdmin);
+  let paid = 0;
+  let waSent = 0;
+
+  for (const inv of invoices || []) {
+    try {
+      const res = await fetch(`https://api.mayar.id/hl/v1/invoice/${encodeURIComponent(inv.mayar_invoice_id)}`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      const detail = await res.json().catch(() => null);
+      const detailData = detail?.data || detail;
+      if (!res.ok || !isPaidMayarStatus(detailData?.status)) continue;
+
+      const paidAt = detailData?.paidAt || detailData?.paid_at || new Date().toISOString();
+      const gatewayFee = calcGatewayFee(inv.total_amount || 0, feeCfg);
+      const netAmount = Math.max(0, (inv.total_amount || 0) - gatewayFee);
+
+      await supabaseAdmin.from("spp_invoices").update({
+        status: "paid",
+        paid_at: paidAt,
+        payment_method: detailData?.paymentMethod || detailData?.payment_method || "mayar",
+        gateway_fee: gatewayFee,
+        net_amount: netAmount,
+      }).eq("id", inv.id);
+
+      await supabaseAdmin.from("payment_transactions").update({
+        status: "paid",
+        paid_at: paidAt,
+        payment_method: "spp",
+      }).eq("school_id", inv.school_id).eq("mayar_transaction_id", inv.mayar_invoice_id).eq("status", "pending");
+
+      await supabaseAdmin.from("spp_logs").insert({
+        school_id: inv.school_id,
+        invoice_id: inv.id,
+        event_type: "mayar_sync",
+        status: "paid",
+        payload: detail,
+        message: "SPP paid (bendahara sync)",
+      });
+
+      await supabaseAdmin.from("notifications").insert({
+        school_id: inv.school_id,
+        title: "Pembayaran SPP Diterima",
+        message: `Pembayaran SPP ${inv.student_name} (${inv.class_name}) untuk ${inv.period_label} sebesar Rp ${(inv.total_amount || 0).toLocaleString("id-ID")} telah diterima.`,
+        type: "success",
+      });
+
+      const wa = await notifySppPaid(supabaseAdmin, inv, paidAt).catch((e) => ({ sent: false, error: String(e) }));
+      if ((wa as any).sent) waSent++;
+      console.log("SPP paid sync", inv.id, JSON.stringify(wa));
+      paid++;
+    } catch (e) {
+      console.error("syncPaidInvoicesFromMayar failed", inv.id, e);
+    }
+  }
+
+  return { checked: (invoices || []).length, paid, wa_sent: waSent };
+}
+
 async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{ ok: boolean; json: any; expiry: Date; status: number }> {
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + MAYAR_LINK_TTL_DAYS);
@@ -156,6 +286,12 @@ serve(async (req) => {
       const result = await ensureFreshLink(supabaseAdmin, inv, action === "regenerate_payment_link");
       if (!result.success) return err(result.error || "Gagal");
       return ok({ payment_url: brandPaymentUrl(result.payment_url), invoice_id: result.invoice_id });
+    }
+
+    // ====== SYNC PAID INVOICES ======
+    if (action === "sync_paid_invoices") {
+      const result = await syncPaidInvoicesFromMayar(supabaseAdmin, schoolId);
+      return ok(result);
     }
 
     return err("Unknown action");
