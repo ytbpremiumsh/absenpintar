@@ -2580,11 +2580,9 @@ export function BendaharaLaporan() {
       </div>
 
       <Tabs defaultValue="ringkasan" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full md:w-auto rounded-xl h-auto md:h-10">
+        <TabsList className="grid grid-cols-3 w-full md:w-auto rounded-xl h-auto md:h-10">
           <TabsTrigger value="ringkasan" className="gap-2 text-xs"><BarChart3 className="h-3.5 w-3.5" /> Ringkasan</TabsTrigger>
           <TabsTrigger value="kelas" className="gap-2 text-xs"><Users className="h-3.5 w-3.5" /> Per Kelas</TabsTrigger>
-          <TabsTrigger value="matrix" className="gap-2 text-xs"><BarChart3 className="h-3.5 w-3.5" /> Matrix Bulan</TabsTrigger>
-          <TabsTrigger value="siswa" className="gap-2 text-xs"><User className="h-3.5 w-3.5" /> Detail Siswa</TabsTrigger>
           <TabsTrigger value="export" className="gap-2 text-xs"><Download className="h-3.5 w-3.5" /> Export</TabsTrigger>
         </TabsList>
 
