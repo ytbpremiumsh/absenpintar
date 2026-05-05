@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server, Banknote } from "lucide-react";
+import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server, Banknote, Mail } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,6 +39,7 @@ const navItems = [
   { title: "Tiket Bantuan", url: "/super-admin/tickets", icon: UsersRound, group: "comms" },
   { title: "Aktivasi WA Sekolah", url: "/super-admin/whatsapp", icon: Eye, group: "comms" },
   { title: "Konfigurasi API WA", url: "/super-admin/registration-wa", icon: MessageCircle, group: "comms" },
+  { title: "Email Server (SMTP)", url: "/super-admin/email", icon: Mail, group: "comms" },
 
   // KONTEN PUBLIK
   { title: "Branding & Landing", url: "/super-admin/landing", icon: Palette, group: "content" },
