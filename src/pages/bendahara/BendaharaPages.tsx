@@ -205,86 +205,161 @@ export function BendaharaDashboard() {
 
       {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
-          <CardHeader><CardTitle className="text-base text-emerald-700 dark:text-emerald-400">Pembayaran Bulanan</CardTitle></CardHeader>
-          <CardContent>
+        {/* Pembayaran Bulanan */}
+        <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-emerald-900/5 ring-1 ring-emerald-100 dark:ring-emerald-900/30">
+          <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 px-5 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
+                <TrendingUp className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white leading-tight">Pembayaran Bulanan</p>
+                <p className="text-[10px] text-white/80 leading-tight">Tren 6 bulan terakhir</p>
+              </div>
+            </div>
+            <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20 text-[10px]">Total {fmtIDR(stats.totalGross)}</Badge>
+          </div>
+          <div className="p-4 bg-gradient-to-b from-emerald-50/40 to-transparent dark:from-emerald-950/10">
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={monthlyChart}>
+                <defs>
+                  <linearGradient id="lineGreen" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(160 84% 39%)" />
+                    <stop offset="100%" stopColor="hsl(174 72% 45%)" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v/1000000).toFixed(1)}jt`} />
-                <Tooltip formatter={(v: any) => fmtIDR(v)} />
-                <Line type="monotone" dataKey="value" stroke="hsl(160 84% 39%)" strokeWidth={2.5} dot={{ r: 4 }} />
+                <Tooltip formatter={(v: any) => fmtIDR(v)} contentStyle={{ borderRadius: 12, border: "1px solid hsl(160 60% 85%)" }} />
+                <Line type="monotone" dataKey="value" stroke="url(#lineGreen)" strokeWidth={3} dot={{ r: 4, fill: "hsl(160 84% 39%)" }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm border-l-4 border-l-teal-500">
-          <CardHeader><CardTitle className="text-base text-teal-700 dark:text-teal-400">Pembayaran per Kelas</CardTitle></CardHeader>
-          <CardContent>
+          </div>
+        </div>
+
+        {/* Pembayaran per Kelas */}
+        <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-indigo-900/5 ring-1 ring-indigo-100 dark:ring-indigo-900/30">
+          <div className="bg-gradient-to-r from-indigo-600 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
+                <BarChart3 className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white leading-tight">Pembayaran per Kelas</p>
+                <p className="text-[10px] text-white/80 leading-tight">Distribusi setoran per rombel</p>
+              </div>
+            </div>
+            <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20 text-[10px]">{classChart.length} kelas</Badge>
+          </div>
+          <div className="p-4 bg-gradient-to-b from-indigo-50/40 to-transparent dark:from-indigo-950/10">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={classChart}>
+                <defs>
+                  <linearGradient id="barIndigo" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(243 75% 59%)" />
+                    <stop offset="100%" stopColor="hsl(262 83% 58%)" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v/1000000).toFixed(1)}jt`} />
-                <Tooltip formatter={(v: any) => fmtIDR(v)} />
-                <Bar dataKey="value" fill="hsl(160 84% 39%)" radius={[6,6,0,0]} />
+                <Tooltip formatter={(v: any) => fmtIDR(v)} contentStyle={{ borderRadius: 12, border: "1px solid hsl(243 60% 88%)" }} />
+                <Bar dataKey="value" fill="url(#barIndigo)" radius={[8,8,0,0]} />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* SECONDARY: detail keuangan dalam satu card ringkas */}
-      <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
-        <CardHeader><CardTitle className="text-base text-emerald-700 dark:text-emerald-400">Rincian Keuangan</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-            <div><p className="text-[11px] text-muted-foreground">Pendapatan Net</p><p className="font-bold text-emerald-600">{fmtIDR(stats.totalNet)}</p></div>
-            <div><p className="text-[11px] text-muted-foreground">Biaya Layanan</p><p className="font-bold">{fmtIDR(stats.totalFee)}</p></div>
-            <div><p className="text-[11px] text-muted-foreground">Fee Pencairan</p><p className="font-bold">{fmtIDR(stats.settleFee)}</p></div>
-            <div><p className="text-[11px] text-muted-foreground">Saldo Pending</p><p className="font-bold text-amber-600">{fmtIDR(stats.pendingBalance)}</p></div>
-            <div><p className="text-[11px] text-muted-foreground">Sudah Dicairkan</p><p className="font-bold">{fmtIDR(stats.settled)}</p></div>
+      {/* RINCIAN KEUANGAN — colorful tile grid (no card) */}
+      <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70 dark:ring-slate-800/60">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 px-5 py-3.5 flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <Wallet className="h-4 w-4 text-white" />
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <p className="text-sm font-bold text-white leading-tight">Rincian Keuangan</p>
+            <p className="text-[10px] text-white/70 leading-tight">Ringkasan total kas masuk dan biaya</p>
+          </div>
+        </div>
+        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { label: "Pendapatan Net", value: fmtIDR(stats.totalNet), grad: "from-emerald-500 to-teal-600", icon: TrendingUp },
+            { label: "Biaya Layanan", value: fmtIDR(stats.totalFee), grad: "from-sky-500 to-blue-600", icon: Receipt },
+            { label: "Fee Pencairan", value: fmtIDR(stats.settleFee), grad: "from-violet-500 to-purple-600", icon: ArrowDownToLine },
+            { label: "Saldo Pending", value: fmtIDR(stats.pendingBalance), grad: "from-amber-500 to-orange-600", icon: Loader2 },
+            { label: "Sudah Dicairkan", value: fmtIDR(stats.settled), grad: "from-rose-500 to-pink-600", icon: Banknote },
+          ].map((t) => (
+            <div key={t.label} className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 ring-1 ring-slate-200/70 dark:ring-slate-800/60 hover:-translate-y-0.5 hover:shadow-md transition-all">
+              <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${t.grad} flex items-center justify-center mb-2 shadow-sm`}>
+                <t.icon className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.label}</p>
+              <p className="text-sm font-extrabold mt-0.5 truncate">{t.value}</p>
+              <div className={`absolute -right-6 -bottom-6 h-16 w-16 rounded-full bg-gradient-to-br ${t.grad} opacity-10 blur-xl`} />
+            </div>
+          ))}
+        </div>
+      </div>
 
-      {/* Riwayat Siswa Membayar SPP */}
-      <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Riwayat Siswa Membayar SPP
-          </CardTitle>
+      {/* RIWAYAT SISWA MEMBAYAR */}
+      <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-emerald-900/5 ring-1 ring-emerald-100 dark:ring-emerald-900/30">
+        <div className="bg-gradient-to-r from-teal-600 via-emerald-600 to-green-600 px-5 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
+              <CheckCircle2 className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white leading-tight">Riwayat Siswa Membayar SPP</p>
+              <p className="text-[10px] text-white/80 leading-tight">10 transaksi terbaru</p>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
-            {showRecentPaid && <Badge variant="secondary">{recentPaidList.length}</Badge>}
-            <Button variant="ghost" size="sm" onClick={toggleShowRecentPaid} className="h-7 px-2 text-xs">
+            {showRecentPaid && <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20 text-[10px]">{recentPaidList.length}</Badge>}
+            <Button variant="ghost" size="sm" onClick={toggleShowRecentPaid} className="h-7 px-2 text-xs text-white hover:bg-white/15 hover:text-white">
               {showRecentPaid ? "Sembunyikan" : "Tampilkan"}
             </Button>
           </div>
-        </CardHeader>
+        </div>
         {showRecentPaid && (
-          <CardContent className="p-0">
+          <div>
             {recentPaidList.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">Belum ada pembayaran</p>
+              <p className="text-sm text-muted-foreground text-center py-8">Belum ada pembayaran</p>
             ) : (
               <Table>
-                <TableHeader><TableRow><TableHead>Tanggal</TableHead><TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Jumlah</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow className="bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30">
+                    <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Tanggal</TableHead>
+                    <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Siswa</TableHead>
+                    <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Kelas</TableHead>
+                    <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Periode</TableHead>
+                    <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold text-right">Jumlah</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
-                  {recentPaidList.map(t => (
-                    <TableRow key={t.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
-                      <TableCell className="font-medium">{t.student_name}</TableCell>
-                      <TableCell><Badge variant="secondary">{t.class_name}</Badge></TableCell>
+                  {recentPaidList.map((t, idx) => (
+                    <TableRow key={t.id} className={idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"}>
+                      <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-[11px] font-bold">
+                            {(t.student_name || "?")[0]}
+                          </div>
+                          <span>{t.student_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell><Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 hover:bg-indigo-100 border-0">{t.class_name}</Badge></TableCell>
                       <TableCell className="text-xs">{t.period_label}</TableCell>
-                      <TableCell className="text-right font-semibold text-emerald-600">{fmtIDR(t.total_amount)}</TableCell>
+                      <TableCell className="text-right font-bold text-emerald-600">{fmtIDR(t.total_amount)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             )}
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }
