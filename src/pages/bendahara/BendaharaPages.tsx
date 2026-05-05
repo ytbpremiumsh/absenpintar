@@ -1487,7 +1487,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                   </TableHeader>
                   <TableBody>
                     {list.map((s, i) => {
-                      const ag = avatarGrads[(s.name?.charCodeAt(0) || i) % avatarGrads.length];
+                      const ag = avatarFor(s.gender);
                       return (
                         <TableRow
                           key={s.id}
