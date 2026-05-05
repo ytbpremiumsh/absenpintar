@@ -181,12 +181,35 @@ export function BendaharaDashboard() {
         variant="emerald"
       />
 
-      {/* PRIMARY ROW: 4 KPI utama (semua hijau, senada sidebar) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Tagihan Bulan Ini" value={fmtIDR(stats.monthBills)} icon={Receipt} gradient="from-emerald-500 to-teal-600" />
-        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-emerald-600 to-green-700" sub={`${stats.paidCount} transaksi`} />
-        <StatCard label="Saldo Bisa Cair" value={fmtIDR(stats.availableBalance)} icon={Wallet} gradient="from-teal-500 to-emerald-600" />
-        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-emerald-700 to-teal-800" sub={`${stats.pendingCount} pending`} />
+      {/* RINCIAN KEUANGAN — colorful tile grid (di bawah header dashboard) */}
+      <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70 dark:ring-slate-800/60">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 px-5 py-3.5 flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <Wallet className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-white leading-tight">Rincian Keuangan</p>
+            <p className="text-[10px] text-white/70 leading-tight">Saldo live, tagihan, lunas, dan tunggakan</p>
+          </div>
+        </div>
+        <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Saldo (Live)", value: fmtIDR(stats.availableBalance), grad: "from-emerald-500 to-teal-600", icon: Wallet, sub: "Bisa dicairkan" },
+            { label: "Tagihan Bulan Ini", value: fmtIDR(stats.monthBills), grad: "from-sky-500 to-blue-600", icon: Receipt, sub: `${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}` },
+            { label: "Lunas", value: fmtIDR(stats.totalGross), grad: "from-violet-500 to-indigo-600", icon: CheckCircle2, sub: `${stats.paidCount} transaksi` },
+            { label: "Tunggakan", value: fmtIDR(stats.tunggakan), grad: "from-rose-500 to-red-600", icon: AlertCircle, sub: `${stats.pendingCount} pending` },
+          ].map((t) => (
+            <div key={t.label} className="relative overflow-hidden rounded-xl p-3.5 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 ring-1 ring-slate-200/70 dark:ring-slate-800/60 hover:-translate-y-0.5 hover:shadow-md transition-all">
+              <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${t.grad} flex items-center justify-center mb-2 shadow-sm`}>
+                <t.icon className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.label}</p>
+              <p className="text-sm font-extrabold mt-0.5 truncate">{t.value}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{t.sub}</p>
+              <div className={`absolute -right-6 -bottom-6 h-16 w-16 rounded-full bg-gradient-to-br ${t.grad} opacity-10 blur-xl`} />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Persentase pelunasan */}
