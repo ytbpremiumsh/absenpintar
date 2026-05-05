@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server, Banknote, Mail } from "lucide-react";
+import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server, Banknote, Mail, Wand2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -42,6 +42,7 @@ const navItems = [
   { title: "Email Server (SMTP)", url: "/super-admin/email", icon: Mail, group: "comms" },
 
   // KONTEN PUBLIK
+  { title: "Auto Caption AI", url: "/super-admin/auto-caption", icon: Wand2, group: "content" },
   { title: "Branding & Landing", url: "/super-admin/landing", icon: Palette, group: "content" },
   { title: "Testimoni & Sekolah", url: "/super-admin/testimonials", icon: School, group: "content" },
   { title: "Halaman Fitur", url: "/super-admin/fitur", icon: Presentation, group: "content" },
