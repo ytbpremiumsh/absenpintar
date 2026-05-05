@@ -163,3 +163,58 @@
   90% { opacity: 1; }
   100% { top: 100%; opacity: 0; }
 }
+
+/* Soft animated status pills (untuk badge Lunas / Nunggak / Pending) */
+@keyframes softPulseGreen {
+  0%, 100% { background-color: hsl(152 65% 94%); box-shadow: 0 0 0 0 hsl(152 60% 50% / 0.18); }
+  50%      { background-color: hsl(152 70% 90%); box-shadow: 0 0 0 4px hsl(152 60% 50% / 0); }
+}
+@keyframes softPulseRose {
+  0%, 100% { background-color: hsl(0 80% 96%); box-shadow: 0 0 0 0 hsl(0 75% 60% / 0.20); }
+  50%      { background-color: hsl(0 85% 93%); box-shadow: 0 0 0 4px hsl(0 75% 60% / 0); }
+}
+@keyframes softPulseAmber {
+  0%, 100% { background-color: hsl(40 95% 94%); box-shadow: 0 0 0 0 hsl(38 90% 55% / 0.18); }
+  50%      { background-color: hsl(40 98% 90%); box-shadow: 0 0 0 4px hsl(38 90% 55% / 0); }
+}
+@keyframes softPulseSlate {
+  0%, 100% { background-color: hsl(220 14% 95%); box-shadow: 0 0 0 0 hsl(220 10% 50% / 0.15); }
+  50%      { background-color: hsl(220 14% 92%); box-shadow: 0 0 0 4px hsl(220 10% 50% / 0); }
+}
+
+@layer components {
+  .status-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border;
+    transition: background-color .3s ease;
+  }
+  .status-pill .dot {
+    @apply h-1.5 w-1.5 rounded-full;
+  }
+  .status-pill-paid {
+    color: hsl(152 65% 30%);
+    border-color: hsl(152 50% 80%);
+    animation: softPulseGreen 2.6s ease-in-out infinite;
+  }
+  .status-pill-paid .dot { background-color: hsl(152 65% 40%); }
+
+  .status-pill-unpaid {
+    color: hsl(0 70% 38%);
+    border-color: hsl(0 70% 86%);
+    animation: softPulseRose 2.2s ease-in-out infinite;
+  }
+  .status-pill-unpaid .dot { background-color: hsl(0 75% 55%); }
+
+  .status-pill-pending {
+    color: hsl(30 80% 36%);
+    border-color: hsl(38 85% 80%);
+    animation: softPulseAmber 2.4s ease-in-out infinite;
+  }
+  .status-pill-pending .dot { background-color: hsl(38 90% 50%); }
+
+  .status-pill-neutral {
+    color: hsl(220 12% 35%);
+    border-color: hsl(220 14% 88%);
+    animation: softPulseSlate 3s ease-in-out infinite;
+  }
+  .status-pill-neutral .dot { background-color: hsl(220 10% 55%); }
+}
