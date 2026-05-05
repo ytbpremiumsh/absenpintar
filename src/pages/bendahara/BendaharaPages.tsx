@@ -2395,11 +2395,36 @@ export function BendaharaPencairan() {
   const { profile, user } = useAuth();
   const [available, setAvailable] = useState({ count: 0, gross: 0, fee: 0, net: 0 });
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [bankManageOpen, setBankManageOpen] = useState(false);
   const [bank, setBank] = useState({ bank_name: "", account_number: "", account_holder: "", notes: "" });
+  const [savedAccounts, setSavedAccounts] = useState<any[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [newAccount, setNewAccount] = useState({ bank_name: "", account_number: "", account_holder: "", notes: "", is_default: false });
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Auto-open bank manager via ?manage=bank
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("manage") === "bank") setBankManageOpen(true);
+  }, []);
+
+  const loadAccounts = async () => {
+    if (!profile?.school_id) return;
+    const { data } = await supabase.from("bendahara_bank_accounts" as any)
+      .select("*").eq("school_id", profile.school_id)
+      .order("is_default", { ascending: false }).order("created_at", { ascending: false });
+    const list = (data as any[]) || [];
+    setSavedAccounts(list);
+    if (list.length && !selectedAccountId) {
+      const def = list.find((x: any) => x.is_default) || list[0];
+      setSelectedAccountId(def.id);
+      setBank({ bank_name: def.bank_name, account_number: def.account_number, account_holder: def.account_holder, notes: def.notes || "" });
+    }
+  };
 
   useEffect(() => {
     if (!profile?.school_id) { setLoadingHistory(false); return; }
@@ -2417,13 +2442,26 @@ export function BendaharaPencairan() {
       setHistory(hRes.data || []);
       setLoadingHistory(false);
     });
+    loadAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.school_id, open, refreshKey]);
 
   const finalPayout = Math.max(0, available.net - 3000);
 
-  const submit = async () => {
+  const handleSelectAccount = (id: string) => {
+    setSelectedAccountId(id);
+    const acc = savedAccounts.find((x: any) => x.id === id);
+    if (acc) setBank({ bank_name: acc.bank_name, account_number: acc.account_number, account_holder: acc.account_holder, notes: acc.notes || "" });
+  };
+
+  const requestSubmit = () => {
     if (available.count === 0) { toast.error("Tidak ada saldo"); return; }
     if (!bank.bank_name || !bank.account_number || !bank.account_holder) { toast.error("Lengkapi data rekening"); return; }
+    setOpen(false);
+    setConfirmOpen(true);
+  };
+
+  const submit = async () => {
     setSubmitting(true);
     const code = `STL-${Date.now().toString().slice(-8)}`;
     const { data: settlement, error } = await supabase.from("spp_settlements").insert({
@@ -2437,7 +2475,38 @@ export function BendaharaPencairan() {
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
       .eq("school_id", profile!.school_id).eq("status", "paid").is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
-    setOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
+    setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
+  };
+
+  const saveAccount = async () => {
+    if (!newAccount.bank_name || !newAccount.account_number || !newAccount.account_holder) { toast.error("Lengkapi data rekening"); return; }
+    if (!profile?.school_id) return;
+    if (newAccount.is_default) {
+      await supabase.from("bendahara_bank_accounts" as any).update({ is_default: false }).eq("school_id", profile.school_id);
+    }
+    const { error } = await supabase.from("bendahara_bank_accounts" as any).insert({
+      school_id: profile.school_id, ...newAccount, created_by: user?.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Rekening disimpan");
+    setNewAccount({ bank_name: "", account_number: "", account_holder: "", notes: "", is_default: false });
+    loadAccounts();
+  };
+
+  const deleteAccount = async (id: string) => {
+    const { error } = await supabase.from("bendahara_bank_accounts" as any).delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Rekening dihapus");
+    if (selectedAccountId === id) setSelectedAccountId("");
+    loadAccounts();
+  };
+
+  const setDefault = async (id: string) => {
+    if (!profile?.school_id) return;
+    await supabase.from("bendahara_bank_accounts" as any).update({ is_default: false }).eq("school_id", profile.school_id);
+    await supabase.from("bendahara_bank_accounts" as any).update({ is_default: true }).eq("id", id);
+    toast.success("Rekening utama diperbarui");
+    loadAccounts();
   };
 
   const badge = (s: string) => {
@@ -2452,6 +2521,11 @@ export function BendaharaPencairan() {
         title="Pencairan Dana"
         subtitle="Ajukan pencairan saldo SPP dan pantau riwayat settlement"
         variant="emerald"
+        actions={
+          <Button variant="outline" size="sm" onClick={() => setBankManageOpen(true)} className="gap-2">
+            <Landmark className="h-4 w-4" /> Kelola Rekening
+          </Button>
+        }
       />
 
       {/* KPI ringkas */}
@@ -2518,19 +2592,122 @@ export function BendaharaPencairan() {
         </TabsContent>
       </Tabs>
 
+      {/* Step 1: Pilih rekening */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Pengajuan Pencairan Dana</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Pilih Rekening Tujuan</DialogTitle>
+            <DialogDescription>Pilih rekening tersimpan atau isi manual.</DialogDescription>
+          </DialogHeader>
           <div className="space-y-3">
-            <div><Label>Nama Bank</Label><Input value={bank.bank_name} onChange={e => setBank({ ...bank, bank_name: e.target.value })} placeholder="BCA / BRI / Mandiri" /></div>
-            <div><Label>Nomor Rekening</Label><Input value={bank.account_number} onChange={e => setBank({ ...bank, account_number: e.target.value })} /></div>
-            <div><Label>Atas Nama</Label><Input value={bank.account_holder} onChange={e => setBank({ ...bank, account_holder: e.target.value })} /></div>
+            {savedAccounts.length > 0 ? (
+              <div className="space-y-2">
+                <Label>Rekening Tersimpan</Label>
+                <div className="space-y-2 max-h-56 overflow-auto">
+                  {savedAccounts.map((a: any) => (
+                    <button key={a.id} type="button" onClick={() => handleSelectAccount(a.id)}
+                      className={`w-full text-left p-3 rounded-lg border-2 transition ${selectedAccountId === a.id ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" : "border-border hover:border-emerald-300"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-sm">{a.bank_name} {a.is_default && <Badge className="ml-2 bg-emerald-600 text-[10px]">Utama</Badge>}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{a.account_number}</p>
+                          <p className="text-xs text-muted-foreground">a.n. {a.account_holder}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setBankManageOpen(true)} className="text-xs">
+                  + Kelola rekening
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">Belum ada rekening tersimpan. Isi manual atau simpan dulu via Kelola Rekening.</p>
+                <div><Label>Nama Bank</Label><Input value={bank.bank_name} onChange={e => setBank({ ...bank, bank_name: e.target.value })} placeholder="BCA / BRI / Mandiri" /></div>
+                <div><Label>Nomor Rekening</Label><Input value={bank.account_number} onChange={e => setBank({ ...bank, account_number: e.target.value })} /></div>
+                <div><Label>Atas Nama</Label><Input value={bank.account_holder} onChange={e => setBank({ ...bank, account_holder: e.target.value })} /></div>
+              </div>
+            )}
             <div className="bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-lg text-sm">
               Final payout: <strong className="text-emerald-600">{fmtIDR(finalPayout)}</strong>
             </div>
-            <Button onClick={submit} disabled={submitting} className="w-full bg-emerald-600">
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ajukan"}
+            <Button onClick={requestSubmit} className="w-full bg-emerald-600 hover:bg-emerald-700">
+              Lanjut
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Step 2: Konfirmasi */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Pencairan</DialogTitle>
+            <DialogDescription>
+              Pastikan nomor rekening sudah benar. Pencairan ke rekening salah tidak dapat dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Bank</span><span className="font-bold">{bank.bank_name}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">No. Rekening</span><span className="font-mono font-bold tracking-wider">{bank.account_number}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Atas Nama</span><span className="font-bold">{bank.account_holder}</span></div>
+              <div className="border-t pt-2 flex justify-between text-sm"><span className="text-muted-foreground">Final Payout</span><span className="font-extrabold text-emerald-600">{fmtIDR(finalPayout)}</span></div>
+            </div>
+            <p className="text-xs text-center text-muted-foreground">Apakah nomor rekening di atas sudah benar?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={() => { setConfirmOpen(false); setOpen(true); }} disabled={submitting}>
+                Periksa Lagi
+              </Button>
+              <Button onClick={submit} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700">
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ya, Cairkan"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Kelola Rekening */}
+      <Dialog open={bankManageOpen} onOpenChange={setBankManageOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Kelola Rekening Pencairan</DialogTitle>
+            <DialogDescription>Simpan rekening sekolah agar tidak perlu input ulang setiap pencairan.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Rekening Tersimpan</Label>
+              {savedAccounts.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">Belum ada rekening</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-auto">
+                  {savedAccounts.map((a: any) => (
+                    <div key={a.id} className="flex items-center justify-between p-2 rounded-lg border bg-card">
+                      <div>
+                        <p className="text-sm font-semibold">{a.bank_name} {a.is_default && <Badge className="ml-1 bg-emerald-600 text-[10px]">Utama</Badge>}</p>
+                        <p className="text-xs font-mono text-muted-foreground">{a.account_number} · {a.account_holder}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        {!a.is_default && <Button size="sm" variant="ghost" onClick={() => setDefault(a.id)} className="h-7 text-xs">Jadikan Utama</Button>}
+                        <Button size="sm" variant="ghost" onClick={() => deleteAccount(a.id)} className="h-7 text-destructive">Hapus</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="border-t pt-4 space-y-3">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Tambah Rekening Baru</Label>
+              <div><Label>Nama Bank</Label><Input value={newAccount.bank_name} onChange={e => setNewAccount({ ...newAccount, bank_name: e.target.value })} placeholder="BCA / BRI / Mandiri" /></div>
+              <div><Label>Nomor Rekening</Label><Input value={newAccount.account_number} onChange={e => setNewAccount({ ...newAccount, account_number: e.target.value })} /></div>
+              <div><Label>Atas Nama</Label><Input value={newAccount.account_holder} onChange={e => setNewAccount({ ...newAccount, account_holder: e.target.value })} /></div>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={newAccount.is_default} onChange={e => setNewAccount({ ...newAccount, is_default: e.target.checked })} />
+                Jadikan rekening utama
+              </label>
+              <Button onClick={saveAccount} className="w-full bg-emerald-600 hover:bg-emerald-700">Simpan Rekening</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
