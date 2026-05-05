@@ -306,6 +306,19 @@ const SuperAdminBackup = () => {
               </p>
             </div>
           )}
+
+          {Object.keys(lastBackupErrors).length > 0 && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.04] p-3">
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">
+                {Object.keys(lastBackupErrors).length} tabel gagal di-backup
+              </p>
+              <ul className="text-[11px] text-muted-foreground space-y-0.5">
+                {Object.entries(lastBackupErrors).slice(0, 5).map(([t, e]) => (
+                  <li key={t}><code className="text-foreground">{t}</code>: {e}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
 
