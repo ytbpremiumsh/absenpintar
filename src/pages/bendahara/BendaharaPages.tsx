@@ -489,13 +489,23 @@ export function BendaharaSiswa() {
                     <span className="font-semibold text-sm text-foreground">Kelas {cls}</span>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{list.length} siswa</p>
                   </div>
-                  <div className="hidden sm:flex items-center gap-1.5">
-                    <span className="status-pill status-pill-paid"><span className="dot" />Lunas {lunas}</span>
-                    <span className="status-pill status-pill-unpaid"><span className="dot" />Nunggak {nunggak}</span>
+                  <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold">
+                    <span className="inline-flex items-center gap-1.5 text-emerald-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Lunas {lunas}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-rose-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                      Nunggak {nunggak}
+                    </span>
                   </div>
-                  <div className="flex sm:hidden items-center gap-1">
-                    <span className="status-pill status-pill-paid !px-2 !py-0"><span className="dot" />{lunas}</span>
-                    <span className="status-pill status-pill-unpaid !px-2 !py-0"><span className="dot" />{nunggak}</span>
+                  <div className="flex sm:hidden items-center gap-2 text-[11px] font-semibold">
+                    <span className="inline-flex items-center gap-1 text-emerald-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />{lunas}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-rose-600">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />{nunggak}
+                    </span>
                   </div>
                 </button>
                 {isOpen && (
