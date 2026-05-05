@@ -49,6 +49,7 @@ import SuperAdminTickets from "./pages/super-admin/SuperAdminTickets";
 import SuperAdminLanding from "./pages/super-admin/SuperAdminLanding";
 import SuperAdminRegistrationWA from "./pages/super-admin/SuperAdminRegistrationWA";
 import SuperAdminEmail from "./pages/super-admin/SuperAdminEmail";
+import SuperAdminAutoCaption from "./pages/super-admin/SuperAdminAutoCaption";
 import SuperAdminPresentation from "./pages/super-admin/SuperAdminPresentation";
 import SuperAdminBusinessModel from "./pages/super-admin/SuperAdminBusinessModel";
 import SuperAdminTestimonials from "./pages/super-admin/SuperAdminTestimonials";
