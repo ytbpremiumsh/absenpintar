@@ -5,16 +5,38 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface Body {
+interface GenerateBody {
+  mode?: "generate";
   platform: "facebook" | "instagram" | "tiktok" | "twitter" | "whatsapp" | "linkedin" | "blog";
   topic: string;
-  tone: "profesional" | "santai" | "persuasif" | "edukatif" | "promo" | "storytelling";
+  tone: string;
   length: "pendek" | "sedang" | "panjang";
   cta?: string;
   audience?: string;
   variants?: number;
   hashtags?: boolean;
   emoji?: boolean;
+}
+
+interface RewriteBody {
+  mode: "rewrite";
+  source_text: string;
+  rewrite_style:
+    | "improve"
+    | "shorter"
+    | "longer"
+    | "professional"
+    | "casual"
+    | "persuasive"
+    | "fix_grammar"
+    | "translate_en"
+    | "translate_id"
+    | "engaging"
+    | "seo"
+    | "custom";
+  custom_instruction?: string;
+  variants?: number;
+  platform?: string;
 }
 
 const PRODUCT_CONTEXT = `
@@ -37,16 +59,29 @@ Fitur Utama:
 - Affiliate & Referral program
 - Jadwal mengajar guru + reminder otomatis
 
-Cocok untuk: SD, SMP, SMA, SMK, MA, Pesantren, dan lembaga pendidikan modern.
 Slogan brand: ATSkolla — Absensi Sekolah Cerdas, Transparan, Real-time.
 Warna brand: Biru-ungu #5B6CF9.
 `;
+
+const REWRITE_STYLE_GUIDE: Record<string, string> = {
+  improve: "Tingkatkan kualitas tulisan: lebih jelas, lebih engaging, alur lebih baik, tetap pertahankan inti pesan.",
+  shorter: "Buat lebih ringkas, padat, hapus kalimat yang bertele-tele. Target ±50% lebih pendek dari aslinya.",
+  longer: "Perluas teks dengan detail, contoh konkret, dan storytelling. Target ±2x lebih panjang dari aslinya.",
+  professional: "Ubah gaya menjadi formal, profesional, cocok untuk dokumen bisnis / LinkedIn / proposal sekolah.",
+  casual: "Ubah gaya menjadi santai, akrab, seperti ngobrol dengan teman. Boleh pakai sapaan ramah.",
+  persuasive: "Buat lebih persuasif & sales-driven: hook kuat, sebut benefit jelas, urgency, CTA tegas.",
+  fix_grammar: "Perbaiki ejaan, tanda baca, struktur kalimat, dan tata bahasa Indonesia. Jangan ubah makna.",
+  translate_en: "Terjemahkan ke Bahasa Inggris yang natural & fasih (bukan terjemahan kaku).",
+  translate_id: "Terjemahkan ke Bahasa Indonesia yang natural & fasih (bukan terjemahan kaku).",
+  engaging: "Buat lebih engaging untuk media sosial: hook menarik di awal, gunakan emoji secukupnya, baris pendek.",
+  seo: "Optimasi untuk SEO: gunakan kata kunci natural seputar 'absensi sekolah', 'aplikasi sekolah', struktur paragraf SEO-friendly, hindari keyword stuffing.",
+  custom: "Ikuti instruksi custom dari user di bawah ini.",
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const b = (await req.json()) as Body;
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ success: false, error: "LOVABLE_API_KEY tidak tersedia" }), {
@@ -54,24 +89,57 @@ serve(async (req) => {
       });
     }
 
-    const variants = Math.min(Math.max(b.variants || 1, 1), 5);
-    const lengthGuide = {
-      pendek: "70-120 kata",
-      sedang: "150-250 kata",
-      panjang: "300-450 kata",
-    }[b.length];
+    const raw = await req.json();
+    const mode = raw.mode || "generate";
+    const variants = Math.min(Math.max(raw.variants || 1, 1), 5);
 
-    const platformGuide: Record<string, string> = {
-      facebook: "Format Facebook: paragraf naratif yang engaging, gunakan baris kosong untuk readability, boleh emoji secukupnya, akhiri dengan CTA yang kuat. Hindari hashtag berlebihan (max 5).",
-      instagram: "Format Instagram: hook kuat di kalimat pertama, gunakan baris pendek, emoji aktif, akhiri dengan 15-20 hashtag relevan di bawah.",
-      tiktok: "Format TikTok caption: sangat singkat, hook agresif, 1-2 kalimat punchy, hashtag viral di akhir.",
-      twitter: "Format Twitter/X thread atau single tweet: maksimal 280 karakter per tweet, padat, langsung ke poin.",
-      whatsapp: "Format WhatsApp broadcast: salam pembuka ramah, bullet point jelas (pakai • atau ✓), CTA berupa link/nomor WA.",
-      linkedin: "Format LinkedIn: profesional, fokus pada value bisnis & data/manfaat, paragraf rapi, akhiri dengan pertanyaan diskusi.",
-      blog: "Format Blog/Artikel: paragraf terstruktur dengan heading, intro-isi-penutup yang jelas, SEO-friendly.",
-    };
+    let sys = "";
+    let user = "";
 
-    const sys = `Kamu adalah copywriter marketing senior khusus produk SaaS pendidikan Indonesia. Tugasmu: membuat konten promosi yang konversi tinggi untuk produk ATSkolla.
+    if (mode === "rewrite") {
+      const b = raw as RewriteBody;
+      if (!b.source_text?.trim()) {
+        return new Response(JSON.stringify({ success: false, error: "Teks sumber wajib diisi" }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const styleGuide = REWRITE_STYLE_GUIDE[b.rewrite_style] || REWRITE_STYLE_GUIDE.improve;
+
+      sys = `Kamu adalah copywriter & editor profesional. Tugasmu: REWRITE / parafrase teks yang diberikan user.
+
+KONTEKS PRODUK (jangan tambah klaim fitur di luar konteks ini):
+${PRODUCT_CONTEXT}
+
+ATURAN REWRITE:
+- ${styleGuide}
+${b.rewrite_style === "custom" && b.custom_instruction ? `- Instruksi tambahan dari user: ${b.custom_instruction}` : ""}
+- Pertahankan informasi faktual yang sudah ada di teks asli.
+- Jangan menambahkan fitur produk yang tidak ada di konteks.
+- Output HANYA teks hasil rewrite, tanpa pengantar seperti "Berikut hasil rewrite:".
+${b.platform ? `- Format output disesuaikan untuk platform: ${b.platform}.` : ""}
+
+${variants > 1 ? `Hasilkan ${variants} versi rewrite berbeda. Pisahkan setiap versi dengan baris "---VARIAN-{nomor}---" di awal.` : "Hasilkan 1 versi rewrite saja, langsung tanpa header."}`;
+
+      user = `Teks asli:\n"""\n${b.source_text}\n"""\n\nLakukan rewrite sesuai aturan di atas.`;
+    } else {
+      const b = raw as GenerateBody;
+      const lengthGuide = {
+        pendek: "70-120 kata",
+        sedang: "150-250 kata",
+        panjang: "300-450 kata",
+      }[b.length];
+
+      const platformGuide: Record<string, string> = {
+        facebook: "Format Facebook: paragraf naratif yang engaging, gunakan baris kosong untuk readability, boleh emoji secukupnya, akhiri dengan CTA yang kuat. Hindari hashtag berlebihan (max 5).",
+        instagram: "Format Instagram: hook kuat di kalimat pertama, gunakan baris pendek, emoji aktif, akhiri dengan 15-20 hashtag relevan di bawah.",
+        tiktok: "Format TikTok caption: sangat singkat, hook agresif, 1-2 kalimat punchy, hashtag viral di akhir.",
+        twitter: "Format Twitter/X: maksimal 280 karakter per tweet, padat, langsung ke poin.",
+        whatsapp: "Format WhatsApp broadcast: salam pembuka ramah, bullet point jelas (pakai • atau ✓), CTA berupa link/nomor WA.",
+        linkedin: "Format LinkedIn: profesional, fokus pada value bisnis & data/manfaat, paragraf rapi, akhiri dengan pertanyaan diskusi.",
+        blog: "Format Blog/Artikel: paragraf terstruktur dengan heading, intro-isi-penutup yang jelas, SEO-friendly.",
+      };
+
+      sys = `Kamu adalah copywriter marketing senior khusus produk SaaS pendidikan Indonesia. Tugasmu: membuat konten promosi yang konversi tinggi untuk produk ATSkolla.
 
 KONTEKS PRODUK:
 ${PRODUCT_CONTEXT}
@@ -88,9 +156,10 @@ ATURAN OUTPUT:
 ${b.audience ? `- Target audiens: ${b.audience}.` : ""}
 ${b.cta ? `- CTA wajib: ${b.cta}` : "- Akhiri dengan CTA yang relevan (chat WA, daftar gratis, kunjungi website)."}
 
-Hasilkan ${variants} varian caption berbeda. Pisahkan setiap varian dengan baris "---VARIAN-${"{nomor}"}---" di awal.`;
+Hasilkan ${variants} varian caption berbeda. Pisahkan setiap varian dengan baris "---VARIAN-{nomor}---" di awal.`;
 
-    const user = `Buatkan ${variants} varian konten ${b.platform} tentang topik: "${b.topic}"`;
+      user = `Buatkan ${variants} varian konten ${b.platform} tentang topik: "${b.topic}"`;
+    }
 
     const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -123,7 +192,6 @@ Hasilkan ${variants} varian caption berbeda. Pisahkan setiap varian dengan baris
 
     const data = await r.json();
     const content = data?.choices?.[0]?.message?.content || "";
-    // Split varian
     const parts = content.split(/---VARIAN-\d+---/i).map((s: string) => s.trim()).filter(Boolean);
     const result = parts.length ? parts : [content];
 
