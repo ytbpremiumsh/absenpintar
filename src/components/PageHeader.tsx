@@ -7,9 +7,15 @@ interface PageHeaderProps {
   title: string;
   subtitle: string;
   actions?: React.ReactNode;
+  variant?: "primary" | "emerald";
 }
 
-export const PageHeader = ({ icon: Icon, title, subtitle, actions }: PageHeaderProps) => {
+const VARIANTS: Record<NonNullable<PageHeaderProps["variant"]>, string> = {
+  primary: "from-[#5B6CF9] to-[#4c5ded]",
+  emerald: "from-emerald-600 to-teal-700",
+};
+
+export const PageHeader = ({ icon: Icon, title, subtitle, actions, variant = "primary" }: PageHeaderProps) => {
   const [showShapes, setShowShapes] = useState(true);
 
   useEffect(() => {
@@ -27,7 +33,7 @@ export const PageHeader = ({ icon: Icon, title, subtitle, actions }: PageHeaderP
   }, []);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] p-5 sm:p-6 text-white shadow-xl">
+    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${VARIANTS[variant]} p-5 sm:p-6 text-white shadow-xl`}>
       {showShapes && (
         <>
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />

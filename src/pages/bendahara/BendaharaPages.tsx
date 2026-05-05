@@ -174,21 +174,23 @@ export function BendaharaDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold">Dashboard Bendahara</h1>
-        <p className="text-sm text-muted-foreground">Ringkasan keuangan sekolah</p>
-      </div>
+      <PageHeader
+        icon={Wallet}
+        title="Dashboard Bendahara"
+        subtitle="Ringkasan keuangan sekolah"
+        variant="emerald"
+      />
 
-      {/* PRIMARY ROW: 4 KPI utama */}
+      {/* PRIMARY ROW: 4 KPI utama (semua hijau, senada sidebar) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Tagihan Bulan Ini" value={fmtIDR(stats.monthBills)} icon={Receipt} gradient="from-violet-500 to-purple-600" />
-        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" sub={`${stats.paidCount} transaksi`} />
-        <StatCard label="Saldo Bisa Cair" value={fmtIDR(stats.availableBalance)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
-        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-red-500 to-rose-600" sub={`${stats.pendingCount} pending`} />
+        <StatCard label="Tagihan Bulan Ini" value={fmtIDR(stats.monthBills)} icon={Receipt} gradient="from-emerald-500 to-teal-600" />
+        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-emerald-600 to-green-700" sub={`${stats.paidCount} transaksi`} />
+        <StatCard label="Saldo Bisa Cair" value={fmtIDR(stats.availableBalance)} icon={Wallet} gradient="from-teal-500 to-emerald-600" />
+        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-emerald-700 to-teal-800" sub={`${stats.pendingCount} pending`} />
       </div>
 
       {/* Persentase pelunasan */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50/70 to-teal-50/40 dark:from-emerald-950/20 dark:to-teal-950/10">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -197,14 +199,14 @@ export function BendaharaDashboard() {
             </div>
             <CheckCircle2 className="h-10 w-10 text-emerald-500/30" />
           </div>
-          <Progress value={completionRate} className="h-2" />
+          <Progress value={completionRate} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-emerald-500 [&>div]:to-teal-600" />
         </CardContent>
       </Card>
 
       {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle className="text-base">Pembayaran Bulanan</CardTitle></CardHeader>
+        <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
+          <CardHeader><CardTitle className="text-base text-emerald-700 dark:text-emerald-400">Pembayaran Bulanan</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={monthlyChart}>
@@ -217,8 +219,8 @@ export function BendaharaDashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle className="text-base">Pembayaran per Kelas</CardTitle></CardHeader>
+        <Card className="border-0 shadow-sm border-l-4 border-l-teal-500">
+          <CardHeader><CardTitle className="text-base text-teal-700 dark:text-teal-400">Pembayaran per Kelas</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={classChart}>
@@ -234,8 +236,8 @@ export function BendaharaDashboard() {
       </div>
 
       {/* SECONDARY: detail keuangan dalam satu card ringkas */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base">Rincian Keuangan</CardTitle></CardHeader>
+      <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
+        <CardHeader><CardTitle className="text-base text-emerald-700 dark:text-emerald-400">Rincian Keuangan</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
             <div><p className="text-[11px] text-muted-foreground">Pendapatan Net</p><p className="font-bold text-emerald-600">{fmtIDR(stats.totalNet)}</p></div>
@@ -248,7 +250,7 @@ export function BendaharaDashboard() {
       </Card>
 
       {/* Riwayat Siswa Membayar SPP */}
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm border-l-4 border-l-emerald-500">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Riwayat Siswa Membayar SPP

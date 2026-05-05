@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Wallet, Trash2, Loader2, Mail, Lock, Phone } from "lucide-react";
+import { Plus, Wallet, Trash2, Loader2, Mail, Lock, Phone, Pencil, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -20,6 +20,12 @@ export default function ManageBendahara() {
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ full_name: "", email: "", password: "", phone: "" });
+
+  // Edit dialog
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<BendaharaUser | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: "", email: "", password: "", phone: "" });
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const load = async () => {
     if (!profile?.school_id) { setLoading(false); return; }
@@ -46,6 +52,28 @@ export default function ManageBendahara() {
     setOpen(false); setForm({ full_name: "", email: "", password: "", phone: "" }); load();
   };
 
+  const openEdit = (u: BendaharaUser) => {
+    setEditTarget(u);
+    setEditForm({ full_name: u.full_name, email: "", password: "", phone: "" });
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editTarget) return;
+    if (editForm.password && editForm.password.length < 6) { toast.error("Password minimal 6 karakter"); return; }
+    setSavingEdit(true);
+    const payload: any = { user_id: editTarget.user_id };
+    if (editForm.full_name && editForm.full_name !== editTarget.full_name) payload.full_name = editForm.full_name;
+    if (editForm.email) payload.email = editForm.email;
+    if (editForm.password) payload.password = editForm.password;
+    if (editForm.phone) payload.phone = editForm.phone;
+    const res = await supabase.functions.invoke("update-user", { body: payload });
+    setSavingEdit(false);
+    if (res.error || res.data?.error) { toast.error(res.data?.error || res.error?.message || "Gagal update"); return; }
+    toast.success("Data Bendahara diperbarui");
+    setEditOpen(false); setEditTarget(null); load();
+  };
+
   const remove = async (u: BendaharaUser) => {
     if (!confirm(`Cabut role Bendahara dari ${u.full_name}?`)) return;
     await supabase.from("user_roles").delete().eq("user_id", u.user_id).eq("role", "bendahara" as any);
@@ -54,7 +82,7 @@ export default function ManageBendahara() {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Wallet} title="Kelola Bendahara" subtitle="Tambah dan kelola akun Bendahara untuk fitur keuangan" actions={
+      <PageHeader icon={Wallet} title="Kelola Bendahara" subtitle="Tambah dan kelola akun Bendahara untuk fitur keuangan" variant="emerald" actions={
         <Button onClick={() => setOpen(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
           <Plus className="h-4 w-4 mr-2" /> Tambah Bendahara
         </Button>
@@ -72,11 +100,18 @@ export default function ManageBendahara() {
               <div className="flex-1 min-w-0"><p className="font-bold text-sm truncate">{u.full_name}</p>
                 <Badge className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0 mt-1"><Wallet className="h-3 w-3 mr-1" /> Bendahara</Badge>
               </div>
-              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => remove(u)}><Trash2 className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => openEdit(u)} title="Edit">
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => remove(u)} title="Hapus">
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </CardContent></Card>
           ))}
         </div>
       )}
+
+      {/* Tambah */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Tambah Bendahara</DialogTitle></DialogHeader>
@@ -88,6 +123,49 @@ export default function ManageBendahara() {
             <Button onClick={create} disabled={creating} className="w-full bg-emerald-600 hover:bg-emerald-700">
               {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Buat Akun
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Edit Bendahara</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nama Lengkap</Label>
+              <div className="relative">
+                <User className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input value={editForm.full_name} onChange={e => setEditForm({ ...editForm, full_name: e.target.value })} className="pl-9" />
+              </div>
+            </div>
+            <div>
+              <Label>Email Baru</Label>
+              <div className="relative">
+                <Mail className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} placeholder="Kosongkan jika tidak diubah" className="pl-9" />
+              </div>
+            </div>
+            <div>
+              <Label>Password Baru</Label>
+              <div className="relative">
+                <Lock className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input type="password" value={editForm.password} onChange={e => setEditForm({ ...editForm, password: e.target.value })} placeholder="Kosongkan jika tidak diubah" className="pl-9" />
+              </div>
+            </div>
+            <div>
+              <Label>WhatsApp</Label>
+              <div className="relative">
+                <Phone className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} placeholder="Kosongkan jika tidak diubah" className="pl-9" />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setEditOpen(false)} className="flex-1">Batal</Button>
+              <Button onClick={saveEdit} disabled={savingEdit} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                {savingEdit ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Pencil className="h-4 w-4 mr-2" />} Simpan
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
