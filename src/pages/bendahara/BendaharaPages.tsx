@@ -2563,7 +2563,34 @@ export function BendaharaPencairan() {
                   <p className="text-xl font-extrabold text-emerald-600">{fmtIDR(finalPayout)}</p>
                 </div>
               </div>
-              <Button disabled={available.count === 0} onClick={() => setOpen(true)} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700">
+              {(() => {
+                const acc = savedAccounts.find((x: any) => x.is_default) || savedAccounts[0];
+                return acc ? (
+                  <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/30 p-3 flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <Landmark className="h-5 w-5 text-emerald-600 mt-0.5" />
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Rekening Tujuan</p>
+                        <p className="text-sm font-bold">{acc.bank_name} <span className="font-mono">· {acc.account_number}</span></p>
+                        <p className="text-xs text-muted-foreground">a.n. {acc.account_holder}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setBankManageOpen(true)} className="text-xs">Ubah</Button>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/30 p-3 flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-bold">Belum ada rekening tersimpan</p>
+                        <p className="text-xs text-muted-foreground">Simpan rekening sekolah dulu untuk mencairkan dana.</p>
+                      </div>
+                    </div>
+                    <Button size="sm" onClick={() => setBankManageOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">Tambah</Button>
+                  </div>
+                );
+              })()}
+              <Button disabled={available.count === 0} onClick={requestSubmit} className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700">
                 <ArrowDownToLine className="h-4 w-4 mr-2" /> Ajukan Pencairan
               </Button>
             </CardContent>
