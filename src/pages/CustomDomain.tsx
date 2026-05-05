@@ -375,6 +375,13 @@ function DnsTutorial({ domain }: { domain?: string }) {
           <li>Hubungi admin jika domain tidak terverifikasi setelah 48 jam</li>
         </ul>
       </div>
+
+      <PaymentIframeDialog
+        open={!!paymentIframe}
+        paymentUrl={paymentIframe}
+        title="Pembayaran Custom Domain — QRIS / Transfer Bank"
+        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+      />
     </div>
   );
 }
