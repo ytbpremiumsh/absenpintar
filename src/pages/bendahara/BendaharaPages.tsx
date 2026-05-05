@@ -85,6 +85,7 @@ export function BendaharaDashboard() {
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [settlements, setSettlements] = useState<any[]>([]);
+  const [studentGender, setStudentGender] = useState<Record<string, string>>({});
   const [showRecentPaid, setShowRecentPaid] = useState<boolean>(() => {
     const v = localStorage.getItem("bendahara_show_recent_paid");
     return v === null ? true : v === "1";
@@ -100,9 +101,13 @@ export function BendaharaDashboard() {
     Promise.all([
       supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
-    ]).then(([i, s]) => {
+      supabase.from("students").select("id, gender").eq("school_id", profile.school_id),
+    ]).then(([i, s, st]) => {
       setInvoices(i.data || []);
       setSettlements(s.data || []);
+      const map: Record<string, string> = {};
+      (st.data || []).forEach((x: any) => { map[x.id] = (x.gender || "").toString().toUpperCase(); });
+      setStudentGender(map);
       setLoading(false);
     });
   }, [profile?.school_id]);
