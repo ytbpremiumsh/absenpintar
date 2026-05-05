@@ -35,6 +35,14 @@ const detectButtons = (message: string, messageType?: string): {
     }
   }
 
+  // 3) SPP Lunas — tidak ada URL, tetap kirim sebagai button supaya footer aktif
+  if (messageType === 'spp_paid') {
+    return {
+      buttons: [{ type: 'url', displayText: 'Lihat Riwayat Pembayaran', url: 'https://atskolla.com/parent' }],
+      footer: 'ATSkolla - Platform Digital Sekolah',
+    };
+  }
+
   return null;
 };
 

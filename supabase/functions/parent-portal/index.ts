@@ -59,7 +59,7 @@ async function getGatewayFeeConfig(): Promise<{ percent: number; flat: number }>
 
 function buildSppPaidMessage(inv: any, paidAt: string, schoolName: string) {
   const paidDate = new Date(paidAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-  return `*${schoolName} — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.\n_ATSkolla - Platform Digital Sekolah_`;
+  return `*${schoolName} — Pembayaran SPP Berhasil*\n\nHalo Ayah/Bunda ${inv.parent_name || ""},\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : Rp${(inv.total_amount || 0).toLocaleString("id-ID")}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.`;
 }
 
 async function getSchoolNameById(schoolId: string): Promise<string> {

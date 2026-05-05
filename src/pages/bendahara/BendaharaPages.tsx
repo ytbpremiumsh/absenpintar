@@ -977,7 +977,7 @@ export function BendaharaGenerate() {
                 const phone = inv.parent_phone;
                 if (phone) {
                   const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-                  const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla - Platform Digital Sekolah_`;
+                  const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.`;
                   const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
                     body: { school_id: schoolId, phone, message: msg, message_type: "spp_invoice" },
                   });
@@ -1470,7 +1470,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         }
         if (!paymentUrl) { linkFail++; setBulkProgress({ done: i + 1, total: targetInvs.length }); continue; }
         const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-        const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.\n_ATSkolla - Platform Digital Sekolah_`;
+        const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.`;
         const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
           body: { school_id: schoolId, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
         });
@@ -1729,7 +1729,7 @@ export function BendaharaSPPDetail() {
     if (!inv.payment_url) { toast.error("Buat link pembayaran dulu"); return; }
     const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
     const schoolName = schoolRow?.name || "Sekolah";
-    const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.\n_ATSkolla - Platform Digital Sekolah_`;
+    const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.`;
     setBusy(`wa-${inv.id}`);
     toast.loading("Mengirim WA...");
     const { error } = await supabase.functions.invoke("send-whatsapp", {
