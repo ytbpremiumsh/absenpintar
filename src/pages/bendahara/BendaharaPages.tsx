@@ -2389,6 +2389,11 @@ export function BendaharaLaporan() {
   const [expAY, setExpAY] = useState<string>(currentAY);
   const [expStatus, setExpStatus] = useState<string>("all");
 
+  // Detail Siswa per Bulan filter
+  const [detailMonth, setDetailMonth] = useState<number>(new Date().getMonth() + 1);
+  const [detailClass, setDetailClass] = useState<string>("all");
+  const [detailStatus, setDetailStatus] = useState<string>("all");
+
   useEffect(() => {
     if (!profile?.school_id) return;
     Promise.all([
