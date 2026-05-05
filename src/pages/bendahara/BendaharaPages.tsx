@@ -896,13 +896,13 @@ export function BendaharaGenerate() {
       const created = inserted || [];
       toast.success(`${created.length} tagihan SPP berhasil dibuat${created.length < rows.length ? ` (${rows.length - created.length} dilewati karena sudah ada)` : ""}`);
 
-      // === Auto generate Mayar link + kirim WA (opsional) ===
-      if (autoSendWa && created.length > 0) {
+      // === Auto generate Mayar link + kirim WA (selalu aktif) ===
+      if (created.length > 0) {
         let linkOk = 0, linkFail = 0, waOk = 0, waFail = 0, waSkip = 0;
-        setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran..." });
-        // Sequential with delay to avoid Mayar rate limits / duplicate detection
-        for (let i = 0; i < created.length; i++) {
-          const inv = created[i];
+        const failedInvs: any[] = [];
+        setBulkProgress({ done: 0, total: created.length, phase: "Membuat link pembayaran & kirim WA..." });
+
+        const processOne = async (inv: any) => {
           try {
             const { data: linkRes } = await supabase.functions.invoke("spp-mayar", {
               body: { action: "create_payment_link", invoice_id: inv.id },
@@ -921,14 +921,32 @@ export function BendaharaGenerate() {
               } else {
                 waSkip++;
               }
-            } else {
-              linkFail++;
+              return true;
             }
-          } catch { linkFail++; }
+            return false;
+          } catch { return false; }
+        };
+
+        for (let i = 0; i < created.length; i++) {
+          const inv = created[i];
+          const success = await processOne(inv);
+          if (!success) failedInvs.push(inv);
           setBulkProgress({ done: i + 1, total: created.length, phase: "Membuat link & kirim WA..." });
-          // Throttle ~1.2s between Mayar calls to avoid duplicate-request 429
-          if (i < created.length - 1) await new Promise((r) => setTimeout(r, 1200));
+          if (i < created.length - 1) await new Promise((r) => setTimeout(r, 1800));
         }
+
+        // Retry yang gagal sekali lagi setelah jeda lebih panjang
+        if (failedInvs.length > 0) {
+          setBulkProgress({ done: 0, total: failedInvs.length, phase: `Mencoba ulang ${failedInvs.length} tagihan...` });
+          await new Promise((r) => setTimeout(r, 3000));
+          for (let i = 0; i < failedInvs.length; i++) {
+            const success = await processOne(failedInvs[i]);
+            if (!success) linkFail++;
+            setBulkProgress({ done: i + 1, total: failedInvs.length, phase: "Mencoba ulang..." });
+            if (i < failedInvs.length - 1) await new Promise((r) => setTimeout(r, 2500));
+          }
+        }
+
         setBulkProgress(null);
         toast.success(`Link berhasil: ${linkOk} • WA terkirim: ${waOk}${waFail ? ` • gagal kirim: ${waFail}` : ""}${waSkip ? ` • tanpa nomor WA: ${waSkip}` : ""}${linkFail ? ` • gagal link: ${linkFail}` : ""}`);
       }
