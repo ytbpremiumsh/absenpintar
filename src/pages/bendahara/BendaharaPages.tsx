@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,18 +99,24 @@ export function BendaharaDashboard() {
 
   useEffect(() => {
     if (!profile?.school_id) { setLoading(false); return; }
-    Promise.all([
-      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id),
-      supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
-      supabase.from("students").select("id, gender").eq("school_id", profile.school_id),
-    ]).then(([i, s, st]) => {
+    let cancelled = false;
+    const load = async () => {
+      await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
+      const [i, s, st] = await Promise.all([
+        supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id),
+        supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
+        supabase.from("students").select("id, gender").eq("school_id", profile.school_id),
+      ]);
+      if (cancelled) return;
       setInvoices(i.data || []);
       setSettlements(s.data || []);
       const map: Record<string, string> = {};
       (st.data || []).forEach((x: any) => { map[x.id] = (x.gender || "").toString().toUpperCase(); });
       setStudentGender(map);
       setLoading(false);
-    });
+    };
+    load();
+    return () => { cancelled = true; };
   }, [profile?.school_id]);
 
   const stats = useMemo(() => {
