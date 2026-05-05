@@ -181,12 +181,35 @@ export function BendaharaDashboard() {
         variant="emerald"
       />
 
-      {/* PRIMARY ROW: 4 KPI utama (semua hijau, senada sidebar) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Tagihan Bulan Ini" value={fmtIDR(stats.monthBills)} icon={Receipt} gradient="from-emerald-500 to-teal-600" />
-        <StatCard label="Pendapatan Kotor" value={fmtIDR(stats.totalGross)} icon={TrendingUp} gradient="from-emerald-600 to-green-700" sub={`${stats.paidCount} transaksi`} />
-        <StatCard label="Saldo Bisa Cair" value={fmtIDR(stats.availableBalance)} icon={Wallet} gradient="from-teal-500 to-emerald-600" />
-        <StatCard label="Tunggakan" value={fmtIDR(stats.tunggakan)} icon={AlertCircle} gradient="from-emerald-700 to-teal-800" sub={`${stats.pendingCount} pending`} />
+      {/* RINCIAN KEUANGAN — colorful tile grid (di bawah header dashboard) */}
+      <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70 dark:ring-slate-800/60">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 px-5 py-3.5 flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <Wallet className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-white leading-tight">Rincian Keuangan</p>
+            <p className="text-[10px] text-white/70 leading-tight">Saldo live, tagihan, lunas, dan tunggakan</p>
+          </div>
+        </div>
+        <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Saldo (Live)", value: fmtIDR(stats.availableBalance), grad: "from-emerald-500 to-teal-600", icon: Wallet, sub: "Bisa dicairkan" },
+            { label: "Tagihan Bulan Ini", value: fmtIDR(stats.monthBills), grad: "from-sky-500 to-blue-600", icon: Receipt, sub: `${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}` },
+            { label: "Lunas", value: fmtIDR(stats.totalGross), grad: "from-violet-500 to-indigo-600", icon: CheckCircle2, sub: `${stats.paidCount} transaksi` },
+            { label: "Tunggakan", value: fmtIDR(stats.tunggakan), grad: "from-rose-500 to-red-600", icon: AlertCircle, sub: `${stats.pendingCount} pending` },
+          ].map((t) => (
+            <div key={t.label} className="relative overflow-hidden rounded-xl p-3.5 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 ring-1 ring-slate-200/70 dark:ring-slate-800/60 hover:-translate-y-0.5 hover:shadow-md transition-all">
+              <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${t.grad} flex items-center justify-center mb-2 shadow-sm`}>
+                <t.icon className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.label}</p>
+              <p className="text-sm font-extrabold mt-0.5 truncate">{t.value}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{t.sub}</p>
+              <div className={`absolute -right-6 -bottom-6 h-16 w-16 rounded-full bg-gradient-to-br ${t.grad} opacity-10 blur-xl`} />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Persentase pelunasan */}
@@ -206,8 +229,8 @@ export function BendaharaDashboard() {
       {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Pembayaran Bulanan */}
-        <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-emerald-900/5 ring-1 ring-emerald-100 dark:ring-emerald-900/30">
-          <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 px-5 py-3.5 flex items-center justify-between">
+        <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-sky-900/5 ring-1 ring-sky-100 dark:ring-sky-900/30">
+          <div className="bg-gradient-to-r from-sky-600 via-blue-500 to-cyan-500 px-5 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
                 <TrendingUp className="h-4 w-4 text-white" />
@@ -219,20 +242,20 @@ export function BendaharaDashboard() {
             </div>
             <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/20 text-[10px]">Total {fmtIDR(stats.totalGross)}</Badge>
           </div>
-          <div className="p-4 bg-gradient-to-b from-emerald-50/40 to-transparent dark:from-emerald-950/10">
+          <div className="p-4 bg-gradient-to-b from-sky-50/40 to-transparent dark:from-sky-950/10">
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={monthlyChart}>
                 <defs>
-                  <linearGradient id="lineGreen" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(160 84% 39%)" />
-                    <stop offset="100%" stopColor="hsl(174 72% 45%)" />
+                  <linearGradient id="lineSky" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(199 89% 48%)" />
+                    <stop offset="100%" stopColor="hsl(217 91% 60%)" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v/1000000).toFixed(1)}jt`} />
-                <Tooltip formatter={(v: any) => fmtIDR(v)} contentStyle={{ borderRadius: 12, border: "1px solid hsl(160 60% 85%)" }} />
-                <Line type="monotone" dataKey="value" stroke="url(#lineGreen)" strokeWidth={3} dot={{ r: 4, fill: "hsl(160 84% 39%)" }} activeDot={{ r: 6 }} />
+                <Tooltip formatter={(v: any) => fmtIDR(v)} contentStyle={{ borderRadius: 12, border: "1px solid hsl(199 60% 85%)" }} />
+                <Line type="monotone" dataKey="value" stroke="url(#lineSky)" strokeWidth={3} dot={{ r: 4, fill: "hsl(199 89% 48%)" }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -272,36 +295,6 @@ export function BendaharaDashboard() {
         </div>
       </div>
 
-      {/* RINCIAN KEUANGAN — colorful tile grid (no card) */}
-      <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70 dark:ring-slate-800/60">
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 px-5 py-3.5 flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-            <Wallet className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-white leading-tight">Rincian Keuangan</p>
-            <p className="text-[10px] text-white/70 leading-tight">Ringkasan total kas masuk dan biaya</p>
-          </div>
-        </div>
-        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { label: "Pendapatan Net", value: fmtIDR(stats.totalNet), grad: "from-emerald-500 to-teal-600", icon: TrendingUp },
-            { label: "Biaya Layanan", value: fmtIDR(stats.totalFee), grad: "from-sky-500 to-blue-600", icon: Receipt },
-            { label: "Fee Pencairan", value: fmtIDR(stats.settleFee), grad: "from-violet-500 to-purple-600", icon: ArrowDownToLine },
-            { label: "Saldo Pending", value: fmtIDR(stats.pendingBalance), grad: "from-amber-500 to-orange-600", icon: Loader2 },
-            { label: "Sudah Dicairkan", value: fmtIDR(stats.settled), grad: "from-rose-500 to-pink-600", icon: Banknote },
-          ].map((t) => (
-            <div key={t.label} className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 ring-1 ring-slate-200/70 dark:ring-slate-800/60 hover:-translate-y-0.5 hover:shadow-md transition-all">
-              <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${t.grad} flex items-center justify-center mb-2 shadow-sm`}>
-                <t.icon className="h-4 w-4 text-white" />
-              </div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t.label}</p>
-              <p className="text-sm font-extrabold mt-0.5 truncate">{t.value}</p>
-              <div className={`absolute -right-6 -bottom-6 h-16 w-16 rounded-full bg-gradient-to-br ${t.grad} opacity-10 blur-xl`} />
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* RIWAYAT SISWA MEMBAYAR */}
       <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-emerald-900/5 ring-1 ring-emerald-100 dark:ring-emerald-900/30">
