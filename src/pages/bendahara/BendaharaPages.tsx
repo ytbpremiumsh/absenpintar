@@ -934,10 +934,7 @@ export function BendaharaGenerate() {
       const { data: inserted, error } = await supabase.from("spp_invoices").insert(toInsert).select("*");
       if (error) { toast.error(error.message); return; }
       const created = inserted || [];
-      toast.success(
-        `${created.length} tagihan SPP berhasil dibuat${created.length < rows.length ? ` (${rows.length - created.length} dilewati karena sudah ada)` : ""}` +
-        (created.length > 0 ? ` • Link pembayaran & WA dikirim di latar belakang` : "")
-      );
+      toast.success("Tagihan SPP berhasil dibuat");
 
       // Tutup dialog langsung — proses link Mayar + WA berjalan di background
       setPreviewOpen(false);
