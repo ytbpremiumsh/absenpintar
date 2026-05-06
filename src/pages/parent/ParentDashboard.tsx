@@ -430,6 +430,47 @@ export default function ParentDashboard() {
               })()}
             </div>
 
+            {/* Tunggakan SPP — semua tagihan lewat jatuh tempo & belum lunas */}
+            {(sppData.tunggakan || []).length > 0 && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Wallet className="h-3.5 w-3.5 text-red-500" />
+                    Tunggakan SPP
+                    <span className="ml-1 text-[10px] font-semibold text-red-600 bg-red-100 dark:bg-red-950/40 px-1.5 py-0.5 rounded-full">
+                      {sppData.tunggakan.length}
+                    </span>
+                  </h3>
+                  <button onClick={() => setTab("spp")} className="text-[10px] font-semibold text-[#5B6CF9]">Lihat Semua</button>
+                </div>
+                <div className="space-y-2">
+                  {sppData.tunggakan.slice(0, 3).map((inv: any) => (
+                    <Card key={inv.id} className="p-3 border-0 shadow-card rounded-2xl bg-gradient-to-r from-red-50 to-white dark:from-red-950/20 dark:to-card ring-1 ring-red-100 dark:ring-red-950/40">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center text-red-600 shrink-0">
+                          <Wallet className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-foreground truncate">Tagihan SPP {inv.period_label}</p>
+                          <p className="text-[10px] text-red-600 font-semibold truncate">
+                            Rp {(inv.total_amount || 0).toLocaleString("id-ID")}
+                            {inv.due_date && ` · Lewat tempo ${new Date(inv.due_date).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}`}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => setTab("spp")}
+                          className="h-8 px-3 text-[11px] rounded-full bg-gradient-to-r from-red-500 to-rose-500 hover:opacity-95 text-white shadow shrink-0"
+                        >
+                          Bayar
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Tagihan SPP Bulan Baru — hanya tampil jika ada tagihan bulan berjalan */}
             {(() => {
               const now = new Date();
