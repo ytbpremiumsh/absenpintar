@@ -1,0 +1,1 @@
+UPDATE public.spp_invoices SET status='pending' WHERE status='unpaid' AND payment_url IS NOT NULL AND expired_at > now();
