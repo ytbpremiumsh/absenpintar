@@ -2130,7 +2130,7 @@ export function BendaharaSPPDetail() {
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" disabled={busy === "bulk-ay"} onClick={() => downloadAllPaidPdf("ay")}>
               {busy === "bulk-ay" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
-              Export Lunas TA Ini
+              Export Lunas Bulanan
             </Button>
             <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === "bulk-all"} onClick={() => downloadAllPaidPdf("all")}>
               {busy === "bulk-all" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
