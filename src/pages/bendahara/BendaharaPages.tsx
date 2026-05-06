@@ -3237,7 +3237,7 @@ export function BendaharaPencairan() {
       <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
         <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
         <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-          Saldo di sini <b>hanya pembayaran online via Mayar</b>. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) tidak ikut dicairkan karena uangnya sudah ada di tangan sekolah. Catatan offline tetap bisa dilihat di <b>Detail Siswa &gt; Riwayat Pembayaran</b>.
+          Saldo di sini <b>hanya pembayaran online (QRIS / Transfer Bank)</b>. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) tidak ikut dicairkan karena uangnya sudah ada di tangan sekolah. Catatan offline tetap bisa dilihat di <b>Detail Siswa &gt; Riwayat Pembayaran</b>.
         </div>
       </div>
 
