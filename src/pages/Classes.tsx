@@ -38,11 +38,11 @@ const Classes = () => {
 
   const fetchData = async () => {
     if (!profile?.school_id) { setLoading(false); return; }
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getLocalDateString("Asia/Jakarta");
 
     const [studentsRes, logsRes, classesRes] = await Promise.all([
       supabase.from("students").select("*").eq("school_id", profile.school_id).order("class").order("name"),
-      supabase.from("attendance_logs").select("*").eq("school_id", profile.school_id).eq("date", today),
+      supabase.from("attendance_logs").select("*").eq("school_id", profile.school_id).eq("date", today).neq("method", "auto"),
       supabase.from("classes").select("*").eq("school_id", profile.school_id).order("name"),
     ]);
 
