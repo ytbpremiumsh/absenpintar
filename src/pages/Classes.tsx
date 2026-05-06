@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
+import { getLocalDateString } from "@/lib/dateLocal";
 
 const Classes = () => {
   const { profile } = useAuth();
