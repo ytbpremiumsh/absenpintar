@@ -651,8 +651,8 @@ const LandingThemeB = () => {
             <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/3" />
             <div className="relative z-10">
               <div className="h-14 w-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mx-auto mb-6"><GraduationCap className="h-7 w-7 text-white" /></div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-4">{get("cta_banner_text", "Siap Tingkatkan Absensi Sekolah?")}</h2>
-              <p className="text-white/80 text-sm sm:text-base mb-8 max-w-lg mx-auto">{get("cta_banner_desc", "Bergabung sekarang dan kelola absensi, jadwal mengajar, SPP, hingga komunikasi wali murid dalam satu platform. Tanpa biaya setup.")}</p>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-4">{get("cta_banner_text", "Siap Digitalisasi Sekolah Anda?")}</h2>
+              <p className="text-white/80 text-sm sm:text-base mb-8 max-w-lg mx-auto">{get("cta_banner_desc", "Kelola absensi, jadwal mengajar, SPP, komunikasi wali murid, hingga laporan dalam satu platform terpadu. Tanpa biaya setup.")}</p>
               <button onClick={() => navigate("/register")} className="inline-flex items-center gap-2 bg-white text-indigo-700 px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:bg-white/90 shadow-xl hover:scale-[1.02]">
                 <Zap className="h-4 w-4" /> Daftar Gratis Sekarang
               </button>
