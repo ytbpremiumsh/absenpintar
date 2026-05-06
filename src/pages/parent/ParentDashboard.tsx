@@ -322,7 +322,7 @@ export default function ParentDashboard() {
         {tab === "home" && (
           <div className="relative">
             {/* Main blue hero card */}
-            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-5 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
+            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-4 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
               {/* Decorative blobs */}
               <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
               <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
@@ -396,7 +396,7 @@ export default function ParentDashboard() {
             </div>
 
             {/* Service Grid 4x2 — Payou-style colored icons */}
-            <div className="mt-5 grid grid-cols-4 gap-3">
+            <div className="mt-3 grid grid-cols-4 gap-3">
               <ServiceIcon icon={ClipboardList} label="Absensi" color="#5B6CF9" bg="#EEF0FE" onClick={() => setTab("attendance")} />
               <ServiceIcon icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => setTab("schedule")} />
               <ServiceIcon icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => setTab("spp")} />
