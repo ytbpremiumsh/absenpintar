@@ -979,7 +979,7 @@ export function BendaharaTarif() {
                 <TableBody>
                   {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground text-sm">Belum ada tarif. Klik <strong>Tambah</strong> atau <strong>Set Massal</strong>.</TableCell></TableRow>}
                   {filtered.map(t => (
-                    <TableRow key={t.id} className="hover:bg-muted/30">
+                    <TableRow key={t.id} className="hover:bg-muted/30 [&>td]:whitespace-nowrap">
                       <TableCell className="text-sm"><Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">{t.school_year}</Badge></TableCell>
                       <TableCell className="whitespace-nowrap"><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
                       <TableCell className="font-bold text-[#5B6CF9] whitespace-nowrap">{fmtIDR(t.amount)}</TableCell>
