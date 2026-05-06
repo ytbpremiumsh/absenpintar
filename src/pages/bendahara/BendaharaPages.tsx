@@ -1837,6 +1837,9 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
     let waOk = 0, waFail = 0, linkFail = 0;
     for (let i = 0; i < targetInvs.length; i++) {
       const inv = targetInvs[i];
+      const stu = studentMap.get(inv.student_id);
+      const currentPhone = stu?.parent_phone || inv.parent_phone;
+      const currentName = stu?.parent_name || inv.parent_name;
       let paymentUrl = inv.payment_url;
       try {
         if (!paymentUrl) {
@@ -1847,14 +1850,19 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         }
         if (!paymentUrl) { linkFail++; setBulkProgress({ done: i + 1, total: targetInvs.length }); continue; }
         const due = inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-";
-        const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.`;
+        const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${currentName || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${due}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${paymentUrl}\n\nTerima kasih.`;
         const { error: waErr } = await supabase.functions.invoke("send-whatsapp", {
-          body: { school_id: schoolId, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
+          body: { school_id: schoolId, phone: currentPhone, message: msg, message_type: "spp_invoice" },
         });
-        if (waErr) waFail++; else waOk++;
+        if (waErr) waFail++; else {
+          waOk++;
+          // Sinkron snapshot invoice agar konsisten
+          if (currentPhone !== inv.parent_phone || currentName !== inv.parent_name) {
+            await supabase.from("spp_invoices").update({ parent_phone: currentPhone, parent_name: currentName }).eq("id", inv.id);
+          }
+        }
       } catch { waFail++; }
       setBulkProgress({ done: i + 1, total: targetInvs.length });
-      // Throttle to avoid Mayar 429 duplicate-detection on bulk class send
       if (i < targetInvs.length - 1) await new Promise((r) => setTimeout(r, 1200));
     }
     setBulkBusy(null);
