@@ -3012,31 +3012,20 @@ export function BendaharaSaldo() {
         <StatCard label="Total Fee Dibebankan" value={fmtIDR(totals.fee)} sub="lihat rincian" icon={Banknote} gradient="from-slate-500 to-slate-700" />
       </div>
 
-      {/* Rincian Biaya Layanan - Transparan per komponen */}
+      {/* Rincian Biaya - Versi sederhana */}
       <Card className="border-0 shadow-sm">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Banknote className="h-4 w-4 text-slate-600" /> Rincian Biaya (Transparan)
+            <Banknote className="h-4 w-4 text-slate-600" /> Total Biaya yang Sudah Dipotong
           </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Biaya dipecah per komponen agar mudah dibaca. Bukan satu nilai besar.
-          </p>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/30 p-3">
-              <p className="text-[11px] text-muted-foreground">Biaya Layanan</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{feeCfg.percent}% × bruto</p>
-              <p className="text-lg font-bold text-slate-700 dark:text-slate-200 mt-1">{fmtIDR(feePercentTotal)}</p>
-            </div>
-            <div className="rounded-lg border bg-violet-50 dark:bg-violet-950/30 p-3">
-              <p className="text-[11px] text-muted-foreground">Biaya Pencairan</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Rp 3.000 × {settlements.filter(s => s.status === "paid").length} pencairan cair</p>
-              <p className="text-lg font-bold text-violet-700 dark:text-violet-300 mt-1">{fmtIDR(settledFeePencairan)}</p>
-            </div>
-          </div>
-          <div className="text-[11px] text-muted-foreground bg-muted/40 rounded p-2">
-            Komponen di atas dihitung dari tarif terbaru ({feeCfg.percent}%).
+        <CardContent>
+          <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/30 p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Total potongan dari semua pencairan yang sudah cair</p>
+            <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{fmtIDR(feePercentTotal + settledFeePencairan)}</p>
+            <p className="text-[11px] text-muted-foreground mt-2">
+              Sudah termasuk biaya layanan & biaya pencairan.
+            </p>
           </div>
         </CardContent>
       </Card>
