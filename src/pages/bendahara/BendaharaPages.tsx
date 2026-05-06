@@ -2796,6 +2796,14 @@ export function BendaharaSaldo() {
   return (
     <div className="space-y-4">
 
+      {/* Info banner: pembayaran offline */}
+      <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
+        <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+        <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
+          <b>Saldo Aktif</b> hanya berisi pembayaran <b>online via Mayar</b> (QRIS / Transfer Bank / E-Wallet). Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) <b>tidak masuk</b> ke saldo pencairan karena uangnya sudah diterima sekolah secara langsung.
+        </div>
+      </div>
+
       {/* Saldo Aktif - Highlight Card */}
       <Card className="border-0 shadow-md bg-gradient-to-br from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0] text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
@@ -3056,7 +3064,15 @@ export function BendaharaPencairan() {
         <StatCard label="Transaksi Siap Cair" value={String(available.count)} icon={Receipt} gradient="from-violet-500 to-purple-600" />
         <StatCard label="Total Bruto" value={fmtIDR(available.gross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
         <StatCard label="Total Net" value={fmtIDR(available.net)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
-        <StatCard label="Final Payout" value={fmtIDR(finalPayout)} icon={Banknote} sub="setelah fee Rp 3.000" gradient="from-amber-500 to-orange-600" />
+         <StatCard label="Final Payout" value={fmtIDR(finalPayout)} icon={Banknote} sub="setelah fee Rp 3.000" gradient="from-amber-500 to-orange-600" />
+      </div>
+
+      {/* Info banner: pembayaran offline tidak ikut */}
+      <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
+        <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+        <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
+          Saldo di sini <b>hanya pembayaran online via Mayar</b>. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) tidak ikut dicairkan karena uangnya sudah ada di tangan sekolah. Catatan offline tetap bisa dilihat di <b>Detail Siswa &gt; Riwayat Pembayaran</b>.
+        </div>
       </div>
 
       <Tabs defaultValue="pencairan" className="w-full">
