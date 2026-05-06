@@ -109,6 +109,57 @@ export function BendaharaDashboard() {
     setShowRecentPaid(next);
     localStorage.setItem("bendahara_show_recent_paid", next ? "1" : "0");
   };
+  // Detail pembayaran (klik siswa di Riwayat)
+  const [detailInv, setDetailInv] = useState<any | null>(null);
+  const [detailBusy, setDetailBusy] = useState<string | null>(null);
+
+  // Kirim WA konfirmasi (teks SAMA untuk semua metode, hanya field "Metode" yang berbeda)
+  const sendPaidConfirmationWa = async (inv: any) => {
+    if (!inv?.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
+    const schoolName = schoolRow?.name || "Sekolah";
+    const tgl = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-";
+    const metode = formatPaymentMethod(inv.payment_method).label;
+    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Metode  : ${metode}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
+    setDetailBusy(`wa-${inv.id}`);
+    toast.loading("Mengirim WA konfirmasi...");
+    const { error } = await supabase.functions.invoke("send-whatsapp", {
+      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_paid" },
+    });
+    toast.dismiss(); setDetailBusy(null);
+    if (error) toast.error("Gagal kirim WA"); else toast.success("Konfirmasi terkirim ke WA wali");
+  };
+
+  const downloadDetailPdf = async (inv: any) => {
+    if (!profile?.school_id) return;
+    setDetailBusy(`pdf-${inv.id}`);
+    try {
+      const { data: schoolRow } = await supabase.from("schools").select("name, address, city, province, npsn").eq("id", profile.school_id).maybeSingle();
+      await downloadSppInvoicePDF({
+        invoice: {
+          invoice_number: inv.invoice_number,
+          student_name: inv.student_name,
+          class_name: inv.class_name,
+          period_label: inv.period_label,
+          amount: inv.amount ?? inv.total_amount,
+          denda: inv.denda || 0,
+          total_amount: inv.total_amount,
+          due_date: inv.due_date,
+          paid_at: inv.paid_at,
+          payment_method: inv.payment_method,
+          status: inv.status,
+          created_at: inv.created_at,
+        },
+        student: { student_id: inv.student_id, nisn: inv.nisn, parent_name: inv.parent_name },
+        school: { name: schoolRow?.name || "Sekolah", address: schoolRow?.address, npsn: schoolRow?.npsn },
+      });
+      toast.success("Invoice diunduh");
+    } catch (e: any) {
+      toast.error("Gagal unduh invoice");
+    } finally {
+      setDetailBusy(null);
+    }
+  };
 
   const fetchDashboardData = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
@@ -218,6 +269,7 @@ export function BendaharaDashboard() {
         completionRate={completionRate}
         recentPaidList={recentPaidList}
         tunggakanList={tunggakanList}
+        onSelectPaid={(t) => setDetailInv(t)}
       />
 
       {/* ==================== DESKTOP / TABLET (md+) ==================== */}
@@ -376,12 +428,15 @@ export function BendaharaDashboard() {
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Siswa</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Kelas</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Periode</TableHead>
+                    <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Metode</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold text-right">Jumlah</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentPaidList.map((t, idx) => (
-                    <TableRow key={t.id} className={`[&>td]:whitespace-nowrap ${idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"}`}>
+                  {recentPaidList.map((t, idx) => {
+                    const m = formatPaymentMethod(t.payment_method);
+                    return (
+                    <TableRow key={t.id} onClick={() => setDetailInv(t)} className={`cursor-pointer transition-colors [&>td]:whitespace-nowrap ${idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"} hover:bg-indigo-50/70 dark:hover:bg-indigo-950/20`}>
                       <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -397,14 +452,20 @@ export function BendaharaDashboard() {
                               </div>
                             );
                           })()}
-                          <span>{t.student_name}</span>
+                          <span className="hover:underline">{t.student_name}</span>
                         </div>
                       </TableCell>
                       <TableCell><Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 hover:bg-indigo-100 border-0">{t.class_name}</Badge></TableCell>
                       <TableCell className="text-xs">{t.period_label}</TableCell>
+                      <TableCell className="text-xs">
+                        <Badge variant="outline" className={m.isOffline ? "border-slate-400 text-slate-700 bg-slate-50 dark:bg-slate-900/40 dark:text-slate-300" : "border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300"}>
+                          {m.label}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right font-bold text-emerald-600">{fmtIDR(t.total_amount)}</TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
               </div>
@@ -413,15 +474,86 @@ export function BendaharaDashboard() {
         )}
       </div>
       </div>
+
+      {/* ============ DIALOG DETAIL PEMBAYARAN ============ */}
+      <Dialog open={!!detailInv} onOpenChange={(o) => { if (!o) setDetailInv(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" /> Detail Pembayaran SPP
+            </DialogTitle>
+            <DialogDescription>Informasi lengkap transaksi yang sudah lunas.</DialogDescription>
+          </DialogHeader>
+          {detailInv && (() => {
+            const m = formatPaymentMethod(detailInv.payment_method);
+            return (
+              <div className="space-y-4 pt-1">
+                {/* Header siswa */}
+                <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-[#5B6CF9]/8 to-indigo-50 dark:from-indigo-950/30 dark:to-indigo-950/10 p-3 ring-1 ring-[#5B6CF9]/20">
+                  {(() => {
+                    const g = studentGender[detailInv.student_id] || "";
+                    const isFemale = g === "P" || g === "F" || g.startsWith("PEREMPUAN") || g.startsWith("FEMALE");
+                    const grad = isFemale ? "from-rose-400 to-red-600" : "from-[#5B6CF9] via-indigo-500 to-violet-600";
+                    return (
+                      <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center text-base font-bold shadow-md shrink-0`}>
+                        {(detailInv.student_name || "?")[0]}
+                      </div>
+                    );
+                  })()}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-sm truncate">{detailInv.student_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{detailInv.class_name} • {detailInv.period_label}</p>
+                  </div>
+                  <p className="font-extrabold text-sm text-emerald-600 shrink-0">{fmtIDR(detailInv.total_amount)}</p>
+                </div>
+
+                {/* Detail rinci */}
+                <div className="rounded-xl bg-muted/40 p-3 text-xs space-y-1.5">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Invoice</span><span className="font-mono font-semibold">{detailInv.invoice_number}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Tgl. Bayar</span><span className="font-semibold">{detailInv.paid_at ? new Date(detailInv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}</span></div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Metode</span>
+                    <Badge variant="outline" className={m.isOffline ? "border-slate-400 text-slate-700 bg-slate-50 dark:bg-slate-900/40 dark:text-slate-300" : "border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300"}>
+                      {m.isOffline ? <Banknote className="h-3 w-3 mr-1 inline" /> : <CreditCard className="h-3 w-3 mr-1 inline" />}
+                      {m.label}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Wali Murid</span><span className="font-semibold truncate max-w-[60%] text-right">{detailInv.parent_name || "-"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">No. WA</span><span className="font-semibold">{detailInv.parent_phone || "-"}</span></div>
+                </div>
+
+                {m.isOffline && (
+                  <div className="rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-900/50 p-2.5 text-[11px] text-amber-800 dark:text-amber-200 flex gap-1.5">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                    <span>Pembayaran offline — uang sudah diterima sekolah, tidak menambah saldo pencairan online.</span>
+                  </div>
+                )}
+
+                {/* Aksi */}
+                <div className="flex gap-2 pt-1">
+                  <Button variant="outline" className="flex-1" disabled={detailBusy === `pdf-${detailInv.id}`} onClick={() => downloadDetailPdf(detailInv)}>
+                    {detailBusy === `pdf-${detailInv.id}` ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Download className="h-4 w-4 mr-1.5" />}
+                    Invoice PDF
+                  </Button>
+                  <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" disabled={!detailInv.parent_phone || detailBusy === `wa-${detailInv.id}`} onClick={() => sendPaidConfirmationWa(detailInv)} title={!detailInv.parent_phone ? "Wali tidak punya nomor WA" : "Kirim konfirmasi via WA"}>
+                    {detailBusy === `wa-${detailInv.id}` ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <MessageCircle className="h-4 w-4 mr-1.5" />}
+                    Notif WA
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
 // =================== MOBILE DASHBOARD (Bendahara) — Payou-style emerald ===================
 function BendaharaMobileDashboard({
-  stats, completionRate, recentPaidList, tunggakanList,
+  stats, completionRate, recentPaidList, tunggakanList, onSelectPaid,
 }: {
-  stats: any; completionRate: number; recentPaidList: any[]; tunggakanList: any[];
+  stats: any; completionRate: number; recentPaidList: any[]; tunggakanList: any[]; onSelectPaid?: (t: any) => void;
 }) {
   const navigate = useNavigate();
   return (
@@ -593,18 +725,22 @@ function BendaharaMobileDashboard({
             <p className="text-xs text-muted-foreground text-center py-6">Belum ada pembayaran</p>
           ) : (
             <div className="divide-y divide-border/40">
-              {recentPaidList.slice(0, 6).map((t) => (
-                <div key={t.id} className="px-4 py-2.5 flex items-center gap-3">
+              {recentPaidList.slice(0, 6).map((t) => {
+                const m = formatPaymentMethod(t.payment_method);
+                return (
+                <button key={t.id} onClick={() => onSelectPaid?.(t)} className="w-full text-left px-4 py-2.5 flex items-center gap-3 active:bg-indigo-50 dark:active:bg-indigo-950/20 transition-colors">
                   <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {(t.student_name || "?")[0]}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold truncate">{t.student_name}</p>
                     <p className="text-[10px] text-muted-foreground truncate">{t.class_name} • {t.period_label}</p>
+                    <span className={`inline-block mt-0.5 text-[9px] px-1.5 py-0.5 rounded border ${m.isOffline ? "border-slate-300 text-slate-700 bg-slate-50 dark:bg-slate-900/40 dark:text-slate-300" : "border-emerald-300 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300"}`}>{m.label}</span>
                   </div>
                   <p className="text-xs font-bold text-[#3D4FE0] shrink-0">{fmtIDR(t.total_amount)}</p>
-                </div>
-              ))}
+                </button>
+                );
+              })}
             </div>
           )}
         </div>
