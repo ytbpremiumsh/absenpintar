@@ -2022,7 +2022,7 @@ export function BendaharaSPPDetail() {
             </div>
 
             {/* Info siswa */}
-            <div className="flex-1 min-w-0 text-center md:text-left md:pb-1">
+            <div className="flex-1 min-w-0 text-center md:text-left md:pb-1 md:pt-12">
               <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">{student.name}</h1>
               <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1.5">
                 <span>NIS: <strong className="text-foreground font-semibold">{student.student_id}</strong></span>
@@ -2034,7 +2034,7 @@ export function BendaharaSPPDetail() {
             </div>
 
             {/* TA Selector */}
-            <div className="md:pb-1 shrink-0">
+            <div className="md:pb-1 md:pt-12 shrink-0">
               <Select value={ay} onValueChange={setAY}>
                 <SelectTrigger className="w-full md:w-40 h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
