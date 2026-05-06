@@ -496,7 +496,7 @@ export default function ParentDashboard() {
                     </h3>
                     <button onClick={() => setTab("spp")} className="text-[10px] font-semibold text-[#5B6CF9]">Lihat Semua</button>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
                     {currentMonthBills.slice(0, 2).map((inv: any) => (
                       <Card key={inv.id} className="p-3 border-0 shadow-card rounded-2xl bg-gradient-to-r from-amber-50 to-white dark:from-amber-950/20 dark:to-card">
                         <div className="flex items-center gap-3">
