@@ -410,7 +410,7 @@ function BendaharaMobileDashboard({
 }: {
   stats: any; completionRate: number; recentPaidList: any[]; tunggakanList: any[];
 }) {
-  const navigate = useNavigateRR();
+  const navigate = useNavigate();
   return (
     <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-emerald-50/60 via-background to-background">
       {/* Top bar greeting */}
