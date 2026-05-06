@@ -514,7 +514,7 @@ function BendaharaMobileDashboard({
 
         {/* Service grid 4x2 — professional gradient tiles */}
         <div className="grid grid-cols-4 gap-3">
-          <BendServiceIcon icon={Users} label="Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/bendahara/siswa")} />
+          <BendServiceIcon icon={Users} label="Siswa" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/siswa")} />
           <BendServiceIcon icon={Receipt} label="Tarif SPP" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/tarif")} />
           <BendServiceIcon icon={FileText} label="Generate" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/bendahara/generate")} />
           <BendServiceIcon icon={CreditCard} label="Pembayaran" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/bendahara/transaksi")} />
