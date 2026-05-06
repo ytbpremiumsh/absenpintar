@@ -3494,13 +3494,13 @@ export function BendaharaLaporan() {
                   <Table className="text-xs">
                     <TableHeader>
                       <TableRow className="bg-muted/40">
-                        <TableHead className="font-bold w-10 text-center">No</TableHead>
-                        <TableHead className="font-bold">NIS</TableHead>
-                        <TableHead className="font-bold">Nama Siswa</TableHead>
-                        <TableHead className="font-bold">Periode</TableHead>
-                        <TableHead className="font-bold text-right">Nominal</TableHead>
-                        <TableHead className="font-bold text-center">Status</TableHead>
-                        <TableHead className="font-bold">Tgl Bayar</TableHead>
+                        <TableHead className="font-bold w-10 text-center whitespace-nowrap">No</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">NIS</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">Nama Siswa</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">Periode</TableHead>
+                        <TableHead className="font-bold text-right whitespace-nowrap">Nominal</TableHead>
+                        <TableHead className="font-bold text-center whitespace-nowrap">Status</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">Tgl Bayar</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
