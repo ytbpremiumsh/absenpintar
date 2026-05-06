@@ -430,33 +430,29 @@ export default function ParentDashboard() {
               })()}
             </div>
 
-            {/* Service Grid 4x2 — Payou-style colored icons */}
-            <div className="mt-3 grid grid-cols-4 gap-3">
-              <ServiceIcon icon={ClipboardList} label="Absensi" color="#5B6CF9" bg="#EEF0FE" onClick={() => setTab("attendance")} />
-              <ServiceIcon icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => setTab("schedule")} />
-              <ServiceIcon icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => setTab("spp")} />
-              <ServiceIcon icon={Megaphone} label="Info" color="#EC4899" bg="#FDE8F2" onClick={() => setTab("info")} />
-              <ServiceIcon icon={FileText} label="Izin" color="#8B5CF6" bg="#F1ECFE" onClick={() => setTab("leave")} />
-              <ServiceIcon icon={Phone} label="Wali Kelas" color="#0EA5E9" bg="#E1F4FE" onClick={() => setTab("contact")} />
-              <ServiceIcon icon={TrendingUp} label="Statistik" color="#EF4444" bg="#FEE7E7" onClick={() => setTab("attendance")} />
-              <ServiceIcon icon={Grid3x3} label="Lainnya" color="#64748B" bg="#EEF1F5" onClick={() => setTab("info")} />
-            </div>
-
-            {/* Tagihan SPP Bulan Baru */}
-            {sppData.aktif.filter((i) => i.status === "pending").length > 0 && (
-              <div className="mt-4">
-                <div className="flex items-center justify-between mb-2 px-1">
-                  <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <Wallet className="h-3.5 w-3.5 text-amber-500" />
-                    Tagihan SPP Bulan Baru
-                  </h3>
-                  <button onClick={() => setTab("spp")} className="text-[10px] font-semibold text-[#5B6CF9]">Lihat Semua</button>
-                </div>
-                <div className="space-y-2">
-                  {sppData.aktif
-                    .filter((i) => i.status === "pending")
-                    .slice(0, 2)
-                    .map((inv) => (
+            {/* Tagihan SPP Bulan Baru — hanya tampil jika ada tagihan bulan berjalan */}
+            {(() => {
+              const now = new Date();
+              const curMonth = now.getMonth() + 1;
+              const curYear = now.getFullYear();
+              const currentMonthBills = sppData.aktif.filter(
+                (i: any) =>
+                  i.status === "pending" &&
+                  Number(i.period_month) === curMonth &&
+                  Number(i.period_year) === curYear,
+              );
+              if (currentMonthBills.length === 0) return null;
+              return (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Wallet className="h-3.5 w-3.5 text-amber-500" />
+                      Tagihan SPP Bulan Baru
+                    </h3>
+                    <button onClick={() => setTab("spp")} className="text-[10px] font-semibold text-[#5B6CF9]">Lihat Semua</button>
+                  </div>
+                  <div className="space-y-2">
+                    {currentMonthBills.slice(0, 2).map((inv: any) => (
                       <Card key={inv.id} className="p-3 border-0 shadow-card rounded-2xl bg-gradient-to-r from-amber-50 to-white dark:from-amber-950/20 dark:to-card">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 shrink-0">
@@ -479,9 +475,22 @@ export default function ParentDashboard() {
                         </div>
                       </Card>
                     ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
+
+            {/* Service Grid 4x2 — Payou-style colored icons */}
+            <div className="mt-3 grid grid-cols-4 gap-3">
+              <ServiceIcon icon={ClipboardList} label="Absensi" color="#5B6CF9" bg="#EEF0FE" onClick={() => setTab("attendance")} />
+              <ServiceIcon icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => setTab("schedule")} />
+              <ServiceIcon icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => setTab("spp")} />
+              <ServiceIcon icon={Megaphone} label="Info" color="#EC4899" bg="#FDE8F2" onClick={() => setTab("info")} />
+              <ServiceIcon icon={FileText} label="Izin" color="#8B5CF6" bg="#F1ECFE" onClick={() => setTab("leave")} />
+              <ServiceIcon icon={Phone} label="Wali Kelas" color="#0EA5E9" bg="#E1F4FE" onClick={() => setTab("contact")} />
+              <ServiceIcon icon={TrendingUp} label="Statistik" color="#EF4444" bg="#FEE7E7" onClick={() => setTab("attendance")} />
+              <ServiceIcon icon={Grid3x3} label="Lainnya" color="#64748B" bg="#EEF1F5" onClick={() => setTab("info")} />
+            </div>
 
             {/* Promo / Offers card */}
             <Card className="mt-5 p-3.5 border-0 shadow-card rounded-2xl bg-gradient-to-r from-pink-100 via-pink-50 to-orange-50 dark:from-pink-950/30 dark:via-pink-950/20 dark:to-orange-950/20">
