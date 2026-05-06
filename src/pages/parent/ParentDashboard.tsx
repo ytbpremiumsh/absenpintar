@@ -101,6 +101,7 @@ export default function ParentDashboard() {
   const [tab, setTab] = useState("home");
 
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [attTypeTab, setAttTypeTab] = useState<"datang" | "pulang">("datang");
   const [schedule, setSchedule] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [leaves, setLeaves] = useState<any[]>([]);
@@ -682,19 +683,33 @@ export default function ParentDashboard() {
         {tab === "attendance" && (
           <>
             <SectionTitle icon={ClipboardList} title="Riwayat Absensi 30 Hari" />
-            {attendance.length === 0 ? <EmptyMini text="Belum ada data absensi." /> : (
-              <div className="space-y-2">
-                {attendance.map((a) => (
-                  <Card key={a.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">{new Date(a.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" })}</p>
-                      <p className="text-xs text-muted-foreground">{a.attendance_type === "pulang" ? "Pulang" : "Datang"} • {a.time?.slice(0, 5)} • {a.method}</p>
-                    </div>
-                    <Badge className={cn("border-0", STATUS_LABEL[a.status]?.cls)}>{STATUS_LABEL[a.status]?.label || a.status}</Badge>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setAttTypeTab("datang")}
+                className={cn("flex-1 py-2 rounded-xl text-sm font-semibold transition", attTypeTab === "datang" ? "bg-primary text-primary-foreground shadow" : "bg-muted text-muted-foreground")}
+              >Datang</button>
+              <button
+                onClick={() => setAttTypeTab("pulang")}
+                className={cn("flex-1 py-2 rounded-xl text-sm font-semibold transition", attTypeTab === "pulang" ? "bg-primary text-primary-foreground shadow" : "bg-muted text-muted-foreground")}
+              >Pulang</button>
+            </div>
+            {(() => {
+              const filtered = attendance.filter(a => (a.attendance_type || "datang") === attTypeTab);
+              if (filtered.length === 0) return <EmptyMini text={`Belum ada data ${attTypeTab === "pulang" ? "kepulangan" : "kedatangan"}.`} />;
+              return (
+                <div className="space-y-2">
+                  {filtered.map((a) => (
+                    <Card key={a.id} className="p-3 border-0 shadow-card rounded-2xl flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">{new Date(a.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" })}</p>
+                        <p className="text-xs text-muted-foreground">{a.attendance_type === "pulang" ? "Pulang" : "Datang"} • {a.time?.slice(0, 5) || "-"} • {a.method}</p>
+                      </div>
+                      <Badge className={cn("border-0", STATUS_LABEL[a.status]?.cls)}>{STATUS_LABEL[a.status]?.label || a.status}</Badge>
+                    </Card>
+                  ))}
+                </div>
+              );
+            })()}
           </>
         )}
 
