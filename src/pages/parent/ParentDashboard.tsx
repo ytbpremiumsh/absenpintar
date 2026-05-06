@@ -317,29 +317,29 @@ export default function ParentDashboard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-4">
+      <div className="max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3">
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
           <div className="relative">
             {/* Main blue hero card */}
-            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-5 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
+            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-4 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
               {/* Decorative blobs */}
               <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
               <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
               <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
 
               {/* Student info row */}
-              <div className="relative flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base overflow-hidden shrink-0">
+              <div className="relative flex items-center gap-2.5">
+                <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base overflow-hidden shrink-0">
                   {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
-                  <p className="text-sm font-semibold truncate">{current?.name}</p>
+                  <p className="text-sm font-semibold leading-snug break-words">{current?.name}</p>
                 </div>
                 {students.length > 1 && (
                   <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                    <SelectTrigger className="w-auto h-8 text-[11px] rounded-full bg-white/15 border-white/30 text-white backdrop-blur"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-[72px] h-7 px-2 text-[10px] rounded-full bg-white/15 border-white/30 text-white backdrop-blur shrink-0 [&>span]:truncate"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                     </SelectContent>
@@ -396,7 +396,7 @@ export default function ParentDashboard() {
             </div>
 
             {/* Service Grid 4x2 — Payou-style colored icons */}
-            <div className="mt-5 grid grid-cols-4 gap-3">
+            <div className="mt-3 grid grid-cols-4 gap-3">
               <ServiceIcon icon={ClipboardList} label="Absensi" color="#5B6CF9" bg="#EEF0FE" onClick={() => setTab("attendance")} />
               <ServiceIcon icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => setTab("schedule")} />
               <ServiceIcon icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => setTab("spp")} />

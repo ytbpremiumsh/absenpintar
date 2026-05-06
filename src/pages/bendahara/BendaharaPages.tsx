@@ -1742,46 +1742,52 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
             <div className={`relative overflow-hidden bg-gradient-to-r ${pal.grad} text-white`}>
               <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
               <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/10 blur-xl" />
-              <div className="relative z-10 flex items-center gap-2 px-4 py-3">
+              <div className="relative z-10 flex items-center gap-3 px-4 py-3.5">
                 <button
                   onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
                   className="flex-1 min-w-0 flex items-center gap-3 text-left"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 flex items-center justify-center shrink-0 shadow-md">
+                  <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 flex items-center justify-center shrink-0 shadow-md">
                     <Users className="h-5 w-5 text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-[15px] text-white truncate">Kelas {className}</span>
-                      <span className="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded-full border border-white/20">{list.length} siswa</span>
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-[15px] text-white truncate max-w-[60%]">Kelas {className}</span>
+                      <span className="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">{list.length} siswa</span>
                     </div>
-                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      <span className="text-[10px] font-semibold bg-emerald-500/90 px-2 py-0.5 rounded-full">{lunas} Lunas</span>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${nunggak > 0 ? "bg-red-500/90" : "bg-white/20"}`}>{nunggak} Nunggak</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-semibold bg-emerald-500/95 px-2 py-0.5 rounded-full whitespace-nowrap">{lunas} Lunas</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${nunggak > 0 ? "bg-red-500/95" : "bg-white/20"}`}>{nunggak} Nunggak</span>
                       {totalSisa > 0 && (
-                        <span className="text-[10px] font-bold bg-white text-rose-700 px-2 py-0.5 rounded-full shadow-sm">Sisa {fmtIDR(totalSisa)}</span>
+                        <span className="text-[10px] font-bold bg-white text-rose-700 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">Sisa {fmtIDR(totalSisa)}</span>
                       )}
                     </div>
                   </div>
-                  <div className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center shrink-0 transition-colors">
-                    {isOpen ? <ChevronDown className="h-4 w-4 text-white" /> : <ChevronRight className="h-4 w-4 text-white" />}
-                  </div>
                 </button>
-                {nunggak > 0 && (
-                  <Button
-                    size="sm"
-                    onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
-                    disabled={bulkBusy === className}
-                    className="h-8 bg-white text-[#3D4FE0] hover:bg-white/90 text-xs font-semibold shadow-sm shrink-0"
-                    title={`Kirim WA tagihan ke ${nunggak} wali murid`}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setOpenClass(p => ({ ...p, [className]: !p[className] }))}
+                    className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                    aria-label="Toggle"
                   >
-                    {bulkBusy === className ? (
-                      <><Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" /><span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span></>
-                    ) : (
-                      <><Send className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline">Kirim WA</span></>
-                    )}
-                  </Button>
-                )}
+                    {isOpen ? <ChevronDown className="h-4 w-4 text-white" /> : <ChevronRight className="h-4 w-4 text-white" />}
+                  </button>
+                  {nunggak > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
+                      disabled={bulkBusy === className}
+                      className="h-9 w-9 sm:w-auto sm:px-3 p-0 bg-white text-[#3D4FE0] hover:bg-white/90 text-xs font-semibold shadow-sm"
+                      title={`Kirim WA tagihan ke ${nunggak} wali murid`}
+                    >
+                      {bulkBusy === className ? (
+                        <><Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" /><span className="hidden sm:inline">{bulkProgress?.done}/{bulkProgress?.total}</span></>
+                      ) : (
+                        <><Send className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline">Kirim WA</span></>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
