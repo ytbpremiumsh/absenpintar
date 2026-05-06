@@ -525,8 +525,8 @@ export default function ParentDashboard() {
               );
             })()}
 
-            {/* Service Grid 4x2 — Payou-style colored icons */}
-            <div className="mt-3 grid grid-cols-4 gap-3">
+            {/* Service Grid 4x2 — hanya di mobile, di desktop sudah ada tab nav atas */}
+            <div className="mt-3 grid grid-cols-4 gap-3 md:hidden">
               <ServiceIcon icon={ClipboardList} label="Absensi" color="#5B6CF9" bg="#EEF0FE" onClick={() => setTab("attendance")} />
               <ServiceIcon icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => setTab("schedule")} />
               <ServiceIcon icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => setTab("spp")} />
