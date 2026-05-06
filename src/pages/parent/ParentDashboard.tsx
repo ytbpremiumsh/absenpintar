@@ -153,14 +153,16 @@ export default function ParentDashboard() {
     if (!selectedStudent) return;
     const body = { student_id: selectedStudent };
     if (tab === "home") {
-      const [a, s, n] = await Promise.all([
+      const [a, s, n, sp] = await Promise.all([
         invoke("attendance", body),
         invoke("schedule", body),
         invoke("announcements", body),
+        invoke("spp_list", body),
       ]);
       setAttendance(a.attendance || []);
       setSchedule(s.schedule || []);
       setAnnouncements(n.announcements || []);
+      setSppData({ aktif: sp.aktif || [], tunggakan: sp.tunggakan || [], lunas: sp.lunas || [], total_tunggakan: sp.total_tunggakan || 0 });
     } else if (tab === "attendance") {
       const d = await invoke("attendance", body); setAttendance(d.attendance || []);
     } else if (tab === "schedule") {
