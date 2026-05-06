@@ -67,10 +67,13 @@ serve(async (req) => {
         const tz = school.timezone || 'Asia/Jakarta';
         const today = getLocalDate(tz);
         const dow = getDayOfWeek(tz);
+        const holidayDays: number[] = Array.isArray((school as any).holiday_days) && (school as any).holiday_days.length > 0
+          ? (school as any).holiday_days
+          : [0, 6];
 
-        // Skip weekend
-        if (dow === 0 || dow === 6) {
-          summary.push({ school: school.name, skipped: 'weekend', date: today });
+        // Skip hari libur mingguan sekolah
+        if (holidayDays.includes(dow)) {
+          summary.push({ school: school.name, skipped: 'school_holiday', date: today, dow });
           continue;
         }
         // Skip libur nasional
