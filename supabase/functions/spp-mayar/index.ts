@@ -392,7 +392,13 @@ async function ensureFreshLink(
     payload: linkRes.json,
     message: linkRes.json?.message || null,
   });
-  if (!linkRes.ok) return { success: false, error: linkRes.json?.message || "Gagal create payment di Mayar" };
+  if (!linkRes.ok) {
+    const detail = Array.isArray(linkRes.json?.data)
+      ? linkRes.json.data.map((d: any) => d?.message || d?.field).filter(Boolean).join("; ")
+      : "";
+    const msg = linkRes.json?.message || linkRes.json?.messages || detail || "Gagal create payment di Mayar";
+    return { success: false, error: detail ? `${msg} (${detail})` : msg };
+  }
 
   const link = linkRes.json.data;
   const mayarId = link.id || link.paymentLinkId || link.paymentLinkID || null;
