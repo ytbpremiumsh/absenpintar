@@ -413,16 +413,21 @@ export default function ParentDashboard() {
                 </button>
               </div>
 
-              {/* Pay SPP banner inside hero (green pill) */}
-              {sppData.total_tunggakan > 0 && (
-                <button
-                  onClick={() => setTab("spp")}
-                  className="relative mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 text-white font-semibold text-xs shadow-lg hover:opacity-95 transition-all active:scale-[0.98]"
-                >
-                  <Wallet className="h-3.5 w-3.5" />
-                  Bayar SPP — Rp {sppData.total_tunggakan.toLocaleString("id-ID")}
-                </button>
-              )}
+              {/* Pay SPP banner — hanya tampil jika ada TUNGGAKAN (lewat jatuh tempo).
+                  Tagihan bulan ini ditampilkan terpisah di card "Tagihan SPP Bulan Baru". */}
+              {(() => {
+                const tunggakanTotal = (sppData.tunggakan || []).reduce((s: number, i: any) => s + (i.total_amount || 0), 0);
+                if (tunggakanTotal <= 0) return null;
+                return (
+                  <button
+                    onClick={() => setTab("spp")}
+                    className="relative mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-gradient-to-r from-red-400 to-red-500 text-white font-semibold text-xs shadow-lg hover:opacity-95 transition-all active:scale-[0.98]"
+                  >
+                    <Wallet className="h-3.5 w-3.5" />
+                    Bayar Tunggakan — Rp {tunggakanTotal.toLocaleString("id-ID")}
+                  </button>
+                );
+              })()}
             </div>
 
             {/* Service Grid 4x2 — Payou-style colored icons */}
