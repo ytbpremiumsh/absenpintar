@@ -2640,11 +2640,11 @@ export function BendaharaSaldo() {
                   const feePct = (i.gateway_fee != null) ? i.gateway_fee : Math.round((i.total_amount || 0) * (feeCfg.percent / 100));
                   return (
                     <TableRow key={i.id}>
-                      <TableCell className="text-xs">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
-                      <TableCell className="text-xs">{i.description}</TableCell>
-                      <TableCell className="text-sm text-right">{fmtIDR(i.total_amount)}</TableCell>
-                      <TableCell className="text-xs text-right text-muted-foreground">{fmtIDR(feePct)}</TableCell>
-                      <TableCell className="text-sm text-right font-semibold text-emerald-600">{fmtIDR(i.net_amount)}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{i.description}</TableCell>
+                      <TableCell className="text-sm text-right whitespace-nowrap">{fmtIDR(i.total_amount)}</TableCell>
+                      <TableCell className="text-xs text-right text-muted-foreground whitespace-nowrap">{fmtIDR(feePct)}</TableCell>
+                      <TableCell className="text-sm text-right font-semibold text-emerald-600 whitespace-nowrap">{fmtIDR(i.net_amount)}</TableCell>
                       <TableCell>
                         {i.settlement_id
                           ? <Badge className="bg-emerald-500 text-[10px]">DICAIRKAN</Badge>
