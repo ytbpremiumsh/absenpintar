@@ -810,10 +810,10 @@ const LandingPage = () => {
                 <GraduationCap className="h-7 w-7 text-white" />
               </div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-4">
-                {get("cta_banner_text", "Siap Tingkatkan Absensi Sekolah?")}
+                {get("cta_banner_text", "Siap Digitalisasi Sekolah Anda?")}
               </h2>
               <p className="text-white/80 text-sm sm:text-base mb-8 max-w-lg mx-auto">
-                {get("cta_banner_desc", "Bergabung sekarang dan kelola absensi, jadwal mengajar, SPP, hingga komunikasi wali murid dalam satu platform. Tanpa biaya setup.")}
+                {get("cta_banner_desc", "Kelola absensi, jadwal mengajar, SPP, komunikasi wali murid, hingga laporan dalam satu platform terpadu. Tanpa biaya setup.")}
               </p>
               <button onClick={() => navigate("/register")}
                 className="inline-flex items-center gap-2 bg-white text-indigo-700 px-8 py-3.5 rounded-2xl font-bold text-sm transition-all hover:bg-white/90 shadow-xl hover:scale-[1.02] active:scale-[0.98]">
