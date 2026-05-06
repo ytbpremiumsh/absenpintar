@@ -570,9 +570,13 @@ const Register = () => {
           transition={{ delay: 0.7 }}
           className="text-center text-white/40 text-xs mt-6"
         >
-          © 2026 ATSkolla — Absensi Digital Sekolah
+          © 2026 ATSkolla — Platform Digital Sekolah
         </motion.p>
       </motion.div>
+      </div>
+
+      {/* Bottom rounded accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-white dark:bg-slate-950 rounded-t-[2rem] z-[5]" />
     </div>
   );
 };
