@@ -353,7 +353,7 @@ const EditAttendance = () => {
           </h3>
           <span className="text-xs text-muted-foreground">{mergedData.length} siswa</span>
         </div>
-        <ScrollArea className="max-h-[60vh]">
+        <div className="max-h-[60vh] overflow-y-auto overflow-x-auto">
           {loading ? (
             <div className="p-12 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-[#5B6CF9]" /></div>
           ) : mergedData.length === 0 ? (
@@ -448,7 +448,7 @@ const EditAttendance = () => {
               </TableBody>
             </Table>
           )}
-        </ScrollArea>
+        </div>
       </Card>
     </div>
   );
