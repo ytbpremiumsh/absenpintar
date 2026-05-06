@@ -2149,16 +2149,10 @@ export function BendaharaSPPDetail() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-base">Riwayat Pembayaran</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" disabled={busy === "bulk-ay"} onClick={() => downloadAllPaidPdf("ay")}>
-              {busy === "bulk-ay" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
-              Export Lunas Bulanan
-            </Button>
-            <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === "bulk-all"} onClick={() => downloadAllPaidPdf("all")}>
-              {busy === "bulk-all" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
-              Export Semua Lunas
-            </Button>
-          </div>
+          <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === "bulk-all"} onClick={() => downloadAllPaidPdf()}>
+            {busy === "bulk-all" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+            Export Semua Lunas
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
