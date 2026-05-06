@@ -2233,7 +2233,17 @@ export function BendaharaSPPDetail() {
                       <TableCell className="text-xs font-mono">{inv.invoice_number}</TableCell>
                       <TableCell className="font-semibold">{fmtIDR(inv.total_amount)}</TableCell>
                       <TableCell className="text-xs">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
-                      <TableCell className="text-xs">{inv.payment_method || "-"}</TableCell>
+                      <TableCell className="text-xs">
+                        {(() => {
+                          const m = formatPaymentMethod(inv.payment_method);
+                          if (!inv.payment_method) return "-";
+                          return (
+                            <Badge variant="outline" className={m.isOffline ? "border-slate-400 text-slate-700 bg-slate-50 dark:bg-slate-900/40 dark:text-slate-300" : "border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300"}>
+                              {m.label}
+                            </Badge>
+                          );
+                        })()}
+                      </TableCell>
                       <TableCell><StatusBadge status={dStatus} /></TableCell>
                       <TableCell className="text-right">
                         {dStatus === "pending" ? (
@@ -2250,16 +2260,29 @@ export function BendaharaSPPDetail() {
                                 <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
                             )}
+                            <Button size="sm" variant="outline" className="border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
+                              <Banknote className="h-3 w-3 mr-1" /> Bayar Offline
+                            </Button>
                           </div>
                         ) : dStatus === "expired" ? (
-                          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)}>
-                            {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 mr-1" /> Buat Ulang Link</>}
-                          </Button>
+                          <div className="flex flex-wrap gap-1 justify-end">
+                            <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)}>
+                              {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 mr-1" /> Buat Ulang Link</>}
+                            </Button>
+                            <Button size="sm" variant="outline" className="border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
+                              <Banknote className="h-3 w-3 mr-1" /> Bayar Offline
+                            </Button>
+                          </div>
                         ) : dStatus === "paid" ? (
                           <div className="flex flex-wrap gap-1 justify-end">
                             <Button size="sm" variant="outline" disabled={busy === `pdf-${inv.id}`} onClick={() => downloadPdf(inv)}>
                               {busy === `pdf-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Download className="h-3 w-3 mr-1" /> Invoice</>}
                             </Button>
+                            {formatPaymentMethod(inv.payment_method).isOffline && inv.parent_phone && (
+                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `waoff-${inv.id}`} onClick={() => sendOfflinePaidWa(inv)} title="Kirim konfirmasi lunas via WA">
+                                {busy === `waoff-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><MessageCircle className="h-3 w-3 mr-1" /> Notif WA</>}
+                              </Button>
+                            )}
                           </div>
                         ) : null}
                       </TableCell>
