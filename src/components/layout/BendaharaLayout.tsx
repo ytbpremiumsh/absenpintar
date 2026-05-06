@@ -63,21 +63,20 @@ export function BendaharaLayout() {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center border-b border-border/40 bg-background/80 backdrop-blur sticky top-0 z-30 px-3 gap-2">
             <SidebarTrigger />
-            {/* Logo + sekolah */}
-            <div className="flex items-center gap-2 min-w-0">
+            {/* Logo + nama sekolah */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm shrink-0">
                 <img src={headerLogo || atskollaLogo} alt="Logo" className="h-5 w-5 object-contain" />
               </div>
-              <div className="min-w-0 hidden xs:flex flex-col leading-tight sm:hidden">
-                <span className="text-[11px] font-bold tracking-tight truncate max-w-[140px]">{school?.name || "ATSkolla"}</span>
-                <span className="text-[9px] text-muted-foreground -mt-0.5">Bendahara</span>
-              </div>
-              <div className="hidden sm:flex flex-col leading-tight min-w-0">
-                <span className="text-sm font-bold tracking-tight truncate max-w-[260px]">{school?.name || "ATSkolla"}</span>
-                <span className="text-[10px] text-muted-foreground -mt-0.5 font-medium">Bendahara · Sistem Keuangan</span>
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="text-xs sm:text-sm font-bold tracking-tight truncate max-w-[160px] sm:max-w-[260px]">
+                  {school?.name || "ATSkolla"}
+                </span>
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground -mt-0.5 font-medium truncate">
+                  Bendahara<span className="hidden sm:inline"> · Sistem Keuangan</span>
+                </span>
               </div>
             </div>
-            <div className="flex-1" />
             <NotificationBell />
 
             <DropdownMenu>
