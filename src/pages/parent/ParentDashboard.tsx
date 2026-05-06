@@ -101,6 +101,7 @@ export default function ParentDashboard() {
   const [tab, setTab] = useState("home");
 
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [attTypeTab, setAttTypeTab] = useState<"datang" | "pulang">("datang");
   const [schedule, setSchedule] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [leaves, setLeaves] = useState<any[]>([]);
