@@ -130,6 +130,20 @@ export const GUIDES: RoleGuide[] = [
         ],
       },
       {
+        title: "5b. Identitas & Barcode Per Siswa",
+        description:
+          "Klik nama siswa pada halaman Data Siswa untuk membuka halaman detail Identitas Lengkap & Barcode Siswa. Halaman ini menampilkan profil siswa, statistik kehadiran (Hadir/Izin/Sakit/Alfa), data wali / orang tua, dan QR Barcode unik siswa yang siap dicetak menjadi kartu identitas.",
+        image: "/panduan/school-identitas-barcode.jpg",
+        bullets: [
+          "Header profil: Foto, Nama, Kelas, NIS, dan status absensi hari ini.",
+          "Kartu statistik 4 kolom: total Hadir, Izin, Sakit, dan Alfa.",
+          "Panel 'Identitas Lengkap': Nama, Kelas, NIS, Tanggal Terdaftar.",
+          "Panel 'Data Wali / Orang Tua': Nama Wali & No. HP Wali.",
+          "Panel 'Barcode Siswa': QR Code unik per siswa + tombol 'Download QR Code'.",
+          "Tombol pensil di header untuk edit data siswa langsung dari halaman ini.",
+        ],
+      },
+      {
         title: "6. Pengumuman Sekolah",
         description:
           "Kirim pengumuman ke seluruh staf, guru, dan wali kelas. Bisa diberi label Informasi, Penting, atau Mendesak.",
