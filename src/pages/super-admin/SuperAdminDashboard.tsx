@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
 
 interface DashboardStats {
   totalSchools: number;
