@@ -2198,11 +2198,14 @@ export function BendaharaSPPDetail() {
     const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
     const schoolName = schoolRow?.name || "Sekolah";
     const tgl = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-";
-    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima secara langsung di sekolah:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
+    // Format pesan SAMA dengan pembayaran online — hanya field "Metode" yang berbeda
+    const metode = formatPaymentMethod(inv.payment_method).label;
+    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Metode  : ${metode}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
     setBusy(`waoff-${inv.id}`);
     toast.loading("Mengirim WA konfirmasi...");
+    // PENTING: pakai message_type "spp_paid" agar tetap dapat button & gambar (sama seperti online)
     const { error } = await supabase.functions.invoke("send-whatsapp", {
-      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_paid_offline" },
+      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_paid" },
     });
     toast.dismiss(); setBusy(null);
     if (error) toast.error("Gagal kirim"); else toast.success("Konfirmasi terkirim ke WA wali");
