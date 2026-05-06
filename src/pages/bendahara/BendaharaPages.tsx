@@ -3421,11 +3421,26 @@ export function BendaharaLaporan() {
 
       {/* DIALOG — Detail Siswa per Kelas */}
       <Dialog open={!!openClass} onOpenChange={(o) => !o && setOpenClass(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base">
-              Detail Pembayaran — Kelas {openClass} <span className="text-muted-foreground font-normal">({year})</span>
-            </DialogTitle>
+        <DialogContent className="w-[calc(100vw-1rem)] sm:w-auto max-w-4xl max-h-[92vh] overflow-y-auto p-3 sm:p-6">
+          <DialogHeader className="pr-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <DialogTitle className="text-sm sm:text-base leading-snug">
+                Detail Pembayaran — Kelas {openClass} <span className="text-muted-foreground font-normal">({year})</span>
+              </DialogTitle>
+              {openClass && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1.5 self-start sm:self-auto"
+                  onClick={() => {
+                    const url = `${window.location.pathname}?cls=${encodeURIComponent(openClass)}&m=${detailMonth}&st=${detailStatus}`;
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  <ArrowUpRight className="h-3.5 w-3.5" /> Buka di tab baru
+                </Button>
+              )}
+            </div>
           </DialogHeader>
           {openClass && (() => {
             const classInvs = items.filter(i => i.class_name === openClass);
