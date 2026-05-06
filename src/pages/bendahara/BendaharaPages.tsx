@@ -412,7 +412,7 @@ function BendaharaMobileDashboard({
 }) {
   const navigate = useNavigate();
   return (
-    <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-emerald-50/60 via-background to-background">
+    <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-indigo-50/60 via-background to-background">
       {/* Top bar greeting */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div>
@@ -424,13 +424,13 @@ function BendaharaMobileDashboard({
           className="h-9 w-9 rounded-full bg-white shadow-sm ring-1 ring-border/60 flex items-center justify-center active:scale-95 transition"
           aria-label="Laporan"
         >
-          <BarChart3 className="h-4 w-4 text-emerald-600" />
+          <BarChart3 className="h-4 w-4 text-[#5B6CF9]" />
         </button>
       </div>
 
       <div className="px-4 space-y-4">
-        {/* HERO CARD — emerald gradient */}
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 text-white p-5 shadow-[0_20px_50px_-15px_rgba(16,185,129,0.55)]">
+        {/* HERO CARD — primary brand gradient */}
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0] text-white p-5 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
           <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
           <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
@@ -514,7 +514,7 @@ function BendaharaMobileDashboard({
 
         {/* Service grid 4x2 — professional gradient tiles */}
         <div className="grid grid-cols-4 gap-3">
-          <BendServiceIcon icon={Users} label="Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/bendahara/siswa")} />
+          <BendServiceIcon icon={Users} label="Siswa" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/siswa")} />
           <BendServiceIcon icon={Receipt} label="Tarif SPP" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/tarif")} />
           <BendServiceIcon icon={FileText} label="Generate" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/bendahara/generate")} />
           <BendServiceIcon icon={CreditCard} label="Pembayaran" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/bendahara/transaksi")} />
@@ -608,8 +608,8 @@ function BendServiceIcon({ icon: Icon, label, gradient, onClick }: { icon: any; 
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
       <div className="relative h-14 w-14 rounded-2xl bg-white dark:bg-card flex items-center justify-center ring-1 ring-border/60 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] group-hover:shadow-[0_10px_24px_-8px_rgba(15,23,42,0.25)] group-hover:-translate-y-0.5 transition-all">
         <Icon className="h-6 w-6 text-[#3D4FE0]" strokeWidth={1.75} />
-        {/* green accent dot */}
-        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-card shadow-sm" />
+        {/* brand accent dot */}
+        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-[#5B6CF9] ring-2 ring-white dark:ring-card shadow-sm" />
       </div>
       <span className="text-[10px] font-semibold text-foreground/80 text-center leading-tight">{label}</span>
     </button>
@@ -929,7 +929,7 @@ export function BendaharaTarif() {
         actions={
           <>
             <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Copy className="h-4 w-4 mr-1.5" /> Set Massal</Button>
-            <Button size="sm" onClick={openAdd} className="bg-white text-emerald-700 hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
+            <Button size="sm" onClick={openAdd} className="bg-white text-[#3D4FE0] hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
           </>
         }
       />
@@ -1392,7 +1392,7 @@ export function BendaharaGenerate() {
 
       {/* Action bar */}
       <div className="sticky bottom-4 z-10">
-        <Card className="border-0 shadow-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white">
+        <Card className="border-0 shadow-xl bg-gradient-to-r from-[#5B6CF9] to-[#3D4FE0] text-white">
           <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs text-white/70">Total estimasi</p>
@@ -1401,7 +1401,7 @@ export function BendaharaGenerate() {
             </div>
             <div className="flex gap-2">
               <Button variant="secondary" onClick={() => setPreviewOpen(true)} disabled={preview.list.length === 0} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Eye className="h-4 w-4 mr-1.5" /> Pratinjau</Button>
-              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-emerald-700 hover:bg-white/90">
+              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-[#3D4FE0] hover:bg-white/90">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
                 Generate Sekarang
               </Button>
@@ -1719,11 +1719,11 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
         const isOpen = openClass[className] ?? false;
 
-        // Semua kelas pakai palette emerald/teal (seragam seperti TKR 1)
+        // Semua kelas pakai palette brand ungu (seragam)
         const pal = {
-          grad: "from-emerald-500 via-teal-500 to-emerald-600",
-          ring: "ring-emerald-200",
-          chip: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          grad: "from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0]",
+          ring: "ring-indigo-200",
+          chip: "bg-indigo-50 text-indigo-700 border-indigo-200",
         };
 
         // Avatar berdasarkan gender: ungu (indigo/violet) = laki-laki, merah (rose) = perempuan
@@ -1772,7 +1772,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                     size="sm"
                     onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
                     disabled={bulkBusy === className}
-                    className="h-8 bg-white text-emerald-700 hover:bg-white/90 text-xs font-semibold shadow-sm shrink-0"
+                    className="h-8 bg-white text-[#3D4FE0] hover:bg-white/90 text-xs font-semibold shadow-sm shrink-0"
                     title={`Kirim WA tagihan ke ${nunggak} wali murid`}
                   >
                     {bulkBusy === className ? (
@@ -1998,10 +1998,10 @@ export function BendaharaSPPDetail() {
       <Button variant="ghost" size="sm" onClick={() => navigate("/bendahara/transaksi")}><ArrowLeft className="h-4 w-4 mr-1" /> Kembali</Button>
 
       {/* Header siswa */}
-      <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
         <CardContent className="p-5">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-2xl font-extrabold shrink-0">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-2xl font-extrabold shrink-0">
               {student.name[0]}
             </div>
             <div className="flex-1 min-w-0">
