@@ -69,6 +69,35 @@ const GUIDES: RoleGuide[] = [
         ],
       },
       {
+        title: "2b. Live Monitor Publik (Datang & Pulang)",
+        description:
+          "Tampilan layar publik yang bisa diakses tanpa login — cocok ditampilkan di TV gerbang sekolah. Tersedia 2 mode: monitor Kedatangan (status Hadir/Izin/Sakit/Alfa/Belum) dan monitor Kepulangan (siapa yang sudah pulang per kelas).",
+        image: "/panduan/public-monitor-datang.jpg",
+        bullets: [
+          "URL Datang: /attendance/{schoolId} — menampilkan Live Feed Absensi realtime dengan jam.",
+          "URL Pulang: /live/{schoolId} — menampilkan progress kepulangan per kelas dengan auto-rotate.",
+          "Counter besar: Total, Hadir, Izin, Sakit, Alfa, Belum.",
+          "Auto-refresh setiap 5 detik — tidak perlu reload manual.",
+          "Tombol Fullscreen untuk tampilan TV.",
+        ],
+        tips: [
+          "Bookmark URL ini di TV/komputer ruang depan agar bisa langsung dibuka tanpa login.",
+          "Cocok untuk transparansi ke wali murid yang menjemput.",
+        ],
+      },
+      {
+        title: "2c. Monitor Kepulangan per Kelas",
+        description:
+          "Halaman publik khusus pemantauan kepulangan siswa dikelompokkan per kelas dengan progress bar real-time.",
+        image: "/panduan/public-monitor-pulang.jpg",
+        bullets: [
+          "Tab horizontal per kelas — geser untuk pilih kelas.",
+          "Kartu siswa dengan foto + status 'Menunggu' / 'Sudah Pulang'.",
+          "Auto-rotate antar kelas tiap 8 detik (bisa di-pause).",
+          "Progress bar kepulangan per kelas.",
+        ],
+      },
+      {
         title: "3. Scan Absensi",
         description:
           "Buka menu Scan Absensi untuk melakukan absensi via Barcode/QR atau Face Recognition. Bisa juga input NIS manual jika kamera bermasalah.",
