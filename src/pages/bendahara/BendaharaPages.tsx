@@ -357,9 +357,10 @@ export function BendaharaDashboard() {
             {recentPaidList.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">Belum ada pembayaran</p>
             ) : (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30">
+                  <TableRow className="bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 [&_th]:whitespace-nowrap">
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Tanggal</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Siswa</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Kelas</TableHead>
@@ -369,7 +370,7 @@ export function BendaharaDashboard() {
                 </TableHeader>
                 <TableBody>
                   {recentPaidList.map((t, idx) => (
-                    <TableRow key={t.id} className={idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"}>
+                    <TableRow key={t.id} className={`[&>td]:whitespace-nowrap ${idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"}`}>
                       <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
