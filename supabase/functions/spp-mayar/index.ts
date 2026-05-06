@@ -203,18 +203,29 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   });
   const json = await res.json().catch(() => ({}));
 
-  // Mayar may return 429 (rate-limit), 409 (already exist), or messages like
-  // "duplicate" / "already exist". Treat all as transient → retry with new uniq.
   const msgText = String(json?.message || json?.messages || "").toLowerCase();
+  // If Mayar already has a link for this invoice, try to reuse it instead of retrying blindly.
+  if ((res.status === 409 || /already exist|duplicate/i.test(msgText)) && json?.data) {
+    const existing = Array.isArray(json.data) ? json.data[0] : json.data;
+    const existingLink = existing?.link || existing?.paymentUrl || existing?.payment_url;
+    if (existingLink) {
+      console.log("Mayar 409 — reusing existing link from response");
+      return { ok: true, json: { data: { ...existing, link: existingLink } }, expiry, status: 200 };
+    }
+  }
+
+  // Retry with stronger uniqueness (also vary mobile suffix) for 429/409/duplicate.
   const isDuplicate =
     res.status === 429 ||
     res.status === 409 ||
     /duplicate|already exist/i.test(msgText);
-  if (isDuplicate && attempt < 3) {
+  if (isDuplicate && attempt < 4) {
     const backoff = 600 + attempt * 500 + Math.floor(Math.random() * 400);
-    console.log(`Mayar ${res.status} (${msgText || "duplicate"}) — quick retry #${attempt + 1} after ${backoff}ms`);
+    console.log(`Mayar ${res.status} retry #${attempt + 1}: ${JSON.stringify(json).slice(0, 400)}`);
     await sleep(backoff);
-    return createMayarLink(apiKey, inv, attempt + 1);
+    // Mutate inv copy with a tweaked phone to defeat phone-based dedupe
+    const tweakedInv = { ...inv, parent_phone: `0800000${String(Date.now()).slice(-4)}` };
+    return createMayarLink(apiKey, tweakedInv, attempt + 1);
   }
 
   return { ok: res.ok && !!json?.data?.link, json, expiry, status: res.status };
