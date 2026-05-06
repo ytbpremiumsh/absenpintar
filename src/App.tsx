@@ -57,6 +57,7 @@ import SuperAdminLoginLogs from "./pages/super-admin/SuperAdminLoginLogs";
 import SuperAdminReferral from "./pages/super-admin/SuperAdminReferral";
 import LandingPage from "./pages/LandingPage";
 import Panduan from "./pages/Panduan";
+import PanduanDetail from "./pages/PanduanDetail";
 import Presentation from "./pages/Presentation";
 import BusinessModel from "./pages/BusinessModel";
 import Proposal from "./pages/Proposal";
@@ -102,6 +103,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/panduan" element={<Panduan />} />
+      <Route path="/panduan/:role" element={<PanduanDetail />} />
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<Register />} />
