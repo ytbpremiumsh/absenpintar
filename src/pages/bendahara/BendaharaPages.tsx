@@ -2900,12 +2900,13 @@ export function BendaharaPencairan() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-0">
               {loadingHistory ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
+                <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Biaya Layanan</TableHead><TableHead>Biaya Pencairan</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow className="[&_th]:whitespace-nowrap"><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Biaya Layanan</TableHead><TableHead>Biaya Pencairan</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {history.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Belum ada settlement</TableCell></TableRow>}
                     {history.map(s => (
-                      <TableRow key={s.id}>
+                      <TableRow key={s.id} className="[&_td]:whitespace-nowrap">
                         <TableCell className="text-xs font-mono">{s.settlement_code}</TableCell>
                         <TableCell className="text-xs">{new Date(s.requested_at).toLocaleDateString("id-ID")}</TableCell>
                         <TableCell>{s.total_transactions}</TableCell>
