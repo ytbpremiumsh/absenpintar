@@ -293,6 +293,41 @@ const SuperAdminRegistrationWA = () => {
     setSettings(prev => ({ ...prev, onesender_enabled: val ? "true" : "false" }));
   };
 
+  const handleTestAdminNotify = async (kind: "ticket" | "withdrawal") => {
+    if (!settings.admin_notify_phone.trim()) {
+      toast.error("Nomor admin tujuan wajib diisi terlebih dahulu");
+      return;
+    }
+    // Save current settings first so edge function reads latest values
+    setAdminTesting(kind);
+    try {
+      const rows = [
+        { key: "admin_notify_phone", value: settings.admin_notify_phone, updated_at: new Date().toISOString() },
+        { key: "admin_notify_enabled", value: settings.admin_notify_enabled, updated_at: new Date().toISOString() },
+        { key: "admin_notify_ticket_template", value: settings.admin_notify_ticket_template, updated_at: new Date().toISOString() },
+        { key: "admin_notify_withdrawal_template", value: settings.admin_notify_withdrawal_template, updated_at: new Date().toISOString() },
+      ];
+      await supabase.from("platform_settings").upsert(rows, { onConflict: "key" });
+
+      const samplePayload = kind === "ticket"
+        ? { school: "SDN 1 Jakarta", user: "Budi Santoso", priority: "high", subject: "Tidak bisa scan QR", message: "Ini hanya tes notifikasi tiket bantuan." }
+        : { affiliate: "Pak Guru", email: "guru@contoh.com", amount: 750000, bank: "BCA", account_number: "1234567890", account_holder: "Pak Guru" };
+
+      const { data, error } = await supabase.functions.invoke("notify-admin-wa", {
+        body: { event_type: kind === "ticket" ? "support_ticket" : "withdrawal_request", payload: samplePayload },
+      });
+      if (error) throw error;
+      if ((data as any)?.success) {
+        toast.success(`Notifikasi tes (${kind === "ticket" ? "Tiket" : "Pencairan"}) terkirim ke ${settings.admin_notify_phone}`);
+      } else {
+        toast.error("Gagal: " + ((data as any)?.error || "tidak diketahui"));
+      }
+    } catch (err: any) {
+      toast.error("Gagal kirim tes: " + (err.message || err));
+    }
+    setAdminTesting(null);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
