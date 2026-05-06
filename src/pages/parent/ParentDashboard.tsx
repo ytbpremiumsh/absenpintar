@@ -344,36 +344,36 @@ export default function ParentDashboard() {
 
       {/* Content */}
       <div className={cn(
-        "max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3",
-        tab === "home" && "md:space-y-0 md:grid md:grid-cols-12 md:gap-5"
+        "max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3 md:mt-4",
+        tab === "home" && "md:space-y-0 md:grid md:grid-cols-12 md:gap-6 md:items-start"
       )}>
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
-          <div className="relative md:col-span-7 md:space-y-3">
+          <div className="relative md:col-span-7 md:space-y-4">
             {/* Main blue hero card */}
-            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-4 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
+            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-4 md:p-7 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
               {/* Decorative blobs */}
               <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
               <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
               <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
 
               {/* Student info row */}
-              <div className="relative flex items-center gap-2.5">
-                <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base overflow-hidden shrink-0">
+              <div className="relative flex items-center gap-2.5 md:gap-3.5">
+                <div className="h-11 w-11 md:h-14 md:w-14 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base md:text-xl overflow-hidden shrink-0">
                   {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
-                  <p className="text-sm font-semibold leading-snug break-words">{current?.name}</p>
+                  <p className="text-[10px] md:text-[11px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
+                  <p className="text-sm md:text-lg font-semibold leading-snug break-words">{current?.name}</p>
                   {current?.class && (
-                    <p className="text-[10px] text-white/75 leading-tight truncate mt-0.5">
+                    <p className="text-[10px] md:text-xs text-white/75 leading-tight truncate mt-0.5">
                       <span className="opacity-80">Kelas</span> {current.class}
                     </p>
                   )}
                 </div>
                 {students.length > 1 && (
                   <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                    <SelectTrigger className="w-[72px] h-7 px-2 text-[10px] rounded-full bg-white/15 border-white/30 text-white backdrop-blur shrink-0 [&>span]:truncate"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-[72px] md:w-[110px] h-7 md:h-8 px-2 text-[10px] md:text-xs rounded-full bg-white/15 border-white/30 text-white backdrop-blur shrink-0 [&>span]:truncate"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                     </SelectContent>
@@ -382,38 +382,38 @@ export default function ParentDashboard() {
               </div>
 
               {/* Big metric */}
-              <div className="relative mt-4 flex items-end justify-between gap-3">
+              <div className="relative mt-4 md:mt-6 flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-4xl font-extrabold tracking-tight leading-none">{monthRate}<span className="text-2xl">%</span></p>
-                  <p className="text-[11px] text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{monthAttendance.length} hari</p>
+                  <p className="text-4xl md:text-6xl font-extrabold tracking-tight leading-none">{monthRate}<span className="text-2xl md:text-3xl">%</span></p>
+                  <p className="text-[11px] md:text-sm text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{monthAttendance.length} hari</p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <Badge className="bg-white/20 text-white border-0 text-[10px] backdrop-blur">
+                  <Badge className="bg-white/20 text-white border-0 text-[10px] md:text-xs backdrop-blur">
                     {todayLog ? STATUS_LABEL[todayLog.status]?.label || todayLog.status : "Belum Absen"}
                   </Badge>
-                  <p className="text-[10px] text-white/70 mt-1">Hari ini</p>
+                  <p className="text-[10px] md:text-xs text-white/70 mt-1">Hari ini</p>
                 </div>
               </div>
 
               {/* 3 round action buttons */}
-              <div className="relative mt-5 flex items-center justify-around">
+              <div className="relative mt-5 md:mt-6 flex items-center justify-around md:justify-start md:gap-10">
                 <button onClick={() => setTab("leave")} className="flex flex-col items-center gap-1.5 group">
-                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
-                    <Send className="h-4 w-4" />
+                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <Send className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   </div>
-                  <span className="text-[10px] font-medium text-white/90">Ajukan Izin</span>
+                  <span className="text-[10px] md:text-xs font-medium text-white/90">Ajukan Izin</span>
                 </button>
                 <button onClick={() => setTab("attendance")} className="flex flex-col items-center gap-1.5 group">
-                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
-                    <ScanLine className="h-4 w-4" />
+                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <ScanLine className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   </div>
-                  <span className="text-[10px] font-medium text-white/90">Riwayat</span>
+                  <span className="text-[10px] md:text-xs font-medium text-white/90">Riwayat</span>
                 </button>
                 <button onClick={() => setTab("info")} className="flex flex-col items-center gap-1.5 group">
-                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
-                    <HistoryIcon className="h-4 w-4" />
+                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <HistoryIcon className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   </div>
-                  <span className="text-[10px] font-medium text-white/90">Pengumuman</span>
+                  <span className="text-[10px] md:text-xs font-medium text-white/90">Pengumuman</span>
                 </button>
               </div>
 
@@ -447,7 +447,7 @@ export default function ParentDashboard() {
                   </h3>
                   <button onClick={() => setTab("spp")} className="text-[10px] font-semibold text-[#5B6CF9]">Lihat Semua</button>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
                   {sppData.tunggakan.slice(0, 3).map((inv: any) => (
                     <Card key={inv.id} className="p-3 border-0 shadow-card rounded-2xl bg-gradient-to-r from-red-50 to-white dark:from-red-950/20 dark:to-card ring-1 ring-red-100 dark:ring-red-950/40">
                       <div className="flex items-center gap-3">
@@ -496,7 +496,7 @@ export default function ParentDashboard() {
                     </h3>
                     <button onClick={() => setTab("spp")} className="text-[10px] font-semibold text-[#5B6CF9]">Lihat Semua</button>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:grid md:grid-cols-2 md:gap-2 md:space-y-0">
                     {currentMonthBills.slice(0, 2).map((inv: any) => (
                       <Card key={inv.id} className="p-3 border-0 shadow-card rounded-2xl bg-gradient-to-r from-amber-50 to-white dark:from-amber-950/20 dark:to-card">
                         <div className="flex items-center gap-3">
@@ -525,8 +525,8 @@ export default function ParentDashboard() {
               );
             })()}
 
-            {/* Service Grid 4x2 — Payou-style colored icons */}
-            <div className="mt-3 grid grid-cols-4 gap-3">
+            {/* Service Grid 4x2 — hanya di mobile, di desktop sudah ada tab nav atas */}
+            <div className="mt-3 grid grid-cols-4 gap-3 md:hidden">
               <ServiceIcon icon={ClipboardList} label="Absensi" color="#5B6CF9" bg="#EEF0FE" onClick={() => setTab("attendance")} />
               <ServiceIcon icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => setTab("schedule")} />
               <ServiceIcon icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => setTab("spp")} />
