@@ -22,7 +22,6 @@ import {
   Home, LayoutGrid, Grid3x3, CreditCard, ArrowUpRight,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useNavigate as useNavigateRR } from "react-router-dom";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
