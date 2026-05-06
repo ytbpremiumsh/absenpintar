@@ -240,6 +240,19 @@ serve(async (req) => {
         inv = foundInv;
       }
       if (inv) {
+        // GUARD: Jangan timpa invoice yang sudah dilunasi secara offline (tunai/transfer manual)
+        // Mencegah webhook Mayar menimpa data offline & mendorongnya masuk ke saldo pencairan online.
+        const isOfflinePaid = inv.status === 'paid' && (inv.payment_method === 'offline_cash' || inv.payment_method === 'offline_transfer');
+        if (isOfflinePaid) {
+          console.log(`Skip webhook update: invoice ${inv.id} sudah lunas offline (${inv.payment_method})`);
+          await supabaseAdmin.from('spp_logs').insert({
+            school_id: inv.school_id, invoice_id: inv.id, event_type: 'webhook',
+            status: 'skipped_offline', payload: body, message: 'Webhook diabaikan karena invoice sudah lunas offline',
+          });
+          return new Response(JSON.stringify({ message: 'Skipped: already paid offline' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
         const feeCfg2 = await getGatewayFeeConfig(supabaseAdmin);
         const gatewayFee = calcGatewayFee(inv.total_amount, feeCfg2);
         const netAmount = inv.total_amount - gatewayFee;
