@@ -232,26 +232,29 @@ const Dashboard = () => {
     });
 
     if (chartPeriod === "weekly") {
-      const now = new Date();
-      const dayOfWeek = now.getDay();
-      const monday = new Date(now);
-      monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+      const todayStr = getLocalDateString("Asia/Jakarta");
+      const [ty, tm, td] = todayStr.split("-").map(Number);
+      const localToday = new Date(ty, tm - 1, td);
+      const dayOfWeek = localToday.getDay();
+      const monday = new Date(localToday);
+      monday.setDate(localToday.getDate() - ((dayOfWeek + 6) % 7));
       return Array.from({ length: 7 }, (_, i) => {
         const d = new Date(monday);
         d.setDate(monday.getDate() + i);
-        const dateStr = d.toISOString().slice(0, 10);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
         const counts = grouped[dateStr] || { hadir: 0, izin: 0, sakit: 0, alfa: 0 };
         return { name: DAY_NAMES[d.getDay()], ...counts };
       });
     }
 
-    const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const todayStr = getLocalDateString("Asia/Jakarta");
+    const [ty, tm] = todayStr.split("-").map(Number);
+    const daysInMonth = new Date(ty, tm, 0).getDate();
     const result: { name: string; hadir: number; izin: number; sakit: number; alfa: number }[] = [];
     for (let week = 0; week < Math.ceil(daysInMonth / 7); week++) {
       const weekData = { name: `Mg ${week + 1}`, hadir: 0, izin: 0, sakit: 0, alfa: 0 };
       for (let d = week * 7 + 1; d <= Math.min((week + 1) * 7, daysInMonth); d++) {
-        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const dateStr = `${ty}-${String(tm).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
         const counts = grouped[dateStr];
         if (counts) { weekData.hadir += counts.hadir; weekData.izin += counts.izin; weekData.sakit += counts.sakit; weekData.alfa += counts.alfa; }
       }
