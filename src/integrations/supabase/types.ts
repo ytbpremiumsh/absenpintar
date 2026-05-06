@@ -776,6 +776,54 @@ export type Database = {
           },
         ]
       }
+      panduan_content: {
+        Row: {
+          color: string
+          cover: string | null
+          created_at: string
+          highlights: Json
+          id: string
+          intro: string
+          label: string
+          mobile_mockup: string | null
+          role_id: string
+          short_label: string
+          sort_order: number
+          steps: Json
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          cover?: string | null
+          created_at?: string
+          highlights?: Json
+          id?: string
+          intro?: string
+          label: string
+          mobile_mockup?: string | null
+          role_id: string
+          short_label: string
+          sort_order?: number
+          steps?: Json
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          cover?: string | null
+          created_at?: string
+          highlights?: Json
+          id?: string
+          intro?: string
+          label?: string
+          mobile_mockup?: string | null
+          role_id?: string
+          short_label?: string
+          sort_order?: number
+          steps?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parent_leave_requests: {
         Row: {
           attachment_url: string | null
