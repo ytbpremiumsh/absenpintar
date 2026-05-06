@@ -246,19 +246,41 @@ export default function ParentDashboard() {
   const monthRate = monthAttendance.length ? Math.round((monthHadir / monthAttendance.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32">
-      {/* Top Bar — Payou-style */}
-      <div className="max-w-md mx-auto px-5 pt-5 pb-3">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
+      {/* Top Bar — responsive */}
+      <div className="max-w-md md:max-w-6xl mx-auto px-5 md:px-8 pt-5 md:pt-6 pb-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
+            <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
               <GraduationCap className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Murid</p>
-              <h1 className="text-sm font-bold truncate text-foreground">{current?.schools?.name || "Sekolah"}</h1>
+              <h1 className="text-sm md:text-base font-bold truncate text-foreground">{current?.schools?.name || "Sekolah"}</h1>
             </div>
           </div>
+
+          {/* Desktop tab bar */}
+          <div className="hidden lg:flex items-center gap-1 bg-white dark:bg-card rounded-full px-1.5 py-1.5 ring-1 ring-border/60 shadow-sm">
+            {[
+              { id: "home", label: "Beranda", icon: Home },
+              { id: "attendance", label: "Absensi", icon: ClipboardList },
+              { id: "schedule", label: "Jadwal", icon: CalendarDays },
+              { id: "spp", label: "SPP", icon: Wallet },
+              { id: "info", label: "Info", icon: Megaphone },
+              { id: "leave", label: "Izin", icon: FileText },
+              { id: "contact", label: "Wali Kelas", icon: Phone },
+            ].map((t) => {
+              const Active = tab === t.id;
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all", Active ? "bg-[#5B6CF9] text-white shadow" : "text-muted-foreground hover:text-foreground hover:bg-muted/40")}>
+                  <t.icon className="h-3.5 w-3.5" strokeWidth={Active ? 2.5 : 2} />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex items-center gap-1.5">
             <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
               <Bell className="h-4 w-4 text-foreground" />
@@ -271,10 +293,31 @@ export default function ParentDashboard() {
             </button>
           </div>
         </div>
+
+        {/* Tablet tab bar (md only, scrollable) */}
+        <div className="hidden md:flex lg:hidden items-center gap-1 mt-3 bg-white dark:bg-card rounded-full px-1.5 py-1.5 ring-1 ring-border/60 shadow-sm overflow-x-auto">
+          {[
+            { id: "home", label: "Beranda", icon: Home },
+            { id: "attendance", label: "Absensi", icon: ClipboardList },
+            { id: "schedule", label: "Jadwal", icon: CalendarDays },
+            { id: "spp", label: "SPP", icon: Wallet },
+            { id: "info", label: "Info", icon: Megaphone },
+            { id: "leave", label: "Izin", icon: FileText },
+            { id: "contact", label: "Wali Kelas", icon: Phone },
+          ].map((t) => {
+            const Active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all whitespace-nowrap", Active ? "bg-[#5B6CF9] text-white shadow" : "text-muted-foreground hover:text-foreground hover:bg-muted/40")}>
+                <t.icon className="h-3.5 w-3.5" strokeWidth={Active ? 2.5 : 2} />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-md mx-auto px-4 space-y-4">
+      <div className="max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-4">
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
           <div className="relative">
