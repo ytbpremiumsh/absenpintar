@@ -480,9 +480,9 @@ export function BendaharaDashboard() {
 
 // =================== MOBILE DASHBOARD (Bendahara) — Payou-style emerald ===================
 function BendaharaMobileDashboard({
-  stats, completionRate, recentPaidList, tunggakanList,
+  stats, completionRate, recentPaidList, tunggakanList, onSelectPaid,
 }: {
-  stats: any; completionRate: number; recentPaidList: any[]; tunggakanList: any[];
+  stats: any; completionRate: number; recentPaidList: any[]; tunggakanList: any[]; onSelectPaid?: (t: any) => void;
 }) {
   const navigate = useNavigate();
   return (
