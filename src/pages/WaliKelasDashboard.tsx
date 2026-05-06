@@ -487,8 +487,248 @@ const WaliKelasDashboard = () => {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 };
+
+// ============================================================
+// MOBILE — Fintech Payou-style for Wali Kelas
+// ============================================================
+function WaliKelasMobileDashboard({
+  stats, percentage, classNames, myClassRanks, students, search, setSearch,
+}: {
+  stats: any; percentage: number; classNames: string[];
+  myClassRanks: { name: string; rank: number; rate: number }[];
+  students: any[]; search: string; setSearch: (s: string) => void;
+}) {
+  const navigate = useNavigate();
+  const today = new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
+  const myBest = myClassRanks[0];
+
+  return (
+    <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-[#5B6CF9]/10 via-background to-background">
+      {/* Top bar */}
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Kelas</p>
+          <p className="text-sm font-bold truncate max-w-[220px]">{classNames.join(", ") || "Kelas Saya"}</p>
+        </div>
+        <button
+          onClick={() => navigate("/wali-kelas-history")}
+          className="h-9 w-9 rounded-full bg-white shadow-sm ring-1 ring-border/60 flex items-center justify-center active:scale-95 transition"
+          aria-label="History"
+        >
+          <Activity className="h-4 w-4 text-[#5B6CF9]" />
+        </button>
+      </div>
+
+      <div className="px-4 space-y-4">
+        {/* HERO CARD — primary gradient */}
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-5 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
+          <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
+
+          <div className="relative flex items-center gap-3">
+            <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center shrink-0">
+              <ClipboardCheck className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Progress Absensi</p>
+              <p className="text-[11px] text-white/80 truncate">{today}</p>
+            </div>
+          </div>
+
+          <div className="relative mt-4">
+            <p className="text-[44px] font-extrabold tracking-tight leading-none">{percentage}<span className="text-2xl">%</span></p>
+            <p className="text-[11px] text-white/80 mt-1.5">
+              {stats.total - stats.belum} dari {stats.total} siswa sudah diabsen
+            </p>
+            <div className="mt-3 h-2 rounded-full bg-white/20 overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-white"
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 1 }}
+              />
+            </div>
+          </div>
+
+          {/* 3 quick actions */}
+          <div className="relative mt-5 flex items-center justify-around">
+            <button onClick={() => navigate("/wali-kelas-attendance")} className="flex flex-col items-center gap-1.5 group">
+              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
+                <CalendarCheck2 className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-medium text-white/90">Absensi</span>
+            </button>
+            <button onClick={() => navigate("/wali-kelas-students")} className="flex flex-col items-center gap-1.5 group">
+              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
+                <Users className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-medium text-white/90">Siswa</span>
+            </button>
+            <button onClick={() => navigate("/wali-kelas-export")} className="flex flex-col items-center gap-1.5 group">
+              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
+                <BarChart3 className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-medium text-white/90">Rekap</span>
+            </button>
+          </div>
+
+          {/* Ranking pill */}
+          {myBest && (
+            <div className="relative mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/25 text-white font-semibold text-xs">
+              <Trophy className="h-3.5 w-3.5" />
+              Peringkat Kelas Anda: #{myBest.rank} • {myBest.rate}%
+            </div>
+          )}
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-3 gap-2.5">
+          <MiniStat icon={UserCheck} label="Hadir" value={stats.hadir} gradient="from-emerald-500 to-teal-600" />
+          <MiniStat icon={FileText} label="Izin" value={stats.izin} gradient="from-amber-500 to-orange-600" />
+          <MiniStat icon={Thermometer} label="Sakit" value={stats.sakit} gradient="from-sky-500 to-blue-600" />
+          <MiniStat icon={AlertTriangle} label="Alfa" value={stats.alfa} gradient="from-rose-500 to-red-600" />
+          <MiniStat icon={Clock} label="Belum" value={stats.belum} gradient="from-slate-500 to-slate-700" />
+          <MiniStat icon={Users} label="Total" value={stats.total} gradient="from-indigo-500 to-violet-600" />
+        </div>
+
+        {/* Service grid */}
+        <div className="grid grid-cols-4 gap-3">
+          <ServiceTile icon={ClipboardCheck} label="Absensi" gradient="from-[#5B6CF9] to-[#4c5ded]" onClick={() => navigate("/wali-kelas-attendance")} />
+          <ServiceTile icon={Users} label="Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/wali-kelas-students")} />
+          <ServiceTile icon={BarChart3} label="Rekap" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/wali-kelas-export")} />
+          <ServiceTile icon={Activity} label="Analytic" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/wali-kelas-history")} />
+          <ServiceTile icon={Trophy} label="Peringkat" gradient="from-yellow-500 to-amber-600" onClick={() => window.scrollTo({ top: 9999, behavior: "smooth" })} />
+          <ServiceTile icon={HistoryIcon} label="Riwayat" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/wali-kelas-history")} />
+          <ServiceTile icon={GraduationCap} label="Kelas" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/wali-kelas-students")} />
+          <ServiceTile icon={FileText} label="Izin" gradient="from-slate-600 to-slate-800" onClick={() => navigate("/wali-kelas-attendance")} />
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Cari siswa..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-11 rounded-2xl bg-white dark:bg-card ring-1 ring-border/60 border-0" />
+        </div>
+
+        {/* Student list */}
+        <div className="rounded-2xl bg-white dark:bg-card ring-1 ring-border/60 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-[#5B6CF9]/10 to-[#4c5ded]/5 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-[#5B6CF9]" />
+              <p className="text-xs font-bold text-foreground">Daftar Siswa</p>
+            </div>
+            <span className="text-[10px] font-semibold text-[#5B6CF9]">{students.length} siswa</span>
+          </div>
+          {students.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-8">Tidak ada siswa</p>
+          ) : (
+            <div className="divide-y divide-border/40 max-h-[420px] overflow-y-auto">
+              {students.slice(0, 30).map((s) => (
+                <div key={s.id} className="px-4 py-2.5 flex items-center gap-3">
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden ${
+                    s.status === "hadir" ? "bg-emerald-100 text-emerald-700" :
+                    s.status === "izin" ? "bg-amber-100 text-amber-700" :
+                    s.status === "sakit" ? "bg-sky-100 text-sky-700" :
+                    s.status === "alfa" ? "bg-rose-100 text-rose-700" :
+                    "bg-muted text-muted-foreground"
+                  }`}>
+                    {s.photo_url ? <img src={s.photo_url} alt="" className="h-full w-full rounded-full object-cover" /> : (s.name || "?")[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold truncate">{s.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{s.class} • NIS: {s.student_id}</p>
+                  </div>
+                  <Badge variant="secondary" className="text-[9px] capitalize shrink-0">{s.status}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Floating bottom nav */}
+      <nav className="fixed bottom-3 inset-x-0 z-40 flex justify-center px-3 pointer-events-none">
+        <div className="pointer-events-auto relative flex items-center gap-1 bg-white/95 dark:bg-card/95 backdrop-blur-xl rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
+          <NavBtn icon={Home} label="Beranda" active color="#5B6CF9" onClick={() => navigate("/wali-kelas-dashboard")} />
+          <NavBtn icon={ClipboardCheck} label="Absensi" color="#10B981" onClick={() => navigate("/wali-kelas-attendance")} />
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(91,108,249,0.7)] ring-4 ring-background transition-transform active:scale-95 hover:scale-105 shrink-0"
+                aria-label="Menu Lainnya"
+              >
+                <LayoutGrid className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
+              </SheetHeader>
+              <div className="grid grid-cols-3 gap-3">
+                <SheetTile icon={Users} label="Siswa Kelas" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/wali-kelas-students")} />
+                <SheetTile icon={BarChart3} label="Rekap" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/wali-kelas-export")} />
+                <SheetTile icon={Activity} label="Analytic" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/wali-kelas-history")} />
+                <SheetTile icon={HistoryIcon} label="History" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/wali-kelas-history")} />
+                <SheetTile icon={Download} label="Export" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/wali-kelas-export")} />
+                <SheetTile icon={Trophy} label="Peringkat" gradient="from-yellow-500 to-amber-600" onClick={() => window.scrollTo({ top: 9999, behavior: "smooth" })} />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <NavBtn icon={Users} label="Siswa" color="#10B981" onClick={() => navigate("/wali-kelas-students")} />
+          <NavBtn icon={BarChart3} label="Rekap" color="#F59E0B" onClick={() => navigate("/wali-kelas-export")} />
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+function MiniStat({ icon: Icon, label, value, gradient }: { icon: any; label: string; value: number; gradient: string }) {
+  return (
+    <div className="rounded-2xl p-3 bg-white dark:bg-card ring-1 ring-border/60 shadow-sm">
+      <div className={`h-8 w-8 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-1.5 shadow-sm`}>
+        <Icon className="h-4 w-4 text-white" strokeWidth={2.3} />
+      </div>
+      <p className="text-lg font-extrabold leading-none">{value}</p>
+      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function ServiceTile({ icon: Icon, label, gradient, onClick }: { icon: any; label: string; gradient: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
+      <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_20px_-10px_rgba(0,0,0,0.35)] group-hover:-translate-y-0.5 group-hover:shadow-[0_12px_28px_-10px_rgba(0,0,0,0.4)] transition-all ring-1 ring-white/30 bg-gradient-to-br ${gradient}`}>
+        <Icon className="h-[22px] w-[22px] text-white" strokeWidth={2.3} />
+      </div>
+      <span className="text-[10px] font-semibold text-foreground/80 text-center leading-tight">{label}</span>
+    </button>
+  );
+}
+
+function NavBtn({ icon: Icon, label, active, color, onClick }: any) {
+  return (
+    <button onClick={onClick} className={`flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl transition-all ${active ? "scale-105" : ""}`}>
+      <Icon className="h-5 w-5 transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }} strokeWidth={active ? 2.5 : 2} />
+      <span className="text-[9px] font-semibold transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }}>{label}</span>
+    </button>
+  );
+}
+
+function SheetTile({ icon: Icon, label, gradient, onClick }: { icon: any; label: string; gradient: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
+      <div className={`h-12 w-12 rounded-2xl flex items-center justify-center bg-gradient-to-br shadow-sm ${gradient}`}>
+        <Icon className="h-5 w-5 text-white" strokeWidth={2.2} />
+      </div>
+      <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
+    </button>
+  );
+}
 
 export default WaliKelasDashboard;
