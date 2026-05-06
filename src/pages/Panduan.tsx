@@ -74,14 +74,14 @@ const GUIDES: RoleGuide[] = [
           "Tampilan layar publik yang bisa diakses tanpa login — cocok ditampilkan di TV gerbang sekolah. Tersedia 2 mode: monitor Kedatangan (status Hadir/Izin/Sakit/Alfa/Belum) dan monitor Kepulangan (siapa yang sudah pulang per kelas).",
         image: "/panduan/public-monitor-datang.jpg",
         bullets: [
-          "URL Datang: /attendance/{schoolId} — menampilkan Live Feed Absensi realtime dengan jam.",
-          "URL Pulang: /live/{schoolId} — menampilkan progress kepulangan per kelas dengan auto-rotate.",
+          "Akses link Live Monitor langsung dari menu Monitoring → tombol 'Live Monitor Publik'.",
+          "Tersedia 2 mode: Monitor Kedatangan & Monitor Kepulangan.",
           "Counter besar: Total, Hadir, Izin, Sakit, Alfa, Belum.",
           "Auto-refresh setiap 5 detik — tidak perlu reload manual.",
           "Tombol Fullscreen untuk tampilan TV.",
         ],
         tips: [
-          "Bookmark URL ini di TV/komputer ruang depan agar bisa langsung dibuka tanpa login.",
+          "Bookmark link ini di TV/komputer ruang depan agar bisa langsung dibuka tanpa login.",
           "Cocok untuk transparansi ke wali murid yang menjemput.",
         ],
       },
@@ -379,11 +379,11 @@ const GUIDES: RoleGuide[] = [
         bullets: [
           "Kartu: Total Tagihan Bulan Ini, Sudah Dibayar, Tunggakan, Saldo Cair.",
           "Grafik tren pembayaran 6 bulan terakhir.",
-          "Notifikasi pembayaran masuk realtime via Mayar webhook.",
+          "Notifikasi pembayaran masuk realtime via webhook payment gateway.",
           "Quick action: Generate Tagihan, Catat Pembayaran, Pencairan.",
         ],
         tips: [
-          "Pembayaran online via Mayar otomatis tercatat tanpa input manual.",
+          "Pembayaran online otomatis tercatat tanpa input manual.",
           "Notifikasi WA 'Pembayaran SPP Berhasil' dengan banner branded otomatis terkirim.",
         ],
       },
@@ -418,7 +418,7 @@ const GUIDES: RoleGuide[] = [
           "Pilih kelas (semua atau spesifik).",
           "Klik 'Generate' — tagihan dibuat untuk semua siswa di kelas terpilih.",
           "Notifikasi WA 'Tagihan SPP' dengan banner branded otomatis terkirim ke semua wali murid.",
-          "Link pembayaran Mayar otomatis di-generate per tagihan.",
+          "Link pembayaran online otomatis di-generate per tagihan.",
         ],
         tips: [
           "Header WhatsApp menampilkan banner 'Tagihan SPP' branded.",
@@ -428,17 +428,17 @@ const GUIDES: RoleGuide[] = [
       {
         title: "5. Pembayaran SPP",
         description:
-          "Catat pembayaran manual (tunai) atau lihat pembayaran online yang masuk otomatis dari Mayar. Tampilan dikelompokkan per kelas dengan tombol 'Kirim WA' massal per rombel.",
+          "Catat pembayaran manual (tunai) atau lihat pembayaran online yang masuk otomatis. Tampilan dikelompokkan per kelas dengan tombol 'Kirim WA' massal per rombel.",
         image: "/panduan/bendahara-pembayaran.jpg",
         bullets: [
           "Tab: Belum Bayar / Sudah Bayar / Semua.",
           "Filter per bulan, kelas, atau cari nama siswa.",
           "'Catat Pembayaran Manual' untuk input pembayaran tunai/transfer manual.",
-          "Pembayaran via Mayar auto-approve — tidak perlu konfirmasi manual.",
+          "Pembayaran online auto-approve — tidak perlu konfirmasi manual.",
           "Bukti pembayaran (kwitansi PDF) bisa di-download per transaksi.",
         ],
         tips: [
-          "Reuse pending link 5 menit terakhir — mencegah duplikat link Mayar.",
+          "Reuse pending link 5 menit terakhir — mencegah duplikat link pembayaran.",
           "Notifikasi 'Pembayaran SPP Berhasil' dengan footer 'ATSkolla - Platform Digital Sekolah' otomatis terkirim.",
         ],
       },
@@ -455,21 +455,21 @@ const GUIDES: RoleGuide[] = [
       {
         title: "7. Saldo & Riwayat",
         description:
-          "Lihat saldo Mayar yang siap dicairkan dan riwayat semua transaksi masuk.",
+          "Lihat saldo yang siap dicairkan dan riwayat semua transaksi masuk.",
         bullets: [
           "Saldo tersedia untuk pencairan ditampilkan paling atas.",
-          "Riwayat transaksi: nama siswa, bulan, nominal, fee Mayar, net.",
+          "Riwayat transaksi: nama siswa, bulan, nominal, fee gateway, net.",
           "Filter periode untuk laporan keuangan bulanan.",
         ],
       },
       {
         title: "8. Pencairan & Settlement",
         description:
-          "Ajukan pencairan saldo ke rekening sekolah. Settlement otomatis diproses oleh Mayar.",
+          "Ajukan pencairan saldo ke rekening sekolah. Settlement otomatis diproses oleh sistem payment gateway.",
         bullets: [
           "Tombol 'Ajukan Pencairan' — pilih nominal & rekening tujuan.",
           "Status: Pending / Diproses / Selesai / Gagal.",
-          "Jadwal settlement standar Mayar: H+1 hingga H+3 hari kerja.",
+          "Jadwal settlement standar: H+1 hingga H+3 hari kerja.",
         ],
       },
       {
@@ -497,7 +497,7 @@ const GUIDES: RoleGuide[] = [
       {
         title: "1. Login Portal Wali Murid",
         description:
-          "Buka halaman /parent/login lalu masukkan nomor WhatsApp yang terdaftar di sekolah ananda. Tidak perlu password.",
+          "Buka halaman Portal Wali Murid lalu masukkan nomor WhatsApp yang terdaftar di sekolah ananda. Tidak perlu password.",
         image: "/panduan/parent-login.jpg",
         bullets: [
           "Pastikan nomor WA sudah didaftarkan oleh sekolah/wali kelas.",
@@ -536,12 +536,12 @@ const GUIDES: RoleGuide[] = [
           "Jika sekolah mengaktifkan modul SPP, Anda dapat melihat tagihan dan melakukan pembayaran online via QRIS/transfer bank.",
         bullets: [
           "Daftar tagihan SPP per bulan dengan status Lunas/Belum.",
-          "Klik 'Bayar Sekarang' untuk pembayaran via Mayar (QRIS/Bank/E-Wallet).",
+          "Klik 'Bayar Sekarang' untuk pembayaran online (QRIS/Bank/E-Wallet).",
           "Notifikasi WA 'Pembayaran SPP Berhasil' dengan banner branded otomatis terkirim setelah lunas.",
           "Download kwitansi PDF setelah pembayaran berhasil.",
         ],
         tips: [
-          "Pembayaran terverifikasi otomatis via webhook Mayar — saldo masuk realtime ke sekolah.",
+          "Pembayaran terverifikasi otomatis via webhook — saldo masuk realtime ke sekolah.",
         ],
       },
       {
