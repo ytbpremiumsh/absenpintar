@@ -2310,7 +2310,7 @@ export function BendaharaSPPDetail() {
               <Banknote className="h-5 w-5 text-slate-600" /> Catat Pembayaran Offline
             </DialogTitle>
             <DialogDescription>
-              Catat pelunasan SPP yang dibayar langsung di sekolah (tunai / transfer manual).
+              Catat pelunasan SPP tunai / transfer manual ke sekolah.
             </DialogDescription>
           </DialogHeader>
 
@@ -2320,8 +2320,8 @@ export function BendaharaSPPDetail() {
               <div className="rounded-lg border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 flex gap-2">
                 <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-900 dark:text-amber-100 leading-relaxed">
-                  <p className="font-bold mb-1">Penting — Dana Tidak Masuk Pencairan Online</p>
-                  <p>Pembayaran offline tercatat sebagai <b>LUNAS</b> di sistem & laporan, tetapi <b>tidak ikut dihitung</b> ke saldo pencairan dana karena uang sudah diterima sekolah secara langsung. Pastikan uang sudah benar-benar diterima sebelum mencatat.</p>
+                  <p className="font-bold mb-1">Tidak masuk pencairan online</p>
+                  <p>Tercatat <b>LUNAS</b> di laporan, tapi <b>tidak menambah saldo pencairan</b> karena uang langsung diterima sekolah.</p>
                 </div>
               </div>
 
