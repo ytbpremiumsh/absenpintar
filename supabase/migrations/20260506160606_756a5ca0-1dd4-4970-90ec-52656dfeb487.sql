@@ -1,0 +1,2 @@
+UPDATE spp_invoices SET status='expired', payment_url=NULL, mayar_invoice_id=NULL, expired_at=now() WHERE status='pending' AND payment_url IS NOT NULL;
+UPDATE payment_transactions SET status='expired' WHERE payment_method='spp' AND status='pending';
