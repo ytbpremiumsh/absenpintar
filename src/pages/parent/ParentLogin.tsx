@@ -316,7 +316,7 @@ export default function ParentLogin() {
             transition={{ delay: 0.7 }}
             className="text-center text-white/30 text-xs mt-6"
           >
-            © 2026 ATSkolla - Absensi Digital Sekolah
+            © 2026 ATSkolla — Platform Sekolah Digital
           </motion.p>
         </motion.div>
       </div>
