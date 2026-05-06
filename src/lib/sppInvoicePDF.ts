@@ -205,9 +205,21 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
   // ─── PAYMENT INFO (if paid) ───
   if (isPaid) {
     y += 6;
+    const rawMethod = (data.invoice.payment_method || "").toLowerCase();
+    const isOffline = rawMethod === "offline_cash" || rawMethod === "offline_transfer";
+    const methodLabel =
+      rawMethod === "offline_cash" ? "Tunai (Pembayaran Langsung di Sekolah)"
+      : rawMethod === "offline_transfer" ? "Transfer Manual ke Rekening Sekolah"
+      : rawMethod.includes("transfer") || rawMethod.includes("bank") ? "Transfer Bank"
+      : rawMethod.includes("qris") ? "QRIS"
+      : rawMethod.includes("ewallet") || rawMethod.includes("wallet") ? "E-Wallet"
+      : rawMethod === "spp" || rawMethod === "" || rawMethod === "mayar" ? "QRIS / Transfer Bank"
+      : data.invoice.payment_method!.toUpperCase();
+
+    const boxHeight = isOffline ? 24 : 18;
     doc.setDrawColor(16, 185, 129);
     doc.setFillColor(236, 253, 245);
-    doc.roundedRect(M, y, W - 2 * M, 18, 2, 2, "FD");
+    doc.roundedRect(M, y, W - 2 * M, boxHeight, 2, 2, "FD");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(5, 122, 85);
@@ -216,6 +228,15 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
     doc.setFontSize(8.5);
     doc.setTextColor(60, 90, 70);
     doc.text(`Tanggal Pembayaran : ${fmtDate(data.invoice.paid_at)}`, M + 4, y + 11.5);
+    doc.text(`Metode Pembayaran  : ${methodLabel}`, M + 4, y + 15.5);
+    if (isOffline) {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(7.5);
+      doc.setTextColor(80, 110, 90);
+      doc.text("Pembayaran diterima langsung oleh sekolah (tidak melalui gateway online).", M + 4, y + 20.5);
+    }
+    y += boxHeight;
+  }
     const rawMethod = (data.invoice.payment_method || "").toLowerCase();
     const methodLabel = rawMethod.includes("transfer") || rawMethod.includes("bank") ? "Transfer Bank"
       : rawMethod.includes("qris") ? "QRIS"
