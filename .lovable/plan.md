@@ -1,53 +1,97 @@
+# Fitur Pembayaran Offline SPP
 
-# Plan: Script `update.sh` untuk Self-Host VPS
+Tujuan: Bendahara bisa mencatat pelunasan SPP yang dibayar **langsung di sekolah** (tunai / transfer manual ke rekening sekolah). Nominal tetap masuk laporan & riwayat siswa, tapi **tidak ikut dihitung sebagai saldo yang dicairkan** karena uang sudah ada di tangan sekolah.
 
-Script ini akan ditambahkan ke root project (akan ikut tersinkron ke GitHub repo Anda), lalu Anda jalankan di VPS untuk pull update terbaru → install dependency → build → restart server.
+---
 
-## Yang Akan Dibuat
+## Yang Akan Dibangun
 
-### 1. `update.sh` (root project)
+### 1. Tombol "Catat Bayar Offline" di Detail Siswa
+Lokasi: `src/pages/bendahara/BendaharaPages.tsx` — komponen `BendaharaTransaksi` (Detail Siswa), kolom Aksi tabel **Riwayat Pembayaran**.
 
-Script bash idempotent dengan fitur:
-- `git fetch` + cek apakah ada commit baru (skip kalau sudah up-to-date)
-- `git pull` dari branch `main`
-- Auto-detect package manager (`bun` / `npm` / `pnpm`) — default `bun` karena project pakai bun
-- Install dependency hanya jika `package.json` / lockfile berubah (cepat)
-- `bun run build` → output `dist/`
-- Restart service via salah satu metode (auto-detect):
-  - **PM2**: `pm2 reload atskolla` (kalau `pm2` ada di PATH)
-  - **systemd**: `sudo systemctl restart atskolla` (kalau service file ada)
-  - **Docker**: `docker compose up -d --build` (kalau `docker-compose.yml` ada)
-  - Fallback: cuma rebuild, kasih pesan supaya user restart manual
-- Logging timestamped ke `update.log`
-- `set -euo pipefail` untuk fail-fast
-- Lock file (`/tmp/atskolla-update.lock`) supaya tidak double-run
+- Muncul untuk invoice berstatus `pending`, `unpaid`, atau `expired`.
+- Klik → buka **Dialog Konfirmasi Pembayaran Offline** dengan:
+  - Pilihan metode: **Tunai** atau **Transfer Manual ke Rekening Sekolah**
+  - Input tanggal pembayaran (default: hari ini)
+  - Catatan opsional (mis. nama penerima / no. referensi transfer)
+  - **Banner peringatan jelas** (kuning):
+    > "Pembayaran offline TIDAK masuk ke saldo pencairan online. Pastikan uang sudah benar-benar diterima sekolah sebelum mencatat. Tindakan ini tidak bisa dibatalkan otomatis."
 
-### 2. `DEPLOY.md` (root project)
+### 2. Update Database Invoice
+Saat dikonfirmasi:
+```
+status         = 'paid'
+payment_method = 'offline_cash'  (atau) 'offline_transfer'
+gateway_fee    = 0
+net_amount     = 0          ← KUNCI: tidak masuk saldo cair
+paid_at        = tanggal yang diinput
+description    = description + " | OFFLINE: <catatan>"
+```
+Catatan: `total_amount` tetap utuh untuk laporan & PDF invoice. Yang di-set 0 hanya `net_amount` agar query saldo `SUM(net_amount)` otomatis mengabaikan invoice offline tanpa perlu ubah filter di banyak tempat.
 
-Dokumentasi singkat:
-- Cara clone repo pertama kali ke VPS
-- Set environment variables (`.env` — VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_SUPABASE_PROJECT_ID)
-- Cara `chmod +x update.sh` lalu `./update.sh`
-- Contoh setup cron untuk auto-update (misal tiap 10 menit cek commit baru):
-  ```
-  */10 * * * * cd /var/www/atskolla && ./update.sh >> update.log 2>&1
-  ```
-- Contoh konfigurasi PM2 + Nginx reverse proxy
-- Catatan: edge function & database **tidak** di-handle script ini (sudah dikelola Lovable Cloud)
+### 3. Exclude Offline dari Saldo Pencairan (Defense-in-depth)
+Di `BendaharaPencairan` & `BendaharaSaldo`, tambahkan filter eksplisit:
+```ts
+.not("payment_method", "in", "(offline_cash,offline_transfer)")
+```
+Jadi walau ada migrasi data lama, query saldo selalu aman.
 
-## Catatan Penting
+### 4. Info Banner di Halaman Saldo & Pencairan
+Banner biru kecil di atas card saldo:
+> "Saldo Aktif hanya berisi pembayaran online via Mayar (QRIS / Transfer Bank / E-Wallet). Pembayaran offline (tunai / transfer manual) tidak ikut dicairkan karena uang sudah diterima sekolah secara langsung."
 
-1. **Script ini hanya untuk frontend (Vite SPA build).** Backend (edge functions, DB, cron `auto-mark-alfa`) tetap berjalan di Lovable Cloud dan tidak perlu di-deploy ulang.
+### 5. Format Label Metode di Tabel
+Mapping tampilan kolom **Metode**:
+- `offline_cash` → "Tunai (Offline)"
+- `offline_transfer` → "Transfer Manual (Offline)"
+- `mayar` / `qris` → "QRIS / Transfer Bank"
+- lainnya → tampilkan as-is
 
-2. **`.env` jangan di-commit ke GitHub.** Anda harus buat manual `.env` di VPS sekali saja. Script tidak akan menimpa.
+Plus badge warna abu untuk offline agar mudah dibedakan dari pembayaran online (hijau).
 
-3. **Karena Lovable auto-push ke GitHub setiap ada perubahan**, begitu Anda edit di Lovable → 1-2 menit kemudian commit muncul di GitHub → cron `update.sh` di VPS akan tarik & rebuild otomatis. Full hands-off.
+### 6. PDF Invoice untuk Offline
+Update `src/lib/sppInvoicePDF.ts` agar:
+- Mendeteksi `payment_method` offline → tampilkan label rapi: "Tunai (Pembayaran Langsung)" atau "Transfer Manual ke Rekening Sekolah"
+- Section "LUNAS / PEMBAYARAN DITERIMA" tetap muncul (karena status `paid`)
+- Tambahkan note kecil di footer PDF jika offline: "Pembayaran diterima langsung oleh sekolah"
 
-4. **Repo harus sudah connected ke GitHub.** Kalau belum, lewat **Connectors → GitHub → Connect project** dulu.
+### 7. Notifikasi ke Wali Murid (Opsional, tetap aktif)
+Setelah dicatat lunas offline, tampilkan tombol opsional **"Kirim Notifikasi WA Lunas"** ke wali murid dengan template:
+> "Yth. Bapak/Ibu, pembayaran SPP ananda *{nama}* periode *{periode}* sebesar *{nominal}* telah kami terima secara langsung di sekolah pada {tanggal}. Terima kasih."
 
-## File yang Diubah/Dibuat
+---
 
-- `update.sh` (baru)
-- `DEPLOY.md` (baru)
+## Detail Teknis
 
-Tidak ada perubahan kode aplikasi, database, atau edge function.
+**File yang diubah:**
+- `src/pages/bendahara/BendaharaPages.tsx`
+  - Tambah state `offlineDialog` di `BendaharaTransaksi`
+  - Tambah fungsi `markAsPaidOffline()` & `sendOfflineWa()`
+  - Tambah `<Dialog>` konfirmasi offline
+  - Tambah tombol "Catat Bayar Offline" di kolom aksi (status pending/unpaid/expired)
+  - Helper `formatPaymentMethod()` untuk label rapi di kolom Metode
+  - Update query di `BendaharaPencairan` & `BendaharaSaldo` → exclude offline
+  - Tambah info banner di kedua halaman tersebut
+- `src/lib/sppInvoicePDF.ts`
+  - Tambah mapping label metode offline
+  - Tambah footer note untuk offline payment
+
+**Tidak perlu migrasi DB** — kolom `payment_method` sudah ada (text), dan filter `net_amount=0` untuk saldo memanfaatkan kolom existing.
+
+**Edge case ditangani:**
+- Cegah double-click submit dialog (state `busy`)
+- Cegah catat offline jika invoice sudah `paid` (button hanya muncul jika belum lunas)
+- Tanggal tidak boleh > hari ini (validasi di dialog)
+- Confirm dialog dengan teks "Konfirmasi" yang jelas
+
+---
+
+## Hasil Akhir
+
+| Skenario | Tampilan Saldo Pencairan | Tampilan Riwayat Siswa | PDF Invoice |
+|---|---|---|---|
+| Bayar via Mayar (QRIS/Transfer) | ✓ Masuk saldo (net = bruto − fee) | LUNAS — QRIS / Transfer Bank | LUNAS, metode QRIS / TRF |
+| Bayar offline tunai | × Tidak masuk | LUNAS — Tunai (Offline) | LUNAS, metode Tunai + footer note |
+| Bayar offline transfer manual | × Tidak masuk | LUNAS — Transfer Manual (Offline) | LUNAS, metode Transfer Manual |
+
+Bendahara bisa lanjut ajukan pencairan dana online tanpa khawatir saldo tercampur dengan uang fisik yang sudah ada di brankas sekolah.
