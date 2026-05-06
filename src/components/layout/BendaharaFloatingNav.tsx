@@ -1,0 +1,75 @@
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Home, CreditCard, Wallet, BarChart3, LayoutGrid,
+  Users, Receipt, FileText, Upload, ArrowDownToLine,
+} from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+
+/**
+ * Floating bottom navigation for the entire Bendahara role.
+ * Mounted in BendaharaLayout so it appears on every bendahara page on mobile.
+ */
+export function BendaharaFloatingNav() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const isActive = (url: string, exact = false) =>
+    exact ? pathname === url : pathname.startsWith(url);
+
+  return (
+    <nav className="md:hidden fixed bottom-3 inset-x-0 z-40 flex justify-center px-3 pointer-events-none">
+      <div className="pointer-events-auto relative flex items-center gap-1 bg-white/95 dark:bg-card/95 backdrop-blur-xl rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
+        <NavBtn icon={Home} label="Beranda" active={isActive("/bendahara", true)} color="#10B981" onClick={() => navigate("/bendahara")} />
+        <NavBtn icon={CreditCard} label="Bayar" active={isActive("/bendahara/transaksi")} color="#EC4899" onClick={() => navigate("/bendahara/transaksi")} />
+
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(16,185,129,0.7)] ring-4 ring-background transition-transform active:scale-95 hover:scale-105 shrink-0"
+              aria-label="Menu Lainnya"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
+            <SheetHeader className="mb-4">
+              <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
+            </SheetHeader>
+            <div className="grid grid-cols-3 gap-3">
+              <SheetItem icon={Users} label="Data Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/bendahara/siswa")} />
+              <SheetItem icon={Receipt} label="Tarif SPP" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/tarif")} />
+              <SheetItem icon={FileText} label="Generate" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/bendahara/generate")} />
+              <SheetItem icon={Upload} label="Import" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/bendahara/import-export")} />
+              <SheetItem icon={Wallet} label="Saldo" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/bendahara/saldo")} />
+              <SheetItem icon={ArrowDownToLine} label="Pencairan" gradient="from-rose-500 to-red-600" onClick={() => navigate("/bendahara/pencairan")} />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <NavBtn icon={Wallet} label="Saldo" active={isActive("/bendahara/saldo")} color="#0EA5E9" onClick={() => navigate("/bendahara/saldo")} />
+        <NavBtn icon={BarChart3} label="Laporan" active={isActive("/bendahara/laporan")} color="#5B6CF9" onClick={() => navigate("/bendahara/laporan")} />
+      </div>
+    </nav>
+  );
+}
+
+function NavBtn({ icon: Icon, label, active, color, onClick }: any) {
+  return (
+    <button onClick={onClick} className={cn("flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl transition-all", active && "scale-105")}>
+      <Icon className="h-5 w-5 transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }} strokeWidth={active ? 2.5 : 2} />
+      <span className="text-[9px] font-semibold transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }}>{label}</span>
+    </button>
+  );
+}
+
+function SheetItem({ icon: Icon, label, gradient, onClick }: { icon: any; label: string; gradient: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
+      <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm bg-gradient-to-br", gradient)}>
+        <Icon className="h-5 w-5 text-white" strokeWidth={2.2} />
+      </div>
+      <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
+    </button>
+  );
+}
