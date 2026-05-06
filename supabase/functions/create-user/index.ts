@@ -250,47 +250,90 @@ serve(async (req) => {
       }
     }
 
-    // Send WhatsApp registration notification
+    // Send WhatsApp registration notification (with MPWA fallback)
     if (phone) {
       try {
         const { data: settings } = await supabaseAdmin
           .from('platform_settings')
           .select('key, value')
-          .in('key', ['wa_registration_enabled', 'wa_api_url', 'wa_api_key', 'wa_registration_message']);
+          .in('key', [
+            'wa_registration_enabled', 'wa_api_url', 'wa_api_key', 'wa_registration_message',
+            'mpwa_platform_api_key', 'mpwa_platform_sender', 'mpwa_platform_connected'
+          ]);
 
-        const settingsMap: Record<string, string> = {};
-        (settings || []).forEach((s: any) => { settingsMap[s.key] = s.value; });
+        const ps: Record<string, string> = {};
+        (settings || []).forEach((s: any) => { ps[s.key] = s.value; });
 
-        if (settingsMap.wa_registration_enabled === 'true' && settingsMap.wa_api_url && settingsMap.wa_api_key) {
+        if (ps.wa_registration_enabled === 'true') {
           let formattedPhone = phone.replace(/\D/g, '');
           if (formattedPhone.startsWith('0')) {
             formattedPhone = '62' + formattedPhone.substring(1);
           }
 
-          const message = (settingsMap.wa_registration_message || 'Selamat datang, {name}!')
+          const message = (ps.wa_registration_message || 'Selamat datang, {name}!')
             .replace(/{name}/g, full_name || '')
             .replace(/{school}/g, school_name || '')
             .replace(/{email}/g, email || '');
 
-          const waResponse = await fetch(settingsMap.wa_api_url, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${settingsMap.wa_api_key}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              recipient_type: 'individual',
-              to: formattedPhone,
-              type: 'text',
-              text: { body: message },
-            }),
-          });
+          let sent = false;
 
-          if (!waResponse.ok) {
-            const waError = await waResponse.text();
-            console.error('WA registration notification failed:', waError);
-          } else {
-            console.log('WA registration notification sent to', formattedPhone);
+          // 1. Try OneSender (platform)
+          if (ps.wa_api_url && ps.wa_api_key) {
+            try {
+              const waResponse = await fetch(ps.wa_api_url, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${ps.wa_api_key}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  recipient_type: 'individual',
+                  to: formattedPhone,
+                  type: 'text',
+                  text: { body: message },
+                }),
+              });
+              if (waResponse.ok) {
+                sent = true;
+                console.log('[create-user] WA register sent via OneSender to', formattedPhone);
+              } else {
+                const waError = await waResponse.text();
+                console.error('[create-user] OneSender failed:', waError.substring(0, 200));
+              }
+            } catch (e) {
+              console.error('[create-user] OneSender error:', e);
+            }
+          }
+
+          // 2. Fallback: Platform MPWA
+          if (!sent && ps.mpwa_platform_connected === 'true' && ps.mpwa_platform_api_key && ps.mpwa_platform_sender) {
+            try {
+              console.log('[create-user] Fallback to MPWA, sender:', ps.mpwa_platform_sender);
+              const res = await fetch('https://app.ayopintar.com/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: ps.mpwa_platform_api_key,
+                  sender: ps.mpwa_platform_sender,
+                  number: formattedPhone,
+                  message,
+                }),
+              });
+              const text = await res.text();
+              let data: any;
+              try { data = JSON.parse(text); } catch { data = { status: false }; }
+              console.log('[create-user] MPWA response:', JSON.stringify(data).substring(0, 200));
+              if (data?.status !== false) {
+                sent = true;
+                console.log('[create-user] WA register sent via MPWA to', formattedPhone);
+              }
+            } catch (e) {
+              console.error('[create-user] MPWA error:', e);
+            }
+          }
+
+          if (!sent) {
+            console.error('[create-user] All WA gateways failed for', formattedPhone);
           }
         }
       } catch (waErr) {
