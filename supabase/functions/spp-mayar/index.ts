@@ -182,8 +182,10 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   const buyerName = inv.parent_name?.trim()
     ? `${inv.parent_name} (Wali ${inv.student_name})`
     : `Wali ${inv.student_name}`;
+  // Mayar dedupe checks `name` too — embed short ref to keep every name unique
+  // while staying readable on the payment page.
   const payload = {
-    name: `SPP ${inv.period_label} - ${inv.student_name} (${inv.class_name})`,
+    name: `SPP ${inv.period_label} - ${inv.student_name} (${inv.class_name}) #${invoiceShort}${uniq.slice(-3)}`,
     amount: safeAmount,
     description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name} - Total Rp ${safeAmount.toLocaleString("id-ID")} [REF:${invoiceShort}-${uniq}]`,
     email: buyerEmail,
@@ -201,12 +203,16 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   });
   const json = await res.json().catch(() => ({}));
 
-  // Fail-fast strategy: only 2 quick retries, total max ~3s, so user does not
-  // experience long loading. If Mayar still rejects, surface error so user can retry manually.
-  const isDuplicate = res.status === 429 || /duplicate/i.test(json?.message || "");
-  if (isDuplicate && attempt < 2) {
-    const backoff = 800 + attempt * 600 + Math.floor(Math.random() * 400);
-    console.log(`Mayar 429/duplicate — quick retry #${attempt + 1} after ${backoff}ms`);
+  // Mayar may return 429 (rate-limit), 409 (already exist), or messages like
+  // "duplicate" / "already exist". Treat all as transient → retry with new uniq.
+  const msgText = String(json?.message || json?.messages || "").toLowerCase();
+  const isDuplicate =
+    res.status === 429 ||
+    res.status === 409 ||
+    /duplicate|already exist/i.test(msgText);
+  if (isDuplicate && attempt < 3) {
+    const backoff = 600 + attempt * 500 + Math.floor(Math.random() * 400);
+    console.log(`Mayar ${res.status} (${msgText || "duplicate"}) — quick retry #${attempt + 1} after ${backoff}ms`);
     await sleep(backoff);
     return createMayarLink(apiKey, inv, attempt + 1);
   }
