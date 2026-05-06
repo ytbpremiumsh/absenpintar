@@ -41,7 +41,7 @@ const SchoolSettings = () => {
   useEffect(() => {
     if (!profile?.school_id) { setLoading(false); return; }
     Promise.all([
-      supabase.from("schools").select("name, address, logo, npsn, city, province, timezone").eq("id", profile.school_id).single(),
+      supabase.from("schools").select("name, address, logo, npsn, city, province, timezone, holiday_days").eq("id", profile.school_id).single(),
       supabase.from("pickup_settings").select("school_start_time, school_end_time, attendance_start_time, attendance_end_time, departure_start_time, departure_end_time").eq("school_id", profile.school_id).maybeSingle(),
       supabase.from("qr_instructions").select("id, instruction_text, sort_order").eq("school_id", profile.school_id).order("sort_order"),
     ]).then(([schoolRes, settingsRes, instrRes]) => {
@@ -53,6 +53,8 @@ const SchoolSettings = () => {
         setCity((schoolRes.data as any).city || "");
         setProvince((schoolRes.data as any).province || "");
         setTimezone((schoolRes.data as any).timezone || "Asia/Jakarta");
+        const hd = (schoolRes.data as any).holiday_days;
+        setHolidayDays(Array.isArray(hd) ? hd : [0, 6]);
       }
       if (settingsRes.data) {
         setStartTime(settingsRes.data.school_start_time?.slice(0, 5) || "07:00");
