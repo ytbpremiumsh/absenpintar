@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.auto-caption]
 verify_jwt = false
+
+[functions.auto-mark-alfa]
+verify_jwt = false
