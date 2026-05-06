@@ -328,7 +328,7 @@ async function ensureFreshLink(
   inv: any,
   forceRegen = false,
 ): Promise<{ success: boolean; payment_url?: string; invoice_id?: string; error?: string }> {
-  const apiKey = Deno.env.get("MAYAR_API_KEY");
+  const apiKey = await getMayarApiKey(supabaseAdmin);
   if (!apiKey) return { success: false, error: "MAYAR_API_KEY belum dikonfigurasi" };
 
   const now = Date.now();
