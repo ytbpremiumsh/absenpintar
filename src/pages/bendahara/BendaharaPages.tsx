@@ -269,6 +269,7 @@ export function BendaharaDashboard() {
         completionRate={completionRate}
         recentPaidList={recentPaidList}
         tunggakanList={tunggakanList}
+        onSelectPaid={(t) => setDetailInv(t)}
       />
 
       {/* ==================== DESKTOP / TABLET (md+) ==================== */}
