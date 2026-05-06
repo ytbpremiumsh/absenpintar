@@ -569,12 +569,12 @@ function BendaharaMobileDashboard({
 
         {/* Recent paid */}
         <div className="rounded-2xl bg-white dark:bg-card ring-1 ring-border/60 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border-b border-emerald-100 dark:border-emerald-900/30">
+          <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/20 border-b border-indigo-100 dark:border-indigo-900/30">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Pembayaran Terbaru</p>
+              <CheckCircle2 className="h-4 w-4 text-[#5B6CF9]" />
+              <p className="text-xs font-bold text-[#3D4FE0] dark:text-indigo-300">Pembayaran Terbaru</p>
             </div>
-            <span className="text-[10px] font-semibold text-emerald-600">{recentPaidList.length}</span>
+            <span className="text-[10px] font-semibold text-[#5B6CF9]">{recentPaidList.length}</span>
           </div>
           {recentPaidList.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-6">Belum ada pembayaran</p>
@@ -582,14 +582,14 @@ function BendaharaMobileDashboard({
             <div className="divide-y divide-border/40">
               {recentPaidList.slice(0, 6).map((t) => (
                 <div key={t.id} className="px-4 py-2.5 flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {(t.student_name || "?")[0]}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold truncate">{t.student_name}</p>
                     <p className="text-[10px] text-muted-foreground truncate">{t.class_name} • {t.period_label}</p>
                   </div>
-                  <p className="text-xs font-bold text-emerald-600 shrink-0">{fmtIDR(t.total_amount)}</p>
+                  <p className="text-xs font-bold text-[#3D4FE0] shrink-0">{fmtIDR(t.total_amount)}</p>
                 </div>
               ))}
             </div>
@@ -1997,16 +1997,17 @@ export function BendaharaSPPDetail() {
     <div className="space-y-4">
       <Button variant="ghost" size="sm" onClick={() => navigate("/bendahara/transaksi")}><ArrowLeft className="h-4 w-4 mr-1" /> Kembali</Button>
 
-      {/* Header siswa */}
-      <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
-        <CardContent className="p-5">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-2xl font-extrabold shrink-0">
+      {/* Header siswa — sama seperti profile siswa di Dashboard Sekolah */}
+      <Card className="shadow-elevated border-0 overflow-hidden">
+        <div className="h-28 sm:h-32 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
+        <CardContent className="relative px-6 pb-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-14">
+            <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-3xl font-bold border-4 border-card shadow-elevated shrink-0">
               {student.name[0]}
             </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl md:text-2xl font-extrabold truncate">{student.name}</h1>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs md:text-sm text-muted-foreground mt-1">
+            <div className="text-center sm:text-left flex-1 pb-1 min-w-0">
+              <h1 className="text-2xl font-bold bg-card/80 backdrop-blur-sm px-3 py-1 rounded-lg inline-block truncate max-w-full">{student.name}</h1>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1 text-xs md:text-sm text-muted-foreground mt-2">
                 <span>NIS: <strong className="text-foreground">{student.student_id}</strong></span>
                 {student.nisn && <span>NISN: <strong className="text-foreground">{student.nisn}</strong></span>}
                 <span>Kelas: <Badge variant="secondary">{student.class}</Badge></span>
@@ -2551,7 +2552,7 @@ export function BendaharaSaldo() {
     <div className="space-y-4">
 
       {/* Saldo Aktif - Highlight Card */}
-      <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white overflow-hidden relative">
+      <Card className="border-0 shadow-md bg-gradient-to-br from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0] text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
         <CardContent className="p-5 relative">
           <div className="flex items-center gap-2 mb-1">
@@ -2814,16 +2815,16 @@ export function BendaharaPencairan() {
       </div>
 
       <Tabs defaultValue="pencairan" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:w-fit gap-1 bg-emerald-50 dark:bg-emerald-950/40 p-1 rounded-xl border border-emerald-200/60 dark:border-emerald-800/60">
+        <TabsList className="grid w-full grid-cols-2 md:w-fit gap-1 bg-indigo-50 dark:bg-indigo-950/40 p-1 rounded-xl border border-indigo-200/60 dark:border-indigo-800/60">
           <TabsTrigger
             value="pencairan"
-            className="gap-2 rounded-lg font-semibold text-emerald-700 dark:text-emerald-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/30 transition-all duration-300"
+            className="gap-2 rounded-lg font-semibold text-[#3D4FE0] dark:text-indigo-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#5B6CF9] data-[state=active]:to-[#3D4FE0] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-[#5B6CF9]/30 transition-all duration-300"
           >
             <ArrowDownToLine className="h-4 w-4" /> Ajukan Pencairan
           </TabsTrigger>
           <TabsTrigger
             value="riwayat"
-            className="gap-2 rounded-lg font-semibold text-emerald-700 dark:text-emerald-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/30 transition-all duration-300"
+            className="gap-2 rounded-lg font-semibold text-[#3D4FE0] dark:text-indigo-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#5B6CF9] data-[state=active]:to-[#3D4FE0] data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-[#5B6CF9]/30 transition-all duration-300"
           >
             <FileText className="h-4 w-4" /> Riwayat Settlement
           </TabsTrigger>
