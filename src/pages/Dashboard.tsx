@@ -159,13 +159,16 @@ const Dashboard = () => {
 
     const { data } = await supabase
       .from("attendance_logs")
-      .select("date, status")
+      .select("date, status, method")
       .eq("school_id", profile.school_id)
       .eq("attendance_type", "datang")
       .gte("date", fromDate)
       .order("date");
 
-    setPeriodLogs(data || []);
+    // Sembunyikan record auto-system untuk HARI BERJALAN — datanya belum final.
+    // Untuk tanggal sebelumnya, record auto-Alfa tetap dihitung sebagai data historis.
+    const filtered = (data || []).filter((l: any) => !(l.date === todayStr && l.method === "auto"));
+    setPeriodLogs(filtered);
   }, [profile?.school_id, chartPeriod]);
 
   // Show trial popup on first load if user is on trial
