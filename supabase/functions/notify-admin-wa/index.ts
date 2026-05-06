@@ -42,6 +42,7 @@ serve(async (req) => {
         'admin_notify_enabled',
         'admin_notify_ticket_template',
         'admin_notify_withdrawal_template',
+        'admin_notify_bendahara_template',
         'mpwa_platform_api_key',
         'mpwa_platform_sender',
         'mpwa_platform_connected',
