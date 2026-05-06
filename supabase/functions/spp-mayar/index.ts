@@ -363,36 +363,26 @@ async function ensureFreshLink(
     return { success: true, payment_url: inv.payment_url, invoice_id: inv.id };
   }
 
-  // If expired or forced regen → mark current invoice as 'expired' (only if not paid and has prior link)
+  // If the invoice itself is already 'expired', find/use its latest pending sibling instead
+  // of creating yet another row. This prevents duplicate -RAMLT, -RAWCV, -RE1R6 chains.
   let parentInvoiceId = inv.id;
-  if ((isExpired || forceRegen) && inv.status !== "paid") {
-    if (inv.payment_url || forceRegen) {
-      // Mark old as expired and create a fresh row to keep history intact
-      await supabaseAdmin.from("spp_invoices").update({ status: "expired" }).eq("id", inv.id);
-
-      const newRow = {
-        school_id: inv.school_id,
-        student_id: inv.student_id,
-        invoice_number: `${inv.invoice_number}-R${Date.now().toString(36).slice(-4).toUpperCase()}`,
-        student_name: inv.student_name,
-        class_name: inv.class_name,
-        parent_name: inv.parent_name,
-        parent_phone: inv.parent_phone,
-        period_month: inv.period_month,
-        period_year: inv.period_year,
-        period_label: inv.period_label,
-        description: `${inv.student_name} – ${inv.class_name} – ${inv.period_label}`,
-        amount: inv.amount,
-        denda: inv.denda || 0,
-        total_amount: inv.total_amount,
-        due_date: inv.due_date,
-        status: "pending",
-        regenerated_from: inv.id,
-      };
-      const { data: created, error } = await supabaseAdmin.from("spp_invoices").insert(newRow).select().single();
-      if (error || !created) return { success: false, error: error?.message || "Gagal membuat tagihan baru" };
-      inv = created;
-      parentInvoiceId = created.id;
+  if (inv.status === "expired") {
+    const rootId = inv.regenerated_from || inv.id;
+    const { data: sibling } = await supabaseAdmin
+      .from("spp_invoices")
+      .select("*")
+      .eq("school_id", inv.school_id)
+      .eq("student_id", inv.student_id)
+      .eq("period_month", inv.period_month)
+      .eq("period_year", inv.period_year)
+      .neq("status", "expired")
+      .neq("status", "paid")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (sibling) {
+      inv = sibling;
+      parentInvoiceId = sibling.id;
     }
   }
 
