@@ -42,6 +42,7 @@ serve(async (req) => {
         'admin_notify_enabled',
         'admin_notify_ticket_template',
         'admin_notify_withdrawal_template',
+        'admin_notify_bendahara_template',
         'mpwa_platform_api_key',
         'mpwa_platform_sender',
         'mpwa_platform_connected',
@@ -89,6 +90,24 @@ serve(async (req) => {
         .replace(/{bank}/g, payload?.bank || '-')
         .replace(/{account_number}/g, payload?.account_number || '-')
         .replace(/{account_holder}/g, payload?.account_holder || '-')
+        .replace(/{time}/g, new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }));
+    } else if (event_type === 'bendahara_settlement') {
+      const tpl = ps.admin_notify_bendahara_template ||
+        '🏦 *Pencairan Dana Bendahara*\n\nSekolah: {school}\nDiajukan oleh: {requester}\nKode: {settlement_code}\n\nJumlah Transaksi: {total_transactions}\nGross: {total_gross}\nFee Gateway: {total_gateway_fee}\nNet: {total_net}\nFee Pencairan: {withdraw_fee}\n\n💰 *Pencairan Final: {final_payout}*\n\nBank: {bank}\nNo. Rek: {account_number}\nA/N: {account_holder}\n\nCatatan: {notes}\nWaktu: {time}';
+      message = tpl
+        .replace(/{school}/g, payload?.school || '-')
+        .replace(/{requester}/g, payload?.requester || '-')
+        .replace(/{settlement_code}/g, payload?.settlement_code || '-')
+        .replace(/{total_transactions}/g, String(payload?.total_transactions ?? 0))
+        .replace(/{total_gross}/g, fmtRupiah(payload?.total_gross || 0))
+        .replace(/{total_gateway_fee}/g, fmtRupiah(payload?.total_gateway_fee || 0))
+        .replace(/{total_net}/g, fmtRupiah(payload?.total_net || 0))
+        .replace(/{withdraw_fee}/g, fmtRupiah(payload?.withdraw_fee || 0))
+        .replace(/{final_payout}/g, fmtRupiah(payload?.final_payout || 0))
+        .replace(/{bank}/g, payload?.bank || '-')
+        .replace(/{account_number}/g, payload?.account_number || '-')
+        .replace(/{account_holder}/g, payload?.account_holder || '-')
+        .replace(/{notes}/g, payload?.notes || '-')
         .replace(/{time}/g, new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }));
     } else {
       return new Response(JSON.stringify({ success: false, error: 'event_type tidak dikenal' }), {

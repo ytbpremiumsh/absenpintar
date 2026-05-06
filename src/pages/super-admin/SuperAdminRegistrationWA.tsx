@@ -31,8 +31,9 @@ const SuperAdminRegistrationWA = () => {
     admin_notify_enabled: "false",
     admin_notify_ticket_template: "",
     admin_notify_withdrawal_template: "",
+    admin_notify_bendahara_template: "",
   });
-  const [adminTesting, setAdminTesting] = useState<"ticket" | "withdrawal" | null>(null);
+  const [adminTesting, setAdminTesting] = useState<"ticket" | "withdrawal" | "bendahara" | null>(null);
 
   // QR state
   const [mpwaNumber, setMpwaNumber] = useState("");
@@ -58,6 +59,7 @@ const SuperAdminRegistrationWA = () => {
         "mpwa_platform_api_key", "mpwa_platform_sender", "mpwa_platform_connected", "onesender_enabled",
         "admin_notify_phone", "admin_notify_enabled",
         "admin_notify_ticket_template", "admin_notify_withdrawal_template",
+        "admin_notify_bendahara_template",
       ]);
 
     const map: Record<string, string> = {};
@@ -293,7 +295,7 @@ const SuperAdminRegistrationWA = () => {
     setSettings(prev => ({ ...prev, onesender_enabled: val ? "true" : "false" }));
   };
 
-  const handleTestAdminNotify = async (kind: "ticket" | "withdrawal") => {
+  const handleTestAdminNotify = async (kind: "ticket" | "withdrawal" | "bendahara") => {
     if (!settings.admin_notify_phone.trim()) {
       toast.error("Nomor admin tujuan wajib diisi terlebih dahulu");
       return;
@@ -306,19 +308,39 @@ const SuperAdminRegistrationWA = () => {
         { key: "admin_notify_enabled", value: settings.admin_notify_enabled, updated_at: new Date().toISOString() },
         { key: "admin_notify_ticket_template", value: settings.admin_notify_ticket_template, updated_at: new Date().toISOString() },
         { key: "admin_notify_withdrawal_template", value: settings.admin_notify_withdrawal_template, updated_at: new Date().toISOString() },
+        { key: "admin_notify_bendahara_template", value: settings.admin_notify_bendahara_template, updated_at: new Date().toISOString() },
       ];
       await supabase.from("platform_settings").upsert(rows, { onConflict: "key" });
 
-      const samplePayload = kind === "ticket"
-        ? { school: "SDN 1 Jakarta", user: "Budi Santoso", priority: "high", subject: "Tidak bisa scan QR", message: "Ini hanya tes notifikasi tiket bantuan." }
-        : { affiliate: "Pak Guru", email: "guru@contoh.com", amount: 750000, bank: "BCA", account_number: "1234567890", account_holder: "Pak Guru" };
+      let samplePayload: Record<string, any>;
+      let eventType: string;
+      let label: string;
+      if (kind === "ticket") {
+        eventType = "support_ticket";
+        label = "Tiket Bantuan";
+        samplePayload = { school: "SDN 1 Jakarta", user: "Budi Santoso", priority: "high", subject: "Tidak bisa scan QR", message: "Ini hanya tes notifikasi tiket bantuan." };
+      } else if (kind === "withdrawal") {
+        eventType = "withdrawal_request";
+        label = "Pencairan Affiliate";
+        samplePayload = { affiliate: "Pak Guru", email: "guru@contoh.com", amount: 750000, bank: "BCA", account_number: "1234567890", account_holder: "Pak Guru" };
+      } else {
+        eventType = "bendahara_settlement";
+        label = "Pencairan Bendahara";
+        samplePayload = {
+          school: "SDN 1 Jakarta", requester: "Bendahara Sekolah", settlement_code: "STL-20260506-001",
+          total_transactions: 24, total_gross: 12000000, total_gateway_fee: 360000, total_net: 11640000,
+          withdraw_fee: 3000, final_payout: 11637000,
+          bank: "BCA", account_number: "1234567890", account_holder: "SDN 1 Jakarta",
+          notes: "Pencairan SPP minggu ke-2",
+        };
+      }
 
       const { data, error } = await supabase.functions.invoke("notify-admin-wa", {
-        body: { event_type: kind === "ticket" ? "support_ticket" : "withdrawal_request", payload: samplePayload },
+        body: { event_type: eventType, payload: samplePayload },
       });
       if (error) throw error;
       if ((data as any)?.success) {
-        toast.success(`Notifikasi tes (${kind === "ticket" ? "Tiket" : "Pencairan"}) terkirim ke ${settings.admin_notify_phone}`);
+        toast.success(`Notifikasi tes (${label}) terkirim ke ${settings.admin_notify_phone}`);
       } else {
         toast.error("Gagal: " + ((data as any)?.error || "tidak diketahui"));
       }
@@ -556,7 +578,7 @@ const SuperAdminRegistrationWA = () => {
               <div>
                 <h3 className="font-bold text-foreground text-sm">Notifikasi WA Admin</h3>
                 <p className="text-xs text-muted-foreground">
-                  Kirim WhatsApp otomatis ke admin saat ada Tiket Bantuan atau Pengajuan Pencairan Dana baru
+                  Kirim WhatsApp otomatis ke admin saat ada Tiket Bantuan, Pencairan Dana Affiliate, atau Pencairan Dana Bendahara
                 </p>
               </div>
             </div>
@@ -615,7 +637,7 @@ const SuperAdminRegistrationWA = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Wallet className="h-3.5 w-3.5 text-emerald-600" />
-                <Label className="text-xs font-semibold">Template Pengajuan Pencairan Dana</Label>
+                <Label className="text-xs font-semibold">Template Pencairan Dana — Affiliate Guru</Label>
               </div>
               <Button
                 size="sm"
@@ -643,6 +665,42 @@ const SuperAdminRegistrationWA = () => {
             <p className="text-[10px] text-muted-foreground">
               <Info className="h-3 w-3 inline mr-1" />
               {"{amount}"} otomatis diformat menjadi nilai Rupiah (mis. Rp 750.000)
+            </p>
+          </div>
+
+          {/* Template Pencairan Bendahara Sekolah */}
+          <div className="space-y-2 p-3 rounded-lg border border-border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-3.5 w-3.5 text-amber-600" />
+                <Label className="text-xs font-semibold">Template Pencairan Dana — Bendahara Sekolah (SPP)</Label>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[11px]"
+                disabled={adminTesting !== null}
+                onClick={() => handleTestAdminNotify("bendahara")}
+              >
+                {adminTesting === "bendahara" ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
+                Tes Kirim
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {["{school}", "{requester}", "{settlement_code}", "{total_transactions}", "{total_gross}", "{total_gateway_fee}", "{total_net}", "{withdraw_fee}", "{final_payout}", "{bank}", "{account_number}", "{account_holder}", "{notes}", "{time}"].map((v) => (
+                <Badge key={v} variant="secondary" className="text-[10px]">{v}</Badge>
+              ))}
+            </div>
+            <Textarea
+              value={settings.admin_notify_bendahara_template}
+              onChange={(e) => setSettings({ ...settings, admin_notify_bendahara_template: e.target.value })}
+              rows={8}
+              className="resize-none font-mono text-xs"
+              placeholder="🏦 Pencairan Dana Bendahara..."
+            />
+            <p className="text-[10px] text-muted-foreground">
+              <Info className="h-3 w-3 inline mr-1" />
+              Semua field nominal otomatis diformat ke Rupiah. Trigger aktif saat Bendahara mengajukan pencairan SPP.
             </p>
           </div>
 
