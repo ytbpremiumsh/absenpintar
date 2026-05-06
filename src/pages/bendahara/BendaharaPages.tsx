@@ -3299,24 +3299,6 @@ export function BendaharaPencairan() {
           <p>
             Saldo di sini <b>hanya pembayaran online (QRIS / Transfer Bank)</b>. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) tidak ikut dicairkan karena uangnya sudah ada di tangan sekolah. Catatan offline tetap bisa dilihat di <b>Detail Siswa &gt; Riwayat Pembayaran</b>.
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 pt-2 border-t border-blue-200 dark:border-blue-900">
-            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
-              <p className="text-[10px] text-blue-700 dark:text-blue-300">Total Online (Lunas)</p>
-              <p className="font-bold text-sm">{breakdown.onlineTotal} trx</p>
-            </div>
-            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
-              <p className="text-[10px] text-blue-700 dark:text-blue-300">Sudah Dicairkan</p>
-              <p className="font-bold text-sm">{breakdown.onlineSettled} trx</p>
-            </div>
-            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
-              <p className="text-[10px] text-blue-700 dark:text-blue-300">Siap Cair</p>
-              <p className="font-bold text-sm text-emerald-700 dark:text-emerald-300">{available.count} trx</p>
-            </div>
-            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
-              <p className="text-[10px] text-blue-700 dark:text-blue-300">Offline (di sekolah)</p>
-              <p className="font-bold text-sm">{breakdown.offlineCount} trx · {fmtIDR(breakdown.offlineGross)}</p>
-            </div>
-          </div>
         </div>
       </div>
 
