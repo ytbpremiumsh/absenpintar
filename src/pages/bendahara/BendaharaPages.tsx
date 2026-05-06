@@ -3218,6 +3218,8 @@ export function BendaharaPencairan() {
   const submit = async () => {
     setSubmitting(true);
     const code = `STL-${Date.now().toString().slice(-8)}`;
+    const invoiceIds = availableItems.map((item) => item.id).filter(Boolean);
+    if (invoiceIds.length === 0) { toast.error("Tidak ada saldo"); setSubmitting(false); return; }
     const { data: settlement, error } = await supabase.from("spp_settlements").insert({
       school_id: profile!.school_id, settlement_code: code,
       total_transactions: available.count, total_gross: available.gross,
@@ -3227,7 +3229,7 @@ export function BendaharaPencairan() {
     }).select().single();
     if (error || !settlement) { toast.error(error?.message || "Gagal"); setSubmitting(false); return; }
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
-      .eq("school_id", profile!.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null);
+      .eq("school_id", profile!.school_id).in("id", invoiceIds).is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
     setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
   };
