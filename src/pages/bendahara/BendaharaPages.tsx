@@ -2467,10 +2467,10 @@ export function BendaharaImportExport() {
               {validRows.length > 0 && (
                 <div className="border rounded-lg overflow-x-auto max-h-72">
                   <Table>
-                    <TableHeader><TableRow className="bg-muted/40"><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow className="bg-muted/40 [&_th]:whitespace-nowrap"><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {validRows.slice(0, 50).map((r, i) => (
-                        <TableRow key={i}>
+                        <TableRow key={i} className="[&>td]:whitespace-nowrap">
                           <TableCell className="text-xs">{r.nis}</TableCell>
                           <TableCell className="text-xs">{r._student.name}</TableCell>
                           <TableCell className="text-xs"><Badge variant="secondary">{r._student.class}</Badge></TableCell>
