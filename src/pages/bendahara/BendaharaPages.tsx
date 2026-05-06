@@ -2011,50 +2011,57 @@ export function BendaharaSPPDetail() {
     <div className="space-y-4">
       <Button variant="ghost" size="sm" onClick={() => navigate("/bendahara/transaksi")}><ArrowLeft className="h-4 w-4 mr-1" /> Kembali</Button>
 
-      {/* Header siswa — sama seperti profile siswa di Dashboard Sekolah */}
+      {/* Header siswa */}
       <Card className="shadow-elevated border-0 overflow-hidden">
-        <div className="h-28 sm:h-32 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
-        <CardContent className="relative px-6 pb-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-14">
-            <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-3xl font-bold border-4 border-card shadow-elevated shrink-0">
+        <div className="h-20 sm:h-24 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
+        <CardContent className="relative px-4 sm:px-6 pb-5 pt-0">
+          <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12">
+            {/* Avatar */}
+            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-3xl font-bold border-4 border-card shadow-elevated shrink-0 mx-auto md:mx-0">
               {student.name[0]}
             </div>
-            <div className="text-center sm:text-left flex-1 pb-1 min-w-0">
-              <h1 className="text-2xl font-bold bg-card/80 backdrop-blur-sm px-3 py-1 rounded-lg inline-block truncate max-w-full">{student.name}</h1>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1 text-xs md:text-sm text-muted-foreground mt-2">
-                <span>NIS: <strong className="text-foreground">{student.student_id}</strong></span>
-                {student.nisn && <span>NISN: <strong className="text-foreground">{student.nisn}</strong></span>}
-                <span>Kelas: <Badge variant="secondary">{student.class}</Badge></span>
-                <span>Wali: <strong className="text-foreground">{student.parent_name || "-"}</strong></span>
-                {student.parent_phone && <span>WA: <strong className="text-foreground">{student.parent_phone}</strong></span>}
+
+            {/* Info siswa */}
+            <div className="flex-1 min-w-0 text-center md:text-left md:pb-1">
+              <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">{student.name}</h1>
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1.5">
+                <span>NIS: <strong className="text-foreground font-semibold">{student.student_id}</strong></span>
+                {student.nisn && <span>NISN: <strong className="text-foreground font-semibold">{student.nisn}</strong></span>}
+                <span className="inline-flex items-center gap-1">Kelas: <Badge variant="secondary" className="font-semibold">{student.class}</Badge></span>
+                <span>Wali: <strong className="text-foreground font-semibold">{student.parent_name || "-"}</strong></span>
+                {student.parent_phone && <span>WA: <strong className="text-foreground font-semibold">{student.parent_phone}</strong></span>}
               </div>
             </div>
-            <Select value={ay} onValueChange={setAY}>
-              <SelectTrigger className="md:w-44"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {academicYearList(new Date().getFullYear()).map(a => <SelectItem key={a} value={a}>TA {a}</SelectItem>)}
-              </SelectContent>
-            </Select>
+
+            {/* TA Selector */}
+            <div className="md:pb-1 shrink-0">
+              <Select value={ay} onValueChange={setAY}>
+                <SelectTrigger className="w-full md:w-40 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {academicYearList(new Date().getFullYear()).map(a => <SelectItem key={a} value={a}>TA {a}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Progress tahunan */}
-          <div className="mt-5 grid md:grid-cols-4 gap-3">
-            <div className="bg-white/70 dark:bg-black/20 rounded-xl p-3">
-              <p className="text-[11px] text-muted-foreground">Total Tagihan TA</p>
-              <p className="text-lg font-extrabold">{fmtIDR(stats.totalTagihan)}</p>
+          {/* Stat cards */}
+          <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            <div className="bg-muted/40 rounded-xl p-3 border border-border/40">
+              <p className="text-[11px] text-muted-foreground font-medium">Total Tagihan TA</p>
+              <p className="text-base sm:text-lg font-extrabold mt-0.5 truncate">{fmtIDR(stats.totalTagihan)}</p>
             </div>
-            <div className="bg-white/70 dark:bg-black/20 rounded-xl p-3">
-              <p className="text-[11px] text-muted-foreground">Sudah Dibayar</p>
-              <p className="text-lg font-extrabold text-emerald-600">{fmtIDR(stats.totalBayar)}</p>
+            <div className="bg-muted/40 rounded-xl p-3 border border-border/40">
+              <p className="text-[11px] text-muted-foreground font-medium">Sudah Dibayar</p>
+              <p className="text-base sm:text-lg font-extrabold text-emerald-600 mt-0.5 truncate">{fmtIDR(stats.totalBayar)}</p>
             </div>
-            <div className="bg-white/70 dark:bg-black/20 rounded-xl p-3">
-              <p className="text-[11px] text-muted-foreground">Sisa Tagihan</p>
-              <p className="text-lg font-extrabold text-red-600">{fmtIDR(stats.sisa)}</p>
+            <div className="bg-muted/40 rounded-xl p-3 border border-border/40">
+              <p className="text-[11px] text-muted-foreground font-medium">Sisa Tagihan</p>
+              <p className="text-base sm:text-lg font-extrabold text-red-600 mt-0.5 truncate">{fmtIDR(stats.sisa)}</p>
             </div>
-            <div className="bg-white/70 dark:bg-black/20 rounded-xl p-3">
-              <p className="text-[11px] text-muted-foreground">Pelunasan</p>
-              <p className="text-lg font-extrabold">{pct}%</p>
-              <Progress value={pct} className="h-1.5 mt-1" />
+            <div className="bg-muted/40 rounded-xl p-3 border border-border/40">
+              <p className="text-[11px] text-muted-foreground font-medium">Pelunasan</p>
+              <p className="text-base sm:text-lg font-extrabold mt-0.5">{pct}%</p>
+              <Progress value={pct} className="h-1.5 mt-1.5" />
             </div>
           </div>
         </CardContent>
