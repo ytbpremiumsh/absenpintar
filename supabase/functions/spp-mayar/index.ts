@@ -272,7 +272,7 @@ serve(async (req) => {
 
     // ====== TEST CONNECTION ======
     if (action === "test_connection") {
-      const apiKey = Deno.env.get("MAYAR_API_KEY");
+      const apiKey = await getMayarApiKey(supabaseAdmin);
       if (!apiKey) return ok({ connected: false, message: "MAYAR_API_KEY belum di-set" });
       try {
         const res = await fetch("https://api.mayar.id/hl/v1/payment/create", {
