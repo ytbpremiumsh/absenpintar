@@ -343,10 +343,13 @@ export default function ParentDashboard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3">
+      <div className={cn(
+        "max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3",
+        tab === "home" && "md:space-y-0 md:grid md:grid-cols-12 md:gap-5"
+      )}>
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
-          <div className="relative">
+          <div className="relative md:col-span-7 md:space-y-3">
             {/* Main blue hero card */}
             <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-4 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
               {/* Decorative blobs */}
