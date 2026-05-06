@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { School, Eye, EyeOff, Loader2, Search, CheckCircle2, MapPin, GraduationCap, PenLine } from "lucide-react";
+import { School, Eye, EyeOff, Loader2, Search, CheckCircle2, MapPin, GraduationCap, PenLine, ArrowLeft, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence, type Easing } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SchoolData {
   npsn: string;
@@ -40,6 +41,20 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [referralInput, setReferralInput] = useState(refCode);
   const [registering, setRegistering] = useState(false);
+  const [logo, setLogo] = useState("/images/logo-atskolla.png");
+
+  useEffect(() => {
+    supabase
+      .from("platform_settings")
+      .select("key, value")
+      .in("key", ["login_logo_url"])
+      .then(({ data }) => {
+        if (data) {
+          const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
+          if (map.login_logo_url) setLogo(map.login_logo_url);
+        }
+      });
+  }, []);
 
   const handleNpsnLookup = async () => {
     if (npsn.length !== 8 || !/^\d{8}$/.test(npsn)) {
@@ -151,30 +166,95 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 dark:from-indigo-900 dark:via-slate-900 dark:to-indigo-950 p-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[140px] pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-lg relative z-10"
+    <div className="min-h-screen flex relative overflow-hidden bg-[#5B6CF9]">
+      {/* Back to home */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-4 left-4 z-50 flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all backdrop-blur-sm"
       >
-        {/* Header */}
+        <ArrowLeft className="h-4 w-4" />
+        Beranda
+      </button>
+
+      {/* Grid background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+
+      {/* Floating decorative blobs */}
+      <motion.div
+        className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl"
+        animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-300/10 blur-3xl"
+        animate={{ x: [0, -30, 0], y: [0, -20, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Floating icons */}
+      <motion.div
+        className="hidden lg:flex absolute left-[10%] top-[15%] h-20 w-20 rounded-2xl bg-white/10 border border-white/15 items-center justify-center backdrop-blur-md"
+        animate={{ y: [0, -12, 0], rotate: [0, 6, 0] }}
+        transition={{ duration: 5, repeat: Infinity }}
+      >
+        <School className="h-9 w-9 text-white/70" />
+      </motion.div>
+      <motion.div
+        className="hidden lg:flex absolute left-[5%] bottom-[20%] h-14 w-14 rounded-xl bg-white/10 border border-white/15 items-center justify-center backdrop-blur-md"
+        animate={{ y: [0, 10, 0] }}
+        transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+      >
+        <ShieldCheck className="h-6 w-6 text-white/70" />
+      </motion.div>
+      <motion.div
+        className="hidden lg:flex absolute right-[7%] top-[18%] h-16 w-16 rounded-2xl bg-white/10 border border-white/15 items-center justify-center backdrop-blur-md"
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 4.5, repeat: Infinity, delay: 0.5 }}
+      >
+        <Sparkles className="h-7 w-7 text-white/70" />
+      </motion.div>
+      <motion.div
+        className="hidden lg:flex absolute right-[12%] bottom-[15%] h-14 w-14 rounded-xl bg-white/10 border border-white/15 items-center justify-center backdrop-blur-md"
+        animate={{ y: [0, 12, 0] }}
+        transition={{ duration: 5, repeat: Infinity, delay: 1.2 }}
+      >
+        <Zap className="h-6 w-6 text-white/70" />
+      </motion.div>
+
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-lg"
+        >
+        {/* Brand */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          className="text-center mb-6"
+          transition={{ delay: 0.1 }}
+          className="flex items-center justify-center gap-3 mb-5"
         >
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl mb-4">
-            <School className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">Daftar Sekolah Baru</h1>
-          <p className="text-white/60 text-sm mt-1">Registrasi data sekolah untuk mulai menggunakan sistem</p>
+          <img src={logo} alt="ATSkolla" className="h-11 w-11 rounded-xl shadow-lg" />
+          <span className="font-bold text-xl text-white tracking-tight">ATSkolla</span>
+        </motion.div>
+
+        {/* Title */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="text-center mb-5"
+        >
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Daftar Sekolah Baru</h1>
+          <p className="text-white/70 text-sm mt-1.5">Mulai digitalisasi sekolah Anda dalam hitungan menit</p>
         </motion.div>
 
         {/* Step Indicator */}
@@ -182,13 +262,13 @@ const Register = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="flex items-center justify-center gap-3 mb-6"
+          className="flex items-center justify-center gap-3 mb-5"
         >
-          <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-500 ${step === 1 ? "bg-white text-indigo-700 shadow-lg shadow-white/20" : "bg-white/15 text-white/60 backdrop-blur-sm"}`}>
+          <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-500 ${step === 1 ? "bg-white text-indigo-700 shadow-lg shadow-white/20" : "bg-white/15 text-white/70 backdrop-blur-sm"}`}>
             <span>1</span> Data Sekolah
           </div>
           <div className="w-8 h-px bg-white/20" />
-          <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-500 ${step === 2 ? "bg-white text-indigo-700 shadow-lg shadow-white/20" : "bg-white/15 text-white/60 backdrop-blur-sm"}`}>
+          <div className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-500 ${step === 2 ? "bg-white text-indigo-700 shadow-lg shadow-white/20" : "bg-white/15 text-white/70 backdrop-blur-sm"}`}>
             <span>2</span> Data Admin
           </div>
         </motion.div>
@@ -490,9 +570,13 @@ const Register = () => {
           transition={{ delay: 0.7 }}
           className="text-center text-white/40 text-xs mt-6"
         >
-          © 2026 ATSkolla — Absensi Digital Sekolah
+          © 2026 ATSkolla — Platform Digital Sekolah
         </motion.p>
       </motion.div>
+      </div>
+
+      {/* Bottom rounded accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-white dark:bg-slate-950 rounded-t-[2rem] z-[5]" />
     </div>
   );
 };
