@@ -33,6 +33,17 @@ import { brandPaymentUrl } from "@/lib/utils";
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
+// Helper: format payment_method jadi label rapi
+const formatPaymentMethod = (m?: string | null): { label: string; isOffline: boolean } => {
+  const v = (m || "").toLowerCase();
+  if (v === "offline_cash") return { label: "Tunai (Offline)", isOffline: true };
+  if (v === "offline_transfer") return { label: "Transfer Manual (Offline)", isOffline: true };
+  if (v === "qris") return { label: "QRIS", isOffline: false };
+  if (v.includes("transfer") || v.includes("bank")) return { label: "Transfer Bank", isOffline: false };
+  if (v === "mayar" || v === "" || !v) return { label: "QRIS / Transfer Bank", isOffline: false };
+  return { label: m || "-", isOffline: false };
+};
+
 // Helper: hitung tahun ajaran (Juli-Juni). Bulan 7-12 = year/year+1, bulan 1-6 = year-1/year
 const academicYearOf = (month: number, year: number) => {
   if (month >= 7) return `${year}/${year + 1}`;
@@ -1880,6 +1891,7 @@ export function BendaharaSPPDetail() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [offlineDialog, setOfflineDialog] = useState<{ inv: any | null; method: "offline_cash" | "offline_transfer"; paidDate: string; note: string }>({ inv: null, method: "offline_cash", paidDate: new Date().toISOString().slice(0, 10), note: "" });
 
   const load = () => {
     if (!profile?.school_id || !studentId) { setLoading(false); return; }
@@ -2002,6 +2014,49 @@ export function BendaharaSPPDetail() {
     } finally {
       setBusy(null);
     }
+  };
+
+  const openOfflineDialog = (inv: any) => {
+    setOfflineDialog({ inv, method: "offline_cash", paidDate: new Date().toISOString().slice(0, 10), note: "" });
+  };
+
+  const submitOfflinePayment = async () => {
+    const { inv, method, paidDate, note } = offlineDialog;
+    if (!inv || !profile?.school_id) return;
+    if (new Date(paidDate) > new Date()) { toast.error("Tanggal bayar tidak boleh di masa depan"); return; }
+    setBusy(`offline-${inv.id}`);
+    const paidAtISO = new Date(`${paidDate}T${new Date().toTimeString().slice(0, 8)}`).toISOString();
+    const newDescription = note
+      ? `${inv.description || ""} | OFFLINE: ${note}`.trim()
+      : inv.description;
+    const { error } = await supabase.from("spp_invoices").update({
+      status: "paid",
+      payment_method: method,
+      gateway_fee: 0,
+      net_amount: 0, // KUNCI: tidak masuk saldo cair
+      paid_at: paidAtISO,
+      description: newDescription,
+    }).eq("id", inv.id);
+    setBusy(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Pembayaran offline tercatat. Tidak masuk saldo pencairan.");
+    setOfflineDialog((s) => ({ ...s, inv: null }));
+    load();
+  };
+
+  const sendOfflinePaidWa = async (inv: any) => {
+    if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
+    const schoolName = schoolRow?.name || "Sekolah";
+    const tgl = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-";
+    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima secara langsung di sekolah:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
+    setBusy(`waoff-${inv.id}`);
+    toast.loading("Mengirim WA konfirmasi...");
+    const { error } = await supabase.functions.invoke("send-whatsapp", {
+      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_paid_offline" },
+    });
+    toast.dismiss(); setBusy(null);
+    if (error) toast.error("Gagal kirim"); else toast.success("Konfirmasi terkirim ke WA wali");
   };
 
   const downloadAllPaidPdf = async () => {
@@ -2178,7 +2233,17 @@ export function BendaharaSPPDetail() {
                       <TableCell className="text-xs font-mono">{inv.invoice_number}</TableCell>
                       <TableCell className="font-semibold">{fmtIDR(inv.total_amount)}</TableCell>
                       <TableCell className="text-xs">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
-                      <TableCell className="text-xs">{inv.payment_method || "-"}</TableCell>
+                      <TableCell className="text-xs">
+                        {(() => {
+                          const m = formatPaymentMethod(inv.payment_method);
+                          if (!inv.payment_method) return "-";
+                          return (
+                            <Badge variant="outline" className={m.isOffline ? "border-slate-400 text-slate-700 bg-slate-50 dark:bg-slate-900/40 dark:text-slate-300" : "border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300"}>
+                              {m.label}
+                            </Badge>
+                          );
+                        })()}
+                      </TableCell>
                       <TableCell><StatusBadge status={dStatus} /></TableCell>
                       <TableCell className="text-right">
                         {dStatus === "pending" ? (
@@ -2195,16 +2260,29 @@ export function BendaharaSPPDetail() {
                                 <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
                             )}
+                            <Button size="sm" variant="outline" className="border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
+                              <Banknote className="h-3 w-3 mr-1" /> Bayar Offline
+                            </Button>
                           </div>
                         ) : dStatus === "expired" ? (
-                          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)}>
-                            {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 mr-1" /> Buat Ulang Link</>}
-                          </Button>
+                          <div className="flex flex-wrap gap-1 justify-end">
+                            <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)}>
+                              {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 mr-1" /> Buat Ulang Link</>}
+                            </Button>
+                            <Button size="sm" variant="outline" className="border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
+                              <Banknote className="h-3 w-3 mr-1" /> Bayar Offline
+                            </Button>
+                          </div>
                         ) : dStatus === "paid" ? (
                           <div className="flex flex-wrap gap-1 justify-end">
                             <Button size="sm" variant="outline" disabled={busy === `pdf-${inv.id}`} onClick={() => downloadPdf(inv)}>
                               {busy === `pdf-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Download className="h-3 w-3 mr-1" /> Invoice</>}
                             </Button>
+                            {formatPaymentMethod(inv.payment_method).isOffline && inv.parent_phone && (
+                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `waoff-${inv.id}`} onClick={() => sendOfflinePaidWa(inv)} title="Kirim konfirmasi lunas via WA">
+                                {busy === `waoff-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><MessageCircle className="h-3 w-3 mr-1" /> Notif WA</>}
+                              </Button>
+                            )}
                           </div>
                         ) : null}
                       </TableCell>
@@ -2223,6 +2301,98 @@ export function BendaharaSPPDetail() {
         title="Pratinjau Pembayaran — QRIS / Transfer Bank"
         onClose={() => { setPaymentIframe(null); load(); }}
       />
+
+      {/* Dialog: Catat Pembayaran Offline */}
+      <Dialog open={!!offlineDialog.inv} onOpenChange={(o) => { if (!o) setOfflineDialog((s) => ({ ...s, inv: null })); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Banknote className="h-5 w-5 text-slate-600" /> Catat Pembayaran Offline
+            </DialogTitle>
+            <DialogDescription>
+              Catat pelunasan SPP yang dibayar langsung di sekolah (tunai / transfer manual).
+            </DialogDescription>
+          </DialogHeader>
+
+          {offlineDialog.inv && (
+            <div className="space-y-4">
+              {/* Banner Peringatan */}
+              <div className="rounded-lg border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 flex gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-900 dark:text-amber-100 leading-relaxed">
+                  <p className="font-bold mb-1">Penting — Dana Tidak Masuk Pencairan Online</p>
+                  <p>Pembayaran offline tercatat sebagai <b>LUNAS</b> di sistem & laporan, tetapi <b>tidak ikut dihitung</b> ke saldo pencairan dana karena uang sudah diterima sekolah secara langsung. Pastikan uang sudah benar-benar diterima sebelum mencatat.</p>
+                </div>
+              </div>
+
+              {/* Ringkasan Invoice */}
+              <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Siswa</span><span className="font-semibold">{offlineDialog.inv.student_name}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Periode</span><span className="font-semibold">{offlineDialog.inv.period_label}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Nominal</span><span className="font-bold text-base text-[#5B6CF9]">{fmtIDR(offlineDialog.inv.total_amount)}</span></div>
+              </div>
+
+              {/* Pilih Metode */}
+              <div>
+                <Label className="text-xs font-semibold mb-2 block">Metode Pembayaran</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOfflineDialog((s) => ({ ...s, method: "offline_cash" }))}
+                    className={`rounded-lg border-2 p-3 text-left transition-all ${offlineDialog.method === "offline_cash" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-border hover:border-[#5B6CF9]/40"}`}
+                  >
+                    <Banknote className={`h-4 w-4 mb-1 ${offlineDialog.method === "offline_cash" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} />
+                    <p className="text-xs font-bold">Tunai</p>
+                    <p className="text-[10px] text-muted-foreground">Bayar langsung di sekolah</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOfflineDialog((s) => ({ ...s, method: "offline_transfer" }))}
+                    className={`rounded-lg border-2 p-3 text-left transition-all ${offlineDialog.method === "offline_transfer" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-border hover:border-[#5B6CF9]/40"}`}
+                  >
+                    <Landmark className={`h-4 w-4 mb-1 ${offlineDialog.method === "offline_transfer" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} />
+                    <p className="text-xs font-bold">Transfer Manual</p>
+                    <p className="text-[10px] text-muted-foreground">Ke rekening sekolah</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tanggal */}
+              <div>
+                <Label htmlFor="offline-date" className="text-xs font-semibold mb-1 block">Tanggal Pembayaran</Label>
+                <Input
+                  id="offline-date"
+                  type="date"
+                  value={offlineDialog.paidDate}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setOfflineDialog((s) => ({ ...s, paidDate: e.target.value }))}
+                />
+              </div>
+
+              {/* Catatan */}
+              <div>
+                <Label htmlFor="offline-note" className="text-xs font-semibold mb-1 block">Catatan (opsional)</Label>
+                <Input
+                  id="offline-note"
+                  placeholder={offlineDialog.method === "offline_cash" ? "Mis. Diterima oleh Bu Siti" : "Mis. Ref TRF #ABC123"}
+                  value={offlineDialog.note}
+                  onChange={(e) => setOfflineDialog((s) => ({ ...s, note: e.target.value }))}
+                />
+              </div>
+
+              {/* Tombol */}
+              <div className="flex gap-2 pt-1">
+                <Button variant="outline" className="flex-1" onClick={() => setOfflineDialog((s) => ({ ...s, inv: null }))} disabled={busy?.startsWith("offline-")}>
+                  Batal
+                </Button>
+                <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={submitOfflinePayment} disabled={busy?.startsWith("offline-")}>
+                  {busy?.startsWith("offline-") ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-4 w-4 mr-1" /> Konfirmasi Lunas</>}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -2569,7 +2739,7 @@ export function BendaharaSaldo() {
   const fetchAll = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
     const [invRes, stlRes, psRes] = await Promise.all([
-      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").order("paid_at", { ascending: false }),
+      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").order("paid_at", { ascending: false }),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
       supabase.from("platform_settings").select("key,value").in("key", ["gateway_fee_percent", "gateway_fee_flat"]),
     ]);
@@ -2625,6 +2795,14 @@ export function BendaharaSaldo() {
 
   return (
     <div className="space-y-4">
+
+      {/* Info banner: pembayaran offline */}
+      <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
+        <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+        <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
+          <b>Saldo Aktif</b> hanya berisi pembayaran <b>online via Mayar</b> (QRIS / Transfer Bank / E-Wallet). Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) <b>tidak masuk</b> ke saldo pencairan karena uangnya sudah diterima sekolah secara langsung.
+        </div>
+      </div>
 
       {/* Saldo Aktif - Highlight Card */}
       <Card className="border-0 shadow-md bg-gradient-to-br from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0] text-white overflow-hidden relative">
@@ -2773,7 +2951,7 @@ export function BendaharaPencairan() {
         syncingRef.current = false;
       }
       const [avRes, hRes] = await Promise.all([
-        supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").is("settlement_id", null),
+        supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null),
         supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
@@ -2826,7 +3004,7 @@ export function BendaharaPencairan() {
     }).select().single();
     if (error || !settlement) { toast.error(error?.message || "Gagal"); setSubmitting(false); return; }
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
-      .eq("school_id", profile!.school_id).eq("status", "paid").is("settlement_id", null);
+      .eq("school_id", profile!.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
     setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
   };
@@ -2886,7 +3064,15 @@ export function BendaharaPencairan() {
         <StatCard label="Transaksi Siap Cair" value={String(available.count)} icon={Receipt} gradient="from-violet-500 to-purple-600" />
         <StatCard label="Total Bruto" value={fmtIDR(available.gross)} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
         <StatCard label="Total Net" value={fmtIDR(available.net)} icon={Wallet} gradient="from-emerald-500 to-teal-600" />
-        <StatCard label="Final Payout" value={fmtIDR(finalPayout)} icon={Banknote} sub="setelah fee Rp 3.000" gradient="from-amber-500 to-orange-600" />
+         <StatCard label="Final Payout" value={fmtIDR(finalPayout)} icon={Banknote} sub="setelah fee Rp 3.000" gradient="from-amber-500 to-orange-600" />
+      </div>
+
+      {/* Info banner: pembayaran offline tidak ikut */}
+      <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
+        <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+        <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
+          Saldo di sini <b>hanya pembayaran online via Mayar</b>. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) tidak ikut dicairkan karena uangnya sudah ada di tangan sekolah. Catatan offline tetap bisa dilihat di <b>Detail Siswa &gt; Riwayat Pembayaran</b>.
+        </div>
       </div>
 
       <Tabs defaultValue="pencairan" className="w-full">
