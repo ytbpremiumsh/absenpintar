@@ -60,7 +60,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     expired: { c: "bg-slate-500 hover:bg-slate-500", t: "Expired" },
   };
   const v = map[status] || map.unpaid;
-  return <Badge className={`${v.c} text-white`}>{v.t}</Badge>;
+  return <Badge className={`${v.c} text-white whitespace-nowrap`}>{v.t}</Badge>;
 };
 
 function StatCard({ label, value, icon: Icon, gradient = "from-emerald-500 to-teal-600", sub }: any) {
@@ -2004,6 +2004,36 @@ export function BendaharaSPPDetail() {
     }
   };
 
+  const downloadAllPaidPdf = async (scope: "ay" | "all") => {
+    if (!profile?.school_id) return;
+    const paidList = enrichedInvoices
+      .filter(i => (i._displayStatus || i.status) === "paid")
+      .filter(i => scope === "all" ? true : academicYearOf(i.period_month, i.period_year) === ay)
+      .sort((a, b) => (a.period_year - b.period_year) || (a.period_month - b.period_month));
+    if (paidList.length === 0) { toast.error("Belum ada invoice lunas"); return; }
+    setBusy(`bulk-${scope}`);
+    toast.loading(`Menyiapkan ${paidList.length} invoice...`);
+    try {
+      const { data: school } = await supabase.from("schools").select("name, address, npsn, logo").eq("id", profile.school_id).maybeSingle();
+      for (const inv of paidList) {
+        await downloadSppInvoicePDF({
+          invoice: inv,
+          student: { student_id: student?.student_id, nisn: student?.nisn, parent_name: student?.parent_name },
+          school: school || { name: "Sekolah" },
+          bendahara_name: profile.full_name || null,
+        });
+        await new Promise(r => setTimeout(r, 250));
+      }
+      toast.dismiss();
+      toast.success(`${paidList.length} invoice diunduh`);
+    } catch (e: any) {
+      toast.dismiss();
+      toast.error(e.message || "Gagal mengunduh batch");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   if (loading) return <div className="p-12 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
   if (!student) return <div className="p-12 text-center text-muted-foreground">Siswa tidak ditemukan</div>;
 
@@ -2013,30 +2043,17 @@ export function BendaharaSPPDetail() {
 
       {/* Header siswa */}
       <Card className="shadow-elevated border-0 overflow-hidden">
-        <div className="h-20 sm:h-24 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
+        <div className="h-16 sm:h-20 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
         <CardContent className="relative px-4 sm:px-6 pb-5 pt-0">
-          <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12">
-            {/* Avatar */}
-            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-3xl font-bold border-4 border-card shadow-elevated shrink-0 mx-auto md:mx-0">
+          {/* Row 1: Avatar + nama + TA */}
+          <div className="flex items-start gap-4 -mt-10">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-3xl font-bold border-4 border-card shadow-elevated shrink-0">
               {student.name[0]}
             </div>
-
-            {/* Info siswa */}
-            <div className="flex-1 min-w-0 text-center md:text-left md:pb-1">
+            <div className="flex-1 min-w-0 pt-10 sm:pt-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">{student.name}</h1>
-              <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1.5">
-                <span>NIS: <strong className="text-foreground font-semibold">{student.student_id}</strong></span>
-                {student.nisn && <span>NISN: <strong className="text-foreground font-semibold">{student.nisn}</strong></span>}
-                <span className="inline-flex items-center gap-1">Kelas: <Badge variant="secondary" className="font-semibold">{student.class}</Badge></span>
-                <span>Wali: <strong className="text-foreground font-semibold">{student.parent_name || "-"}</strong></span>
-                {student.parent_phone && <span>WA: <strong className="text-foreground font-semibold">{student.parent_phone}</strong></span>}
-              </div>
-            </div>
-
-            {/* TA Selector */}
-            <div className="md:pb-1 shrink-0">
               <Select value={ay} onValueChange={setAY}>
-                <SelectTrigger className="w-full md:w-40 h-9"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-40 h-9 shrink-0"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {academicYearList(new Date().getFullYear()).map(a => <SelectItem key={a} value={a}>TA {a}</SelectItem>)}
                 </SelectContent>
@@ -2044,8 +2061,17 @@ export function BendaharaSPPDetail() {
             </div>
           </div>
 
-          {/* Stat cards */}
-          <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {/* Row 2: Info siswa */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+            <span>NIS: <strong className="text-foreground font-semibold">{student.student_id}</strong></span>
+            {student.nisn && <span>NISN: <strong className="text-foreground font-semibold">{student.nisn}</strong></span>}
+            <span className="inline-flex items-center gap-1">Kelas: <Badge variant="secondary" className="font-semibold">{student.class}</Badge></span>
+            <span>Wali: <strong className="text-foreground font-semibold">{student.parent_name || "-"}</strong></span>
+            {student.parent_phone && <span>WA: <strong className="text-foreground font-semibold">{student.parent_phone}</strong></span>}
+          </div>
+
+          {/* Row 3: Stat cards */}
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5">
             <div className="bg-muted/40 rounded-xl p-3 border border-border/40">
               <p className="text-[11px] text-muted-foreground font-medium">Total Tagihan TA</p>
               <p className="text-base sm:text-lg font-extrabold mt-0.5 truncate">{fmtIDR(stats.totalTagihan)}</p>
@@ -2099,7 +2125,19 @@ export function BendaharaSPPDetail() {
 
       {/* Tabel riwayat */}
       <Card className="border-0 shadow-sm">
-        <CardHeader><CardTitle className="text-base">Riwayat Pembayaran</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
+          <CardTitle className="text-base">Riwayat Pembayaran</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" disabled={busy === "bulk-ay"} onClick={() => downloadAllPaidPdf("ay")}>
+              {busy === "bulk-ay" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+              Export Lunas TA Ini
+            </Button>
+            <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === "bulk-all"} onClick={() => downloadAllPaidPdf("all")}>
+              {busy === "bulk-all" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+              Export Semua Lunas
+            </Button>
+          </div>
+        </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
