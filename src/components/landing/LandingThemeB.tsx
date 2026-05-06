@@ -11,6 +11,7 @@ import {
   Monitor, FileBarChart, Bell, UserCheck, BarChart3,
   Lock, Smartphone, TrendingUp, AlertTriangle, XCircle, Clock, FileText, Globe, Users, ArrowDown,
   CalendarDays, Wallet, CreditCard, MessageSquare, BookOpen, Receipt,
+  Facebook, Twitter, Instagram, Linkedin,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlanCardsGrid } from "@/components/PlanCardsGrid";
