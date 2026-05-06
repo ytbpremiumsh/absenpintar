@@ -69,6 +69,35 @@ const GUIDES: RoleGuide[] = [
         ],
       },
       {
+        title: "2b. Live Monitor Publik (Datang & Pulang)",
+        description:
+          "Tampilan layar publik yang bisa diakses tanpa login — cocok ditampilkan di TV gerbang sekolah. Tersedia 2 mode: monitor Kedatangan (status Hadir/Izin/Sakit/Alfa/Belum) dan monitor Kepulangan (siapa yang sudah pulang per kelas).",
+        image: "/panduan/public-monitor-datang.jpg",
+        bullets: [
+          "URL Datang: /attendance/{schoolId} — menampilkan Live Feed Absensi realtime dengan jam.",
+          "URL Pulang: /live/{schoolId} — menampilkan progress kepulangan per kelas dengan auto-rotate.",
+          "Counter besar: Total, Hadir, Izin, Sakit, Alfa, Belum.",
+          "Auto-refresh setiap 5 detik — tidak perlu reload manual.",
+          "Tombol Fullscreen untuk tampilan TV.",
+        ],
+        tips: [
+          "Bookmark URL ini di TV/komputer ruang depan agar bisa langsung dibuka tanpa login.",
+          "Cocok untuk transparansi ke wali murid yang menjemput.",
+        ],
+      },
+      {
+        title: "2c. Monitor Kepulangan per Kelas",
+        description:
+          "Halaman publik khusus pemantauan kepulangan siswa dikelompokkan per kelas dengan progress bar real-time.",
+        image: "/panduan/public-monitor-pulang.jpg",
+        bullets: [
+          "Tab horizontal per kelas — geser untuk pilih kelas.",
+          "Kartu siswa dengan foto + status 'Menunggu' / 'Sudah Pulang'.",
+          "Auto-rotate antar kelas tiap 8 detik (bisa di-pause).",
+          "Progress bar kepulangan per kelas.",
+        ],
+      },
+      {
         title: "3. Scan Absensi",
         description:
           "Buka menu Scan Absensi untuk melakukan absensi via Barcode/QR atau Face Recognition. Bisa juga input NIS manual jika kamera bermasalah.",
@@ -269,8 +298,8 @@ const GUIDES: RoleGuide[] = [
       {
         title: "3. Absensi Manual Kelas",
         description:
-          "Catat kehadiran siswa kelas Anda secara manual untuk semua status (Hadir, Izin, Sakit, Alfa). Status Alfa STRICTLY manual.",
-        image: "/panduan/wali-kelas-attendance.jpg",
+          "Catat kehadiran siswa kelas Anda secara manual untuk semua status (Hadir, Izin, Sakit, Alfa). Status Alfa STRICTLY manual. Tabel menampilkan kolom H/S/I/A di kanan tiap nama untuk one-click input.",
+        image: "/panduan/wali-kelas-attendance-table.jpg",
         bullets: [
           "Pilih kelas (dropdown TKJ 2/TKJ 3) dan tanggal.",
           "Tombol H/S/I/A di kolom kanan tiap siswa untuk tandai status.",
@@ -345,7 +374,8 @@ const GUIDES: RoleGuide[] = [
       {
         title: "1. Dashboard Bendahara",
         description:
-          "Halaman utama menampilkan ringkasan keuangan SPP: total tagihan bulan ini, sudah dibayar, tunggakan, dan saldo pencairan.",
+          "Halaman utama menampilkan ringkasan keuangan SPP: saldo live, tagihan bulan ini, lunas, dan tunggakan dengan grafik tren pembayaran bulanan dan distribusi per kelas.",
+        image: "/panduan/bendahara-dashboard.jpg",
         bullets: [
           "Kartu: Total Tagihan Bulan Ini, Sudah Dibayar, Tunggakan, Saldo Cair.",
           "Grafik tren pembayaran 6 bulan terakhir.",
@@ -370,7 +400,8 @@ const GUIDES: RoleGuide[] = [
       {
         title: "3. Tarif SPP",
         description:
-          "Atur tarif SPP per kelas/jenjang. Bisa berbeda per tingkatan kelas (misal SD 100rb, SMP 150rb).",
+          "Atur tarif SPP per kelas/jenjang. Bisa berbeda per tingkatan kelas (misal SD 100rb, SMP 150rb). Tabel menampilkan Tahun Ajaran, Kelas, Nominal, Jatuh Tempo, dan toggle Aktif.",
+        image: "/panduan/bendahara-tarif.jpg",
         bullets: [
           "Tombol 'Tambah Tarif' untuk membuat tarif baru per kelas.",
           "Edit tarif kapan saja — perubahan berlaku untuk tagihan berikutnya.",
@@ -380,7 +411,8 @@ const GUIDES: RoleGuide[] = [
       {
         title: "4. Generate Tagihan SPP",
         description:
-          "Buat tagihan SPP massal untuk semua siswa per bulan dengan satu klik. Otomatis kirim notifikasi WA ke wali murid.",
+          "Buat tagihan SPP massal untuk semua siswa per bulan dengan satu klik. Pilih mode 'Satu Bulan' atau 'Rentang Bulan', tentukan periode dan kelas tujuan, lalu klik 'Generate Sekarang'.",
+        image: "/panduan/bendahara-generate.jpg",
         bullets: [
           "Pilih bulan & tahun tagihan.",
           "Pilih kelas (semua atau spesifik).",
@@ -396,7 +428,8 @@ const GUIDES: RoleGuide[] = [
       {
         title: "5. Pembayaran SPP",
         description:
-          "Catat pembayaran manual (tunai) atau lihat pembayaran online yang masuk otomatis dari Mayar.",
+          "Catat pembayaran manual (tunai) atau lihat pembayaran online yang masuk otomatis dari Mayar. Tampilan dikelompokkan per kelas dengan tombol 'Kirim WA' massal per rombel.",
+        image: "/panduan/bendahara-pembayaran.jpg",
         bullets: [
           "Tab: Belum Bayar / Sudah Bayar / Semua.",
           "Filter per bulan, kelas, atau cari nama siswa.",
@@ -442,7 +475,8 @@ const GUIDES: RoleGuide[] = [
       {
         title: "9. Laporan & Export",
         description:
-          "Export laporan keuangan SPP ke Excel untuk audit atau laporan ke kepala sekolah & yayasan.",
+          "Lihat ringkasan tahunan tagihan vs pembayaran dalam bentuk grafik bar bulanan, statistik per kelas, dan export ke Excel untuk audit atau laporan ke kepala sekolah & yayasan.",
+        image: "/panduan/bendahara-laporan.jpg",
         bullets: [
           "Pilih jenis laporan: Per Siswa / Per Kelas / Per Bulan / Konsolidasi.",
           "Filter periode (bulanan/triwulan/tahunan).",

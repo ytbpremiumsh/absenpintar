@@ -1,0 +1,1 @@
+DELETE FROM public.user_roles WHERE user_id='877a71f6-2c4f-4a5d-9aed-f38fb18547eb' AND role='bendahara';
