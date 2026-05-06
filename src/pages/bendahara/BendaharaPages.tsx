@@ -597,40 +597,7 @@ function BendaharaMobileDashboard({
         </div>
       </div>
 
-      {/* Floating bottom nav with center FAB */}
-      <nav className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none md:hidden">
-        <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
-          <BendFabBtn icon={Home} label="Beranda" active color="#10B981" onClick={() => navigate("/bendahara")} />
-          <BendFabBtn icon={CreditCard} label="Bayar" color="#EC4899" onClick={() => navigate("/bendahara/transaksi")} />
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <button
-                className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(16,185,129,0.7)] ring-4 ring-white dark:ring-card transition-transform active:scale-95 hover:scale-105 shrink-0"
-                aria-label="Menu Lainnya"
-              >
-                <LayoutGrid className="h-5 w-5" />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
-              <SheetHeader className="mb-4">
-                <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
-              </SheetHeader>
-              <div className="grid grid-cols-3 gap-3">
-                <BendSheetItem icon={Users} label="Data Siswa" color="#10B981" bg="#E6FAF3" onClick={() => navigate("/bendahara/siswa")} />
-                <BendSheetItem icon={Receipt} label="Tarif SPP" color="#5B6CF9" bg="#EEF0FE" onClick={() => navigate("/bendahara/tarif")} />
-                <BendSheetItem icon={FileText} label="Generate Tagihan" color="#F59E0B" bg="#FEF5E1" onClick={() => navigate("/bendahara/generate")} />
-                <BendSheetItem icon={Upload} label="Import" color="#8B5CF6" bg="#F1ECFE" onClick={() => navigate("/bendahara/import-export")} />
-                <BendSheetItem icon={Wallet} label="Saldo" color="#0EA5E9" bg="#E1F4FE" onClick={() => navigate("/bendahara/saldo")} />
-                <BendSheetItem icon={ArrowDownToLine} label="Pencairan" color="#EF4444" bg="#FEE7E7" onClick={() => navigate("/bendahara/pencairan")} />
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <BendFabBtn icon={Wallet} label="Saldo" color="#0EA5E9" onClick={() => navigate("/bendahara/saldo")} />
-          <BendFabBtn icon={BarChart3} label="Laporan" color="#5B6CF9" onClick={() => navigate("/bendahara/laporan")} />
-        </div>
-      </nav>
+      {/* Floating bottom nav now mounted globally in BendaharaLayout */}
     </div>
   );
 }
