@@ -3510,19 +3510,19 @@ export function BendaharaLaporan() {
                         const stu = students.find(s => s.id === i.student_id);
                         return (
                           <TableRow key={i.id} className="hover:bg-muted/20">
-                            <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
-                            <TableCell className="font-mono text-[11px]">{stu?.student_id || "-"}</TableCell>
-                            <TableCell className="font-medium">{i.student_name}</TableCell>
-                            <TableCell className="text-[11px]">{i.period_label || `${MONTHS[i.period_month-1]} ${i.period_year}`}</TableCell>
-                            <TableCell className="text-right font-semibold">{fmtIDR(i.total_amount || 0)}</TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center text-muted-foreground whitespace-nowrap">{idx + 1}</TableCell>
+                            <TableCell className="font-mono text-[11px] whitespace-nowrap">{stu?.student_id || "-"}</TableCell>
+                            <TableCell className="font-medium whitespace-nowrap">{i.student_name}</TableCell>
+                            <TableCell className="text-[11px] whitespace-nowrap">{i.period_label || `${MONTHS[i.period_month-1]} ${i.period_year}`}</TableCell>
+                            <TableCell className="text-right font-semibold whitespace-nowrap">{fmtIDR(i.total_amount || 0)}</TableCell>
+                            <TableCell className="text-center whitespace-nowrap">
                               {i.status === "paid"
                                 ? <span className="status-pill status-pill-paid"><span className="dot" />Lunas</span>
                                 : i.status === "pending"
                                   ? <span className="status-pill status-pill-pending"><span className="dot" />Pending</span>
                                   : <span className="status-pill status-pill-unpaid"><span className="dot" />Belum</span>}
                             </TableCell>
-                            <TableCell className="text-[11px] text-muted-foreground">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</TableCell>
+                            <TableCell className="text-[11px] text-muted-foreground whitespace-nowrap">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</TableCell>
                           </TableRow>
                         );
                       })}
