@@ -662,48 +662,128 @@ const LandingThemeB = () => {
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
-      <footer id="contact" className="relative bg-slate-900 dark:bg-slate-950 text-white overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-teal-500" />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            <div className="lg:col-span-1 space-y-5">
-              <div className="flex items-center gap-3">
-                {get("footer_logo") ? <img src={get("footer_logo")} alt="Logo" className="h-11 w-11 rounded-xl object-cover shadow-lg" /> : <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg"><GraduationCap className="h-5 w-5 text-white" /></div>}
-                <div><p className="font-bold text-white text-base">{get("footer_brand_name", "ATSkolla")}</p><p className="text-xs text-slate-400">{get("footer_brand_tagline", "Platform Digital Sekolah")}</p></div>
+      {/* ─── Footer (style mockup) ─── */}
+      <footer id="contact" className="relative bg-slate-50 dark:bg-slate-900/40 pt-10 pb-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Newsletter Card */}
+          <div className="relative -mb-2 rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-700 px-6 sm:px-10 py-8 sm:py-10 overflow-hidden shadow-xl">
+            <div className="absolute -top-10 -left-10 w-56 h-56 bg-white/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-12 right-0 w-72 h-72 bg-white/10 rounded-full blur-2xl" />
+            <div className="relative grid md:grid-cols-2 gap-6 items-center">
+              <div className="flex justify-center md:justify-start">
+                <div className="h-28 w-28 sm:h-36 sm:w-36 rounded-3xl bg-white/15 backdrop-blur flex items-center justify-center shadow-2xl">
+                  <GraduationCap className="h-14 w-14 sm:h-20 sm:w-20 text-white" />
+                </div>
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed">{get("footer_description", "Solusi digital #1 untuk sekolah modern Indonesia — absensi, jadwal mengajar, SPP, dan monitoring wali murid dalam satu platform.")}</p>
-            </div>
-            <div className="space-y-4">
-              <p className="text-sm font-bold text-white uppercase tracking-wider">Produk</p>
-              <ul className="space-y-2.5 text-sm text-slate-400">
-                <li><a href="#features" className="hover:text-indigo-400 transition-colors">Fitur Unggulan</a></li>
-                <li><a href="#how-it-works" className="hover:text-indigo-400 transition-colors">Cara Kerja</a></li>
-                {showPricing && <li><a href="#pricing" className="hover:text-indigo-400 transition-colors">Harga & Paket</a></li>}
-                <li><button onClick={() => navigate("/register")} className="hover:text-indigo-400 transition-colors">Daftar Gratis</button></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <p className="text-sm font-bold text-white uppercase tracking-wider">Dukungan</p>
-              <ul className="space-y-2.5 text-sm text-slate-400">
-                <li><button onClick={() => navigate("/login")} className="hover:text-indigo-400 transition-colors">Login</button></li>
-                <li><button onClick={() => navigate("/panduan")} className="hover:text-indigo-400 transition-colors">Panduan Penggunaan</button></li>
-                {get("footer_link_faq") && <li><a href={get("footer_link_faq")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">FAQ</a></li>}
-                {get("footer_link_docs") && <li><a href={get("footer_link_docs")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">Dokumentasi</a></li>}
-                {get("footer_link_privacy") && <li><a href={get("footer_link_privacy")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">Kebijakan Privasi</a></li>}
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <p className="text-sm font-bold text-white uppercase tracking-wider">Hubungi Kami</p>
-              <div className="flex flex-col gap-3 text-sm text-slate-400">
-                {get("footer_address") && <span className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-0.5 text-indigo-400 shrink-0" /> {get("footer_address")}</span>}
-                {get("footer_email") && <a href={`mailto:${get("footer_email")}`} className="flex items-center gap-2 hover:text-indigo-400 transition-colors"><Mail className="h-4 w-4 text-indigo-400 shrink-0" /> {get("footer_email")}</a>}
-                {get("footer_phone") && <a href={`tel:${get("footer_phone")}`} className="flex items-center gap-2 hover:text-indigo-400 transition-colors"><Phone className="h-4 w-4 text-indigo-400 shrink-0" /> {get("footer_phone")}</a>}
+              <div className="text-center md:text-left">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-white leading-snug mb-2">
+                  Berlangganan info & update terbaru ATSkolla
+                </h3>
+                <p className="text-white/80 text-sm mb-5">Tips digitalisasi sekolah, fitur baru, & promo eksklusif untuk admin sekolah.</p>
+                <form
+                  onSubmit={(e) => { e.preventDefault(); navigate("/register"); }}
+                  className="flex items-center gap-2 bg-white/95 rounded-full p-1.5 shadow-lg max-w-md mx-auto md:mx-0"
+                >
+                  <Mail className="h-4 w-4 text-slate-400 ml-3 shrink-0" />
+                  <input type="email" placeholder="Email sekolah Anda" className="flex-1 bg-transparent outline-none text-sm text-slate-800 placeholder-slate-400 px-1 py-2" />
+                  <button type="submit" className="bg-indigo-700 text-white text-sm font-bold px-5 py-2 rounded-full hover:bg-indigo-800 transition-colors shrink-0">
+                    Daftar
+                  </button>
+                </form>
+                <p className="text-white/50 text-[11px] mt-3">Anda bisa berhenti berlangganan kapan saja.</p>
               </div>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")} — {get("footer_brand_tagline", "Platform Digital Sekolah")}. All rights reserved.</p>
+
+          {/* Main Footer */}
+          <div className="bg-white dark:bg-slate-900 rounded-b-3xl pt-16 pb-8 px-6 sm:px-10 -mt-2 shadow-sm border border-slate-100 dark:border-slate-800">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
+              {/* Brand */}
+              <div className="col-span-2 space-y-4">
+                <div className="flex items-center gap-3">
+                  {get("footer_logo")
+                    ? <img src={get("footer_logo")} alt="Logo" className="h-10 w-10 rounded-xl object-cover" />
+                    : <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow"><GraduationCap className="h-5 w-5 text-white" /></div>}
+                  <p className="font-extrabold text-slate-900 dark:text-white text-lg">{get("footer_brand_name", "ATSkolla")}</p>
+                </div>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">
+                  {get("footer_description", "Solusi digital terpadu untuk sekolah modern Indonesia — absensi, jadwal mengajar, SPP, dan portal wali murid dalam satu platform.")}
+                </p>
+                <div className="flex items-center gap-3 pt-1 text-slate-500 dark:text-slate-400">
+                  <a href="#" aria-label="Facebook" className="hover:text-indigo-600 transition-colors"><Facebook className="h-4 w-4" /></a>
+                  <a href="#" aria-label="Twitter" className="hover:text-indigo-600 transition-colors"><Twitter className="h-4 w-4" /></a>
+                  <a href="#" aria-label="Instagram" className="hover:text-indigo-600 transition-colors"><Instagram className="h-4 w-4" /></a>
+                  <a href="#" aria-label="Linkedin" className="hover:text-indigo-600 transition-colors"><Linkedin className="h-4 w-4" /></a>
+                </div>
+              </div>
+
+              {/* Company */}
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Perusahaan</p>
+                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
+                  <li><a href="#features" className="hover:text-indigo-600 transition-colors">Fitur</a></li>
+                  <li><a href="#how-it-works" className="hover:text-indigo-600 transition-colors">Cara Kerja</a></li>
+                  {showPricing && <li><a href="#pricing" className="hover:text-indigo-600 transition-colors">Harga</a></li>}
+                  <li><button onClick={() => navigate("/fitur")} className="hover:text-indigo-600 transition-colors">Semua Fitur</button></li>
+                </ul>
+              </div>
+
+              {/* Support */}
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Dukungan</p>
+                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
+                  <li><button onClick={() => navigate("/panduan")} className="hover:text-indigo-600 transition-colors">Panduan</button></li>
+                  {get("footer_link_faq") && <li><a href={get("footer_link_faq")} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition-colors">FAQ</a></li>}
+                  {get("footer_link_docs") && <li><a href={get("footer_link_docs")} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition-colors">Dokumentasi</a></li>}
+                  {get("footer_phone") && <li><a href={`https://wa.me/${get("footer_phone")?.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition-colors">Hubungi Sales</a></li>}
+                </ul>
+              </div>
+
+              {/* Links */}
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Akses Cepat</p>
+                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
+                  <li><button onClick={() => navigate("/login")} className="hover:text-indigo-600 transition-colors">Login</button></li>
+                  <li><button onClick={() => navigate("/register")} className="hover:text-indigo-600 transition-colors">Daftar Gratis</button></li>
+                  <li><button onClick={() => navigate("/parent-login")} className="hover:text-indigo-600 transition-colors">Portal Wali Murid</button></li>
+                  <li><button onClick={() => navigate("/affiliate-login")} className="hover:text-indigo-600 transition-colors">Affiliate</button></li>
+                </ul>
+              </div>
+
+              {/* Contact */}
+              <div className="col-span-2 lg:col-span-1">
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Kontak Kami</p>
+                <ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400">
+                  {get("footer_phone") && (
+                    <li className="flex items-center gap-2.5">
+                      <span className="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0"><Phone className="h-3.5 w-3.5" /></span>
+                      <a href={`tel:${get("footer_phone")}`} className="hover:text-indigo-600 transition-colors">{get("footer_phone")}</a>
+                    </li>
+                  )}
+                  {get("footer_email") && (
+                    <li className="flex items-center gap-2.5">
+                      <span className="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0"><Mail className="h-3.5 w-3.5" /></span>
+                      <a href={`mailto:${get("footer_email")}`} className="hover:text-indigo-600 transition-colors">{get("footer_email")}</a>
+                    </li>
+                  )}
+                  {get("footer_address") && (
+                    <li className="flex items-start gap-2.5">
+                      <span className="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5"><MapPin className="h-3.5 w-3.5" /></span>
+                      <span className="leading-snug">{get("footer_address")}</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-10 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-xs text-slate-400">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")}. All rights reserved.</p>
+              <div className="flex items-center gap-5 text-xs text-slate-400">
+                {get("footer_link_privacy") && <a href={get("footer_link_privacy")} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition-colors">Kebijakan Privasi</a>}
+                <button onClick={() => navigate("/panduan")} className="hover:text-indigo-600 transition-colors">Panduan</button>
+                <a href="#features" className="hover:text-indigo-600 transition-colors">Fitur</a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
