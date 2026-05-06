@@ -481,7 +481,7 @@ Deno.serve(async (req) => {
       // Compute aktif/tunggakan/lunas server side for convenience
       const today = new Date();
       const tunggakan = list.filter((i) => i.status !== "paid" && i.due_date && new Date(i.due_date) < today);
-      const aktif = list.filter((i) => i.status === "pending" || i.status === "expired");
+      const aktif = list.filter((i) => i.status === "pending" || i.status === "expired" || i.status === "unpaid" || i.status === "failed");
       const lunas = list.filter((i) => i.status === "paid");
       const total_tunggakan = tunggakan.reduce((s, i) => s + (i.total_amount || 0), 0);
       return json({ ok: true, invoices: list, aktif, tunggakan, lunas, total_tunggakan });
