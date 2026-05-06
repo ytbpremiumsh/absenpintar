@@ -2004,6 +2004,36 @@ export function BendaharaSPPDetail() {
     }
   };
 
+  const downloadAllPaidPdf = async (scope: "ay" | "all") => {
+    if (!profile?.school_id) return;
+    const paidList = enrichedInvoices
+      .filter(i => (i._displayStatus || i.status) === "paid")
+      .filter(i => scope === "all" ? true : academicYearOf(i.period_month, i.period_year) === ay)
+      .sort((a, b) => (a.period_year - b.period_year) || (a.period_month - b.period_month));
+    if (paidList.length === 0) { toast.error("Belum ada invoice lunas"); return; }
+    setBusy(`bulk-${scope}`);
+    toast.loading(`Menyiapkan ${paidList.length} invoice...`);
+    try {
+      const { data: school } = await supabase.from("schools").select("name, address, npsn, logo").eq("id", profile.school_id).maybeSingle();
+      for (const inv of paidList) {
+        await downloadSppInvoicePDF({
+          invoice: inv,
+          student: { student_id: student?.student_id, nisn: student?.nisn, parent_name: student?.parent_name },
+          school: school || { name: "Sekolah" },
+          bendahara_name: profile.full_name || null,
+        });
+        await new Promise(r => setTimeout(r, 250));
+      }
+      toast.dismiss();
+      toast.success(`${paidList.length} invoice diunduh`);
+    } catch (e: any) {
+      toast.dismiss();
+      toast.error(e.message || "Gagal mengunduh batch");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   if (loading) return <div className="p-12 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
   if (!student) return <div className="p-12 text-center text-muted-foreground">Siswa tidak ditemukan</div>;
 
