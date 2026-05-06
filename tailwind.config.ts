@@ -91,10 +91,22 @@ export default {
             height: "0",
           },
         },
+        "bend-scan": {
+          "0%": { transform: "translateY(0)", opacity: "0" },
+          "10%": { opacity: "1" },
+          "90%": { opacity: "1" },
+          "100%": { transform: "translateY(80px)", opacity: "0" },
+        },
+        "bend-shimmer": {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "bend-scan": "bend-scan 3.5s ease-in-out infinite",
+        "bend-shimmer": "bend-shimmer 6s linear infinite",
       },
     },
   },
