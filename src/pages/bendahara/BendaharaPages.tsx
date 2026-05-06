@@ -19,7 +19,7 @@ import {
   TrendingUp, Wallet, AlertCircle, CheckCircle2, Loader2, Plus, Search, Link as LinkIcon,
   Receipt, ArrowDownToLine, Banknote, RefreshCw, FileText, MessageCircle, Mail, Copy,
   Download, Upload, ArrowLeft, User, Users, ChevronRight, ChevronDown, Eye, GraduationCap, Send, BarChart3, Landmark,
-  Home, LayoutGrid, Grid3x3, CreditCard, ArrowUpRight,
+  Home, LayoutGrid, Grid3x3, CreditCard, ArrowUpRight, X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
@@ -2977,16 +2977,22 @@ export function BendaharaSaldo() {
   const pendingPayout = settlements.filter(s => ["pending", "approved"].includes(s.status)).reduce((s, x) => s + (x.total_net || 0), 0);
   const activeBalance = Math.max(0, activeTotals.net);
 
+  // Banner info: dismiss selama 7 hari via localStorage
+  const [showSaldoInfo, setShowSaldoInfo] = useState(() => {
+    try {
+      const ts = Number(localStorage.getItem("saldo_info_dismissed_at") || 0);
+      if (!ts) return true;
+      const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+      return Date.now() - ts > SEVEN_DAYS;
+    } catch { return true; }
+  });
+  const dismissSaldoInfo = () => {
+    try { localStorage.setItem("saldo_info_dismissed_at", String(Date.now())); } catch {}
+    setShowSaldoInfo(false);
+  };
+
   return (
     <div className="space-y-4">
-
-      {/* Info banner: pembayaran offline */}
-      <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
-        <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-          <b>Saldo Aktif</b> hanya berisi pembayaran <b>online (QRIS / Transfer Bank)</b> yang belum diajukan pencairan. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) <b>tidak masuk</b> ke saldo pencairan karena uangnya sudah diterima sekolah secara langsung.
-        </div>
-      </div>
 
       {/* Saldo Aktif - Highlight Card */}
       <Card className="border-0 shadow-md bg-gradient-to-br from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0] text-white overflow-hidden relative">
@@ -3003,6 +3009,23 @@ export function BendaharaSaldo() {
           <p className="text-[11px] opacity-80 mt-1">Total Net Rp {fmtIDR(totals.net).replace("Rp ", "")} − Sudah/akan dicairkan {fmtIDR(lockedNet)}</p>
         </CardContent>
       </Card>
+
+      {/* Info banner: pembayaran offline (bisa ditutup, muncul lagi setelah 7 hari) */}
+      {showSaldoInfo && (
+        <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2 items-start">
+          <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+          <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed flex-1">
+            <b>Saldo Aktif</b> hanya berisi pembayaran <b>online (QRIS / Transfer Bank)</b> yang belum diajukan pencairan. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) <b>tidak masuk</b> ke saldo pencairan karena uangnya sudah diterima sekolah secara langsung.
+          </div>
+          <button
+            onClick={dismissSaldoInfo}
+            className="shrink-0 text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100 p-0.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
+            aria-label="Tutup info"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Ringkasan Saldo */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
