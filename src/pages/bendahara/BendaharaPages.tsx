@@ -929,7 +929,7 @@ export function BendaharaTarif() {
         actions={
           <>
             <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Copy className="h-4 w-4 mr-1.5" /> Set Massal</Button>
-            <Button size="sm" onClick={openAdd} className="bg-white text-emerald-700 hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
+            <Button size="sm" onClick={openAdd} className="bg-white text-[#3D4FE0] hover:bg-white/90"><Plus className="h-4 w-4 mr-1.5" /> Tambah</Button>
           </>
         }
       />
@@ -1998,10 +1998,10 @@ export function BendaharaSPPDetail() {
       <Button variant="ghost" size="sm" onClick={() => navigate("/bendahara/transaksi")}><ArrowLeft className="h-4 w-4 mr-1" /> Kembali</Button>
 
       {/* Header siswa */}
-      <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30">
         <CardContent className="p-5">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-2xl font-extrabold shrink-0">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-2xl font-extrabold shrink-0">
               {student.name[0]}
             </div>
             <div className="flex-1 min-w-0">
