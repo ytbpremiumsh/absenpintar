@@ -405,6 +405,7 @@ async function ensureFreshLink(
     mayar_invoice_id: mayarId,
     payment_url: link.link || null,
     expired_at: linkRes.expiry.toISOString(),
+    status: "pending",
   }).eq("id", inv.id);
 
   // Bridge to payment_transactions for webhook compatibility

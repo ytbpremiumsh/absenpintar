@@ -2085,8 +2085,13 @@ export function BendaharaSPPDetail() {
   const enrichedInvoices = useMemo(() => {
     const now = Date.now();
     return invoices.map((i) => {
-      if (i.status === "pending" && i.expired_at && new Date(i.expired_at).getTime() < now) {
+      const expired = i.expired_at && new Date(i.expired_at).getTime() < now;
+      if (i.status === "pending" && expired) {
         return { ...i, _displayStatus: "expired" };
+      }
+      // Treat unpaid w/ active payment_url as pending (data not migrated yet)
+      if (i.status === "unpaid" && i.payment_url && !expired) {
+        return { ...i, _displayStatus: "pending" };
       }
       return { ...i, _displayStatus: i.status };
     });
