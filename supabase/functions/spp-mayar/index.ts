@@ -168,30 +168,24 @@ async function syncPaidInvoicesFromMayar(supabaseAdmin: any, schoolId: string) {
 async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{ ok: boolean; json: any; expiry: Date; status: number }> {
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + MAYAR_LINK_TTL_DAYS);
-  // Short uniq token (8 chars) — keeps email under Mayar's 55-char limit.
-  const uniq = (Date.now().toString(36) + Math.random().toString(36).slice(2)).slice(-8);
+  // Short uniq token — keeps Mayar recipient/email unique without exposing long codes.
+  // A static email/phone can make Mayar return another student's existing link.
+  const uniq = (Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^a-z0-9]/g, "").slice(-6);
   // Mayar requires integer amount (IDR, no decimals).
   const safeAmount = Math.max(1000, Math.round(Number(inv.total_amount) || 0));
-  const slugify = (s: string, max = 14) =>
-    String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "").slice(0, max) || "siswa";
-  // Keep payload minimal — same shape as the working subscription flow.
-  // Mayar's dedupe gets stricter when extra fields (customer{}, merchantName, expiredAt) are present.
-  // Email tetap unik (dedupe internal) tapi tampilan name bersih tanpa kode.
-  const studentSlug = slugify(inv.student_name, 14);
-  const invoiceShort = String(inv.id || "").replace(/-/g, "").slice(0, 8) || uniq;
-  const buyerEmail = `spp@atskolla.com`;
-  // Vary mobile each retry to defeat phone-based dedupe
-  const baseMobile = attempt === 0
-    ? ((inv.parent_phone || "08000000000").replace(/\D/g, "") || "08000000000")
-    : `0800${String(Date.now()).slice(-7)}`;
+  const buyerEmail = `spp${uniq}@atskolla.com`;
+  // Use a short synthetic mobile so Mayar does not dedupe against another student sharing a parent phone.
+  const mobileSeed = `${String(inv.id || "")}${Date.now()}${attempt}`;
+  const mobileDigits = Array.from(mobileSeed).reduce((acc, ch) => (acc + ch.charCodeAt(0)) % 10000000, 0).toString().padStart(7, "0");
+  const recipientName = `${inv.student_name} - ${inv.class_name} - ${inv.period_label}`;
   const payload = {
-    name: `SPP ${inv.period_label} - ${inv.student_name} (${inv.class_name})`,
+    name: recipientName,
     amount: safeAmount,
-    description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name}`,
+    description: `SPP ${inv.period_label} ${inv.student_name}`,
     email: buyerEmail,
-    mobile: baseMobile,
+    mobile: `0800${mobileDigits}`,
     redirectUrl: "https://atskolla.com/parent",
+    expiredAt: expiry.toISOString(),
   };
   const res = await fetch("https://api.mayar.id/hl/v1/payment/create", {
     method: "POST",
