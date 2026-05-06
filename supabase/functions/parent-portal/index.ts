@@ -86,8 +86,17 @@ async function sendSppPaidWhatsApp(inv: any, paidAt: string) {
   return { sent: true, details: data };
 }
 
+async function getMayarApiKey(): Promise<string> {
+  try {
+    const { data } = await supabase
+      .from("platform_settings").select("value").eq("key", "mayar_api_key").maybeSingle();
+    if (data?.value) return data.value as string;
+  } catch (_) {}
+  return Deno.env.get("MAYAR_API_KEY") || "";
+}
+
 async function syncSppInvoicesFromMayar(invoices: any[]) {
-  const apiKey = Deno.env.get("MAYAR_API_KEY");
+  const apiKey = await getMayarApiKey();
   if (!apiKey) return invoices;
   const feeCfg = await getGatewayFeeConfig();
   const synced: any[] = [];
