@@ -168,19 +168,17 @@ async function syncPaidInvoicesFromMayar(supabaseAdmin: any, schoolId: string) {
 async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{ ok: boolean; json: any; expiry: Date; status: number }> {
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + MAYAR_LINK_TTL_DAYS);
-  // Strong uniqueness token — included in BOTH email & description so Mayar
-  // never sees an identical payload (avoids 429/duplicate spiral).
-  const uniq = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  // Short uniq token (8 chars) — keeps email under Mayar's 55-char limit.
+  const uniq = (Date.now().toString(36) + Math.random().toString(36).slice(2)).slice(-8);
   // Mayar requires integer amount (IDR, no decimals).
   const safeAmount = Math.max(1000, Math.round(Number(inv.total_amount) || 0));
-  const slugify = (s: string) =>
+  const slugify = (s: string, max = 14) =>
     String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, ".").replace(/^\.+|\.+$/g, "").slice(0, 40) || "siswa";
-  const studentSlug = slugify(inv.student_name);
-  const periodSlug = slugify(inv.period_label);
-  const invoiceShort = String(inv.id || "").replace(/-/g, "").slice(0, 8) || uniq.slice(-8);
-  // Email contains uniq → guaranteed unique per-attempt → bypasses Mayar dedupe.
-  const buyerEmail = `spp.${studentSlug}.${periodSlug}.${invoiceShort}.${uniq}@atskolla.com`;
+      .replace(/[^a-z0-9]+/g, "").slice(0, max) || "siswa";
+  // Format: spp.{name14}.{inv8}.{uniq8}@atskolla.com → max ~44 chars (< Mayar 55).
+  const studentSlug = slugify(inv.student_name, 14);
+  const invoiceShort = String(inv.id || "").replace(/-/g, "").slice(0, 8) || uniq;
+  const buyerEmail = `spp.${studentSlug}.${invoiceShort}.${uniq}@atskolla.com`;
   const buyerName = inv.parent_name?.trim()
     ? `${inv.parent_name} (Wali ${inv.student_name})`
     : `Wali ${inv.student_name}`;
@@ -394,7 +392,13 @@ async function ensureFreshLink(
     payload: linkRes.json,
     message: linkRes.json?.message || null,
   });
-  if (!linkRes.ok) return { success: false, error: linkRes.json?.message || "Gagal create payment di Mayar" };
+  if (!linkRes.ok) {
+    const detail = Array.isArray(linkRes.json?.data)
+      ? linkRes.json.data.map((d: any) => d?.message || d?.field).filter(Boolean).join("; ")
+      : "";
+    const msg = linkRes.json?.message || linkRes.json?.messages || detail || "Gagal create payment di Mayar";
+    return { success: false, error: detail ? `${msg} (${detail})` : msg };
+  }
 
   const link = linkRes.json.data;
   const mayarId = link.id || link.paymentLinkId || link.paymentLinkID || null;
