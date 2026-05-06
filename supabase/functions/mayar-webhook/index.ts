@@ -121,18 +121,8 @@ serve(async (req) => {
       payment = found;
     }
     
-    // 4. Fallback: match by amount + pending status
-    if (!payment && data?.amount) {
-      const { data: found } = await supabaseAdmin
-        .from('payment_transactions')
-        .select('id, school_id, plan_id, status, amount, payment_method, mayar_transaction_id, mayar_payment_url')
-        .eq('status', 'pending')
-        .eq('amount', data.amount)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      payment = found;
-    }
+    // 4. (Removed) amount-only fallback for payment_transactions — too ambiguous
+    //     when many SPP invoices share identical nominal. Mayar identifiers above are sufficient.
 
     // 5. SPP fallback — match directly against spp_invoices (in case payment_transactions bridge missing)
     if (!payment) {
