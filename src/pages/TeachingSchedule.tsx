@@ -311,22 +311,22 @@ export default function TeachingSchedule() {
           </div>
 
           {/* Stats cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Calendar className="h-5 w-5 text-primary" /></div>
-              <div><p className="text-2xl font-bold">{schedules.length}</p><p className="text-xs text-muted-foreground">Total Jadwal</p></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{schedules.length}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Total Jadwal</p></div>
             </CardContent></Card>
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center"><UsersIcon className="h-5 w-5 text-green-500" /></div>
-              <div><p className="text-2xl font-bold">{new Set(schedules.map((s) => s.teacher_id)).size}</p><p className="text-xs text-muted-foreground">Guru Terjadwal</p></div>
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0"><UsersIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{new Set(schedules.map((s) => s.teacher_id)).size}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Guru Terjadwal</p></div>
             </CardContent></Card>
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center"><BookOpen className="h-5 w-5 text-blue-500" /></div>
-              <div><p className="text-2xl font-bold">{subjects.filter((s) => s.is_active).length}</p><p className="text-xs text-muted-foreground">Mata Pelajaran</p></div>
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0"><BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{subjects.filter((s) => s.is_active).length}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Mata Pelajaran</p></div>
             </CardContent></Card>
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center"><GraduationCap className="h-5 w-5 text-orange-500" /></div>
-              <div><p className="text-2xl font-bold">{new Set(schedules.map((s) => s.class_id)).size}</p><p className="text-xs text-muted-foreground">Kelas Terjadwal</p></div>
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0"><GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{new Set(schedules.map((s) => s.class_id)).size}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Kelas Terjadwal</p></div>
             </CardContent></Card>
           </div>
 
@@ -339,17 +339,17 @@ export default function TeachingSchedule() {
             </CardContent></Card>
           ) : (
             Object.entries(groupedByDay).sort(([a], [b]) => Number(a) - Number(b)).map(([day, items]) => (
-              <Card key={day}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Calendar className="h-4 w-4 text-primary" />
+              <Card key={day} className="border-0 shadow-card rounded-2xl overflow-hidden">
+                <CardHeader className="pb-2 px-3.5 sm:px-6 pt-3.5 sm:pt-4">
+                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                     </div>
-                    {DAYS[Number(day)]}
-                    <Badge variant="secondary" className="ml-auto">{items.length} jadwal</Badge>
+                    <span className="truncate">{DAYS[Number(day)]}</span>
+                    <Badge variant="secondary" className="ml-auto text-[10px] sm:text-xs shrink-0">{items.length} jadwal</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 px-3 sm:px-6 pb-3 sm:pb-6">
                   <div className="hidden md:block">
                     <Table>
                       <TableHeader>
@@ -398,30 +398,58 @@ export default function TeachingSchedule() {
                   <div className="md:hidden space-y-2">
                     {items.map((s) => {
                       const isMe = s.teacher_id === user?.id;
+                      const subjColor = getSubjectColor(s.subject_id);
                       return (
-                      <div key={s.id} className={cn("border rounded-lg p-3 space-y-1.5", isMe && "border-primary/30 bg-primary/5")}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="font-mono text-sm font-medium">{s.start_time.slice(0, 5)} – {s.end_time.slice(0, 5)}</span>
-                          </div>
-                          {isAdmin && (
-                            <div className="flex gap-1">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditSchedule(s)}><Pencil className="h-3.5 w-3.5" /></Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteSchedule(s.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <div key={s.id} className={cn(
+                        "relative overflow-hidden rounded-2xl bg-card border border-border/50 shadow-sm transition-all active:scale-[0.99]",
+                        isMe && "border-primary/40 ring-1 ring-primary/20 bg-primary/[0.03]"
+                      )}>
+                        {/* Colored subject rail */}
+                        <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: subjColor }} aria-hidden />
+                        <div className="pl-3 pr-2.5 py-2.5 space-y-2">
+                          {/* Top row: time pill + actions */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/60 ring-1 ring-border/50">
+                              <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
+                              <span className="font-mono text-[11px] font-semibold tracking-tight">
+                                {s.start_time.slice(0, 5)}<span className="mx-1 text-muted-foreground/60">–</span>{s.end_time.slice(0, 5)}
+                              </span>
                             </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: getSubjectColor(s.subject_id) }} />
-                          <span className="font-semibold">{getSubjectName(s.subject_id)}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                          <span className={cn("flex items-center gap-1", isMe && "text-primary font-bold")}>
-                            <UsersIcon className="h-3 w-3" /> {getTeacherName(s.teacher_id)} {isMe && "(Anda)"}
-                          </span>
-                          <span className="flex items-center gap-1"><GraduationCap className="h-3 w-3" /> {getClassName(s.class_id)}</span>
-                          {s.room && <span className="flex items-center gap-1"><BookOpen className="h-3 w-3" /> {s.room}</span>}
+                            {isAdmin && (
+                              <div className="flex gap-0.5 shrink-0">
+                                <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg" onClick={() => openEditSchedule(s)}><Pencil className="h-3.5 w-3.5" /></Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-destructive" onClick={() => deleteSchedule(s.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Subject title */}
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: subjColor }} />
+                            <p className="text-sm font-bold truncate flex-1">{getSubjectName(s.subject_id)}</p>
+                            {isMe && <Badge className="bg-primary/15 text-primary border-primary/30 text-[9px] h-4 px-1.5 shrink-0">Anda</Badge>}
+                          </div>
+
+                          {/* Info chips — wrap nicely on small screens */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className={cn(
+                              "inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground max-w-full",
+                              isMe && "bg-primary/10 text-primary"
+                            )}>
+                              <UsersIcon className="h-2.5 w-2.5 shrink-0" />
+                              <span className="truncate">{getTeacherName(s.teacher_id)}</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                              <GraduationCap className="h-2.5 w-2.5 shrink-0" />
+                              <span className="truncate max-w-[100px]">{getClassName(s.class_id)}</span>
+                            </span>
+                            {s.room && (
+                              <span className="inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                                <BookOpen className="h-2.5 w-2.5 shrink-0" />
+                                <span className="truncate max-w-[100px]">{s.room}</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       );

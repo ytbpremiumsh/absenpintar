@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import atskollaLogo from "@/assets/Logo_atskolla.png";
 
 export function BendaharaLayout() {
   const { user, profile, roles, loading, signOut } = useAuth();
@@ -26,12 +27,19 @@ export function BendaharaLayout() {
   const [school, setSchool] = useState<{ name?: string; npsn?: string; address?: string; city?: string; province?: string } | null>(null);
   const [openProfile, setOpenProfile] = useState(false);
   const [openSchool, setOpenSchool] = useState(false);
+  const [headerLogo, setHeaderLogo] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile?.school_id) return;
     supabase.from("schools").select("name, npsn, address, city, province").eq("id", profile.school_id).maybeSingle()
       .then(({ data }) => { if (data) setSchool(data); });
   }, [profile?.school_id]);
+
+  useEffect(() => {
+    supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
+      if (data?.value) setHeaderLogo(data.value as string);
+    });
+  }, []);
 
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
@@ -55,7 +63,20 @@ export function BendaharaLayout() {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center border-b border-border/40 bg-background/80 backdrop-blur sticky top-0 z-30 px-3 gap-2">
             <SidebarTrigger />
-            <div className="flex-1" />
+            {/* Logo + nama sekolah */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm shrink-0">
+                <img src={headerLogo || atskollaLogo} alt="Logo" className="h-5 w-5 object-contain" />
+              </div>
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="text-xs sm:text-sm font-bold tracking-tight truncate max-w-[160px] sm:max-w-[260px]">
+                  {school?.name || "ATSkolla"}
+                </span>
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground -mt-0.5 font-medium truncate">
+                  Bendahara<span className="hidden sm:inline"> · Sistem Keuangan</span>
+                </span>
+              </div>
+            </div>
             <NotificationBell />
 
             <DropdownMenu>
