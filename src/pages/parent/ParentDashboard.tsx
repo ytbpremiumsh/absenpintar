@@ -396,24 +396,24 @@ export default function ParentDashboard() {
               </div>
 
               {/* 3 round action buttons */}
-              <div className="relative mt-5 flex items-center justify-around">
+              <div className="relative mt-5 md:mt-6 flex items-center justify-around md:justify-start md:gap-10">
                 <button onClick={() => setTab("leave")} className="flex flex-col items-center gap-1.5 group">
-                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
-                    <Send className="h-4 w-4" />
+                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <Send className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   </div>
-                  <span className="text-[10px] font-medium text-white/90">Ajukan Izin</span>
+                  <span className="text-[10px] md:text-xs font-medium text-white/90">Ajukan Izin</span>
                 </button>
                 <button onClick={() => setTab("attendance")} className="flex flex-col items-center gap-1.5 group">
-                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
-                    <ScanLine className="h-4 w-4" />
+                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <ScanLine className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   </div>
-                  <span className="text-[10px] font-medium text-white/90">Riwayat</span>
+                  <span className="text-[10px] md:text-xs font-medium text-white/90">Riwayat</span>
                 </button>
                 <button onClick={() => setTab("info")} className="flex flex-col items-center gap-1.5 group">
-                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
-                    <HistoryIcon className="h-4 w-4" />
+                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <HistoryIcon className="h-4 w-4 md:h-[18px] md:w-[18px]" />
                   </div>
-                  <span className="text-[10px] font-medium text-white/90">Pengumuman</span>
+                  <span className="text-[10px] md:text-xs font-medium text-white/90">Pengumuman</span>
                 </button>
               </div>
 
