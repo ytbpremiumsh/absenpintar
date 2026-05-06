@@ -2013,30 +2013,17 @@ export function BendaharaSPPDetail() {
 
       {/* Header siswa */}
       <Card className="shadow-elevated border-0 overflow-hidden">
-        <div className="h-20 sm:h-24 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
+        <div className="h-16 sm:h-20 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
         <CardContent className="relative px-4 sm:px-6 pb-5 pt-0">
-          <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12">
-            {/* Avatar */}
-            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-3xl font-bold border-4 border-card shadow-elevated shrink-0 mx-auto md:mx-0">
+          {/* Row 1: Avatar + nama + TA */}
+          <div className="flex items-start gap-4 -mt-10">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] flex items-center justify-center text-white text-3xl font-bold border-4 border-card shadow-elevated shrink-0">
               {student.name[0]}
             </div>
-
-            {/* Info siswa */}
-            <div className="flex-1 min-w-0 text-center md:text-left md:pb-1 md:pt-12">
+            <div className="flex-1 min-w-0 pt-10 sm:pt-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">{student.name}</h1>
-              <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-1.5">
-                <span>NIS: <strong className="text-foreground font-semibold">{student.student_id}</strong></span>
-                {student.nisn && <span>NISN: <strong className="text-foreground font-semibold">{student.nisn}</strong></span>}
-                <span className="inline-flex items-center gap-1">Kelas: <Badge variant="secondary" className="font-semibold">{student.class}</Badge></span>
-                <span>Wali: <strong className="text-foreground font-semibold">{student.parent_name || "-"}</strong></span>
-                {student.parent_phone && <span>WA: <strong className="text-foreground font-semibold">{student.parent_phone}</strong></span>}
-              </div>
-            </div>
-
-            {/* TA Selector */}
-            <div className="md:pb-1 md:pt-12 shrink-0">
               <Select value={ay} onValueChange={setAY}>
-                <SelectTrigger className="w-full md:w-40 h-9"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-40 h-9 shrink-0"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {academicYearList(new Date().getFullYear()).map(a => <SelectItem key={a} value={a}>TA {a}</SelectItem>)}
                 </SelectContent>
@@ -2044,8 +2031,17 @@ export function BendaharaSPPDetail() {
             </div>
           </div>
 
-          {/* Stat cards */}
-          <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {/* Row 2: Info siswa */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+            <span>NIS: <strong className="text-foreground font-semibold">{student.student_id}</strong></span>
+            {student.nisn && <span>NISN: <strong className="text-foreground font-semibold">{student.nisn}</strong></span>}
+            <span className="inline-flex items-center gap-1">Kelas: <Badge variant="secondary" className="font-semibold">{student.class}</Badge></span>
+            <span>Wali: <strong className="text-foreground font-semibold">{student.parent_name || "-"}</strong></span>
+            {student.parent_phone && <span>WA: <strong className="text-foreground font-semibold">{student.parent_phone}</strong></span>}
+          </div>
+
+          {/* Row 3: Stat cards */}
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5">
             <div className="bg-muted/40 rounded-xl p-3 border border-border/40">
               <p className="text-[11px] text-muted-foreground font-medium">Total Tagihan TA</p>
               <p className="text-base sm:text-lg font-extrabold mt-0.5 truncate">{fmtIDR(stats.totalTagihan)}</p>
