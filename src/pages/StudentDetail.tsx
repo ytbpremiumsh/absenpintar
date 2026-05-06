@@ -323,7 +323,7 @@ const StudentDetail = () => {
       {/* Student header card */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="shadow-elevated border-0 overflow-hidden">
-          <div className="gradient-hero h-28 sm:h-32" />
+          <div className="h-28 sm:h-32 bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0]" />
           <CardContent className="relative px-6 pb-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-14">
               <div className="relative group">

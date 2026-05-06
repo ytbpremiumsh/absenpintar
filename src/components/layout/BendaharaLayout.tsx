@@ -65,7 +65,7 @@ export function BendaharaLayout() {
             <SidebarTrigger />
             {/* Logo + nama sekolah */}
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm shrink-0">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shadow-sm shrink-0">
                 <img src={headerLogo || atskollaLogo} alt="Logo" className="h-5 w-5 object-contain" />
               </div>
               <div className="flex flex-col leading-tight min-w-0">
@@ -82,8 +82,8 @@ export function BendaharaLayout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-xl hover:bg-secondary/80 transition p-1.5 pr-2.5">
-                  <Avatar className="h-8 w-8 ring-2 ring-emerald-500/20">
-                    <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-bold">
+                  <Avatar className="h-8 w-8 ring-2 ring-[#5B6CF9]/20">
+                    <AvatarFallback className="bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white text-xs font-bold">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
