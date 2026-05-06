@@ -512,16 +512,16 @@ function BendaharaMobileDashboard({
           </div>
         </div>
 
-        {/* Service grid 4x2 */}
+        {/* Service grid 4x2 — professional gradient tiles */}
         <div className="grid grid-cols-4 gap-3">
-          <BendServiceIcon icon={Users} label="Siswa" color="#10B981" bg="#E6FAF3" onClick={() => navigate("/bendahara/siswa")} />
-          <BendServiceIcon icon={Receipt} label="Tarif SPP" color="#5B6CF9" bg="#EEF0FE" onClick={() => navigate("/bendahara/tarif")} />
-          <BendServiceIcon icon={FileText} label="Generate" color="#F59E0B" bg="#FEF5E1" onClick={() => navigate("/bendahara/generate")} />
-          <BendServiceIcon icon={CreditCard} label="Pembayaran" color="#EC4899" bg="#FDE8F2" onClick={() => navigate("/bendahara/transaksi")} />
-          <BendServiceIcon icon={Upload} label="Import" color="#8B5CF6" bg="#F1ECFE" onClick={() => navigate("/bendahara/import-export")} />
-          <BendServiceIcon icon={Wallet} label="Saldo" color="#0EA5E9" bg="#E1F4FE" onClick={() => navigate("/bendahara/saldo")} />
-          <BendServiceIcon icon={ArrowDownToLine} label="Pencairan" color="#EF4444" bg="#FEE7E7" onClick={() => navigate("/bendahara/pencairan")} />
-          <BendServiceIcon icon={BarChart3} label="Laporan" color="#64748B" bg="#EEF1F5" onClick={() => navigate("/bendahara/laporan")} />
+          <BendServiceIcon icon={Users} label="Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/bendahara/siswa")} />
+          <BendServiceIcon icon={Receipt} label="Tarif SPP" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/tarif")} />
+          <BendServiceIcon icon={FileText} label="Generate" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/bendahara/generate")} />
+          <BendServiceIcon icon={CreditCard} label="Pembayaran" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/bendahara/transaksi")} />
+          <BendServiceIcon icon={Upload} label="Import" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/bendahara/import-export")} />
+          <BendServiceIcon icon={Wallet} label="Saldo" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/bendahara/saldo")} />
+          <BendServiceIcon icon={ArrowDownToLine} label="Pencairan" gradient="from-rose-500 to-red-600" onClick={() => navigate("/bendahara/pencairan")} />
+          <BendServiceIcon icon={BarChart3} label="Laporan" gradient="from-slate-600 to-slate-800" onClick={() => navigate("/bendahara/laporan")} />
         </div>
 
         {/* Persentase pelunasan */}
@@ -597,71 +597,18 @@ function BendaharaMobileDashboard({
         </div>
       </div>
 
-      {/* Floating bottom nav with center FAB */}
-      <nav className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none md:hidden">
-        <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
-          <BendFabBtn icon={Home} label="Beranda" active color="#10B981" onClick={() => navigate("/bendahara")} />
-          <BendFabBtn icon={CreditCard} label="Bayar" color="#EC4899" onClick={() => navigate("/bendahara/transaksi")} />
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <button
-                className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(16,185,129,0.7)] ring-4 ring-white dark:ring-card transition-transform active:scale-95 hover:scale-105 shrink-0"
-                aria-label="Menu Lainnya"
-              >
-                <LayoutGrid className="h-5 w-5" />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
-              <SheetHeader className="mb-4">
-                <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
-              </SheetHeader>
-              <div className="grid grid-cols-3 gap-3">
-                <BendSheetItem icon={Users} label="Data Siswa" color="#10B981" bg="#E6FAF3" onClick={() => navigate("/bendahara/siswa")} />
-                <BendSheetItem icon={Receipt} label="Tarif SPP" color="#5B6CF9" bg="#EEF0FE" onClick={() => navigate("/bendahara/tarif")} />
-                <BendSheetItem icon={FileText} label="Generate Tagihan" color="#F59E0B" bg="#FEF5E1" onClick={() => navigate("/bendahara/generate")} />
-                <BendSheetItem icon={Upload} label="Import" color="#8B5CF6" bg="#F1ECFE" onClick={() => navigate("/bendahara/import-export")} />
-                <BendSheetItem icon={Wallet} label="Saldo" color="#0EA5E9" bg="#E1F4FE" onClick={() => navigate("/bendahara/saldo")} />
-                <BendSheetItem icon={ArrowDownToLine} label="Pencairan" color="#EF4444" bg="#FEE7E7" onClick={() => navigate("/bendahara/pencairan")} />
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <BendFabBtn icon={Wallet} label="Saldo" color="#0EA5E9" onClick={() => navigate("/bendahara/saldo")} />
-          <BendFabBtn icon={BarChart3} label="Laporan" color="#5B6CF9" onClick={() => navigate("/bendahara/laporan")} />
-        </div>
-      </nav>
+      {/* Floating bottom nav now mounted globally in BendaharaLayout */}
     </div>
   );
 }
 
-function BendServiceIcon({ icon: Icon, label, color, bg, onClick }: any) {
+function BendServiceIcon({ icon: Icon, label, gradient, onClick }: { icon: any; label: string; gradient: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
-      <div className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_18px_-10px_rgba(0,0,0,0.25)] group-hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.3)] transition-shadow ring-1 ring-black/[0.03]" style={{ backgroundColor: bg }}>
-        <Icon className="h-6 w-6" style={{ color }} strokeWidth={2.2} />
+      <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_20px_-10px_rgba(0,0,0,0.35)] group-hover:shadow-[0_12px_28px_-10px_rgba(0,0,0,0.4)] group-hover:-translate-y-0.5 transition-all ring-1 ring-white/30 bg-gradient-to-br ${gradient}`}>
+        <Icon className="h-[22px] w-[22px] text-white" strokeWidth={2.3} />
       </div>
-      <span className="text-[10px] font-medium text-foreground/80 text-center leading-tight">{label}</span>
-    </button>
-  );
-}
-
-function BendFabBtn({ icon: Icon, label, active, color, onClick }: any) {
-  return (
-    <button onClick={onClick} className={`flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl transition-all ${active ? "scale-105" : ""}`}>
-      <Icon className="h-5 w-5 transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }} strokeWidth={active ? 2.5 : 2} />
-      <span className="text-[9px] font-semibold transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }}>{label}</span>
-    </button>
-  );
-}
-
-function BendSheetItem({ icon: Icon, label, color, bg, onClick }: any) {
-  return (
-    <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
-      <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: bg }}>
-        <Icon className="h-5 w-5" style={{ color }} strokeWidth={2.2} />
-      </div>
-      <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
+      <span className="text-[10px] font-semibold text-foreground/80 text-center leading-tight">{label}</span>
     </button>
   );
 }
