@@ -344,7 +344,7 @@ const Login = () => {
             transition={{ delay: 0.7 }}
             className="text-center text-white/30 text-xs mt-6"
           >
-            © 2026 ATSkolla - Absensi Digital Sekolah
+            © 2026 ATSkolla — Platform Manajemen Sekolah Modern
           </motion.p>
         </motion.div>
       </div>
