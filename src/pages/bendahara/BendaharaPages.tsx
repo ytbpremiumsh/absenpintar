@@ -2739,7 +2739,7 @@ export function BendaharaSaldo() {
   const fetchAll = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
     const [invRes, stlRes, psRes] = await Promise.all([
-      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").order("paid_at", { ascending: false }),
+      supabase.from("spp_invoices").select("*").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").order("paid_at", { ascending: false }),
       supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id),
       supabase.from("platform_settings").select("key,value").in("key", ["gateway_fee_percent", "gateway_fee_flat"]),
     ]);
@@ -2943,7 +2943,7 @@ export function BendaharaPencairan() {
         syncingRef.current = false;
       }
       const [avRes, hRes] = await Promise.all([
-        supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").is("settlement_id", null),
+        supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null),
         supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
@@ -2996,7 +2996,7 @@ export function BendaharaPencairan() {
     }).select().single();
     if (error || !settlement) { toast.error(error?.message || "Gagal"); setSubmitting(false); return; }
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
-      .eq("school_id", profile!.school_id).eq("status", "paid").is("settlement_id", null);
+      .eq("school_id", profile!.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
     setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
   };
