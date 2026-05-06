@@ -13,6 +13,7 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, SidebarHeader, useSidebar,
 } from "@/components/ui/sidebar";
 import { NavLink } from "@/components/NavLink";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const navItems = [
   // OVERVIEW
@@ -209,6 +210,7 @@ export function SuperAdminLayout() {
               <span className="text-sm font-semibold text-foreground/70 hidden sm:inline">Super Admin Panel</span>
             </div>
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <ThemeToggle />
               <Avatar className="h-8 w-8 ring-2 ring-destructive/10">
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-rose-600 text-white text-xs font-bold">{initials}</AvatarFallback>

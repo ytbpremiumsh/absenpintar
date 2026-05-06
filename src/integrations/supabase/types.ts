@@ -2455,6 +2455,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _fmt_idr: { Args: { amt: number }; Returns: string }
       get_user_school_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
