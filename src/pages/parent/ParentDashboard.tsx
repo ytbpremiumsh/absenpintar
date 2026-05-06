@@ -329,17 +329,17 @@ export default function ParentDashboard() {
               <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
 
               {/* Student info row */}
-              <div className="relative flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base overflow-hidden shrink-0">
+              <div className="relative flex items-center gap-2.5">
+                <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base overflow-hidden shrink-0">
                   {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
-                  <p className="text-sm font-semibold truncate">{current?.name}</p>
+                  <p className="text-sm font-semibold leading-snug break-words">{current?.name}</p>
                 </div>
                 {students.length > 1 && (
                   <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                    <SelectTrigger className="w-auto h-8 text-[11px] rounded-full bg-white/15 border-white/30 text-white backdrop-blur"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-[72px] h-7 px-2 text-[10px] rounded-full bg-white/15 border-white/30 text-white backdrop-blur shrink-0 [&>span]:truncate"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                     </SelectContent>
