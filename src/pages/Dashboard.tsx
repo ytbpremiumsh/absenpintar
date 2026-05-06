@@ -141,18 +141,20 @@ const Dashboard = () => {
 
   const fetchPeriodLogs = useCallback(async () => {
     if (!profile?.school_id) return;
-    const now = new Date();
+    const todayStr = getLocalDateString("Asia/Jakarta");
+    const [ty, tm, td] = todayStr.split("-").map(Number);
     let fromDate: string;
 
     if (chartPeriod === "daily") {
-      fromDate = now.toISOString().slice(0, 10);
+      fromDate = todayStr;
     } else if (chartPeriod === "weekly") {
-      const dayOfWeek = now.getDay();
-      const monday = new Date(now);
-      monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-      fromDate = monday.toISOString().slice(0, 10);
+      const localToday = new Date(ty, tm - 1, td);
+      const dayOfWeek = localToday.getDay();
+      const monday = new Date(localToday);
+      monday.setDate(localToday.getDate() - ((dayOfWeek + 6) % 7));
+      fromDate = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
     } else {
-      fromDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+      fromDate = `${ty}-${String(tm).padStart(2, "0")}-01`;
     }
 
     const { data } = await supabase
