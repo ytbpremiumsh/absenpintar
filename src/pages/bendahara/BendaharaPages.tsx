@@ -512,16 +512,16 @@ function BendaharaMobileDashboard({
           </div>
         </div>
 
-        {/* Service grid 4x2 */}
+        {/* Service grid 4x2 — professional gradient tiles */}
         <div className="grid grid-cols-4 gap-3">
-          <BendServiceIcon icon={Users} label="Siswa" color="#10B981" bg="#E6FAF3" onClick={() => navigate("/bendahara/siswa")} />
-          <BendServiceIcon icon={Receipt} label="Tarif SPP" color="#5B6CF9" bg="#EEF0FE" onClick={() => navigate("/bendahara/tarif")} />
-          <BendServiceIcon icon={FileText} label="Generate" color="#F59E0B" bg="#FEF5E1" onClick={() => navigate("/bendahara/generate")} />
-          <BendServiceIcon icon={CreditCard} label="Pembayaran" color="#EC4899" bg="#FDE8F2" onClick={() => navigate("/bendahara/transaksi")} />
-          <BendServiceIcon icon={Upload} label="Import" color="#8B5CF6" bg="#F1ECFE" onClick={() => navigate("/bendahara/import-export")} />
-          <BendServiceIcon icon={Wallet} label="Saldo" color="#0EA5E9" bg="#E1F4FE" onClick={() => navigate("/bendahara/saldo")} />
-          <BendServiceIcon icon={ArrowDownToLine} label="Pencairan" color="#EF4444" bg="#FEE7E7" onClick={() => navigate("/bendahara/pencairan")} />
-          <BendServiceIcon icon={BarChart3} label="Laporan" color="#64748B" bg="#EEF1F5" onClick={() => navigate("/bendahara/laporan")} />
+          <BendServiceIcon icon={Users} label="Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/bendahara/siswa")} />
+          <BendServiceIcon icon={Receipt} label="Tarif SPP" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/tarif")} />
+          <BendServiceIcon icon={FileText} label="Generate" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/bendahara/generate")} />
+          <BendServiceIcon icon={CreditCard} label="Pembayaran" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/bendahara/transaksi")} />
+          <BendServiceIcon icon={Upload} label="Import" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/bendahara/import-export")} />
+          <BendServiceIcon icon={Wallet} label="Saldo" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/bendahara/saldo")} />
+          <BendServiceIcon icon={ArrowDownToLine} label="Pencairan" gradient="from-rose-500 to-red-600" onClick={() => navigate("/bendahara/pencairan")} />
+          <BendServiceIcon icon={BarChart3} label="Laporan" gradient="from-slate-600 to-slate-800" onClick={() => navigate("/bendahara/laporan")} />
         </div>
 
         {/* Persentase pelunasan */}
