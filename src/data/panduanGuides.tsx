@@ -130,6 +130,20 @@ export const GUIDES: RoleGuide[] = [
         ],
       },
       {
+        title: "5b. Identitas & Barcode Per Siswa",
+        description:
+          "Klik nama siswa pada halaman Data Siswa untuk membuka halaman detail Identitas Lengkap & Barcode Siswa. Halaman ini menampilkan profil siswa, statistik kehadiran (Hadir/Izin/Sakit/Alfa), data wali / orang tua, dan QR Barcode unik siswa yang siap dicetak menjadi kartu identitas.",
+        image: "/panduan/school-identitas-barcode.jpg",
+        bullets: [
+          "Header profil: Foto, Nama, Kelas, NIS, dan status absensi hari ini.",
+          "Kartu statistik 4 kolom: total Hadir, Izin, Sakit, dan Alfa.",
+          "Panel 'Identitas Lengkap': Nama, Kelas, NIS, Tanggal Terdaftar.",
+          "Panel 'Data Wali / Orang Tua': Nama Wali & No. HP Wali.",
+          "Panel 'Barcode Siswa': QR Code unik per siswa + tombol 'Download QR Code'.",
+          "Tombol pensil di header untuk edit data siswa langsung dari halaman ini.",
+        ],
+      },
+      {
         title: "6. Pengumuman Sekolah",
         description:
           "Kirim pengumuman ke seluruh staf, guru, dan wali kelas. Bisa diberi label Informasi, Penting, atau Mendesak.",
@@ -501,6 +515,7 @@ export const GUIDES: RoleGuide[] = [
         title: "2. Dashboard Wali Murid",
         description:
           "Setelah login, Anda akan melihat ringkasan kehadiran ananda hari ini, jadwal pelajaran, dan notifikasi terbaru.",
+        image: "/panduan/parent-dashboard.jpg",
         bullets: [
           "Status kehadiran terkini: Hadir/Izin/Sakit/Alfa/Belum.",
           "Jam datang & jam pulang ananda hari ini.",
@@ -512,20 +527,23 @@ export const GUIDES: RoleGuide[] = [
       {
         title: "3. Riwayat Kehadiran",
         description:
-          "Pantau riwayat kehadiran ananda dalam bentuk kalender bulanan dan grafik tren.",
+          "Pantau riwayat kehadiran ananda dalam bentuk daftar harian — tanggal, jam datang, dan status (Hadir/Izin/Sakit/Alfa).",
+        image: "/panduan/parent-absensi.jpg",
         bullets: [
-          "Klik tanggal di kalender untuk lihat detail jam datang/pulang.",
-          "Persentase kehadiran per bulan dalam donut chart.",
-          "Tab Datang & Pulang terpisah.",
-          "Histori 30/60/90 hari terakhir.",
+          "Daftar riwayat absensi 30 hari terakhir.",
+          "Tampilkan tanggal, jam datang, dan metode (manual/QR/face).",
+          "Badge status berwarna: Hadir (hijau), Izin (kuning), Sakit (biru), Alfa (merah).",
+          "Update otomatis saat ananda absen di sekolah.",
         ],
       },
       {
         title: "4. Tagihan SPP",
         description:
           "Jika sekolah mengaktifkan modul SPP, Anda dapat melihat tagihan dan melakukan pembayaran online via QRIS/transfer bank.",
+        image: "/panduan/parent-spp.jpg",
         bullets: [
-          "Daftar tagihan SPP per bulan dengan status Lunas/Belum.",
+          "Banner 'Total Tunggakan' menampilkan akumulasi tagihan belum dibayar.",
+          "Daftar Tagihan Aktif per bulan: nominal, jatuh tempo, status.",
           "Klik 'Bayar Sekarang' untuk pembayaran online (QRIS/Bank/E-Wallet).",
           "Notifikasi WA 'Pembayaran SPP Berhasil' dengan banner branded otomatis terkirim setelah lunas.",
           "Download kwitansi PDF setelah pembayaran berhasil.",
@@ -535,12 +553,13 @@ export const GUIDES: RoleGuide[] = [
         title: "5. Pengajuan Izin / Sakit",
         description:
           "Ajukan izin atau sakit untuk ananda langsung dari portal tanpa perlu datang ke sekolah.",
+        image: "/panduan/parent-izin.jpg",
         bullets: [
-          "Pilih tanggal (bisa range) dan jenis izin (Sakit/Izin).",
-          "Tulis alasan singkat.",
-          "Upload surat keterangan dokter (opsional, untuk Sakit).",
-          "Wali kelas akan menerima notifikasi & approve/reject di portalnya.",
-          "Notifikasi WA balasan dikirim setelah keputusan wali kelas.",
+          "Pilih jenis (Izin/Sakit) dan tanggal pengajuan.",
+          "Tulis alasan singkat di kolom Alasan.",
+          "Upload surat keterangan dokter (opsional, foto/PDF maks 5MB).",
+          "Klik 'Kirim Pengajuan' — wali kelas menerima notifikasi.",
+          "Riwayat Pengajuan menampilkan status: Pending / Disetujui / Ditolak.",
         ],
       },
     ],
