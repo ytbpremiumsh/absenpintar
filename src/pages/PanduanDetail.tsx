@@ -1,13 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, ChevronRight, BookOpen } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, ChevronRight, BookOpen, Monitor, Smartphone } from "lucide-react";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { GUIDES, type RoleGuide } from "@/data/panduanGuides";
+
+type ViewMode = "desktop" | "mobile";
 
 export default function PanduanDetail() {
   const { role } = useParams<{ role: string }>();
   const guide = GUIDES.find((g) => g.id === role) as RoleGuide | undefined;
+  const [viewMode, setViewMode] = useState<ViewMode>("desktop");
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -66,6 +69,43 @@ export default function PanduanDetail() {
         </div>
       </section>
 
+      {/* View Mode Toggle */}
+      <section className="max-w-4xl mx-auto px-4 -mt-2">
+        <div className="flex items-center justify-center">
+          <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white border border-slate-200 shadow-sm">
+            <button
+              onClick={() => setViewMode("desktop")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                viewMode === "desktop"
+                  ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              aria-pressed={viewMode === "desktop"}
+            >
+              <Monitor className="h-4 w-4" />
+              Desktop
+            </button>
+            <button
+              onClick={() => setViewMode("mobile")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                viewMode === "mobile"
+                  ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+              aria-pressed={viewMode === "mobile"}
+            >
+              <Smartphone className="h-4 w-4" />
+              Mobile
+            </button>
+          </div>
+        </div>
+        <p className="text-center text-xs text-slate-400 mt-2">
+          {viewMode === "desktop"
+            ? "Tampilan saat dibuka di laptop / komputer"
+            : "Tampilan saat dibuka di HP Android / iOS"}
+        </p>
+      </section>
+
       {/* Steps */}
       <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="space-y-6">
@@ -117,15 +157,50 @@ export default function PanduanDetail() {
               )}
 
               {step.image && (
-                <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
-                  <img
-                    src={step.image}
-                    alt={step.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-auto"
-                  />
-                </div>
+                <AnimatePresence mode="wait">
+                  {viewMode === "desktop" ? (
+                    <motion.div
+                      key="desktop"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25 }}
+                      className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200"
+                    >
+                      <img
+                        src={step.image}
+                        alt={`${step.title} — Tampilan Desktop`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-auto"
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="mobile"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25 }}
+                      className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-white border border-slate-200 p-6 md:p-8 flex flex-col items-center"
+                    >
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-bold text-slate-700 mb-4 shadow-sm">
+                        <Smartphone className="h-3 w-3 text-[#5B6CF9]" />
+                        Tampilan Mobile (Android / iOS)
+                      </div>
+                      <img
+                        src={guide.mobileMockup}
+                        alt={`${step.title} — Tampilan Mobile`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-auto max-w-[280px] md:max-w-[320px] h-auto drop-shadow-2xl"
+                      />
+                      <p className="text-xs text-slate-500 mt-4 text-center max-w-xs">
+                        Mockup ilustrasi tampilan menu ini di aplikasi mobile.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               )}
             </motion.article>
           ))}

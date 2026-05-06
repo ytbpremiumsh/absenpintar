@@ -17,6 +17,8 @@ export type RoleGuide = {
   color: string;
   accent: string;
   cover: string;
+  /** Mobile mockup screenshot (already includes phone frame). Shared across all steps for this role. */
+  mobileMockup: string;
   intro: string;
   highlights: string[];
   steps: Step[];
@@ -31,6 +33,7 @@ export const GUIDES: RoleGuide[] = [
     color: "from-indigo-500 to-blue-600",
     accent: "bg-indigo-50 text-indigo-700 border-indigo-200",
     cover: "/panduan/school-dashboard.jpg",
+    mobileMockup: "/panduan/mobile-school.jpg",
     intro:
       "Panduan lengkap untuk Admin Sekolah / Operator dalam mengelola data sekolah, siswa, kelas, absensi, dan laporan dari A sampai Z.",
     highlights: [
@@ -188,6 +191,7 @@ export const GUIDES: RoleGuide[] = [
     color: "from-emerald-500 to-teal-600",
     accent: "bg-emerald-50 text-emerald-700 border-emerald-200",
     cover: "/panduan/teacher-dashboard-uswatun.jpg",
+    mobileMockup: "/panduan/mobile-teacher.jpg",
     intro:
       "Panduan untuk Guru Mata Pelajaran dalam mengakses jadwal mengajar, mencatat kehadiran per mapel, dan melihat rekap absensi.",
     highlights: [
@@ -265,6 +269,7 @@ export const GUIDES: RoleGuide[] = [
     color: "from-violet-500 to-purple-600",
     accent: "bg-violet-50 text-violet-700 border-violet-200",
     cover: "/panduan/wali-kelas-dashboard-uswatun.jpg",
+    mobileMockup: "/panduan/mobile-wali-kelas.jpg",
     intro:
       "Panduan untuk Wali Kelas (contoh: Ibu Uswatun Khasanah, S.Pd) dalam memantau siswa kelasnya, leaderboard antar kelas, absensi manual, dan pengajuan izin.",
     highlights: [
@@ -370,6 +375,7 @@ export const GUIDES: RoleGuide[] = [
     color: "from-emerald-600 to-teal-700",
     accent: "bg-teal-50 text-teal-700 border-teal-200",
     cover: "/panduan/bendahara-dashboard.jpg",
+    mobileMockup: "/panduan/mobile-bendahara.jpg",
     intro:
       "Panduan untuk Bendahara Sekolah dalam mengelola tarif SPP, generate tagihan, mencatat pembayaran, dan melakukan pencairan saldo.",
     highlights: [
@@ -489,6 +495,7 @@ export const GUIDES: RoleGuide[] = [
     color: "from-pink-500 to-rose-600",
     accent: "bg-pink-50 text-pink-700 border-pink-200",
     cover: "/panduan/parent-login.jpg",
+    mobileMockup: "/panduan/mobile-parent.jpg",
     intro:
       "Panduan untuk Wali Murid dalam memantau kehadiran ananda melalui Portal Wali Murid (login via WhatsApp OTP) dan melakukan pembayaran SPP online.",
     highlights: [

@@ -687,6 +687,7 @@ const LandingThemeB = () => {
               <p className="text-sm font-bold text-white uppercase tracking-wider">Dukungan</p>
               <ul className="space-y-2.5 text-sm text-slate-400">
                 <li><button onClick={() => navigate("/login")} className="hover:text-indigo-400 transition-colors">Login</button></li>
+                <li><button onClick={() => navigate("/panduan")} className="hover:text-indigo-400 transition-colors">Panduan Penggunaan</button></li>
                 {get("footer_link_faq") && <li><a href={get("footer_link_faq")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">FAQ</a></li>}
                 {get("footer_link_docs") && <li><a href={get("footer_link_docs")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">Dokumentasi</a></li>}
                 {get("footer_link_privacy") && <li><a href={get("footer_link_privacy")} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors">Kebijakan Privasi</a></li>}
