@@ -1,13 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, ChevronRight, BookOpen } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, ChevronRight, BookOpen, Monitor, Smartphone } from "lucide-react";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { GUIDES, type RoleGuide } from "@/data/panduanGuides";
+
+type ViewMode = "desktop" | "mobile";
 
 export default function PanduanDetail() {
   const { role } = useParams<{ role: string }>();
   const guide = GUIDES.find((g) => g.id === role) as RoleGuide | undefined;
+  const [viewMode, setViewMode] = useState<ViewMode>("desktop");
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
