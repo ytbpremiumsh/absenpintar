@@ -109,6 +109,40 @@ export function BendaharaDashboard() {
     setShowRecentPaid(next);
     localStorage.setItem("bendahara_show_recent_paid", next ? "1" : "0");
   };
+  // Detail pembayaran (klik siswa di Riwayat)
+  const [detailInv, setDetailInv] = useState<any | null>(null);
+  const [detailBusy, setDetailBusy] = useState<string | null>(null);
+
+  // Kirim WA konfirmasi (teks SAMA untuk semua metode, hanya field "Metode" yang berbeda)
+  const sendPaidConfirmationWa = async (inv: any) => {
+    if (!inv?.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
+    const schoolName = schoolRow?.name || "Sekolah";
+    const tgl = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-";
+    const metode = formatPaymentMethod(inv.payment_method).label;
+    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Metode  : ${metode}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
+    setDetailBusy(`wa-${inv.id}`);
+    toast.loading("Mengirim WA konfirmasi...");
+    const { error } = await supabase.functions.invoke("send-whatsapp", {
+      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_paid" },
+    });
+    toast.dismiss(); setDetailBusy(null);
+    if (error) toast.error("Gagal kirim WA"); else toast.success("Konfirmasi terkirim ke WA wali");
+  };
+
+  const downloadDetailPdf = async (inv: any) => {
+    if (!profile?.school_id) return;
+    setDetailBusy(`pdf-${inv.id}`);
+    try {
+      const { data: schoolRow } = await supabase.from("schools").select("name, address, city, province, npsn").eq("id", profile.school_id).maybeSingle();
+      await downloadSppInvoicePDF(inv, schoolRow || { name: "Sekolah" });
+      toast.success("Invoice diunduh");
+    } catch (e: any) {
+      toast.error("Gagal unduh invoice");
+    } finally {
+      setDetailBusy(null);
+    }
+  };
 
   const fetchDashboardData = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
