@@ -201,7 +201,68 @@ serve(async (req) => {
     }
 
     if (payment.status === 'paid') {
-      console.log('Payment already processed:', payment.id);
+      console.log('Payment already processed:', payment.id, '— checking SPP invoice fallback');
+      // Don't early-return: a stale payment_transactions row may have matched while
+      // the actual SPP invoice for this webhook is a different one still pending.
+      // Try matching SPP invoice directly by Mayar identifiers / paymentUrl.
+      let sppInv: any = null;
+      if (identifiers.length) {
+        const { data: f } = await supabaseAdmin.from('spp_invoices').select('*').in('mayar_invoice_id', identifiers).maybeSingle();
+        sppInv = f;
+      }
+      if (!sppInv && productId) {
+        const { data: f } = await supabaseAdmin.from('spp_invoices').select('*').eq('mayar_invoice_id', productId).maybeSingle();
+        sppInv = f;
+      }
+      if (!sppInv && paymentUrl) {
+        const { data: f } = await supabaseAdmin.from('spp_invoices').select('*').eq('payment_url', paymentUrl).maybeSingle();
+        sppInv = f;
+      }
+      if (sppInv && sppInv.status !== 'paid') {
+        const feeCfg = await getGatewayFeeConfig(supabaseAdmin);
+        const gatewayFee = calcGatewayFee(sppInv.total_amount, feeCfg);
+        const netAmount = sppInv.total_amount - gatewayFee;
+        await supabaseAdmin.from('spp_invoices').update({
+          status: 'paid', paid_at: new Date().toISOString(),
+          payment_method: data?.paymentMethod || 'mayar',
+          gateway_fee: gatewayFee, net_amount: netAmount,
+          mayar_invoice_id: sppInv.mayar_invoice_id || transactionId || productId,
+        }).eq('id', sppInv.id);
+        await supabaseAdmin.from('spp_logs').insert({
+          school_id: sppInv.school_id, invoice_id: sppInv.id, event_type: 'webhook',
+          status: 'paid', payload: body, message: 'SPP paid (after stale payment_transactions match)',
+        });
+        await supabaseAdmin.from('notifications').insert({
+          school_id: sppInv.school_id,
+          title: 'Pembayaran SPP Diterima',
+          message: `Pembayaran SPP ${sppInv.student_name} (${sppInv.class_name}) untuk ${sppInv.period_label} sebesar Rp ${(sppInv.total_amount).toLocaleString('id-ID')} telah diterima.`,
+          type: 'success',
+        });
+        if (sppInv.parent_phone) {
+          try {
+            const { data: schoolFb } = await supabaseAdmin.from('schools').select('name').eq('id', sppInv.school_id).single();
+            const schoolNameFb = schoolFb?.name || 'Sekolah';
+            let phone = String(sppInv.parent_phone).replace(/\D/g, '');
+            if (phone.startsWith('0')) phone = '62' + phone.substring(1);
+            else if (phone.startsWith('8')) phone = '62' + phone;
+            const paidDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const msg = `*${schoolNameFb} — Pembayaran SPP Berhasil*\n\nYth. Bapak/Ibu *${sppInv.parent_name || 'Wali'}*,\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${sppInv.student_name}\n• Kelas   : ${sppInv.class_name}\n• Periode : ${sppInv.period_label}\n• Nominal : Rp${(sppInv.total_amount).toLocaleString('id-ID')}\n• Metode  : QRIS / Transfer Bank\n• Tanggal : ${paidDate}\n\nTerima kasih atas kepercayaan Bapak/Ibu.`;
+            const waRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-whatsapp`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                'apikey': Deno.env.get('SUPABASE_ANON_KEY')!,
+              },
+              body: JSON.stringify({ school_id: sppInv.school_id, phone, message: msg, message_type: 'spp_paid' }),
+            });
+            console.log('SPP WA notif (stale-tx recovery):', waRes.status, await waRes.text());
+          } catch (waErr) { console.error('SPP WA notif error', waErr); }
+        }
+        return new Response(JSON.stringify({ success: true, type: 'spp_recovered' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       return new Response(JSON.stringify({ message: 'Already processed' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
