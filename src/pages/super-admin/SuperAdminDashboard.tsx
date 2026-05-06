@@ -124,20 +124,27 @@ const SuperAdminDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            Super Admin Dashboard
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Pantau seluruh platform ATSkolla secara real-time</p>
-        </div>
-        <Button onClick={() => navigate("/super-admin/schools")} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-sm">
-          <School className="h-4 w-4 mr-2" />
-          Kelola Sekolah
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
+      <PageHeader
+        icon={TrendingUp}
+        title="Super Admin Dashboard"
+        subtitle={`Pantau seluruh platform ATSkolla — ${new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`}
+        actions={
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-2xl font-bold leading-none">{stats.totalSchools}</p>
+              <p className="text-[11px] text-white/70 mt-1">Sekolah Aktif</p>
+            </div>
+            <Button
+              onClick={() => navigate("/super-admin/schools")}
+              className="bg-white/20 hover:bg-white/30 text-white rounded-xl shadow-sm border border-white/20"
+            >
+              <School className="h-4 w-4 mr-2" />
+              Kelola Sekolah
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        }
+      />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
