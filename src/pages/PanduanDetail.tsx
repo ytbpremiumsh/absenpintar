@@ -157,15 +157,50 @@ export default function PanduanDetail() {
               )}
 
               {step.image && (
-                <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
-                  <img
-                    src={step.image}
-                    alt={step.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-auto"
-                  />
-                </div>
+                <AnimatePresence mode="wait">
+                  {viewMode === "desktop" ? (
+                    <motion.div
+                      key="desktop"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25 }}
+                      className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200"
+                    >
+                      <img
+                        src={step.image}
+                        alt={`${step.title} — Tampilan Desktop`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-auto"
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="mobile"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25 }}
+                      className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-white border border-slate-200 p-6 md:p-8 flex flex-col items-center"
+                    >
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-bold text-slate-700 mb-4 shadow-sm">
+                        <Smartphone className="h-3 w-3 text-[#5B6CF9]" />
+                        Tampilan Mobile (Android / iOS)
+                      </div>
+                      <img
+                        src={guide.mobileMockup}
+                        alt={`${step.title} — Tampilan Mobile`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-auto max-w-[280px] md:max-w-[320px] h-auto drop-shadow-2xl"
+                      />
+                      <p className="text-xs text-slate-500 mt-4 text-center max-w-xs">
+                        Mockup ilustrasi tampilan menu ini di aplikasi mobile.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               )}
             </motion.article>
           ))}
