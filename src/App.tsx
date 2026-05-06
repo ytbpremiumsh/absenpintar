@@ -75,6 +75,7 @@ import SuperAdminBackup from "./pages/super-admin/SuperAdminBackup";
 import SuperAdminAddons from "./pages/super-admin/SuperAdminAddons";
 import SuperAdminServerInfo from "./pages/super-admin/SuperAdminServerInfo";
 import SuperAdminBendahara from "./pages/super-admin/SuperAdminBendahara";
+import SuperAdminPanduan from "./pages/super-admin/SuperAdminPanduan";
 import CustomDomain from "./pages/CustomDomain";
 import Addons from "./pages/Addons";
 import OrderIdCard from "./pages/OrderIdCard";
@@ -160,6 +161,7 @@ function AppRoutes() {
         <Route path="/super-admin/addons" element={<SuperAdminAddons />} />
         <Route path="/super-admin/server-info" element={<SuperAdminServerInfo />} />
         <Route path="/super-admin/bendahara" element={<SuperAdminBendahara />} />
+        <Route path="/super-admin/panduan" element={<SuperAdminPanduan />} />
       </Route>
       {/* School Admin / Staff */}
       <Route element={<AppLayout />}>
