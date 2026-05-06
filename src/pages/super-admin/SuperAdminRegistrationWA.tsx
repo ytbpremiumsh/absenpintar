@@ -295,7 +295,7 @@ const SuperAdminRegistrationWA = () => {
     setSettings(prev => ({ ...prev, onesender_enabled: val ? "true" : "false" }));
   };
 
-  const handleTestAdminNotify = async (kind: "ticket" | "withdrawal") => {
+  const handleTestAdminNotify = async (kind: "ticket" | "withdrawal" | "bendahara") => {
     if (!settings.admin_notify_phone.trim()) {
       toast.error("Nomor admin tujuan wajib diisi terlebih dahulu");
       return;
@@ -308,19 +308,39 @@ const SuperAdminRegistrationWA = () => {
         { key: "admin_notify_enabled", value: settings.admin_notify_enabled, updated_at: new Date().toISOString() },
         { key: "admin_notify_ticket_template", value: settings.admin_notify_ticket_template, updated_at: new Date().toISOString() },
         { key: "admin_notify_withdrawal_template", value: settings.admin_notify_withdrawal_template, updated_at: new Date().toISOString() },
+        { key: "admin_notify_bendahara_template", value: settings.admin_notify_bendahara_template, updated_at: new Date().toISOString() },
       ];
       await supabase.from("platform_settings").upsert(rows, { onConflict: "key" });
 
-      const samplePayload = kind === "ticket"
-        ? { school: "SDN 1 Jakarta", user: "Budi Santoso", priority: "high", subject: "Tidak bisa scan QR", message: "Ini hanya tes notifikasi tiket bantuan." }
-        : { affiliate: "Pak Guru", email: "guru@contoh.com", amount: 750000, bank: "BCA", account_number: "1234567890", account_holder: "Pak Guru" };
+      let samplePayload: Record<string, any>;
+      let eventType: string;
+      let label: string;
+      if (kind === "ticket") {
+        eventType = "support_ticket";
+        label = "Tiket Bantuan";
+        samplePayload = { school: "SDN 1 Jakarta", user: "Budi Santoso", priority: "high", subject: "Tidak bisa scan QR", message: "Ini hanya tes notifikasi tiket bantuan." };
+      } else if (kind === "withdrawal") {
+        eventType = "withdrawal_request";
+        label = "Pencairan Affiliate";
+        samplePayload = { affiliate: "Pak Guru", email: "guru@contoh.com", amount: 750000, bank: "BCA", account_number: "1234567890", account_holder: "Pak Guru" };
+      } else {
+        eventType = "bendahara_settlement";
+        label = "Pencairan Bendahara";
+        samplePayload = {
+          school: "SDN 1 Jakarta", requester: "Bendahara Sekolah", settlement_code: "STL-20260506-001",
+          total_transactions: 24, total_gross: 12000000, total_gateway_fee: 360000, total_net: 11640000,
+          withdraw_fee: 3000, final_payout: 11637000,
+          bank: "BCA", account_number: "1234567890", account_holder: "SDN 1 Jakarta",
+          notes: "Pencairan SPP minggu ke-2",
+        };
+      }
 
       const { data, error } = await supabase.functions.invoke("notify-admin-wa", {
-        body: { event_type: kind === "ticket" ? "support_ticket" : "withdrawal_request", payload: samplePayload },
+        body: { event_type: eventType, payload: samplePayload },
       });
       if (error) throw error;
       if ((data as any)?.success) {
-        toast.success(`Notifikasi tes (${kind === "ticket" ? "Tiket" : "Pencairan"}) terkirim ke ${settings.admin_notify_phone}`);
+        toast.success(`Notifikasi tes (${label}) terkirim ke ${settings.admin_notify_phone}`);
       } else {
         toast.error("Gagal: " + ((data as any)?.error || "tidak diketahui"));
       }
