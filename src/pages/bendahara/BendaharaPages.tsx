@@ -2626,12 +2626,12 @@ export function BendaharaSaldo() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Deskripsi</TableHead>
-                  <TableHead className="text-right">Bruto</TableHead>
-                  <TableHead className="text-right">Biaya Layanan ({feeCfg.percent}%)</TableHead>
-                  <TableHead className="text-right">Net</TableHead>
-                  <TableHead>Status Cair</TableHead>
+                  <TableHead className="whitespace-nowrap">Tanggal</TableHead>
+                  <TableHead className="whitespace-nowrap">Deskripsi</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Bruto</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Biaya Layanan ({feeCfg.percent}%)</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Net</TableHead>
+                  <TableHead className="whitespace-nowrap">Status Cair</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
