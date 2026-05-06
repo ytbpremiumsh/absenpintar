@@ -237,15 +237,6 @@ export async function generateSppInvoicePDF(data: SppInvoicePDFData): Promise<js
     }
     y += boxHeight;
   }
-    const rawMethod = (data.invoice.payment_method || "").toLowerCase();
-    const methodLabel = rawMethod.includes("transfer") || rawMethod.includes("bank") ? "Transfer Bank"
-      : rawMethod.includes("qris") ? "QRIS"
-      : rawMethod.includes("ewallet") || rawMethod.includes("wallet") ? "E-Wallet"
-      : rawMethod === "spp" || rawMethod === "" || rawMethod === "mayar" ? "QRIS / Transfer Bank"
-      : data.invoice.payment_method!.toUpperCase();
-    doc.text(`Metode Pembayaran  : ${methodLabel}`, M + 4, y + 15.5);
-    y += 18;
-  }
 
   // ─── FOOTER / SIGNATURE ───
   y = 250;
