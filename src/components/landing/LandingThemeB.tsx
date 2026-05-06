@@ -22,6 +22,7 @@ import illustrationMonitor from "@/assets/illustration-monitor.png";
 import dashboardSchoolImg from "@/assets/dashboard-school.jpg";
 import dashboardTeacherImg from "@/assets/dashboard-teacher.jpg";
 import dashboardParentImg from "@/assets/dashboard-parent.jpg";
+import dashboardBendaharaImg from "@/assets/dashboard-bendahara.jpg";
 import { cn } from "@/lib/utils";
 
 const fadeUp = {
