@@ -2247,7 +2247,7 @@ export function BendaharaSPPDetail() {
                       <TableCell><StatusBadge status={dStatus} /></TableCell>
                       <TableCell className="text-right">
                         {dStatus === "pending" ? (
-                          <div className="flex flex-wrap gap-1 justify-end max-w-[200px] sm:max-w-none ml-auto">
+                          <div className="flex flex-nowrap gap-1 justify-end">
                             {!inv.payment_url ? (
                               <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded] h-8 px-2.5" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
                                 {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><LinkIcon className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Buat Link</span></>}
@@ -2265,7 +2265,7 @@ export function BendaharaSPPDetail() {
                             </Button>
                           </div>
                         ) : dStatus === "expired" ? (
-                          <div className="flex flex-wrap gap-1 justify-end max-w-[200px] sm:max-w-none ml-auto">
+                          <div className="flex flex-nowrap gap-1 justify-end">
                             <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white h-8 px-2.5" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)} title="Buat Ulang Link">
                               {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Buat Ulang Link</span></>}
                             </Button>
@@ -2274,7 +2274,7 @@ export function BendaharaSPPDetail() {
                             </Button>
                           </div>
                         ) : dStatus === "paid" ? (
-                          <div className="flex flex-wrap gap-1 justify-end max-w-[200px] sm:max-w-none ml-auto">
+                          <div className="flex flex-nowrap gap-1 justify-end">
                             <Button size="sm" variant="outline" className="h-8 px-2.5" disabled={busy === `pdf-${inv.id}`} onClick={() => downloadPdf(inv)} title="Download Invoice">
                               {busy === `pdf-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Download className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Invoice</span></>}
                             </Button>
