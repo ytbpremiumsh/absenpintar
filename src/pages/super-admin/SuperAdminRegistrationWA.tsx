@@ -637,7 +637,7 @@ const SuperAdminRegistrationWA = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Wallet className="h-3.5 w-3.5 text-emerald-600" />
-                <Label className="text-xs font-semibold">Template Pengajuan Pencairan Dana</Label>
+                <Label className="text-xs font-semibold">Template Pencairan Dana — Affiliate Guru</Label>
               </div>
               <Button
                 size="sm"
@@ -665,6 +665,42 @@ const SuperAdminRegistrationWA = () => {
             <p className="text-[10px] text-muted-foreground">
               <Info className="h-3 w-3 inline mr-1" />
               {"{amount}"} otomatis diformat menjadi nilai Rupiah (mis. Rp 750.000)
+            </p>
+          </div>
+
+          {/* Template Pencairan Bendahara Sekolah */}
+          <div className="space-y-2 p-3 rounded-lg border border-border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-3.5 w-3.5 text-amber-600" />
+                <Label className="text-xs font-semibold">Template Pencairan Dana — Bendahara Sekolah (SPP)</Label>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[11px]"
+                disabled={adminTesting !== null}
+                onClick={() => handleTestAdminNotify("bendahara")}
+              >
+                {adminTesting === "bendahara" ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
+                Tes Kirim
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {["{school}", "{requester}", "{settlement_code}", "{total_transactions}", "{total_gross}", "{total_gateway_fee}", "{total_net}", "{withdraw_fee}", "{final_payout}", "{bank}", "{account_number}", "{account_holder}", "{notes}", "{time}"].map((v) => (
+                <Badge key={v} variant="secondary" className="text-[10px]">{v}</Badge>
+              ))}
+            </div>
+            <Textarea
+              value={settings.admin_notify_bendahara_template}
+              onChange={(e) => setSettings({ ...settings, admin_notify_bendahara_template: e.target.value })}
+              rows={8}
+              className="resize-none font-mono text-xs"
+              placeholder="🏦 Pencairan Dana Bendahara..."
+            />
+            <p className="text-[10px] text-muted-foreground">
+              <Info className="h-3 w-3 inline mr-1" />
+              Semua field nominal otomatis diformat ke Rupiah. Trigger aktif saat Bendahara mengajukan pencairan SPP.
             </p>
           </div>
 
