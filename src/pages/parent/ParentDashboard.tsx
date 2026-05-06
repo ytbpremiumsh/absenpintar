@@ -950,7 +950,7 @@ export default function ParentDashboard() {
       </div>
 
       {/* Bottom Floating Nav — Payou-style with center FAB */}
-      <nav className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
+      <nav className="md:hidden fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
         <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
           {/* Left 2 tabs */}
           <FabNavBtn icon={Home} label="Beranda" active={tab === "home"} color="#10B981" onClick={() => setTab("home")} />
