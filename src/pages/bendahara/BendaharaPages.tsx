@@ -1392,7 +1392,7 @@ export function BendaharaGenerate() {
 
       {/* Action bar */}
       <div className="sticky bottom-4 z-10">
-        <Card className="border-0 shadow-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white">
+        <Card className="border-0 shadow-xl bg-gradient-to-r from-[#5B6CF9] to-[#3D4FE0] text-white">
           <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs text-white/70">Total estimasi</p>
@@ -1401,7 +1401,7 @@ export function BendaharaGenerate() {
             </div>
             <div className="flex gap-2">
               <Button variant="secondary" onClick={() => setPreviewOpen(true)} disabled={preview.list.length === 0} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Eye className="h-4 w-4 mr-1.5" /> Pratinjau</Button>
-              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-emerald-700 hover:bg-white/90">
+              <Button onClick={generate} disabled={loading || preview.list.length === 0} className="bg-white text-[#3D4FE0] hover:bg-white/90">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
                 Generate Sekarang
               </Button>
@@ -1719,11 +1719,11 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
         const totalSisa = list.reduce((sum, s) => sum + s.sisa, 0);
         const isOpen = openClass[className] ?? false;
 
-        // Semua kelas pakai palette emerald/teal (seragam seperti TKR 1)
+        // Semua kelas pakai palette brand ungu (seragam)
         const pal = {
-          grad: "from-emerald-500 via-teal-500 to-emerald-600",
-          ring: "ring-emerald-200",
-          chip: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          grad: "from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0]",
+          ring: "ring-indigo-200",
+          chip: "bg-indigo-50 text-indigo-700 border-indigo-200",
         };
 
         // Avatar berdasarkan gender: ungu (indigo/violet) = laki-laki, merah (rose) = perempuan
@@ -1772,7 +1772,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                     size="sm"
                     onClick={(e) => { e.stopPropagation(); sendBulkForStudents(className, list); }}
                     disabled={bulkBusy === className}
-                    className="h-8 bg-white text-emerald-700 hover:bg-white/90 text-xs font-semibold shadow-sm shrink-0"
+                    className="h-8 bg-white text-[#3D4FE0] hover:bg-white/90 text-xs font-semibold shadow-sm shrink-0"
                     title={`Kirim WA tagihan ke ${nunggak} wali murid`}
                   >
                     {bulkBusy === className ? (
