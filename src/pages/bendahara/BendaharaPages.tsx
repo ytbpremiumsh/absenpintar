@@ -2812,7 +2812,7 @@ export function BendaharaPencairan() {
         subtitle="Ajukan pencairan saldo SPP dan pantau riwayat settlement"
         variant="primary"
         actions={
-          <Button variant="outline" size="sm" onClick={() => setBankManageOpen(true)} className="gap-2">
+          <Button size="sm" onClick={() => setBankManageOpen(true)} className="gap-2 bg-white text-[#5B6CF9] hover:bg-white/90 border border-white/40 shadow-sm font-semibold">
             <Landmark className="h-4 w-4" /> Kelola Rekening
           </Button>
         }
