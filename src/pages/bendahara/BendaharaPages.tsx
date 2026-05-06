@@ -26,7 +26,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
+import { downloadSppInvoicePDF, generateSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { brandPaymentUrl } from "@/lib/utils";
 
@@ -2004,28 +2004,50 @@ export function BendaharaSPPDetail() {
     }
   };
 
-  const downloadAllPaidPdf = async (scope: "ay" | "all") => {
+  const downloadAllPaidPdf = async () => {
     if (!profile?.school_id) return;
+    // Hanya invoice yang valid: status paid + ada tanggal pembayaran
     const paidList = enrichedInvoices
-      .filter(i => (i._displayStatus || i.status) === "paid")
-      .filter(i => scope === "all" ? true : academicYearOf(i.period_month, i.period_year) === ay)
+      .filter(i => (i._displayStatus || i.status) === "paid" && !!i.paid_at)
       .sort((a, b) => (a.period_year - b.period_year) || (a.period_month - b.period_month));
-    if (paidList.length === 0) { toast.error("Belum ada invoice lunas"); return; }
-    setBusy(`bulk-${scope}`);
-    toast.loading(`Menyiapkan ${paidList.length} invoice...`);
+    if (paidList.length === 0) { toast.error("Belum ada invoice lunas yang valid"); return; }
+    setBusy("bulk-all");
+    toast.loading(`Menggabungkan ${paidList.length} invoice ke 1 PDF...`);
     try {
       const { data: school } = await supabase.from("schools").select("name, address, npsn, logo").eq("id", profile.school_id).maybeSingle();
-      for (const inv of paidList) {
-        await downloadSppInvoicePDF({
-          invoice: inv,
-          student: { student_id: student?.student_id, nisn: student?.nisn, parent_name: student?.parent_name },
-          school: school || { name: "Sekolah" },
+      const studentMeta = { student_id: student?.student_id, nisn: student?.nisn, parent_name: student?.parent_name };
+      const schoolMeta = school || { name: "Sekolah" };
+
+      // Generate halaman pertama
+      const mergedDoc = await generateSppInvoicePDF({
+        invoice: paidList[0],
+        student: studentMeta,
+        school: schoolMeta,
+        bendahara_name: profile.full_name || null,
+      });
+
+      // Generate sisanya, tambahkan sebagai halaman baru ke mergedDoc
+      for (let i = 1; i < paidList.length; i++) {
+        const pageDoc = await generateSppInvoicePDF({
+          invoice: paidList[i],
+          student: studentMeta,
+          school: schoolMeta,
           bendahara_name: profile.full_name || null,
         });
-        await new Promise(r => setTimeout(r, 250));
+        const pageCount = pageDoc.getNumberOfPages();
+        for (let p = 1; p <= pageCount; p++) {
+          mergedDoc.addPage();
+          // Salin halaman dari pageDoc ke mergedDoc via internal API jsPDF
+          const srcPage = (pageDoc as any).internal.pages[p];
+          const targetIdx = mergedDoc.getNumberOfPages();
+          (mergedDoc as any).internal.pages[targetIdx] = srcPage;
+        }
       }
+
+      const filename = `Invoice-Lunas-${(student?.name || "Siswa").replace(/\s+/g, "_")}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      mergedDoc.save(filename);
       toast.dismiss();
-      toast.success(`${paidList.length} invoice diunduh`);
+      toast.success(`${paidList.length} invoice digabung ke 1 PDF`);
     } catch (e: any) {
       toast.dismiss();
       toast.error(e.message || "Gagal mengunduh batch");
@@ -2127,16 +2149,10 @@ export function BendaharaSPPDetail() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-base">Riwayat Pembayaran</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" disabled={busy === "bulk-ay"} onClick={() => downloadAllPaidPdf("ay")}>
-              {busy === "bulk-ay" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
-              Export Lunas Bulanan
-            </Button>
-            <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === "bulk-all"} onClick={() => downloadAllPaidPdf("all")}>
-              {busy === "bulk-all" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
-              Export Semua Lunas
-            </Button>
-          </div>
+          <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === "bulk-all"} onClick={() => downloadAllPaidPdf()}>
+            {busy === "bulk-all" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
+            Export Semua Lunas
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
