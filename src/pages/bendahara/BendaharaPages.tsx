@@ -29,12 +29,12 @@ import "jspdf-autotable";
 import { downloadSppInvoicePDF, generateSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { brandPaymentUrl } from "@/lib/utils";
+import { formatPaymentMethodLabel } from "@/lib/paymentMethod";
 
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
 // Helper: format payment_method jadi label rapi
-import { formatPaymentMethodLabel } from "@/lib/paymentMethod";
 const formatPaymentMethod = (m?: string | null): { label: string; isOffline: boolean } => {
   const v = (m || "").toLowerCase();
   const isOffline = v === "offline_cash" || v === "offline_transfer";
