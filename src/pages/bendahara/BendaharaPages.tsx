@@ -968,9 +968,9 @@ export function BendaharaTarif() {
                 <TableHeader>
                   <TableRow className="bg-muted/40">
                     <TableHead className="font-semibold">Tahun Ajaran</TableHead>
-                    <TableHead className="font-semibold">Kelas</TableHead>
-                    <TableHead className="font-semibold">Nominal</TableHead>
-                    <TableHead className="font-semibold">Jatuh Tempo</TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">Kelas</TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">Nominal</TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">Jatuh Tempo</TableHead>
                     <TableHead className="font-semibold">Denda</TableHead>
                     <TableHead className="font-semibold">Aktif</TableHead>
                     <TableHead className="font-semibold text-right">Aksi</TableHead>
@@ -981,9 +981,9 @@ export function BendaharaTarif() {
                   {filtered.map(t => (
                     <TableRow key={t.id} className="hover:bg-muted/30">
                       <TableCell className="text-sm"><Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">{t.school_year}</Badge></TableCell>
-                      <TableCell><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
-                      <TableCell className="font-bold text-[#5B6CF9]">{fmtIDR(t.amount)}</TableCell>
-                      <TableCell className="text-sm">Tanggal {t.due_date_day}</TableCell>
+                      <TableCell className="whitespace-nowrap"><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
+                      <TableCell className="font-bold text-[#5B6CF9] whitespace-nowrap">{fmtIDR(t.amount)}</TableCell>
+                      <TableCell className="text-sm whitespace-nowrap">Tanggal {t.due_date_day}</TableCell>
                       <TableCell className="text-sm">{t.denda > 0 ? fmtIDR(t.denda) : <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell><Switch checked={t.is_active} onCheckedChange={() => toggle(t)} /></TableCell>
                       <TableCell className="text-right">
@@ -3054,6 +3054,19 @@ export function BendaharaLaporan() {
   const [detailMonth, setDetailMonth] = useState<number>(0); // 0 = semua bulan
   const [detailStatus, setDetailStatus] = useState<string>("all");
 
+  // Auto-open dialog from URL ?cls=X (mendukung "buka di halaman baru")
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cls = params.get("cls");
+    if (cls) {
+      setOpenClass(cls);
+      const m = parseInt(params.get("m") || "0");
+      const st = params.get("st") || "all";
+      setDetailMonth(isNaN(m) ? 0 : m);
+      setDetailStatus(st);
+    }
+  }, []);
+
   useEffect(() => {
     if (!profile?.school_id) return;
     Promise.all([
@@ -3408,11 +3421,26 @@ export function BendaharaLaporan() {
 
       {/* DIALOG — Detail Siswa per Kelas */}
       <Dialog open={!!openClass} onOpenChange={(o) => !o && setOpenClass(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base">
-              Detail Pembayaran — Kelas {openClass} <span className="text-muted-foreground font-normal">({year})</span>
-            </DialogTitle>
+        <DialogContent className="w-[calc(100vw-1rem)] sm:w-auto max-w-4xl max-h-[92vh] overflow-y-auto p-3 sm:p-6">
+          <DialogHeader className="pr-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <DialogTitle className="text-sm sm:text-base leading-snug">
+                Detail Pembayaran — Kelas {openClass} <span className="text-muted-foreground font-normal">({year})</span>
+              </DialogTitle>
+              {openClass && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1.5 self-start sm:self-auto"
+                  onClick={() => {
+                    const url = `${window.location.pathname}?cls=${encodeURIComponent(openClass)}&m=${detailMonth}&st=${detailStatus}`;
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  <ArrowUpRight className="h-3.5 w-3.5" /> Buka di tab baru
+                </Button>
+              )}
+            </div>
           </DialogHeader>
           {openClass && (() => {
             const classInvs = items.filter(i => i.class_name === openClass);
