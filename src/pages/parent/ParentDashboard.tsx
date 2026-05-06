@@ -361,6 +361,11 @@ export default function ParentDashboard() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
                   <p className="text-sm font-semibold leading-snug break-words">{current?.name}</p>
+                  {current?.class && (
+                    <p className="text-[10px] text-white/75 leading-tight truncate mt-0.5">
+                      <span className="opacity-80">Kelas</span> {current.class}
+                    </p>
+                  )}
                 </div>
                 {students.length > 1 && (
                   <Select value={selectedStudent} onValueChange={setSelectedStudent}>
