@@ -2247,40 +2247,40 @@ export function BendaharaSPPDetail() {
                       <TableCell><StatusBadge status={dStatus} /></TableCell>
                       <TableCell className="text-right">
                         {dStatus === "pending" ? (
-                          <div className="flex flex-wrap gap-1 justify-end">
+                          <div className="flex flex-wrap gap-1 justify-end max-w-[200px] sm:max-w-none ml-auto">
                             {!inv.payment_url ? (
-                              <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded]" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
-                                {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><LinkIcon className="h-3 w-3 mr-1" /> Buat Link</>}
+                              <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded] h-8 px-2.5" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
+                                {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><LinkIcon className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Buat Link</span></>}
                               </Button>
                             ) : (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => copyLink(brandPaymentUrl(inv.payment_url))} title="Salin"><Copy className="h-3 w-3" /></Button>
-                                <Button size="sm" variant="outline" onClick={() => setPaymentIframe(brandPaymentUrl(inv.payment_url))} title="Buka di dashboard"><LinkIcon className="h-3 w-3" /></Button>
-                                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `wa-${inv.id}`} onClick={() => sendWa(inv)}><MessageCircle className="h-3 w-3 mr-1" /> WA</Button>
-                                <Button size="sm" variant="outline" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => copyLink(brandPaymentUrl(inv.payment_url))} title="Salin"><Copy className="h-3 w-3" /></Button>
+                                <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => setPaymentIframe(brandPaymentUrl(inv.payment_url))} title="Buka di dashboard"><LinkIcon className="h-3 w-3" /></Button>
+                                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 h-8 px-2.5" disabled={busy === `wa-${inv.id}`} onClick={() => sendWa(inv)} title="Kirim WA"><MessageCircle className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">WA</span></Button>
+                                <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => sendEmail(inv)} title="Email"><Mail className="h-3 w-3" /></Button>
                               </>
                             )}
-                            <Button size="sm" variant="outline" className="border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
-                              <Banknote className="h-3 w-3 mr-1" /> Bayar Offline
+                            <Button size="sm" variant="outline" className="h-8 px-2.5 border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
+                              <Banknote className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Bayar Offline</span>
                             </Button>
                           </div>
                         ) : dStatus === "expired" ? (
-                          <div className="flex flex-wrap gap-1 justify-end">
-                            <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)}>
-                              {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 mr-1" /> Buat Ulang Link</>}
+                          <div className="flex flex-wrap gap-1 justify-end max-w-[200px] sm:max-w-none ml-auto">
+                            <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white h-8 px-2.5" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv, true)} title="Buat Ulang Link">
+                              {busy === `link-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Buat Ulang Link</span></>}
                             </Button>
-                            <Button size="sm" variant="outline" className="border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
-                              <Banknote className="h-3 w-3 mr-1" /> Bayar Offline
+                            <Button size="sm" variant="outline" className="h-8 px-2.5 border-slate-400 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" onClick={() => openOfflineDialog(inv)} title="Catat pembayaran tunai/transfer manual">
+                              <Banknote className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Bayar Offline</span>
                             </Button>
                           </div>
                         ) : dStatus === "paid" ? (
-                          <div className="flex flex-wrap gap-1 justify-end">
-                            <Button size="sm" variant="outline" disabled={busy === `pdf-${inv.id}`} onClick={() => downloadPdf(inv)}>
-                              {busy === `pdf-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Download className="h-3 w-3 mr-1" /> Invoice</>}
+                          <div className="flex flex-wrap gap-1 justify-end max-w-[200px] sm:max-w-none ml-auto">
+                            <Button size="sm" variant="outline" className="h-8 px-2.5" disabled={busy === `pdf-${inv.id}`} onClick={() => downloadPdf(inv)} title="Download Invoice">
+                              {busy === `pdf-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Download className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Invoice</span></>}
                             </Button>
                             {formatPaymentMethod(inv.payment_method).isOffline && inv.parent_phone && (
-                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" disabled={busy === `waoff-${inv.id}`} onClick={() => sendOfflinePaidWa(inv)} title="Kirim konfirmasi lunas via WA">
-                                {busy === `waoff-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><MessageCircle className="h-3 w-3 mr-1" /> Notif WA</>}
+                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 h-8 px-2.5" disabled={busy === `waoff-${inv.id}`} onClick={() => sendOfflinePaidWa(inv)} title="Kirim konfirmasi lunas via WA">
+                                {busy === `waoff-${inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : <><MessageCircle className="h-3 w-3 sm:mr-1" /><span className="hidden sm:inline">Notif WA</span></>}
                               </Button>
                             )}
                           </div>
