@@ -2968,8 +2968,11 @@ export function BendaharaSaldo() {
   }), { gross: 0, fee: 0, net: 0 });
   const lockedNet = Math.max(0, totals.net - activeTotals.net);
 
-  // Saldo
-  const settled = settlements.filter(s => s.status === "paid").reduce((s, x) => s + (x.final_payout || 0), 0);
+  // Saldo — sumber kebenaran: spp_invoices (sinkron dengan halaman Pencairan)
+  // "Sudah Dicairkan" = invoice online lunas yang sudah terikat settlement
+  const settledItems = items.filter((i) => !!i.settlement_id);
+  const settledNet = settledItems.reduce((s, x) => s + (x.net_amount || 0), 0);
+  const settledCount = settledItems.length;
   const settledFeePencairan = settlements.filter(s => s.status === "paid").reduce((s, x) => s + (x.withdraw_fee || 0), 0);
   const pendingPayout = settlements.filter(s => ["pending", "approved"].includes(s.status)).reduce((s, x) => s + (x.total_net || 0), 0);
   const activeBalance = Math.max(0, activeTotals.net);
@@ -3004,7 +3007,7 @@ export function BendaharaSaldo() {
       {/* Ringkasan Saldo */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="Total Bruto SPP" value={fmtIDR(totals.gross)} sub={`${txCount} transaksi`} icon={TrendingUp} gradient="from-blue-500 to-indigo-600" />
-        <StatCard label="Sudah Dicairkan" value={fmtIDR(settled)} sub="status PAID" icon={ArrowDownToLine} gradient="from-violet-500 to-purple-600" />
+        <StatCard label="Sudah Dicairkan" value={fmtIDR(settledNet)} sub={`${settledCount} transaksi`} icon={ArrowDownToLine} gradient="from-violet-500 to-purple-600" />
         <StatCard label="Pending Pencairan" value={fmtIDR(pendingPayout)} sub="menunggu admin" icon={Loader2} gradient="from-amber-500 to-orange-600" />
         <StatCard label="Total Fee Dibebankan" value={fmtIDR(totals.fee)} sub="lihat rincian" icon={Banknote} gradient="from-slate-500 to-slate-700" />
       </div>
