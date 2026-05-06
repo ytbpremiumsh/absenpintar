@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { School, Eye, EyeOff, Loader2, Search, CheckCircle2, MapPin, GraduationCap, PenLine } from "lucide-react";
+import { School, Eye, EyeOff, Loader2, Search, CheckCircle2, MapPin, GraduationCap, PenLine, ArrowLeft, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence, type Easing } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SchoolData {
   npsn: string;
@@ -40,6 +41,20 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [referralInput, setReferralInput] = useState(refCode);
   const [registering, setRegistering] = useState(false);
+  const [logo, setLogo] = useState("/images/logo-atskolla.png");
+
+  useEffect(() => {
+    supabase
+      .from("platform_settings")
+      .select("key, value")
+      .in("key", ["login_logo_url"])
+      .then(({ data }) => {
+        if (data) {
+          const map = Object.fromEntries(data.map((d) => [d.key, d.value]));
+          if (map.login_logo_url) setLogo(map.login_logo_url);
+        }
+      });
+  }, []);
 
   const handleNpsnLookup = async () => {
     if (npsn.length !== 8 || !/^\d{8}$/.test(npsn)) {
