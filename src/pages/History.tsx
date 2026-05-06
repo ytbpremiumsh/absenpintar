@@ -726,7 +726,7 @@ const History = () => {
                             .then(({ data }) => { setStudentAttLogs(data || []); setLoadingStudentLogs(false); });
                         }}>
                           <TableCell className="text-center text-xs text-muted-foreground">{i + 1}</TableCell>
-                          <TableCell className="font-medium text-sm text-primary hover:underline">{s.name}</TableCell>
+                          <TableCell className="font-medium text-sm text-foreground hover:underline">{s.name}</TableCell>
                           <TableCell><Badge variant="secondary" className="text-[10px]">{s.class}</Badge></TableCell>
                           <TableCell className="text-center text-sm text-success font-medium">{s.hadir}</TableCell>
                           <TableCell className="text-center text-sm text-amber-500 font-medium">{s.izin}</TableCell>
