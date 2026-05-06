@@ -1428,13 +1428,13 @@ export function BendaharaGenerate() {
           <div className="max-h-[60vh] overflow-auto rounded-lg border">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/40 sticky top-0">
+                <TableRow className="bg-muted/40 sticky top-0 [&_th]:whitespace-nowrap">
                   <TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nominal</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {preview.list.slice(0, 200).map((x, i) => (
-                  <TableRow key={i}>
+                  <TableRow key={i} className="[&>td]:whitespace-nowrap">
                     <TableCell className="text-sm">{x.student.name}</TableCell>
                     <TableCell className="text-sm"><Badge variant="secondary">{x.student.class}</Badge></TableCell>
                     <TableCell className="text-sm">{x.period.label}</TableCell>
