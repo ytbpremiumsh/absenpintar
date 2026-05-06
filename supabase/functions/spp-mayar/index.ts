@@ -177,15 +177,16 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
       .replace(/[^a-z0-9]+/g, "").slice(0, max) || "siswa";
   // Keep payload minimal — same shape as the working subscription flow.
   // Mayar's dedupe gets stricter when extra fields (customer{}, merchantName, expiredAt) are present.
+  // Email tetap unik (dedupe internal) tapi tampilan name bersih tanpa kode.
   const studentSlug = slugify(inv.student_name, 14);
   const invoiceShort = String(inv.id || "").replace(/-/g, "").slice(0, 8) || uniq;
-  const buyerEmail = `spp.${studentSlug}.${invoiceShort}.${uniq}@atskolla.com`;
+  const buyerEmail = `spp@atskolla.com`;
   // Vary mobile each retry to defeat phone-based dedupe
   const baseMobile = attempt === 0
     ? ((inv.parent_phone || "08000000000").replace(/\D/g, "") || "08000000000")
     : `0800${String(Date.now()).slice(-7)}`;
   const payload = {
-    name: `SPP ${inv.period_label} - ${inv.student_name} #${invoiceShort}${uniq}`,
+    name: `SPP ${inv.period_label} - ${inv.student_name} (${inv.class_name})`,
     amount: safeAmount,
     description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name}`,
     email: buyerEmail,
