@@ -666,38 +666,8 @@ const LandingThemeB = () => {
       {/* ─── Footer (style mockup) ─── */}
       <footer id="contact" className="relative bg-slate-50 dark:bg-slate-900/40 pt-10 pb-6">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Newsletter Card */}
-          <div className="relative -mb-2 rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-700 px-6 sm:px-10 py-8 sm:py-10 overflow-hidden shadow-xl">
-            <div className="absolute -top-10 -left-10 w-56 h-56 bg-white/10 rounded-full blur-2xl" />
-            <div className="absolute -bottom-12 right-0 w-72 h-72 bg-white/10 rounded-full blur-2xl" />
-            <div className="relative grid md:grid-cols-2 gap-6 items-center">
-              <div className="flex justify-center md:justify-start">
-                <div className="h-28 w-28 sm:h-36 sm:w-36 rounded-3xl bg-white/15 backdrop-blur flex items-center justify-center shadow-2xl">
-                  <GraduationCap className="h-14 w-14 sm:h-20 sm:w-20 text-white" />
-                </div>
-              </div>
-              <div className="text-center md:text-left">
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white leading-snug mb-2">
-                  Berlangganan info & update terbaru ATSkolla
-                </h3>
-                <p className="text-white/80 text-sm mb-5">Tips digitalisasi sekolah, fitur baru, & promo eksklusif untuk admin sekolah.</p>
-                <form
-                  onSubmit={(e) => { e.preventDefault(); navigate("/register"); }}
-                  className="flex items-center gap-2 bg-white/95 rounded-full p-1.5 shadow-lg max-w-md mx-auto md:mx-0"
-                >
-                  <Mail className="h-4 w-4 text-slate-400 ml-3 shrink-0" />
-                  <input type="email" placeholder="Email sekolah Anda" className="flex-1 bg-transparent outline-none text-sm text-slate-800 placeholder-slate-400 px-1 py-2" />
-                  <button type="submit" className="bg-indigo-700 text-white text-sm font-bold px-5 py-2 rounded-full hover:bg-indigo-800 transition-colors shrink-0">
-                    Daftar
-                  </button>
-                </form>
-                <p className="text-white/50 text-[11px] mt-3">Anda bisa berhenti berlangganan kapan saja.</p>
-              </div>
-            </div>
-          </div>
-
           {/* Main Footer */}
-          <div className="bg-white dark:bg-slate-900 rounded-b-3xl pt-16 pb-8 px-6 sm:px-10 -mt-2 shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl pt-12 pb-8 px-6 sm:px-10 shadow-sm border border-slate-100 dark:border-slate-800">
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
               {/* Brand */}
               <div className="col-span-2 space-y-4">
@@ -729,30 +699,8 @@ const LandingThemeB = () => {
                 </ul>
               </div>
 
-              {/* Support */}
+              {/* Contact (moved up to replace Akses Cepat slot) */}
               <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Dukungan</p>
-                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
-                  <li><button onClick={() => navigate("/panduan")} className="hover:text-indigo-600 transition-colors">Panduan</button></li>
-                  {get("footer_link_faq") && <li><a href={get("footer_link_faq")} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition-colors">FAQ</a></li>}
-                  {get("footer_link_docs") && <li><a href={get("footer_link_docs")} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition-colors">Dokumentasi</a></li>}
-                  {get("footer_phone") && <li><a href={`https://wa.me/${get("footer_phone")?.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition-colors">Hubungi Sales</a></li>}
-                </ul>
-              </div>
-
-              {/* Links */}
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Akses Cepat</p>
-                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
-                  <li><button onClick={() => navigate("/login")} className="hover:text-indigo-600 transition-colors">Login</button></li>
-                  <li><button onClick={() => navigate("/register")} className="hover:text-indigo-600 transition-colors">Daftar Gratis</button></li>
-                  <li><button onClick={() => navigate("/parent-login")} className="hover:text-indigo-600 transition-colors">Portal Wali Murid</button></li>
-                  <li><button onClick={() => navigate("/affiliate-login")} className="hover:text-indigo-600 transition-colors">Affiliate</button></li>
-                </ul>
-              </div>
-
-              {/* Contact */}
-              <div className="col-span-2 lg:col-span-1">
                 <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Kontak Kami</p>
                 <ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400">
                   {get("footer_phone") && (
@@ -773,6 +721,18 @@ const LandingThemeB = () => {
                       <span className="leading-snug">{get("footer_address")}</span>
                     </li>
                   )}
+                </ul>
+              </div>
+
+              {/* Tautan (renamed from Akses Cepat) */}
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Tautan</p>
+                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
+                  <li><button onClick={() => navigate("/login")} className="hover:text-indigo-600 transition-colors">Login</button></li>
+                  <li><button onClick={() => navigate("/register")} className="hover:text-indigo-600 transition-colors">Daftar Gratis</button></li>
+                  <li><button onClick={() => navigate("/parent-login")} className="hover:text-indigo-600 transition-colors">Portal Wali Murid</button></li>
+                  <li><button onClick={() => navigate("/affiliate-login")} className="hover:text-indigo-600 transition-colors">Affiliate</button></li>
+                  <li><button onClick={() => navigate("/panduan")} className="hover:text-indigo-600 transition-colors">Panduan</button></li>
                 </ul>
               </div>
             </div>
