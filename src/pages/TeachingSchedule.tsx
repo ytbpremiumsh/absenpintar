@@ -311,22 +311,22 @@ export default function TeachingSchedule() {
           </div>
 
           {/* Stats cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Calendar className="h-5 w-5 text-primary" /></div>
-              <div><p className="text-2xl font-bold">{schedules.length}</p><p className="text-xs text-muted-foreground">Total Jadwal</p></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{schedules.length}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Total Jadwal</p></div>
             </CardContent></Card>
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center"><UsersIcon className="h-5 w-5 text-green-500" /></div>
-              <div><p className="text-2xl font-bold">{new Set(schedules.map((s) => s.teacher_id)).size}</p><p className="text-xs text-muted-foreground">Guru Terjadwal</p></div>
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0"><UsersIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{new Set(schedules.map((s) => s.teacher_id)).size}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Guru Terjadwal</p></div>
             </CardContent></Card>
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center"><BookOpen className="h-5 w-5 text-blue-500" /></div>
-              <div><p className="text-2xl font-bold">{subjects.filter((s) => s.is_active).length}</p><p className="text-xs text-muted-foreground">Mata Pelajaran</p></div>
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0"><BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{subjects.filter((s) => s.is_active).length}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Mata Pelajaran</p></div>
             </CardContent></Card>
-            <Card><CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center"><GraduationCap className="h-5 w-5 text-orange-500" /></div>
-              <div><p className="text-2xl font-bold">{new Set(schedules.map((s) => s.class_id)).size}</p><p className="text-xs text-muted-foreground">Kelas Terjadwal</p></div>
+            <Card className="border-0 shadow-card rounded-2xl"><CardContent className="p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0"><GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" /></div>
+              <div className="min-w-0"><p className="text-xl sm:text-2xl font-bold leading-none">{new Set(schedules.map((s) => s.class_id)).size}</p><p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">Kelas Terjadwal</p></div>
             </CardContent></Card>
           </div>
 
