@@ -2106,7 +2106,14 @@ export function BendaharaSPPDetail() {
     toast.dismiss();
     setBusy(null);
     if (error || !data?.success) { toast.error(data?.error || error?.message || "Gagal"); return; }
-    if (data.payment_url) { toast.success(regen ? "Link baru berhasil dibuat" : "Link berhasil dibuat"); load(); }
+    if (data.payment_url) {
+      toast.success(regen ? "Link baru berhasil dibuat" : "Link berhasil dibuat");
+      // Auto kirim WA tagihan ke wali (kalau ada nomor)
+      if (inv.parent_phone) {
+        await sendWa({ ...inv, payment_url: data.payment_url });
+      }
+      load();
+    }
   };
 
   const copyLink = (url: string) => { navigator.clipboard.writeText(url); toast.success("Link disalin"); };
