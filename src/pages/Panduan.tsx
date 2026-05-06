@@ -455,10 +455,10 @@ const GUIDES: RoleGuide[] = [
       {
         title: "7. Saldo & Riwayat",
         description:
-          "Lihat saldo Mayar yang siap dicairkan dan riwayat semua transaksi masuk.",
+          "Lihat saldo yang siap dicairkan dan riwayat semua transaksi masuk.",
         bullets: [
           "Saldo tersedia untuk pencairan ditampilkan paling atas.",
-          "Riwayat transaksi: nama siswa, bulan, nominal, fee Mayar, net.",
+          "Riwayat transaksi: nama siswa, bulan, nominal, fee gateway, net.",
           "Filter periode untuk laporan keuangan bulanan.",
         ],
       },
