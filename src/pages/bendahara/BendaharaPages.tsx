@@ -412,7 +412,7 @@ function BendaharaMobileDashboard({
 }) {
   const navigate = useNavigate();
   return (
-    <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-emerald-50/60 via-background to-background">
+    <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-indigo-50/60 via-background to-background">
       {/* Top bar greeting */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div>
@@ -424,13 +424,13 @@ function BendaharaMobileDashboard({
           className="h-9 w-9 rounded-full bg-white shadow-sm ring-1 ring-border/60 flex items-center justify-center active:scale-95 transition"
           aria-label="Laporan"
         >
-          <BarChart3 className="h-4 w-4 text-emerald-600" />
+          <BarChart3 className="h-4 w-4 text-[#5B6CF9]" />
         </button>
       </div>
 
       <div className="px-4 space-y-4">
-        {/* HERO CARD — emerald gradient */}
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 text-white p-5 shadow-[0_20px_50px_-15px_rgba(16,185,129,0.55)]">
+        {/* HERO CARD — primary brand gradient */}
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0] text-white p-5 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
           <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
           <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
@@ -608,8 +608,8 @@ function BendServiceIcon({ icon: Icon, label, gradient, onClick }: { icon: any; 
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
       <div className="relative h-14 w-14 rounded-2xl bg-white dark:bg-card flex items-center justify-center ring-1 ring-border/60 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] group-hover:shadow-[0_10px_24px_-8px_rgba(15,23,42,0.25)] group-hover:-translate-y-0.5 transition-all">
         <Icon className="h-6 w-6 text-[#3D4FE0]" strokeWidth={1.75} />
-        {/* green accent dot */}
-        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-card shadow-sm" />
+        {/* brand accent dot */}
+        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-[#5B6CF9] ring-2 ring-white dark:ring-card shadow-sm" />
       </div>
       <span className="text-[10px] font-semibold text-foreground/80 text-center leading-tight">{label}</span>
     </button>
