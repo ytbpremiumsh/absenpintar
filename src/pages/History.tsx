@@ -48,16 +48,26 @@ const History = () => {
 
   const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
 
-  const today = new Date().toISOString().slice(0, 10);
-  const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
-  const [startDate, setStartDate] = useState(thirtyAgo);
+  const todayDate = new Date();
+  const today = todayDate.toISOString().slice(0, 10);
+  const firstOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1).toISOString().slice(0, 10);
+  const [startDate, setStartDate] = useState(firstOfMonth);
   const [endDate, setEndDate] = useState(today);
-  const [quickDays, setQuickDays] = useState(30);
+  const [periodMonth, setPeriodMonth] = useState<number>(todayDate.getMonth() + 1); // 1-12, 0 = full year
+  const [periodYear, setPeriodYear] = useState<number>(todayDate.getFullYear());
 
-  const setQuickRange = (days: number) => {
-    setQuickDays(days);
-    setStartDate(new Date(Date.now() - days * 86400000).toISOString().slice(0, 10));
-    setEndDate(today);
+  const applyPeriod = (month: number, year: number) => {
+    setPeriodMonth(month);
+    setPeriodYear(year);
+    if (month === 0) {
+      setStartDate(`${year}-01-01`);
+      setEndDate(`${year}-12-31`);
+    } else {
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 0);
+      setStartDate(start.toISOString().slice(0, 10));
+      setEndDate(end.toISOString().slice(0, 10));
+    }
   };
 
   useEffect(() => {
