@@ -111,6 +111,13 @@ export default function ParentDashboard() {
   const [sppBusy, setSppBusy] = useState<string | null>(null);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
+  const [headerLogo, setHeaderLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
+      if (data?.value) setHeaderLogo(data.value as string);
+    });
+  }, []);
 
   const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
 
