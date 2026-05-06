@@ -48,16 +48,26 @@ const History = () => {
 
   const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
 
-  const today = new Date().toISOString().slice(0, 10);
-  const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
-  const [startDate, setStartDate] = useState(thirtyAgo);
+  const todayDate = new Date();
+  const today = todayDate.toISOString().slice(0, 10);
+  const firstOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1).toISOString().slice(0, 10);
+  const [startDate, setStartDate] = useState(firstOfMonth);
   const [endDate, setEndDate] = useState(today);
-  const [quickDays, setQuickDays] = useState(30);
+  const [periodMonth, setPeriodMonth] = useState<number>(todayDate.getMonth() + 1); // 1-12, 0 = full year
+  const [periodYear, setPeriodYear] = useState<number>(todayDate.getFullYear());
 
-  const setQuickRange = (days: number) => {
-    setQuickDays(days);
-    setStartDate(new Date(Date.now() - days * 86400000).toISOString().slice(0, 10));
-    setEndDate(today);
+  const applyPeriod = (month: number, year: number) => {
+    setPeriodMonth(month);
+    setPeriodYear(year);
+    if (month === 0) {
+      setStartDate(`${year}-01-01`);
+      setEndDate(`${year}-12-31`);
+    } else {
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 0);
+      setStartDate(start.toISOString().slice(0, 10));
+      setEndDate(end.toISOString().slice(0, 10));
+    }
   };
 
   useEffect(() => {
@@ -322,32 +332,35 @@ const History = () => {
         </TabsList>
       </Tabs>
 
-      {/* Date Range Picker */}
+      {/* Period Picker — Bulan & Tahun */}
       <Card className="border-0 shadow-lg rounded-2xl">
         <CardContent className="p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Dari</label>
-              <div className="relative">
-                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setQuickDays(0); }} className="h-9 w-auto pl-9 rounded-lg" />
-              </div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Bulan</label>
+              <Select value={String(periodMonth)} onValueChange={(v) => applyPeriod(Number(v), periodYear)}>
+                <SelectTrigger className="h-9 w-[160px] rounded-lg"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Semua Bulan (1 Tahun)</SelectItem>
+                  {["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"].map((n, i) => (
+                    <SelectItem key={i+1} value={String(i+1)}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Sampai</label>
-              <div className="relative">
-                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setQuickDays(0); }} className="h-9 w-auto pl-9 rounded-lg" />
-              </div>
+              <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Tahun</label>
+              <Select value={String(periodYear)} onValueChange={(v) => applyPeriod(periodMonth, Number(v))}>
+                <SelectTrigger className="h-9 w-[120px] rounded-lg"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 6 }, (_, i) => todayDate.getFullYear() - i).map(y => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex gap-1.5">
-              {[30, 60, 90].map(d => (
-                <Button key={d} variant={quickDays === d ? "default" : "outline"} size="sm"
-                  onClick={() => setQuickRange(d)}
-                  className={`text-xs h-9 rounded-lg ${quickDays === d ? "bg-[#5B6CF9] hover:bg-[#4c5ded] text-white" : ""}`}>
-                  {d} Hari
-                </Button>
-              ))}
+            <div className="text-xs text-muted-foreground pb-2">
+              Periode: <span className="font-semibold text-foreground">{startDate}</span> — <span className="font-semibold text-foreground">{endDate}</span>
             </div>
           </div>
         </CardContent>
