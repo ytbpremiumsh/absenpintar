@@ -2349,6 +2349,11 @@ export function BendaharaSPPDetail() {
                   <p className="text-[10px] text-muted-foreground">{g.year}</p>
                   <div className="mt-2"><StatusBadge status={status} /></div>
                   {g.inv && <p className="text-xs font-semibold mt-2">{fmtIDR(g.inv.total_amount)}</p>}
+                  {g.inv && (status === "unpaid" || status === "failed") && !g.inv.payment_url && (
+                    <Button size="sm" variant="outline" className="mt-2 w-full text-[10px] h-7" disabled={busy === `link-${g.inv.id}`} onClick={() => createPaymentLink(g.inv)}>
+                      {busy === `link-${g.inv.id}` ? <Loader2 className="h-3 w-3 animate-spin" /> : "+ Buat"}
+                    </Button>
+                  )}
                   {!g.inv && <Button size="sm" variant="outline" className="mt-2 w-full text-[10px] h-7" disabled={busy === `create-${g.month}-${g.year}`} onClick={() => createInvoiceFor(g.month, g.year)}>
                     {busy === `create-${g.month}-${g.year}` ? <Loader2 className="h-3 w-3 animate-spin" /> : "+ Buat"}
                   </Button>}
@@ -2405,7 +2410,7 @@ export function BendaharaSPPDetail() {
                       </TableCell>
                       <TableCell><StatusBadge status={dStatus} /></TableCell>
                       <TableCell className="text-right">
-                        {dStatus === "pending" ? (
+                        {dStatus === "pending" || dStatus === "unpaid" || dStatus === "failed" ? (
                           <div className="flex flex-nowrap gap-1 justify-end">
                             {!inv.payment_url ? (
                               <Button size="sm" className="bg-[#5B6CF9] hover:bg-[#4c5ded] h-8 px-2.5" disabled={busy === `link-${inv.id}`} onClick={() => createPaymentLink(inv)}>
