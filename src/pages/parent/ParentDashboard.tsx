@@ -1019,6 +1019,37 @@ function SectionTitle({ icon: Icon, title, onMore }: any) {
   );
 }
 
+function ServiceIcon({ icon: Icon, label, color, bg, onClick }: any) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
+      <div className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_18px_-10px_rgba(0,0,0,0.25)] group-hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.3)] transition-shadow ring-1 ring-black/[0.03]" style={{ backgroundColor: bg }}>
+        <Icon className="h-6 w-6" style={{ color }} strokeWidth={2.2} />
+      </div>
+      <span className="text-[10px] font-medium text-foreground/80 text-center leading-tight">{label}</span>
+    </button>
+  );
+}
+
+function FabNavBtn({ icon: Icon, label, active, color, onClick }: any) {
+  return (
+    <button onClick={onClick} className={cn("flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl transition-all", active && "scale-105")}>
+      <Icon className="h-5 w-5 transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }} strokeWidth={active ? 2.5 : 2} />
+      <span className="text-[9px] font-semibold transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }}>{label}</span>
+    </button>
+  );
+}
+
+function SheetMenuItem({ icon: Icon, label, color, bg, onClick }: any) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
+      <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: bg }}>
+        <Icon className="h-5 w-5" style={{ color }} strokeWidth={2.2} />
+      </div>
+      <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
+    </button>
+  );
+}
+
 function EmptyMini({ text }: { text: string }) {
   return (
     <Card className="p-6 border-0 shadow-card rounded-2xl text-center">
