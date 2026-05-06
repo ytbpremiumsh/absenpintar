@@ -22,6 +22,7 @@ const SchoolSettings = () => {
   const [city, setCity] = useState("");
   const [province, setProvince] = useState("");
   const [timezone, setTimezone] = useState("Asia/Jakarta");
+  const [holidayDays, setHolidayDays] = useState<number[]>([0, 6]);
   const [logo, setLogo] = useState("");
   const [startTime, setStartTime] = useState("07:00");
   const [endTime, setEndTime] = useState("14:00");
