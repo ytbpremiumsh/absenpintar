@@ -357,9 +357,10 @@ export function BendaharaDashboard() {
             {recentPaidList.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">Belum ada pembayaran</p>
             ) : (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30">
+                  <TableRow className="bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30 [&_th]:whitespace-nowrap">
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Tanggal</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Siswa</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Kelas</TableHead>
@@ -369,7 +370,7 @@ export function BendaharaDashboard() {
                 </TableHeader>
                 <TableBody>
                   {recentPaidList.map((t, idx) => (
-                    <TableRow key={t.id} className={idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"}>
+                    <TableRow key={t.id} className={`[&>td]:whitespace-nowrap ${idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"}`}>
                       <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -395,6 +396,7 @@ export function BendaharaDashboard() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </div>
         )}
@@ -979,7 +981,7 @@ export function BendaharaTarif() {
                 <TableBody>
                   {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground text-sm">Belum ada tarif. Klik <strong>Tambah</strong> atau <strong>Set Massal</strong>.</TableCell></TableRow>}
                   {filtered.map(t => (
-                    <TableRow key={t.id} className="hover:bg-muted/30">
+                    <TableRow key={t.id} className="hover:bg-muted/30 [&>td]:whitespace-nowrap">
                       <TableCell className="text-sm"><Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">{t.school_year}</Badge></TableCell>
                       <TableCell className="whitespace-nowrap"><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
                       <TableCell className="font-bold text-[#5B6CF9] whitespace-nowrap">{fmtIDR(t.amount)}</TableCell>
@@ -1426,13 +1428,13 @@ export function BendaharaGenerate() {
           <div className="max-h-[60vh] overflow-auto rounded-lg border">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/40 sticky top-0">
+                <TableRow className="bg-muted/40 sticky top-0 [&_th]:whitespace-nowrap">
                   <TableHead>Siswa</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nominal</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {preview.list.slice(0, 200).map((x, i) => (
-                  <TableRow key={i}>
+                  <TableRow key={i} className="[&>td]:whitespace-nowrap">
                     <TableCell className="text-sm">{x.student.name}</TableCell>
                     <TableCell className="text-sm"><Badge variant="secondary">{x.student.class}</Badge></TableCell>
                     <TableCell className="text-sm">{x.period.label}</TableCell>
@@ -1799,10 +1801,10 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
 
             {/* Tabel siswa — dengan avatar berwarna */}
             {isOpen && (
-              <div className="border-t border-border/60 bg-gradient-to-b from-secondary/20 to-transparent">
+              <div className="border-t border-border/60 bg-gradient-to-b from-secondary/20 to-transparent overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-secondary/40 hover:bg-secondary/40 border-border/40">
+                    <TableRow className="bg-secondary/40 hover:bg-secondary/40 border-border/40 [&_th]:whitespace-nowrap">
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Siswa</TableHead>
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground hidden md:table-cell">NIS</TableHead>
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-center">Bulan</TableHead>
@@ -1818,7 +1820,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                         <TableRow
                           key={s.id}
                           onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
-                          className="cursor-pointer hover:bg-[#5B6CF9]/5 border-border/40"
+                          className="cursor-pointer hover:bg-[#5B6CF9]/5 border-border/40 [&>td]:whitespace-nowrap"
                         >
                           <TableCell className="py-2.5">
                             <div className="flex items-center gap-2.5">
@@ -2094,7 +2096,7 @@ export function BendaharaSPPDetail() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader><TableRow>
+              <TableHeader><TableRow className="[&_th]:whitespace-nowrap">
                 <TableHead>Bulan</TableHead><TableHead>Invoice</TableHead><TableHead>Nominal</TableHead>
                 <TableHead>Tgl Bayar</TableHead><TableHead>Metode</TableHead><TableHead>Status</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
@@ -2110,7 +2112,7 @@ export function BendaharaSPPDetail() {
                   .map((inv) => {
                   const dStatus = inv._displayStatus || inv.status;
                   return (
-                    <TableRow key={inv.id} className={inv.status === "expired" ? "opacity-60" : ""}>
+                    <TableRow key={inv.id} className={`[&>td]:whitespace-nowrap ${inv.status === "expired" ? "opacity-60" : ""}`}>
                       <TableCell className="font-medium text-sm">{inv.period_label}</TableCell>
                       <TableCell className="text-xs font-mono">{inv.invoice_number}</TableCell>
                       <TableCell className="font-semibold">{fmtIDR(inv.total_amount)}</TableCell>
@@ -2465,10 +2467,10 @@ export function BendaharaImportExport() {
               {validRows.length > 0 && (
                 <div className="border rounded-lg overflow-x-auto max-h-72">
                   <Table>
-                    <TableHeader><TableRow className="bg-muted/40"><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow className="bg-muted/40 [&_th]:whitespace-nowrap"><TableHead>NIS</TableHead><TableHead>Nama</TableHead><TableHead>Kelas</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {validRows.slice(0, 50).map((r, i) => (
-                        <TableRow key={i}>
+                        <TableRow key={i} className="[&>td]:whitespace-nowrap">
                           <TableCell className="text-xs">{r.nis}</TableCell>
                           <TableCell className="text-xs">{r._student.name}</TableCell>
                           <TableCell className="text-xs"><Badge variant="secondary">{r._student.class}</Badge></TableCell>
@@ -2626,12 +2628,12 @@ export function BendaharaSaldo() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Deskripsi</TableHead>
-                  <TableHead className="text-right">Bruto</TableHead>
-                  <TableHead className="text-right">Biaya Layanan ({feeCfg.percent}%)</TableHead>
-                  <TableHead className="text-right">Net</TableHead>
-                  <TableHead>Status Cair</TableHead>
+                  <TableHead className="whitespace-nowrap">Tanggal</TableHead>
+                  <TableHead className="whitespace-nowrap">Deskripsi</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Bruto</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Biaya Layanan ({feeCfg.percent}%)</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Net</TableHead>
+                  <TableHead className="whitespace-nowrap">Status Cair</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -2640,11 +2642,11 @@ export function BendaharaSaldo() {
                   const feePct = (i.gateway_fee != null) ? i.gateway_fee : Math.round((i.total_amount || 0) * (feeCfg.percent / 100));
                   return (
                     <TableRow key={i.id}>
-                      <TableCell className="text-xs">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
-                      <TableCell className="text-xs">{i.description}</TableCell>
-                      <TableCell className="text-sm text-right">{fmtIDR(i.total_amount)}</TableCell>
-                      <TableCell className="text-xs text-right text-muted-foreground">{fmtIDR(feePct)}</TableCell>
-                      <TableCell className="text-sm text-right font-semibold text-emerald-600">{fmtIDR(i.net_amount)}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "-"}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{i.description}</TableCell>
+                      <TableCell className="text-sm text-right whitespace-nowrap">{fmtIDR(i.total_amount)}</TableCell>
+                      <TableCell className="text-xs text-right text-muted-foreground whitespace-nowrap">{fmtIDR(feePct)}</TableCell>
+                      <TableCell className="text-sm text-right font-semibold text-emerald-600 whitespace-nowrap">{fmtIDR(i.net_amount)}</TableCell>
                       <TableCell>
                         {i.settlement_id
                           ? <Badge className="bg-emerald-500 text-[10px]">DICAIRKAN</Badge>
@@ -2812,7 +2814,7 @@ export function BendaharaPencairan() {
         subtitle="Ajukan pencairan saldo SPP dan pantau riwayat settlement"
         variant="primary"
         actions={
-          <Button variant="outline" size="sm" onClick={() => setBankManageOpen(true)} className="gap-2">
+          <Button size="sm" onClick={() => setBankManageOpen(true)} className="gap-2 bg-white text-[#5B6CF9] hover:bg-white/90 border border-white/40 shadow-sm font-semibold">
             <Landmark className="h-4 w-4" /> Kelola Rekening
           </Button>
         }
@@ -2900,12 +2902,13 @@ export function BendaharaPencairan() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-0">
               {loadingHistory ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : (
+                <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Biaya Layanan</TableHead><TableHead>Biaya Pencairan</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow className="[&_th]:whitespace-nowrap"><TableHead>Code</TableHead><TableHead>Tgl</TableHead><TableHead>Trx</TableHead><TableHead>Gross</TableHead><TableHead>Biaya Layanan</TableHead><TableHead>Biaya Pencairan</TableHead><TableHead>Final</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {history.length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Belum ada settlement</TableCell></TableRow>}
                     {history.map(s => (
-                      <TableRow key={s.id}>
+                      <TableRow key={s.id} className="[&_td]:whitespace-nowrap">
                         <TableCell className="text-xs font-mono">{s.settlement_code}</TableCell>
                         <TableCell className="text-xs">{new Date(s.requested_at).toLocaleDateString("id-ID")}</TableCell>
                         <TableCell>{s.total_transactions}</TableCell>
@@ -2918,6 +2921,7 @@ export function BendaharaPencairan() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -3494,13 +3498,13 @@ export function BendaharaLaporan() {
                   <Table className="text-xs">
                     <TableHeader>
                       <TableRow className="bg-muted/40">
-                        <TableHead className="font-bold w-10 text-center">No</TableHead>
-                        <TableHead className="font-bold">NIS</TableHead>
-                        <TableHead className="font-bold">Nama Siswa</TableHead>
-                        <TableHead className="font-bold">Periode</TableHead>
-                        <TableHead className="font-bold text-right">Nominal</TableHead>
-                        <TableHead className="font-bold text-center">Status</TableHead>
-                        <TableHead className="font-bold">Tgl Bayar</TableHead>
+                        <TableHead className="font-bold w-10 text-center whitespace-nowrap">No</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">NIS</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">Nama Siswa</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">Periode</TableHead>
+                        <TableHead className="font-bold text-right whitespace-nowrap">Nominal</TableHead>
+                        <TableHead className="font-bold text-center whitespace-nowrap">Status</TableHead>
+                        <TableHead className="font-bold whitespace-nowrap">Tgl Bayar</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -3510,19 +3514,19 @@ export function BendaharaLaporan() {
                         const stu = students.find(s => s.id === i.student_id);
                         return (
                           <TableRow key={i.id} className="hover:bg-muted/20">
-                            <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
-                            <TableCell className="font-mono text-[11px]">{stu?.student_id || "-"}</TableCell>
-                            <TableCell className="font-medium">{i.student_name}</TableCell>
-                            <TableCell className="text-[11px]">{i.period_label || `${MONTHS[i.period_month-1]} ${i.period_year}`}</TableCell>
-                            <TableCell className="text-right font-semibold">{fmtIDR(i.total_amount || 0)}</TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center text-muted-foreground whitespace-nowrap">{idx + 1}</TableCell>
+                            <TableCell className="font-mono text-[11px] whitespace-nowrap">{stu?.student_id || "-"}</TableCell>
+                            <TableCell className="font-medium whitespace-nowrap">{i.student_name}</TableCell>
+                            <TableCell className="text-[11px] whitespace-nowrap">{i.period_label || `${MONTHS[i.period_month-1]} ${i.period_year}`}</TableCell>
+                            <TableCell className="text-right font-semibold whitespace-nowrap">{fmtIDR(i.total_amount || 0)}</TableCell>
+                            <TableCell className="text-center whitespace-nowrap">
                               {i.status === "paid"
                                 ? <span className="status-pill status-pill-paid"><span className="dot" />Lunas</span>
                                 : i.status === "pending"
                                   ? <span className="status-pill status-pill-pending"><span className="dot" />Pending</span>
                                   : <span className="status-pill status-pill-unpaid"><span className="dot" />Belum</span>}
                             </TableCell>
-                            <TableCell className="text-[11px] text-muted-foreground">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</TableCell>
+                            <TableCell className="text-[11px] text-muted-foreground whitespace-nowrap">{i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</TableCell>
                           </TableRow>
                         );
                       })}
