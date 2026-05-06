@@ -168,29 +168,26 @@ async function syncPaidInvoicesFromMayar(supabaseAdmin: any, schoolId: string) {
 async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{ ok: boolean; json: any; expiry: Date; status: number }> {
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + MAYAR_LINK_TTL_DAYS);
-  // Unique suffix to bypass Mayar's "duplicate request" dedupe (which compares
-  // recent payloads). We embed an invisible token in the description, which
-  // does not affect what the user sees on the payment page meaningfully.
-  const uniq = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  // Mayar requires integer amount (IDR, no decimals). Force-cast to avoid
-  // mismatch when DB returns numeric/string with decimals.
+  // Strong uniqueness token — included in BOTH email & description so Mayar
+  // never sees an identical payload (avoids 429/duplicate spiral).
+  const uniq = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  // Mayar requires integer amount (IDR, no decimals).
   const safeAmount = Math.max(1000, Math.round(Number(inv.total_amount) || 0));
-  // Build unique buyer email per student to avoid Mayar reusing a previously
-  // registered customer profile (which causes wrong "Kepada" name on the
-  // payment page). Falls back to a stable per-invoice email.
   const slugify = (s: string) =>
     String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, ".").replace(/^\.+|\.+$/g, "").slice(0, 40) || "siswa";
   const studentSlug = slugify(inv.student_name);
+  const periodSlug = slugify(inv.period_label);
   const invoiceShort = String(inv.id || "").replace(/-/g, "").slice(0, 8) || uniq.slice(-8);
-  const buyerEmail = `spp.${studentSlug}.${invoiceShort}@atskolla.com`;
+  // Email contains uniq → guaranteed unique per-attempt → bypasses Mayar dedupe.
+  const buyerEmail = `spp.${studentSlug}.${periodSlug}.${invoiceShort}.${uniq}@atskolla.com`;
   const buyerName = inv.parent_name?.trim()
     ? `${inv.parent_name} (Wali ${inv.student_name})`
     : `Wali ${inv.student_name}`;
   const payload = {
     name: `SPP ${inv.period_label} - ${inv.student_name} (${inv.class_name})`,
     amount: safeAmount,
-    description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name} - Total Rp ${safeAmount.toLocaleString("id-ID")} [${uniq}]`,
+    description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name} - Total Rp ${safeAmount.toLocaleString("id-ID")} [REF:${invoiceShort}-${uniq}]`,
     email: buyerEmail,
     mobile: (inv.parent_phone || "08000000000").replace(/\D/g, ""),
     customerName: buyerName,
@@ -206,11 +203,12 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   });
   const json = await res.json().catch(() => ({}));
 
-  // Retry on 429 (Mayar rate-limit / duplicate detection) with longer backoff
+  // Fail-fast strategy: only 2 quick retries, total max ~3s, so user does not
+  // experience long loading. If Mayar still rejects, surface error so user can retry manually.
   const isDuplicate = res.status === 429 || /duplicate/i.test(json?.message || "");
-  if (isDuplicate && attempt < 5) {
-    const backoff = 2000 + attempt * 2000 + Math.floor(Math.random() * 1200);
-    console.log(`Mayar 429/duplicate — retry #${attempt + 1} after ${backoff}ms`);
+  if (isDuplicate && attempt < 2) {
+    const backoff = 800 + attempt * 600 + Math.floor(Math.random() * 400);
+    console.log(`Mayar 429/duplicate — quick retry #${attempt + 1} after ${backoff}ms`);
     await sleep(backoff);
     return createMayarLink(apiKey, inv, attempt + 1);
   }
