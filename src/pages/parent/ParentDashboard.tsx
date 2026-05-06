@@ -1020,10 +1020,12 @@ function SectionTitle({ icon: Icon, title, onMore }: any) {
 }
 
 function ServiceIcon({ icon: Icon, label, color, bg, onClick }: any) {
+  // Outline 1-line style with green accent dot — modern fintech iconography.
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
-      <div className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_18px_-10px_rgba(0,0,0,0.25)] group-hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.3)] transition-shadow ring-1 ring-black/[0.03]" style={{ backgroundColor: bg }}>
-        <Icon className="h-6 w-6" style={{ color }} strokeWidth={2.2} />
+      <div className="relative h-14 w-14 rounded-2xl bg-white dark:bg-card flex items-center justify-center ring-1 ring-border/60 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] group-hover:shadow-[0_10px_24px_-8px_rgba(15,23,42,0.25)] group-hover:-translate-y-0.5 transition-all">
+        <Icon className="h-6 w-6 text-[#3D4FE0]" strokeWidth={1.75} />
+        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-card shadow-sm" />
       </div>
       <span className="text-[10px] font-medium text-foreground/80 text-center leading-tight">{label}</span>
     </button>
