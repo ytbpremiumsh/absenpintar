@@ -84,8 +84,17 @@ async function notifySppPaid(supabaseAdmin: any, inv: any, paidAt: string) {
   return { sent: res.ok && !/"success"\s*:\s*false/.test(text), status: res.status, body: text.slice(0, 300) };
 }
 
+async function getMayarApiKey(supabaseAdmin: any): Promise<string> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("platform_settings").select("value").eq("key", "mayar_api_key").maybeSingle();
+    if (data?.value) return data.value as string;
+  } catch (_) {}
+  return Deno.env.get("MAYAR_API_KEY") || "";
+}
+
 async function syncPaidInvoicesFromMayar(supabaseAdmin: any, schoolId: string) {
-  const apiKey = Deno.env.get("MAYAR_API_KEY");
+  const apiKey = await getMayarApiKey(supabaseAdmin);
   if (!apiKey) return { checked: 0, paid: 0, wa_sent: 0, error: "MAYAR_API_KEY belum dikonfigurasi" };
 
   const { data: invoices } = await supabaseAdmin
