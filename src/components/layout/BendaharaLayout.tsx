@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import atskollaLogo from "@/assets/Logo_atskolla.png";
 
 export function BendaharaLayout() {
   const { user, profile, roles, loading, signOut } = useAuth();
