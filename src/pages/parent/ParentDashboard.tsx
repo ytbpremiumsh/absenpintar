@@ -554,7 +554,7 @@ export default function ParentDashboard() {
 
         {/* HOME — kolom kanan di desktop (statistik & jadwal) */}
         {tab === "home" && (
-          <div className="md:col-span-5 space-y-3 contents md:block">
+          <div className="md:col-span-5 space-y-3">
             {/* Period Filter */}
             <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl w-fit">
               {(["day", "week", "month"] as const).map((p) => (
