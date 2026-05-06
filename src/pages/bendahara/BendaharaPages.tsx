@@ -60,7 +60,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     expired: { c: "bg-slate-500 hover:bg-slate-500", t: "Expired" },
   };
   const v = map[status] || map.unpaid;
-  return <Badge className={`${v.c} text-white`}>{v.t}</Badge>;
+  return <Badge className={`${v.c} text-white whitespace-nowrap`}>{v.t}</Badge>;
 };
 
 function StatCard({ label, value, icon: Icon, gradient = "from-emerald-500 to-teal-600", sub }: any) {
