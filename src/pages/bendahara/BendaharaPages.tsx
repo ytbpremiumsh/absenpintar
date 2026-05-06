@@ -2218,19 +2218,23 @@ export function BendaharaSPPDetail() {
   };
 
   const sendOfflinePaidWa = async (inv: any) => {
-    if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    // Selalu pakai nomor terkini dari data siswa
+    const phone = student?.parent_phone || inv.parent_phone;
+    const parentName = student?.parent_name || inv.parent_name;
+    if (!phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
     const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
     const schoolName = schoolRow?.name || "Sekolah";
     const tgl = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-";
-    // Format pesan SAMA dengan pembayaran online — hanya field "Metode" yang berbeda
     const metode = formatPaymentMethod(inv.payment_method).label;
-    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Metode  : ${metode}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
+    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${parentName || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Metode  : ${metode}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
     setBusy(`waoff-${inv.id}`);
     toast.loading("Mengirim WA konfirmasi...");
-    // PENTING: pakai message_type "spp_paid" agar tetap dapat button & gambar (sama seperti online)
     const { error } = await supabase.functions.invoke("send-whatsapp", {
-      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_paid" },
+      body: { school_id: profile!.school_id, phone, message: msg, message_type: "spp_paid" },
     });
+    if (!error && (phone !== inv.parent_phone || parentName !== inv.parent_name)) {
+      await supabase.from("spp_invoices").update({ parent_phone: phone, parent_name: parentName }).eq("id", inv.id);
+    }
     toast.dismiss(); setBusy(null);
     if (error) toast.error("Gagal kirim"); else toast.success("Konfirmasi terkirim ke WA wali");
   };
