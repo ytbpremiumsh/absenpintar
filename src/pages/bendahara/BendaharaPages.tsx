@@ -1820,7 +1820,7 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                         <TableRow
                           key={s.id}
                           onClick={() => navigate(`/bendahara/transaksi/${s.id}?ay=${encodeURIComponent(filterAY)}`)}
-                          className="cursor-pointer hover:bg-[#5B6CF9]/5 border-border/40"
+                          className="cursor-pointer hover:bg-[#5B6CF9]/5 border-border/40 [&>td]:whitespace-nowrap"
                         >
                           <TableCell className="py-2.5">
                             <div className="flex items-center gap-2.5">
