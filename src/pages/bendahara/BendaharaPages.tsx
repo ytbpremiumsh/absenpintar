@@ -201,7 +201,17 @@ export function BendaharaDashboard() {
   if (loading) return <div className="p-12 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
 
   return (
-    <div className="space-y-6">
+    <>
+      {/* ==================== MOBILE — Fintech Payou-style (emerald) ==================== */}
+      <BendaharaMobileDashboard
+        stats={stats}
+        completionRate={completionRate}
+        recentPaidList={recentPaidList}
+        tunggakanList={tunggakanList}
+      />
+
+      {/* ==================== DESKTOP / TABLET (md+) ==================== */}
+      <div className="hidden md:block space-y-6">
       <PageHeader
         icon={Wallet}
         title="Dashboard Bendahara"
@@ -390,7 +400,270 @@ export function BendaharaDashboard() {
           </div>
         )}
       </div>
+      </div>
+    </>
+  );
+}
+
+// =================== MOBILE DASHBOARD (Bendahara) — Payou-style emerald ===================
+function BendaharaMobileDashboard({
+  stats, completionRate, recentPaidList, tunggakanList,
+}: {
+  stats: any; completionRate: number; recentPaidList: any[]; tunggakanList: any[];
+}) {
+  const navigate = useNavigateRR();
+  return (
+    <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-emerald-50/60 via-background to-background">
+      {/* Top bar greeting */}
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Bendahara</p>
+          <p className="text-sm font-bold">Sistem Keuangan Sekolah</p>
+        </div>
+        <button
+          onClick={() => navigate("/bendahara/laporan")}
+          className="h-9 w-9 rounded-full bg-white shadow-sm ring-1 ring-border/60 flex items-center justify-center active:scale-95 transition"
+          aria-label="Laporan"
+        >
+          <BarChart3 className="h-4 w-4 text-emerald-600" />
+        </button>
+      </div>
+
+      <div className="px-4 space-y-4">
+        {/* HERO CARD — emerald gradient */}
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 text-white p-5 shadow-[0_20px_50px_-15px_rgba(16,185,129,0.55)]">
+          <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
+
+          <div className="relative flex items-center gap-3">
+            <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center shrink-0">
+              <Wallet className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Saldo Tersedia</p>
+              <p className="text-[11px] text-white/80 truncate">Bisa dicairkan ke rekening</p>
+            </div>
+          </div>
+
+          <div className="relative mt-4">
+            <p className="text-[28px] font-extrabold tracking-tight leading-none break-all">{fmtIDR(stats.availableBalance)}</p>
+            <p className="text-[11px] text-white/80 mt-1.5">
+              Pelunasan {completionRate}% • {stats.paidCount} transaksi lunas
+            </p>
+          </div>
+
+          {/* 3 quick actions */}
+          <div className="relative mt-5 flex items-center justify-around">
+            <button onClick={() => navigate("/bendahara/pencairan")} className="flex flex-col items-center gap-1.5 group">
+              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                <ArrowDownToLine className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-medium text-white/90">Cairkan</span>
+            </button>
+            <button onClick={() => navigate("/bendahara/transaksi")} className="flex flex-col items-center gap-1.5 group">
+              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                <CreditCard className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-medium text-white/90">Pembayaran</span>
+            </button>
+            <button onClick={() => navigate("/bendahara/generate")} className="flex flex-col items-center gap-1.5 group">
+              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                <FileText className="h-4 w-4" />
+              </div>
+              <span className="text-[10px] font-medium text-white/90">Tagihan</span>
+            </button>
+          </div>
+
+          {/* Tunggakan banner pill */}
+          {stats.tunggakan > 0 && (
+            <button
+              onClick={() => navigate("/bendahara/transaksi")}
+              className="relative mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-gradient-to-r from-rose-400 to-red-500 text-white font-semibold text-xs shadow-lg hover:opacity-95 transition-all active:scale-[0.98]"
+            >
+              <AlertCircle className="h-3.5 w-3.5" />
+              Tunggakan: {fmtIDR(stats.tunggakan)} • {stats.pendingCount} pending
+            </button>
+          )}
+        </div>
+
+        {/* Mini stats row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl p-3.5 bg-white dark:bg-card ring-1 ring-border/60 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-sky-500/10 flex items-center justify-center">
+                <Receipt className="h-4 w-4 text-sky-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Tagihan Bln Ini</p>
+                <p className="text-sm font-bold truncate">{fmtIDR(stats.monthBills)}</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl p-3.5 bg-white dark:bg-card ring-1 ring-border/60 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <CheckCircle2 className="h-4 w-4 text-violet-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Total Lunas</p>
+                <p className="text-sm font-bold truncate">{fmtIDR(stats.totalGross)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Service grid 4x2 */}
+        <div className="grid grid-cols-4 gap-3">
+          <BendServiceIcon icon={Users} label="Siswa" color="#10B981" bg="#E6FAF3" onClick={() => navigate("/bendahara/siswa")} />
+          <BendServiceIcon icon={Receipt} label="Tarif SPP" color="#5B6CF9" bg="#EEF0FE" onClick={() => navigate("/bendahara/tarif")} />
+          <BendServiceIcon icon={FileText} label="Generate" color="#F59E0B" bg="#FEF5E1" onClick={() => navigate("/bendahara/generate")} />
+          <BendServiceIcon icon={CreditCard} label="Pembayaran" color="#EC4899" bg="#FDE8F2" onClick={() => navigate("/bendahara/transaksi")} />
+          <BendServiceIcon icon={Upload} label="Import" color="#8B5CF6" bg="#F1ECFE" onClick={() => navigate("/bendahara/import-export")} />
+          <BendServiceIcon icon={Wallet} label="Saldo" color="#0EA5E9" bg="#E1F4FE" onClick={() => navigate("/bendahara/saldo")} />
+          <BendServiceIcon icon={ArrowDownToLine} label="Pencairan" color="#EF4444" bg="#FEE7E7" onClick={() => navigate("/bendahara/pencairan")} />
+          <BendServiceIcon icon={BarChart3} label="Laporan" color="#64748B" bg="#EEF1F5" onClick={() => navigate("/bendahara/laporan")} />
+        </div>
+
+        {/* Persentase pelunasan */}
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 ring-1 ring-emerald-200/60 dark:ring-emerald-900/30">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Persentase Pelunasan</p>
+              <p className="text-2xl font-extrabold text-emerald-600">{completionRate}%</p>
+            </div>
+            <CheckCircle2 className="h-9 w-9 text-emerald-500/40" />
+          </div>
+          <Progress value={completionRate} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-emerald-500 [&>div]:to-teal-600" />
+        </div>
+
+        {/* Tunggakan terbesar */}
+        {tunggakanList.length > 0 && (
+          <div className="rounded-2xl bg-white dark:bg-card ring-1 ring-border/60 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/20 border-b border-rose-100 dark:border-rose-900/30">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-rose-600" />
+                <p className="text-xs font-bold text-rose-700 dark:text-rose-300">Tunggakan Terbesar</p>
+              </div>
+              <span className="text-[10px] font-semibold text-rose-600">{tunggakanList.length} siswa</span>
+            </div>
+            <div className="divide-y divide-border/40">
+              {tunggakanList.slice(0, 5).map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => navigate(`/bendahara/transaksi`)}
+                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-muted/40 active:bg-muted/60 transition text-left"
+                >
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-rose-400 to-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                    {(t.name || "?")[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold truncate">{t.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{t.class} • {t.count} bulan</p>
+                  </div>
+                  <p className="text-xs font-bold text-rose-600 shrink-0">{fmtIDR(t.total)}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent paid */}
+        <div className="rounded-2xl bg-white dark:bg-card ring-1 ring-border/60 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border-b border-emerald-100 dark:border-emerald-900/30">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Pembayaran Terbaru</p>
+            </div>
+            <span className="text-[10px] font-semibold text-emerald-600">{recentPaidList.length}</span>
+          </div>
+          {recentPaidList.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-6">Belum ada pembayaran</p>
+          ) : (
+            <div className="divide-y divide-border/40">
+              {recentPaidList.slice(0, 6).map((t) => (
+                <div key={t.id} className="px-4 py-2.5 flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                    {(t.student_name || "?")[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold truncate">{t.student_name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{t.class_name} • {t.period_label}</p>
+                  </div>
+                  <p className="text-xs font-bold text-emerald-600 shrink-0">{fmtIDR(t.total_amount)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Floating bottom nav with center FAB */}
+      <nav className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none md:hidden">
+        <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
+          <BendFabBtn icon={Home} label="Beranda" active color="#10B981" onClick={() => navigate("/bendahara")} />
+          <BendFabBtn icon={CreditCard} label="Bayar" color="#EC4899" onClick={() => navigate("/bendahara/transaksi")} />
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(16,185,129,0.7)] ring-4 ring-white dark:ring-card transition-transform active:scale-95 hover:scale-105 shrink-0"
+                aria-label="Menu Lainnya"
+              >
+                <LayoutGrid className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
+              </SheetHeader>
+              <div className="grid grid-cols-3 gap-3">
+                <BendSheetItem icon={Users} label="Data Siswa" color="#10B981" bg="#E6FAF3" onClick={() => navigate("/bendahara/siswa")} />
+                <BendSheetItem icon={Receipt} label="Tarif SPP" color="#5B6CF9" bg="#EEF0FE" onClick={() => navigate("/bendahara/tarif")} />
+                <BendSheetItem icon={FileText} label="Generate Tagihan" color="#F59E0B" bg="#FEF5E1" onClick={() => navigate("/bendahara/generate")} />
+                <BendSheetItem icon={Upload} label="Import" color="#8B5CF6" bg="#F1ECFE" onClick={() => navigate("/bendahara/import-export")} />
+                <BendSheetItem icon={Wallet} label="Saldo" color="#0EA5E9" bg="#E1F4FE" onClick={() => navigate("/bendahara/saldo")} />
+                <BendSheetItem icon={ArrowDownToLine} label="Pencairan" color="#EF4444" bg="#FEE7E7" onClick={() => navigate("/bendahara/pencairan")} />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <BendFabBtn icon={Wallet} label="Saldo" color="#0EA5E9" onClick={() => navigate("/bendahara/saldo")} />
+          <BendFabBtn icon={BarChart3} label="Laporan" color="#5B6CF9" onClick={() => navigate("/bendahara/laporan")} />
+        </div>
+      </nav>
     </div>
+  );
+}
+
+function BendServiceIcon({ icon: Icon, label, color, bg, onClick }: any) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
+      <div className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_18px_-10px_rgba(0,0,0,0.25)] group-hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.3)] transition-shadow ring-1 ring-black/[0.03]" style={{ backgroundColor: bg }}>
+        <Icon className="h-6 w-6" style={{ color }} strokeWidth={2.2} />
+      </div>
+      <span className="text-[10px] font-medium text-foreground/80 text-center leading-tight">{label}</span>
+    </button>
+  );
+}
+
+function BendFabBtn({ icon: Icon, label, active, color, onClick }: any) {
+  return (
+    <button onClick={onClick} className={`flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl transition-all ${active ? "scale-105" : ""}`}>
+      <Icon className="h-5 w-5 transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }} strokeWidth={active ? 2.5 : 2} />
+      <span className="text-[9px] font-semibold transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }}>{label}</span>
+    </button>
+  );
+}
+
+function BendSheetItem({ icon: Icon, label, color, bg, onClick }: any) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
+      <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: bg }}>
+        <Icon className="h-5 w-5" style={{ color }} strokeWidth={2.2} />
+      </div>
+      <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
+    </button>
   );
 }
 
