@@ -66,8 +66,9 @@ function NavBtn({ icon: Icon, label, active, color, onClick }: any) {
 function SheetItem({ icon: Icon, label, gradient, onClick }: { icon: any; label: string; gradient: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
-      <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm bg-gradient-to-br", gradient)}>
-        <Icon className="h-5 w-5 text-white" strokeWidth={2.2} />
+      <div className="relative h-12 w-12 rounded-2xl bg-white dark:bg-card flex items-center justify-center ring-1 ring-border/60 shadow-sm">
+        <Icon className="h-5 w-5 text-[#3D4FE0]" strokeWidth={1.75} />
+        <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-card" />
       </div>
       <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
     </button>

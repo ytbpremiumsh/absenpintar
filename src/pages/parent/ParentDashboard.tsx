@@ -246,19 +246,41 @@ export default function ParentDashboard() {
   const monthRate = monthAttendance.length ? Math.round((monthHadir / monthAttendance.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32">
-      {/* Top Bar — Payou-style */}
-      <div className="max-w-md mx-auto px-5 pt-5 pb-3">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
+      {/* Top Bar — responsive */}
+      <div className="max-w-md md:max-w-6xl mx-auto px-5 md:px-8 pt-5 md:pt-6 pb-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
+            <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
               <GraduationCap className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Murid</p>
-              <h1 className="text-sm font-bold truncate text-foreground">{current?.schools?.name || "Sekolah"}</h1>
+              <h1 className="text-sm md:text-base font-bold truncate text-foreground">{current?.schools?.name || "Sekolah"}</h1>
             </div>
           </div>
+
+          {/* Desktop tab bar */}
+          <div className="hidden lg:flex items-center gap-1 bg-white dark:bg-card rounded-full px-1.5 py-1.5 ring-1 ring-border/60 shadow-sm">
+            {[
+              { id: "home", label: "Beranda", icon: Home },
+              { id: "attendance", label: "Absensi", icon: ClipboardList },
+              { id: "schedule", label: "Jadwal", icon: CalendarDays },
+              { id: "spp", label: "SPP", icon: Wallet },
+              { id: "info", label: "Info", icon: Megaphone },
+              { id: "leave", label: "Izin", icon: FileText },
+              { id: "contact", label: "Wali Kelas", icon: Phone },
+            ].map((t) => {
+              const Active = tab === t.id;
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all", Active ? "bg-[#5B6CF9] text-white shadow" : "text-muted-foreground hover:text-foreground hover:bg-muted/40")}>
+                  <t.icon className="h-3.5 w-3.5" strokeWidth={Active ? 2.5 : 2} />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex items-center gap-1.5">
             <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
               <Bell className="h-4 w-4 text-foreground" />
@@ -271,10 +293,31 @@ export default function ParentDashboard() {
             </button>
           </div>
         </div>
+
+        {/* Tablet tab bar (md only, scrollable) */}
+        <div className="hidden md:flex lg:hidden items-center gap-1 mt-3 bg-white dark:bg-card rounded-full px-1.5 py-1.5 ring-1 ring-border/60 shadow-sm overflow-x-auto">
+          {[
+            { id: "home", label: "Beranda", icon: Home },
+            { id: "attendance", label: "Absensi", icon: ClipboardList },
+            { id: "schedule", label: "Jadwal", icon: CalendarDays },
+            { id: "spp", label: "SPP", icon: Wallet },
+            { id: "info", label: "Info", icon: Megaphone },
+            { id: "leave", label: "Izin", icon: FileText },
+            { id: "contact", label: "Wali Kelas", icon: Phone },
+          ].map((t) => {
+            const Active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all whitespace-nowrap", Active ? "bg-[#5B6CF9] text-white shadow" : "text-muted-foreground hover:text-foreground hover:bg-muted/40")}>
+                <t.icon className="h-3.5 w-3.5" strokeWidth={Active ? 2.5 : 2} />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-md mx-auto px-4 space-y-4">
+      <div className="max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-4">
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
           <div className="relative">
@@ -907,7 +950,7 @@ export default function ParentDashboard() {
       </div>
 
       {/* Bottom Floating Nav — Payou-style with center FAB */}
-      <nav className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
+      <nav className="md:hidden fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
         <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
           {/* Left 2 tabs */}
           <FabNavBtn icon={Home} label="Beranda" active={tab === "home"} color="#10B981" onClick={() => setTab("home")} />
@@ -1020,10 +1063,12 @@ function SectionTitle({ icon: Icon, title, onMore }: any) {
 }
 
 function ServiceIcon({ icon: Icon, label, color, bg, onClick }: any) {
+  // Outline 1-line style with green accent dot — modern fintech iconography.
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
-      <div className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_18px_-10px_rgba(0,0,0,0.25)] group-hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.3)] transition-shadow ring-1 ring-black/[0.03]" style={{ backgroundColor: bg }}>
-        <Icon className="h-6 w-6" style={{ color }} strokeWidth={2.2} />
+      <div className="relative h-14 w-14 rounded-2xl bg-white dark:bg-card flex items-center justify-center ring-1 ring-border/60 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.18)] group-hover:shadow-[0_10px_24px_-8px_rgba(15,23,42,0.25)] group-hover:-translate-y-0.5 transition-all">
+        <Icon className="h-6 w-6 text-[#3D4FE0]" strokeWidth={1.75} />
+        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-card shadow-sm" />
       </div>
       <span className="text-[10px] font-medium text-foreground/80 text-center leading-tight">{label}</span>
     </button>
@@ -1042,8 +1087,9 @@ function FabNavBtn({ icon: Icon, label, active, color, onClick }: any) {
 function SheetMenuItem({ icon: Icon, label, color, bg, onClick }: any) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
-      <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: bg }}>
-        <Icon className="h-5 w-5" style={{ color }} strokeWidth={2.2} />
+      <div className="relative h-12 w-12 rounded-2xl bg-white dark:bg-card flex items-center justify-center ring-1 ring-border/60 shadow-sm">
+        <Icon className="h-5 w-5 text-[#3D4FE0]" strokeWidth={1.75} />
+        <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-card" />
       </div>
       <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
     </button>
