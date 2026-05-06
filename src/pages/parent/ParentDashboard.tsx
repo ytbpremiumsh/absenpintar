@@ -344,8 +344,8 @@ export default function ParentDashboard() {
 
       {/* Content */}
       <div className={cn(
-        "max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3",
-        tab === "home" && "md:space-y-0 md:grid md:grid-cols-12 md:gap-5"
+        "max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3 md:mt-4",
+        tab === "home" && "md:space-y-0 md:grid md:grid-cols-12 md:gap-6 md:items-start"
       )}>
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
