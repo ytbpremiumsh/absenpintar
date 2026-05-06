@@ -968,9 +968,9 @@ export function BendaharaTarif() {
                 <TableHeader>
                   <TableRow className="bg-muted/40">
                     <TableHead className="font-semibold">Tahun Ajaran</TableHead>
-                    <TableHead className="font-semibold">Kelas</TableHead>
-                    <TableHead className="font-semibold">Nominal</TableHead>
-                    <TableHead className="font-semibold">Jatuh Tempo</TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">Kelas</TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">Nominal</TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">Jatuh Tempo</TableHead>
                     <TableHead className="font-semibold">Denda</TableHead>
                     <TableHead className="font-semibold">Aktif</TableHead>
                     <TableHead className="font-semibold text-right">Aksi</TableHead>
