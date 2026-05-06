@@ -3054,6 +3054,19 @@ export function BendaharaLaporan() {
   const [detailMonth, setDetailMonth] = useState<number>(0); // 0 = semua bulan
   const [detailStatus, setDetailStatus] = useState<string>("all");
 
+  // Auto-open dialog from URL ?cls=X (mendukung "buka di halaman baru")
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cls = params.get("cls");
+    if (cls) {
+      setOpenClass(cls);
+      const m = parseInt(params.get("m") || "0");
+      const st = params.get("st") || "all";
+      setDetailMonth(isNaN(m) ? 0 : m);
+      setDetailStatus(st);
+    }
+  }, []);
+
   useEffect(() => {
     if (!profile?.school_id) return;
     Promise.all([
