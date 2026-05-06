@@ -981,9 +981,9 @@ export function BendaharaTarif() {
                   {filtered.map(t => (
                     <TableRow key={t.id} className="hover:bg-muted/30">
                       <TableCell className="text-sm"><Badge variant="outline" className="border-[#5B6CF9]/30 text-[#5B6CF9]">{t.school_year}</Badge></TableCell>
-                      <TableCell><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
-                      <TableCell className="font-bold text-[#5B6CF9]">{fmtIDR(t.amount)}</TableCell>
-                      <TableCell className="text-sm">Tanggal {t.due_date_day}</TableCell>
+                      <TableCell className="whitespace-nowrap"><Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t.class_name}</Badge></TableCell>
+                      <TableCell className="font-bold text-[#5B6CF9] whitespace-nowrap">{fmtIDR(t.amount)}</TableCell>
+                      <TableCell className="text-sm whitespace-nowrap">Tanggal {t.due_date_day}</TableCell>
                       <TableCell className="text-sm">{t.denda > 0 ? fmtIDR(t.denda) : <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell><Switch checked={t.is_active} onCheckedChange={() => toggle(t)} /></TableCell>
                       <TableCell className="text-right">
