@@ -569,12 +569,12 @@ function BendaharaMobileDashboard({
 
         {/* Recent paid */}
         <div className="rounded-2xl bg-white dark:bg-card ring-1 ring-border/60 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 border-b border-emerald-100 dark:border-emerald-900/30">
+          <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/20 border-b border-indigo-100 dark:border-indigo-900/30">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Pembayaran Terbaru</p>
+              <CheckCircle2 className="h-4 w-4 text-[#5B6CF9]" />
+              <p className="text-xs font-bold text-[#3D4FE0] dark:text-indigo-300">Pembayaran Terbaru</p>
             </div>
-            <span className="text-[10px] font-semibold text-emerald-600">{recentPaidList.length}</span>
+            <span className="text-[10px] font-semibold text-[#5B6CF9]">{recentPaidList.length}</span>
           </div>
           {recentPaidList.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-6">Belum ada pembayaran</p>
@@ -582,14 +582,14 @@ function BendaharaMobileDashboard({
             <div className="divide-y divide-border/40">
               {recentPaidList.slice(0, 6).map((t) => (
                 <div key={t.id} className="px-4 py-2.5 flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {(t.student_name || "?")[0]}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold truncate">{t.student_name}</p>
                     <p className="text-[10px] text-muted-foreground truncate">{t.class_name} • {t.period_label}</p>
                   </div>
-                  <p className="text-xs font-bold text-emerald-600 shrink-0">{fmtIDR(t.total_amount)}</p>
+                  <p className="text-xs font-bold text-[#3D4FE0] shrink-0">{fmtIDR(t.total_amount)}</p>
                 </div>
               ))}
             </div>
@@ -2552,7 +2552,7 @@ export function BendaharaSaldo() {
     <div className="space-y-4">
 
       {/* Saldo Aktif - Highlight Card */}
-      <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white overflow-hidden relative">
+      <Card className="border-0 shadow-md bg-gradient-to-br from-[#5B6CF9] via-[#4c5ded] to-[#3D4FE0] text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
         <CardContent className="p-5 relative">
           <div className="flex items-center gap-2 mb-1">
