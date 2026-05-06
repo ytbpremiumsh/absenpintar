@@ -17,6 +17,8 @@ export type RoleGuide = {
   color: string;
   accent: string;
   cover: string;
+  /** Mobile mockup screenshot (already includes phone frame). Shared across all steps for this role. */
+  mobileMockup: string;
   intro: string;
   highlights: string[];
   steps: Step[];
