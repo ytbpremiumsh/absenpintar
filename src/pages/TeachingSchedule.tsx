@@ -339,17 +339,17 @@ export default function TeachingSchedule() {
             </CardContent></Card>
           ) : (
             Object.entries(groupedByDay).sort(([a], [b]) => Number(a) - Number(b)).map(([day, items]) => (
-              <Card key={day}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Calendar className="h-4 w-4 text-primary" />
+              <Card key={day} className="border-0 shadow-card rounded-2xl overflow-hidden">
+                <CardHeader className="pb-2 px-3.5 sm:px-6 pt-3.5 sm:pt-4">
+                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                     </div>
-                    {DAYS[Number(day)]}
-                    <Badge variant="secondary" className="ml-auto">{items.length} jadwal</Badge>
+                    <span className="truncate">{DAYS[Number(day)]}</span>
+                    <Badge variant="secondary" className="ml-auto text-[10px] sm:text-xs shrink-0">{items.length} jadwal</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 px-3 sm:px-6 pb-3 sm:pb-6">
                   <div className="hidden md:block">
                     <Table>
                       <TableHeader>
