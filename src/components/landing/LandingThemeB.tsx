@@ -477,10 +477,11 @@ const LandingThemeB = () => {
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Dashboard untuk Setiap Peran</h2>
             <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Setiap pengguna punya tampilan dashboard sendiri, sesuai kebutuhan dan akses datanya.</p>
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[
               { image: dashboardSchoolImg, title: "Dashboard Sekolah", desc: "Statistik global kehadiran, monitoring real-time, manajemen kelas & siswa, hingga laporan rekap lengkap.", color: "from-indigo-500 to-blue-600", badge: null as string | null },
               { image: dashboardTeacherImg, title: "Dashboard Wali Kelas & Guru", desc: "Akses cepat ke kelas binaan, jadwal mengajar, rekap absensi mapel, dan leaderboard kelas.", color: "from-emerald-500 to-teal-600", badge: null as string | null },
+              { image: dashboardBendaharaImg, title: "Dashboard Bendahara", desc: "Kelola tagihan SPP, transaksi, saldo sekolah, pencairan, dan laporan keuangan dalam satu sistem.", color: "from-emerald-500 to-cyan-600", badge: null as string | null },
               { image: dashboardParentImg, title: "Dashboard Wali Murid", desc: "Pantau kehadiran anak secara real-time, notifikasi WhatsApp instan, dan riwayat absensi lengkap.", color: "from-amber-500 to-orange-500", badge: null as string | null },
             ].map((d, i) => (
               <motion.div key={d.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
