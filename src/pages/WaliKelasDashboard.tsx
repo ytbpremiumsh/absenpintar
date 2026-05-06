@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Users, UserCheck, Clock, GraduationCap, Search,
   AlertTriangle, Thermometer, FileText, Activity, Trophy, Medal, Flame, TrendingUp,
+  ClipboardCheck, BarChart3, History as HistoryIcon, Download, LayoutGrid, Home, CalendarCheck2,
 } from "lucide-react";
 import {
   BarChart, Bar,
