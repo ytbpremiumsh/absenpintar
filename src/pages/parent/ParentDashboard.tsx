@@ -256,9 +256,12 @@ export default function ParentDashboard() {
   const current = students.find((s) => s.id === selectedStudent);
 
 
-  // Compute today summary for hero card
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const todayLog = attendance.find((a) => a.date === todayKey);
+  // Compute today summary for hero card (gunakan tanggal lokal WIB & abaikan auto-alfa)
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const todayRealLog = attendance.find((a) => a.date === todayKey && a.method !== "auto");
+  const todayApprovedLeave = leaves.find((l) => l.date === todayKey && l.status === "approved");
+  const todayLog = todayRealLog
+    || (todayApprovedLeave ? { status: todayApprovedLeave.type, date: todayKey } : null);
   const monthAttendance = attendance.filter((a) => {
     const d = new Date(a.date); const n = new Date();
     return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
