@@ -3074,8 +3074,8 @@ export function BendaharaSaldo() {
                       <TableCell className="text-sm text-right font-semibold text-emerald-600 whitespace-nowrap">{fmtIDR(i.net_amount)}</TableCell>
                       <TableCell>
                         {i.settlement_id
-                          ? <Badge className="bg-emerald-500 text-[10px]">DICAIRKAN</Badge>
-                          : <Badge className="bg-amber-500 text-[10px]">SALDO AKTIF</Badge>}
+                          ? <Badge className="bg-emerald-500 text-[10px] whitespace-nowrap">DICAIRKAN</Badge>
+                          : <Badge className="bg-amber-500 text-[10px] whitespace-nowrap">SALDO AKTIF</Badge>}
                       </TableCell>
                     </TableRow>
                   );
