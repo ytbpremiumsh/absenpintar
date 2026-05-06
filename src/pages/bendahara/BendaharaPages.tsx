@@ -2040,6 +2040,19 @@ export function BendaharaSPPDetail() {
     setBusy(null);
     if (error) { toast.error(error.message); return; }
     toast.success("Pembayaran offline tercatat. Tidak masuk saldo pencairan.");
+
+    // Otomatis kirim WA konfirmasi ke wali (jika ada nomor)
+    if (inv.parent_phone) {
+      try {
+        await sendOfflinePaidWa({ ...inv, paid_at: paidAtISO, payment_method: method });
+      } catch (e) {
+        // Tidak menggagalkan flow utama jika WA error
+        console.warn("Gagal kirim WA konfirmasi offline:", e);
+      }
+    } else {
+      toast.message("Wali murid belum punya nomor WA — konfirmasi WA dilewati");
+    }
+
     setOfflineDialog((s) => ({ ...s, inv: null }));
     load();
   };
