@@ -679,11 +679,6 @@ export default function ParentDashboard() {
         )}
 
         {/* ATTENDANCE */}
-        {tab === "attendance" && (() => {
-          const [attTab, _setAttTab] = [((window as any).__attTab || "datang"), (v: string) => { (window as any).__attTab = v; setTab("attendance_"); setTimeout(() => setTab("attendance"), 0); }];
-          // Use real React state instead — defined above scope
-          return null;
-        })()}
         {tab === "attendance" && (
           <>
             <SectionTitle icon={ClipboardList} title="Riwayat Absensi 30 Hari" />
