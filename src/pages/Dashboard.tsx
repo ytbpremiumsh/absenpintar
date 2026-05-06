@@ -114,7 +114,7 @@ const Dashboard = () => {
 
     const [studentsRes, logsRes, classesRes, waliRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, photo_url").eq("school_id", schoolId),
-      supabase.from("attendance_logs").select("*").eq("school_id", schoolId).eq("date", today).eq("attendance_type", "datang").order("created_at", { ascending: false }),
+      supabase.from("attendance_logs").select("*").eq("school_id", schoolId).eq("date", today).eq("attendance_type", "datang").neq("method", "auto").order("created_at", { ascending: false }),
       supabase.from("classes").select("id").eq("school_id", schoolId),
       supabase.from("class_teachers").select("class_name, user_id").eq("school_id", schoolId),
     ]);
@@ -159,13 +159,16 @@ const Dashboard = () => {
 
     const { data } = await supabase
       .from("attendance_logs")
-      .select("date, status")
+      .select("date, status, method")
       .eq("school_id", profile.school_id)
       .eq("attendance_type", "datang")
       .gte("date", fromDate)
       .order("date");
 
-    setPeriodLogs(data || []);
+    // Sembunyikan record auto-system untuk HARI BERJALAN — datanya belum final.
+    // Untuk tanggal sebelumnya, record auto-Alfa tetap dihitung sebagai data historis.
+    const filtered = (data || []).filter((l: any) => !(l.date === todayStr && l.method === "auto"));
+    setPeriodLogs(filtered);
   }, [profile?.school_id, chartPeriod]);
 
   // Show trial popup on first load if user is on trial
