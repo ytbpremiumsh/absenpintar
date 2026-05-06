@@ -2301,6 +2301,98 @@ export function BendaharaSPPDetail() {
         title="Pratinjau Pembayaran — QRIS / Transfer Bank"
         onClose={() => { setPaymentIframe(null); load(); }}
       />
+
+      {/* Dialog: Catat Pembayaran Offline */}
+      <Dialog open={!!offlineDialog.inv} onOpenChange={(o) => { if (!o) setOfflineDialog((s) => ({ ...s, inv: null })); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Banknote className="h-5 w-5 text-slate-600" /> Catat Pembayaran Offline
+            </DialogTitle>
+            <DialogDescription>
+              Catat pelunasan SPP yang dibayar langsung di sekolah (tunai / transfer manual).
+            </DialogDescription>
+          </DialogHeader>
+
+          {offlineDialog.inv && (
+            <div className="space-y-4">
+              {/* Banner Peringatan */}
+              <div className="rounded-lg border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 flex gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-900 dark:text-amber-100 leading-relaxed">
+                  <p className="font-bold mb-1">Penting — Dana Tidak Masuk Pencairan Online</p>
+                  <p>Pembayaran offline tercatat sebagai <b>LUNAS</b> di sistem & laporan, tetapi <b>tidak ikut dihitung</b> ke saldo pencairan dana karena uang sudah diterima sekolah secara langsung. Pastikan uang sudah benar-benar diterima sebelum mencatat.</p>
+                </div>
+              </div>
+
+              {/* Ringkasan Invoice */}
+              <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Siswa</span><span className="font-semibold">{offlineDialog.inv.student_name}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Periode</span><span className="font-semibold">{offlineDialog.inv.period_label}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Nominal</span><span className="font-bold text-base text-[#5B6CF9]">{fmtIDR(offlineDialog.inv.total_amount)}</span></div>
+              </div>
+
+              {/* Pilih Metode */}
+              <div>
+                <Label className="text-xs font-semibold mb-2 block">Metode Pembayaran</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOfflineDialog((s) => ({ ...s, method: "offline_cash" }))}
+                    className={`rounded-lg border-2 p-3 text-left transition-all ${offlineDialog.method === "offline_cash" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-border hover:border-[#5B6CF9]/40"}`}
+                  >
+                    <Banknote className={`h-4 w-4 mb-1 ${offlineDialog.method === "offline_cash" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} />
+                    <p className="text-xs font-bold">Tunai</p>
+                    <p className="text-[10px] text-muted-foreground">Bayar langsung di sekolah</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOfflineDialog((s) => ({ ...s, method: "offline_transfer" }))}
+                    className={`rounded-lg border-2 p-3 text-left transition-all ${offlineDialog.method === "offline_transfer" ? "border-[#5B6CF9] bg-[#5B6CF9]/5" : "border-border hover:border-[#5B6CF9]/40"}`}
+                  >
+                    <Landmark className={`h-4 w-4 mb-1 ${offlineDialog.method === "offline_transfer" ? "text-[#5B6CF9]" : "text-muted-foreground"}`} />
+                    <p className="text-xs font-bold">Transfer Manual</p>
+                    <p className="text-[10px] text-muted-foreground">Ke rekening sekolah</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tanggal */}
+              <div>
+                <Label htmlFor="offline-date" className="text-xs font-semibold mb-1 block">Tanggal Pembayaran</Label>
+                <Input
+                  id="offline-date"
+                  type="date"
+                  value={offlineDialog.paidDate}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setOfflineDialog((s) => ({ ...s, paidDate: e.target.value }))}
+                />
+              </div>
+
+              {/* Catatan */}
+              <div>
+                <Label htmlFor="offline-note" className="text-xs font-semibold mb-1 block">Catatan (opsional)</Label>
+                <Input
+                  id="offline-note"
+                  placeholder={offlineDialog.method === "offline_cash" ? "Mis. Diterima oleh Bu Siti" : "Mis. Ref TRF #ABC123"}
+                  value={offlineDialog.note}
+                  onChange={(e) => setOfflineDialog((s) => ({ ...s, note: e.target.value }))}
+                />
+              </div>
+
+              {/* Tombol */}
+              <div className="flex gap-2 pt-1">
+                <Button variant="outline" className="flex-1" onClick={() => setOfflineDialog((s) => ({ ...s, inv: null }))} disabled={busy?.startsWith("offline-")}>
+                  Batal
+                </Button>
+                <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={submitOfflinePayment} disabled={busy?.startsWith("offline-")}>
+                  {busy?.startsWith("offline-") ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-4 w-4 mr-1" /> Konfirmasi Lunas</>}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
