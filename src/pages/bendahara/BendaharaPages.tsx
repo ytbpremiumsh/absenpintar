@@ -2012,7 +2012,7 @@ export function BendaharaSPPDetail() {
       .sort((a, b) => (a.period_year - b.period_year) || (a.period_month - b.period_month));
     if (paidList.length === 0) { toast.error("Belum ada invoice lunas yang valid"); return; }
     setBusy("bulk-all");
-    toast.loading(`Menggabungkan ${paidList.length} invoice ke 1 PDF...`);
+    toast.loading(`Memproses ${paidList.length} invoice lunas...`);
     try {
       const { data: school } = await supabase.from("schools").select("name, address, npsn, logo").eq("id", profile.school_id).maybeSingle();
       const studentMeta = { student_id: student?.student_id, nisn: student?.nisn, parent_name: student?.parent_name };
