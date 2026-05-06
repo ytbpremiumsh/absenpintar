@@ -2058,6 +2058,8 @@ export function BendaharaSPPDetail() {
     toast.dismiss(); setBusy(null);
     if (error) toast.error("Gagal kirim"); else toast.success("Konfirmasi terkirim ke WA wali");
   };
+
+  const downloadAllPaidPdf = async () => {
     if (!profile?.school_id) return;
     // Hanya invoice yang valid: status paid + ada tanggal pembayaran
     const paidList = enrichedInvoices
