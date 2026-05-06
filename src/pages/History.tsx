@@ -48,9 +48,10 @@ const History = () => {
 
   const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
 
+  const fmtLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const todayDate = new Date();
-  const today = todayDate.toISOString().slice(0, 10);
-  const firstOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1).toISOString().slice(0, 10);
+  const today = fmtLocal(todayDate);
+  const firstOfMonth = fmtLocal(new Date(todayDate.getFullYear(), todayDate.getMonth(), 1));
   const [startDate, setStartDate] = useState(firstOfMonth);
   const [endDate, setEndDate] = useState(today);
   const [periodMonth, setPeriodMonth] = useState<number>(todayDate.getMonth() + 1); // 1-12, 0 = full year
@@ -65,10 +66,11 @@ const History = () => {
     } else {
       const start = new Date(year, month - 1, 1);
       const end = new Date(year, month, 0);
-      setStartDate(start.toISOString().slice(0, 10));
-      setEndDate(end.toISOString().slice(0, 10));
+      setStartDate(fmtLocal(start));
+      setEndDate(fmtLocal(end));
     }
   };
+
 
   useEffect(() => {
     if (!isTeacherOnly || !user) { setTeacherClasses(null); return; }
