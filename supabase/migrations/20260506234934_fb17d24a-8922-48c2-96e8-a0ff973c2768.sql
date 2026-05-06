@@ -1,0 +1,1 @@
+ALTER TABLE public.schools ADD COLUMN IF NOT EXISTS holiday_days integer[] NOT NULL DEFAULT ARRAY[0,6]::integer[];
