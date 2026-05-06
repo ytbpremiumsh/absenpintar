@@ -2463,6 +2463,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_admin_wa: {
+        Args: { _event_type: string; _payload: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
