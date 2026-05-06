@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2, Power, QrCode, Wifi, WifiOff, RefreshCw, Unplug } from "lucide-react";
+import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2, Power, QrCode, Wifi, WifiOff, RefreshCw, Unplug, BellRing, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,12 @@ const SuperAdminRegistrationWA = () => {
     mpwa_platform_sender: "",
     mpwa_platform_connected: "false",
     onesender_enabled: "true",
+    admin_notify_phone: "",
+    admin_notify_enabled: "false",
+    admin_notify_ticket_template: "",
+    admin_notify_withdrawal_template: "",
   });
+  const [adminTesting, setAdminTesting] = useState<"ticket" | "withdrawal" | null>(null);
 
   // QR state
   const [mpwaNumber, setMpwaNumber] = useState("");
@@ -51,6 +56,8 @@ const SuperAdminRegistrationWA = () => {
       .in("key", [
         "wa_registration_enabled", "wa_api_url", "wa_api_key", "wa_registration_message",
         "mpwa_platform_api_key", "mpwa_platform_sender", "mpwa_platform_connected", "onesender_enabled",
+        "admin_notify_phone", "admin_notify_enabled",
+        "admin_notify_ticket_template", "admin_notify_withdrawal_template",
       ]);
 
     const map: Record<string, string> = {};
