@@ -103,6 +103,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/panduan" element={<Panduan />} />
+      <Route path="/panduan/:role" element={<PanduanDetail />} />
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<Register />} />
