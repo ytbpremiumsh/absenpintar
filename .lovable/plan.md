@@ -1,83 +1,53 @@
-## Tujuan
-Mengganti domain pada link pembayaran yang **dilihat user** (WA, email, tombol di dashboard, iframe) dari `https://ayopintarindonesia.myr.id/...` menjadi `https://bayar.atskolla.com/...` — dengan tetap mempertahankan URL asli Mayar di database supaya webhook auto-approval tidak rusak.
 
-Asumsi: domain `bayar.atskolla.com` sudah Anda setup (Cloudflare Worker / Redirect Rule) dan sudah meneruskan ke `ayopintarindonesia.myr.id` dengan path utuh.
+# Plan: Script `update.sh` untuk Self-Host VPS
 
----
+Script ini akan ditambahkan ke root project (akan ikut tersinkron ke GitHub repo Anda), lalu Anda jalankan di VPS untuk pull update terbaru → install dependency → build → restart server.
 
-## 1. Helper baru `brandPaymentUrl()`
+## Yang Akan Dibuat
 
-File: `src/lib/utils.ts` — tambahkan:
-```ts
-export const PAYMENT_BRAND_DOMAIN = "bayar.atskolla.com";
+### 1. `update.sh` (root project)
 
-export function brandPaymentUrl(url?: string | null): string {
-  if (!url) return "";
-  return url.replace(/^https?:\/\/[^/]*myr\.id/i, `https://${PAYMENT_BRAND_DOMAIN}`);
-}
-```
+Script bash idempotent dengan fitur:
+- `git fetch` + cek apakah ada commit baru (skip kalau sudah up-to-date)
+- `git pull` dari branch `main`
+- Auto-detect package manager (`bun` / `npm` / `pnpm`) — default `bun` karena project pakai bun
+- Install dependency hanya jika `package.json` / lockfile berubah (cepat)
+- `bun run build` → output `dist/`
+- Restart service via salah satu metode (auto-detect):
+  - **PM2**: `pm2 reload atskolla` (kalau `pm2` ada di PATH)
+  - **systemd**: `sudo systemctl restart atskolla` (kalau service file ada)
+  - **Docker**: `docker compose up -d --build` (kalau `docker-compose.yml` ada)
+  - Fallback: cuma rebuild, kasih pesan supaya user restart manual
+- Logging timestamped ke `update.log`
+- `set -euo pipefail` untuk fail-fast
+- Lock file (`/tmp/atskolla-update.lock`) supaya tidak double-run
 
-Helper kembar untuk edge function (Deno tidak share `src/`):  
-File baru `supabase/functions/_shared/brandUrl.ts`:
-```ts
-export function brandPaymentUrl(url?: string | null): string {
-  if (!url) return "";
-  return url.replace(/^https?:\/\/[^/]*myr\.id/i, "https://bayar.atskolla.com");
-}
-```
+### 2. `DEPLOY.md` (root project)
 
----
+Dokumentasi singkat:
+- Cara clone repo pertama kali ke VPS
+- Set environment variables (`.env` — VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_SUPABASE_PROJECT_ID)
+- Cara `chmod +x update.sh` lalu `./update.sh`
+- Contoh setup cron untuk auto-update (misal tiap 10 menit cek commit baru):
+  ```
+  */10 * * * * cd /var/www/atskolla && ./update.sh >> update.log 2>&1
+  ```
+- Contoh konfigurasi PM2 + Nginx reverse proxy
+- Catatan: edge function & database **tidak** di-handle script ini (sudah dikelola Lovable Cloud)
 
-## 2. Terapkan di Edge Functions (output ke client/WA)
+## Catatan Penting
 
-**a. `supabase/functions/spp-mayar/index.ts`**
-- Saat `ensureFreshLink` mengembalikan `payment_url` ke client (line 110, 157, 254) → bungkus dengan `brandPaymentUrl(link.link)`.
-- DB tetap simpan URL asli Mayar (line 238 `payment_url: link.link`) — JANGAN diubah, supaya webhook tetap bisa cocokkan via `payment_url`.
+1. **Script ini hanya untuk frontend (Vite SPA build).** Backend (edge functions, DB, cron `auto-mark-alfa`) tetap berjalan di Lovable Cloud dan tidak perlu di-deploy ulang.
 
-**b. `supabase/functions/create-mayar-payment/index.ts`**
-- Semua `return ... payment_url: paymentLink.link` & `payment_url: existing.mayar_payment_url` → bungkus `brandPaymentUrl(...)` (≈8 lokasi).
-- Field DB `mayar_payment_url` tetap URL Mayar asli.
+2. **`.env` jangan di-commit ke GitHub.** Anda harus buat manual `.env` di VPS sekali saja. Script tidak akan menimpa.
 
-**c. `supabase/functions/parent-portal/index.ts`** (line 483)
-- `payment_url: sppJson.payment_url` → `brandPaymentUrl(sppJson.payment_url)` (jaga2 jika belum di-brand di hulu).
+3. **Karena Lovable auto-push ke GitHub setiap ada perubahan**, begitu Anda edit di Lovable → 1-2 menit kemudian commit muncul di GitHub → cron `update.sh` di VPS akan tarik & rebuild otomatis. Full hands-off.
 
-**d. `supabase/functions/mayar-webhook/index.ts`**
-- Pesan WA "Pembayaran SPP Berhasil" tidak menyertakan link pembayaran → tidak perlu diubah.
-- Logika pencocokan webhook lewat `payment_url` & `mayar_payment_url` di DB tetap pakai URL Mayar asli → AMAN.
+4. **Repo harus sudah connected ke GitHub.** Kalau belum, lewat **Connectors → GitHub → Connect project** dulu.
 
----
+## File yang Diubah/Dibuat
 
-## 3. Terapkan di Frontend (UI & WA)
+- `update.sh` (baru)
+- `DEPLOY.md` (baru)
 
-Import: `import { brandPaymentUrl } from "@/lib/utils";`
-
-**a. `src/pages/bendahara/BendaharaPages.tsx`**
-- Line 1707 (template WA "Tagihan SPP Baru"): `${inv.payment_url}` → `${brandPaymentUrl(inv.payment_url)}`.
-- Line 1720 (template Email): sama.
-- Line 953 (kirim WA setelah create batch): `paymentUrl` di teks pesan → di-brand.
-- Line 1446 (kirim ulang WA): sama.
-- Line 1866 `copyLink(inv.payment_url)` → `copyLink(brandPaymentUrl(inv.payment_url))` (yang disalin = link branded).
-- Line 1867 `setPaymentIframe(inv.payment_url)` → `setPaymentIframe(brandPaymentUrl(inv.payment_url))` (iframe load via domain branded).
-
-**b. `src/pages/parent/ParentDashboard.tsx`** (line 166)
-- `setPaymentIframe(d.payment_url)` → `setPaymentIframe(brandPaymentUrl(d.payment_url))`.
-
-**c. `src/pages/Subscription.tsx`** (line 204), `src/pages/CustomDomain.tsx` (line 61), `src/pages/OrderIdCard.tsx` (line 139, 163), `src/pages/WaCredit.tsx` (line 77)
-- Semua `setPaymentIframe(...payment_url)` → `setPaymentIframe(brandPaymentUrl(...))`.
-
----
-
-## 4. QA Manual (setelah deploy)
-1. Bendahara → Generate tagihan SPP → cek pesan WA: link harus `https://bayar.atskolla.com/...`.
-2. Klik link di WA → harus terbuka halaman pembayaran Mayar (via redirect Worker).
-3. Bayar tagihan test (nominal kecil) → webhook tetap masuk → status invoice jadi `paid` → WA konfirmasi terkirim.
-4. Tombol "Buka di dashboard" di tabel invoice → iframe load via `bayar.atskolla.com`.
-5. Parent dashboard → "Bayar Sekarang" → iframe juga branded.
-
----
-
-## Detail Teknis Penting
-- **Database tidak diubah**: kolom `payment_url` & `mayar_payment_url` tetap URL `myr.id` asli → webhook matching aman.
-- **Hanya output ke user yang di-brand**: prinsip "store raw, display branded".
-- **Iframe via `bayar.atskolla.com`**: bekerja selama Cloudflare Worker meneruskan path & query string utuh dengan `Location: 302` ke `myr.id`. Jika Worker pakai `fetch + return` (proxy mode) malah lebih bagus karena URL bar tetap `bayar.atskolla.com`.
-- **File yang diubah**: 2 helper baru + 4 edge function + 6 page frontend. Migrasi DB: tidak ada.
+Tidak ada perubahan kode aplikasi, database, atau edge function.
