@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2, Power, QrCode, Wifi, WifiOff, RefreshCw, Unplug } from "lucide-react";
+import { Loader2, Save, Send, MessageSquare, Info, Smartphone, Settings2, Power, QrCode, Wifi, WifiOff, RefreshCw, Unplug, BellRing, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,12 @@ const SuperAdminRegistrationWA = () => {
     mpwa_platform_sender: "",
     mpwa_platform_connected: "false",
     onesender_enabled: "true",
+    admin_notify_phone: "",
+    admin_notify_enabled: "false",
+    admin_notify_ticket_template: "",
+    admin_notify_withdrawal_template: "",
   });
+  const [adminTesting, setAdminTesting] = useState<"ticket" | "withdrawal" | null>(null);
 
   // QR state
   const [mpwaNumber, setMpwaNumber] = useState("");
@@ -51,6 +56,8 @@ const SuperAdminRegistrationWA = () => {
       .in("key", [
         "wa_registration_enabled", "wa_api_url", "wa_api_key", "wa_registration_message",
         "mpwa_platform_api_key", "mpwa_platform_sender", "mpwa_platform_connected", "onesender_enabled",
+        "admin_notify_phone", "admin_notify_enabled",
+        "admin_notify_ticket_template", "admin_notify_withdrawal_template",
       ]);
 
     const map: Record<string, string> = {};
@@ -286,6 +293,41 @@ const SuperAdminRegistrationWA = () => {
     setSettings(prev => ({ ...prev, onesender_enabled: val ? "true" : "false" }));
   };
 
+  const handleTestAdminNotify = async (kind: "ticket" | "withdrawal") => {
+    if (!settings.admin_notify_phone.trim()) {
+      toast.error("Nomor admin tujuan wajib diisi terlebih dahulu");
+      return;
+    }
+    // Save current settings first so edge function reads latest values
+    setAdminTesting(kind);
+    try {
+      const rows = [
+        { key: "admin_notify_phone", value: settings.admin_notify_phone, updated_at: new Date().toISOString() },
+        { key: "admin_notify_enabled", value: settings.admin_notify_enabled, updated_at: new Date().toISOString() },
+        { key: "admin_notify_ticket_template", value: settings.admin_notify_ticket_template, updated_at: new Date().toISOString() },
+        { key: "admin_notify_withdrawal_template", value: settings.admin_notify_withdrawal_template, updated_at: new Date().toISOString() },
+      ];
+      await supabase.from("platform_settings").upsert(rows, { onConflict: "key" });
+
+      const samplePayload = kind === "ticket"
+        ? { school: "SDN 1 Jakarta", user: "Budi Santoso", priority: "high", subject: "Tidak bisa scan QR", message: "Ini hanya tes notifikasi tiket bantuan." }
+        : { affiliate: "Pak Guru", email: "guru@contoh.com", amount: 750000, bank: "BCA", account_number: "1234567890", account_holder: "Pak Guru" };
+
+      const { data, error } = await supabase.functions.invoke("notify-admin-wa", {
+        body: { event_type: kind === "ticket" ? "support_ticket" : "withdrawal_request", payload: samplePayload },
+      });
+      if (error) throw error;
+      if ((data as any)?.success) {
+        toast.success(`Notifikasi tes (${kind === "ticket" ? "Tiket" : "Pencairan"}) terkirim ke ${settings.admin_notify_phone}`);
+      } else {
+        toast.error("Gagal: " + ((data as any)?.error || "tidak diketahui"));
+      }
+    } catch (err: any) {
+      toast.error("Gagal kirim tes: " + (err.message || err));
+    }
+    setAdminTesting(null);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
@@ -500,6 +542,115 @@ const SuperAdminRegistrationWA = () => {
               </Card>
             </TabsContent>
           </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* ═══ Notifikasi WA Admin (Tiket Bantuan & Pencairan) ═══ */}
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <BellRing className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-sm">Notifikasi WA Admin</h3>
+                <p className="text-xs text-muted-foreground">
+                  Kirim WhatsApp otomatis ke admin saat ada Tiket Bantuan atau Pengajuan Pencairan Dana baru
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={settings.admin_notify_enabled === "true"}
+              onCheckedChange={(v) => setSettings({ ...settings, admin_notify_enabled: v ? "true" : "false" })}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs">Nomor WhatsApp Admin Tujuan</Label>
+            <Input
+              value={settings.admin_notify_phone}
+              onChange={(e) => setSettings({ ...settings, admin_notify_phone: e.target.value })}
+              placeholder="089501123808"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Format: 08xx atau 628xx — semua tiket bantuan & pencairan akan dikirim ke nomor ini
+            </p>
+          </div>
+
+          {/* Template Tiket Bantuan */}
+          <div className="space-y-2 p-3 rounded-lg border border-border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                <Label className="text-xs font-semibold">Template Tiket Bantuan</Label>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[11px]"
+                disabled={adminTesting !== null}
+                onClick={() => handleTestAdminNotify("ticket")}
+              >
+                {adminTesting === "ticket" ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
+                Tes Kirim
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {["{school}", "{user}", "{priority}", "{subject}", "{message}", "{time}"].map((v) => (
+                <Badge key={v} variant="secondary" className="text-[10px]">{v}</Badge>
+              ))}
+            </div>
+            <Textarea
+              value={settings.admin_notify_ticket_template}
+              onChange={(e) => setSettings({ ...settings, admin_notify_ticket_template: e.target.value })}
+              rows={6}
+              className="resize-none font-mono text-xs"
+              placeholder="🎫 Tiket Bantuan Baru..."
+            />
+          </div>
+
+          {/* Template Pencairan Dana */}
+          <div className="space-y-2 p-3 rounded-lg border border-border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-3.5 w-3.5 text-emerald-600" />
+                <Label className="text-xs font-semibold">Template Pengajuan Pencairan Dana</Label>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[11px]"
+                disabled={adminTesting !== null}
+                onClick={() => handleTestAdminNotify("withdrawal")}
+              >
+                {adminTesting === "withdrawal" ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
+                Tes Kirim
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {["{affiliate}", "{email}", "{amount}", "{bank}", "{account_number}", "{account_holder}", "{time}"].map((v) => (
+                <Badge key={v} variant="secondary" className="text-[10px]">{v}</Badge>
+              ))}
+            </div>
+            <Textarea
+              value={settings.admin_notify_withdrawal_template}
+              onChange={(e) => setSettings({ ...settings, admin_notify_withdrawal_template: e.target.value })}
+              rows={6}
+              className="resize-none font-mono text-xs"
+              placeholder="💰 Pengajuan Pencairan Dana..."
+            />
+            <p className="text-[10px] text-muted-foreground">
+              <Info className="h-3 w-3 inline mr-1" />
+              {"{amount}"} otomatis diformat menjadi nilai Rupiah (mis. Rp 750.000)
+            </p>
+          </div>
+
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <p className="text-[11px] text-muted-foreground">
+              Notifikasi dikirim melalui MPWA (utama) atau OneSender (fallback). Pastikan minimal salah satu gateway sudah terhubung.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
