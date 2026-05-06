@@ -215,7 +215,7 @@ export function BendaharaDashboard() {
         icon={Wallet}
         title="Dashboard Bendahara"
         subtitle="Ringkasan keuangan sekolah"
-        variant="emerald"
+        variant="primary"
       />
 
       {/* RINCIAN KEUANGAN — colorful tile grid (di bawah header dashboard) */}
@@ -694,7 +694,7 @@ export function BendaharaSiswa() {
         icon={User}
         title="Data Siswa Keuangan"
         subtitle="Ringkasan pembayaran SPP per siswa, dikelompokkan per kelas"
-        variant="emerald"
+        variant="primary"
       />
 
       {/* Summary mini */}
@@ -925,7 +925,7 @@ export function BendaharaTarif() {
         icon={Banknote}
         title="Tarif SPP"
         subtitle="Kelola nominal SPP per tahun ajaran & kelas"
-        variant="emerald"
+        variant="primary"
         actions={
           <>
             <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/20"><Copy className="h-4 w-4 mr-1.5" /> Set Massal</Button>
@@ -1258,7 +1258,7 @@ export function BendaharaGenerate() {
         icon={FileText}
         title="Generate Tagihan SPP"
         subtitle="Buat tagihan SPP per kelas, per bulan, atau satu tahun ajaran sekaligus"
-        variant="emerald"
+        variant="primary"
       />
 
       {/* Summary cards */}
@@ -1543,7 +1543,7 @@ export function BendaharaTransaksi() {
         icon={Wallet}
         title="Pembayaran SPP"
         subtitle="Per siswa, per tahun ajaran, per bulan"
-        variant="emerald"
+        variant="primary"
         actions={
           <Button
             variant="secondary"
@@ -2405,7 +2405,7 @@ export function BendaharaImportExport() {
 
   return (
     <div className="space-y-4">
-      <PageHeader icon={Upload} title="Import Tagihan SPP" subtitle="Unggah tagihan massal dari Excel/CSV. Untuk export laporan, buka menu Laporan & Export." variant="emerald" />
+      <PageHeader icon={Upload} title="Import Tagihan SPP" subtitle="Unggah tagihan massal dari Excel/CSV. Untuk export laporan, buka menu Laporan & Export." variant="primary" />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -2797,7 +2797,7 @@ export function BendaharaPencairan() {
         icon={ArrowDownToLine}
         title="Pencairan Dana"
         subtitle="Ajukan pencairan saldo SPP dan pantau riwayat settlement"
-        variant="emerald"
+        variant="primary"
         actions={
           <Button variant="outline" size="sm" onClick={() => setBankManageOpen(true)} className="gap-2">
             <Landmark className="h-4 w-4" /> Kelola Rekening
@@ -3185,7 +3185,7 @@ export function BendaharaLaporan() {
         icon={BarChart3}
         title="Laporan & Export Keuangan"
         subtitle="Ringkasan tahunan, statistik per kelas, dan export data SPP — semua dalam satu tempat."
-        variant="emerald"
+        variant="primary"
         actions={
           <div className="flex items-center gap-2">
             <Label className="text-xs text-white/90 whitespace-nowrap">Tahun:</Label>
