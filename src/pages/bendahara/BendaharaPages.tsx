@@ -33,6 +33,17 @@ import { brandPaymentUrl } from "@/lib/utils";
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
+// Helper: format payment_method jadi label rapi
+const formatPaymentMethod = (m?: string | null): { label: string; isOffline: boolean } => {
+  const v = (m || "").toLowerCase();
+  if (v === "offline_cash") return { label: "Tunai (Offline)", isOffline: true };
+  if (v === "offline_transfer") return { label: "Transfer Manual (Offline)", isOffline: true };
+  if (v === "qris") return { label: "QRIS", isOffline: false };
+  if (v.includes("transfer") || v.includes("bank")) return { label: "Transfer Bank", isOffline: false };
+  if (v === "mayar" || v === "" || !v) return { label: "QRIS / Transfer Bank", isOffline: false };
+  return { label: m || "-", isOffline: false };
+};
+
 // Helper: hitung tahun ajaran (Juli-Juni). Bulan 7-12 = year/year+1, bulan 1-6 = year-1/year
 const academicYearOf = (month: number, year: number) => {
   if (month >= 7) return `${year}/${year + 1}`;
