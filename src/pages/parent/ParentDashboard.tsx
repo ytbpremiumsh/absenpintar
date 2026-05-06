@@ -317,7 +317,7 @@ export default function ParentDashboard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-4">
+      <div className="max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3">
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
           <div className="relative">
