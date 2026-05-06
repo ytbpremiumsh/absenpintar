@@ -1755,9 +1755,15 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
                       <span className="font-bold text-[15px] text-white truncate max-w-[60%]">Kelas {className}</span>
                       <span className="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">{list.length} siswa</span>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-semibold bg-emerald-500/95 px-2 py-0.5 rounded-full whitespace-nowrap">{lunas} Lunas</span>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${nunggak > 0 ? "bg-red-500/95" : "bg-white/20"}`}>{nunggak} Nunggak</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/95 whitespace-nowrap">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        {lunas}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/95 whitespace-nowrap">
+                        <span className={`h-1.5 w-1.5 rounded-full ${nunggak > 0 ? "bg-red-400" : "bg-white/40"}`} />
+                        {nunggak}
+                      </span>
                       {totalSisa > 0 && (
                         <span className="text-[10px] font-bold bg-white text-rose-700 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">Sisa {fmtIDR(totalSisa)}</span>
                       )}
