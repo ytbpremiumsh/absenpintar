@@ -48,7 +48,7 @@ const navItems = [
   { title: "Halaman Fitur", url: "/super-admin/fitur", icon: Presentation, group: "content" },
   { title: "Editor Panduan", url: "/super-admin/panduan", icon: BookOpen, group: "content" },
   { title: "Halaman Penawaran", url: "/super-admin/penawaran", icon: Globe, group: "content" },
-  { title: "Model Bisnis", url: "/super-admin/business-model", icon: Receipt, group: "content" },
+  
 
   // SISTEM
   { title: "Backup & Migrasi", url: "/super-admin/backup", icon: Database, group: "system" },

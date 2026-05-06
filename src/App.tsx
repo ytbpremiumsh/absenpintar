@@ -51,7 +51,7 @@ import SuperAdminRegistrationWA from "./pages/super-admin/SuperAdminRegistration
 import SuperAdminEmail from "./pages/super-admin/SuperAdminEmail";
 import SuperAdminAutoCaption from "./pages/super-admin/SuperAdminAutoCaption";
 import SuperAdminPresentation from "./pages/super-admin/SuperAdminPresentation";
-import SuperAdminBusinessModel from "./pages/super-admin/SuperAdminBusinessModel";
+
 import SuperAdminTestimonials from "./pages/super-admin/SuperAdminTestimonials";
 import SuperAdminLoginLogs from "./pages/super-admin/SuperAdminLoginLogs";
 import SuperAdminReferral from "./pages/super-admin/SuperAdminReferral";
@@ -59,7 +59,7 @@ import LandingPage from "./pages/LandingPage";
 import Panduan from "./pages/Panduan";
 import PanduanDetail from "./pages/PanduanDetail";
 import Presentation from "./pages/Presentation";
-import BusinessModel from "./pages/BusinessModel";
+
 import Proposal from "./pages/Proposal";
 import PitchDeck from "./pages/PitchDeck";
 import ReferralDashboard from "./pages/ReferralDashboard";
@@ -112,7 +112,7 @@ function AppRoutes() {
       <Route path="/live/:schoolId/:className" element={<PublicClassMonitoring />} />
       <Route path="/attendance/:schoolId" element={<PublicAttendanceMonitoring />} />
       <Route path="/fitur" element={<Presentation />} />
-      <Route path="/business-model" element={<BusinessModel />} />
+      
       <Route path="/penawaran" element={<Penawaran />} />
       <Route path="/proposal" element={<Proposal />} />
       <Route path="/pitchdeck" element={<PitchDeck />} />
@@ -151,7 +151,7 @@ function AppRoutes() {
         <Route path="/super-admin/email" element={<SuperAdminEmail />} />
         <Route path="/super-admin/auto-caption" element={<SuperAdminAutoCaption />} />
         <Route path="/super-admin/fitur" element={<SuperAdminPresentation />} />
-        <Route path="/super-admin/business-model" element={<SuperAdminBusinessModel />} />
+        
         <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />
         <Route path="/super-admin/login-logs" element={<SuperAdminLoginLogs />} />
         <Route path="/super-admin/referral" element={<SuperAdminReferral />} />
