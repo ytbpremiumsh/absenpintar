@@ -1880,6 +1880,7 @@ export function BendaharaSPPDetail() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [offlineDialog, setOfflineDialog] = useState<{ inv: any | null; method: "offline_cash" | "offline_transfer"; paidDate: string; note: string }>({ inv: null, method: "offline_cash", paidDate: new Date().toISOString().slice(0, 10), note: "" });
 
   const load = () => {
     if (!profile?.school_id || !studentId) { setLoading(false); return; }
@@ -2004,7 +2005,48 @@ export function BendaharaSPPDetail() {
     }
   };
 
-  const downloadAllPaidPdf = async () => {
+  const openOfflineDialog = (inv: any) => {
+    setOfflineDialog({ inv, method: "offline_cash", paidDate: new Date().toISOString().slice(0, 10), note: "" });
+  };
+
+  const submitOfflinePayment = async () => {
+    const { inv, method, paidDate, note } = offlineDialog;
+    if (!inv || !profile?.school_id) return;
+    if (new Date(paidDate) > new Date()) { toast.error("Tanggal bayar tidak boleh di masa depan"); return; }
+    setBusy(`offline-${inv.id}`);
+    const paidAtISO = new Date(`${paidDate}T${new Date().toTimeString().slice(0, 8)}`).toISOString();
+    const newDescription = note
+      ? `${inv.description || ""} | OFFLINE: ${note}`.trim()
+      : inv.description;
+    const { error } = await supabase.from("spp_invoices").update({
+      status: "paid",
+      payment_method: method,
+      gateway_fee: 0,
+      net_amount: 0, // KUNCI: tidak masuk saldo cair
+      paid_at: paidAtISO,
+      description: newDescription,
+    }).eq("id", inv.id);
+    setBusy(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Pembayaran offline tercatat. Tidak masuk saldo pencairan.");
+    setOfflineDialog((s) => ({ ...s, inv: null }));
+    load();
+  };
+
+  const sendOfflinePaidWa = async (inv: any) => {
+    if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
+    const schoolName = schoolRow?.name || "Sekolah";
+    const tgl = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-";
+    const msg = `*${schoolName} — Konfirmasi Pembayaran SPP*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nPembayaran SPP ananda telah kami terima secara langsung di sekolah:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Tanggal : ${tgl}\n\nTerima kasih atas pembayarannya.`;
+    setBusy(`waoff-${inv.id}`);
+    toast.loading("Mengirim WA konfirmasi...");
+    const { error } = await supabase.functions.invoke("send-whatsapp", {
+      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_paid_offline" },
+    });
+    toast.dismiss(); setBusy(null);
+    if (error) toast.error("Gagal kirim"); else toast.success("Konfirmasi terkirim ke WA wali");
+  };
     if (!profile?.school_id) return;
     // Hanya invoice yang valid: status paid + ada tanggal pembayaran
     const paidList = enrichedInvoices
