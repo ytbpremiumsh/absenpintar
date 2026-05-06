@@ -52,10 +52,6 @@ export const GUIDES: RoleGuide[] = [
           "Widget 'Sedang Berlangsung' menampilkan jadwal kelas live.",
           "Pengumuman Sekolah aktif tampil otomatis di bawah.",
         ],
-        tips: [
-          "Gunakan tombol mode gelap (ikon bulan) di pojok kanan atas untuk menyesuaikan tampilan.",
-          "Klik kartu statistik untuk drill-down ke menu terkait.",
-        ],
       },
       {
         title: "2. Monitoring Real-time",
@@ -69,10 +65,6 @@ export const GUIDES: RoleGuide[] = [
           "Filter per kelas untuk fokus pengawasan.",
           "Tombol 'Live Monitor Publik' membuka tampilan TV tanpa login.",
         ],
-        tips: [
-          "Buka 'Live Monitor Publik' di tab terpisah dan tampilkan di TV gerbang sekolah.",
-          "Status 'Alfa' tidak akan muncul otomatis — guru/wali kelas harus input manual.",
-        ],
       },
       {
         title: "2b. Live Monitor Publik (Datang & Pulang)",
@@ -85,10 +77,6 @@ export const GUIDES: RoleGuide[] = [
           "Counter besar: Total, Hadir, Izin, Sakit, Alfa, Belum.",
           "Auto-refresh setiap 5 detik — tidak perlu reload manual.",
           "Tombol Fullscreen untuk tampilan TV.",
-        ],
-        tips: [
-          "Bookmark link ini di TV/komputer ruang depan agar bisa langsung dibuka tanpa login.",
-          "Cocok untuk transparansi ke wali murid yang menjemput.",
         ],
       },
       {
@@ -115,10 +103,6 @@ export const GUIDES: RoleGuide[] = [
           "Input NIS Manual untuk fallback jika kamera tidak tersedia.",
           "Suara konfirmasi (TTS) otomatis menyebut nama siswa.",
         ],
-        tips: [
-          "Gunakan tablet/HP yang dipasang di gerbang untuk scan mandiri.",
-          "Pastikan foto wajah sudah terdaftar di Data Siswa untuk Face Recognition.",
-        ],
       },
       {
         title: "4. Kelola Kelas",
@@ -143,10 +127,6 @@ export const GUIDES: RoleGuide[] = [
           "'Naik Kelas' untuk pindahkan siswa antar kelas (single/bulk).",
           "'Download QR' untuk cetak kartu QR siswa per kelas.",
           "Klik nama siswa untuk lihat detail kehadiran lengkap.",
-        ],
-        tips: [
-          "Pastikan nomor WhatsApp wali murid valid & aktif untuk notifikasi otomatis.",
-          "Foto wajah disarankan close-up dengan pencahayaan baik untuk akurasi Face Recognition.",
         ],
       },
       {
@@ -214,10 +194,6 @@ export const GUIDES: RoleGuide[] = [
           "Section 'Jadwal Hari Ini' menampilkan semua sesi mengajar hari ini lengkap dengan ruangan & kelas.",
           "Tombol 'Lihat Absensi' di tiap jadwal untuk langsung mencatat kehadiran sesi.",
         ],
-        tips: [
-          "Status sesi: aktif (hijau), akan datang (kuning), selesai (abu).",
-          "Notifikasi pengingat mengajar dikirim 15 menit sebelum sesi.",
-        ],
       },
       {
         title: "2. Jadwal Mengajar",
@@ -241,10 +217,6 @@ export const GUIDES: RoleGuide[] = [
           "Filter Bulan & Tahun untuk navigasi periode.",
           "Legend warna: H=Hadir (hijau), S=Sakit (ungu), I=Izin (kuning), A=Alfa (merah).",
           "Tombol 'Export Excel' untuk laporan ke wali kelas/admin.",
-        ],
-        tips: [
-          "Grid 1-31 menampilkan status per tanggal — kosong = tidak ada sesi.",
-          "Klik bulatan tanggal untuk edit cepat status absensi.",
         ],
       },
       {
@@ -300,10 +272,6 @@ export const GUIDES: RoleGuide[] = [
           "Search bar untuk cari siswa cepat.",
           "Toggle tab: Dashboard / Peringkat Kelas.",
         ],
-        tips: [
-          "Jika belum ada kelas yang ditugaskan, hubungi Admin Sekolah.",
-          "Header menampilkan: 'Kelas: TKJ 2, TKJ 3' — daftar kelas yang Anda ampu.",
-        ],
       },
       {
         title: "2. Peringkat Kelas (Leaderboard)",
@@ -328,10 +296,6 @@ export const GUIDES: RoleGuide[] = [
           "Counter '2/4 terisi' menunjukkan progres input.",
           "Tombol 'Simpan' aktif setelah ada perubahan.",
           "Notifikasi WhatsApp ke wali murid otomatis terkirim setelah simpan.",
-        ],
-        tips: [
-          "Status Alfa HANYA bisa diinput manual — sistem tidak mengisi otomatis.",
-          "Edit absensi yang salah lewat menu History.",
         ],
       },
       {
@@ -412,10 +376,6 @@ export const GUIDES: RoleGuide[] = [
           "Notifikasi pembayaran masuk realtime via webhook payment gateway.",
           "Quick action: Generate Tagihan, Catat Pembayaran, Pencairan.",
         ],
-        tips: [
-          "Pembayaran online otomatis tercatat tanpa input manual.",
-          "Notifikasi WA 'Pembayaran SPP Berhasil' dengan banner branded otomatis terkirim.",
-        ],
       },
       {
         title: "2. Master Data Siswa",
@@ -450,10 +410,6 @@ export const GUIDES: RoleGuide[] = [
           "Notifikasi WA 'Tagihan SPP' dengan banner branded otomatis terkirim ke semua wali murid.",
           "Link pembayaran online otomatis di-generate per tagihan.",
         ],
-        tips: [
-          "Header WhatsApp menampilkan banner 'Tagihan SPP' branded.",
-          "Wali murid bisa langsung bayar via QRIS/transfer bank dari pesan WA.",
-        ],
       },
       {
         title: "5. Pembayaran SPP",
@@ -466,10 +422,6 @@ export const GUIDES: RoleGuide[] = [
           "'Catat Pembayaran Manual' untuk input pembayaran tunai/transfer manual.",
           "Pembayaran online auto-approve — tidak perlu konfirmasi manual.",
           "Bukti pembayaran (kwitansi PDF) bisa di-download per transaksi.",
-        ],
-        tips: [
-          "Reuse pending link 5 menit terakhir — mencegah duplikat link pembayaran.",
-          "Notifikasi 'Pembayaran SPP Berhasil' dengan footer 'ATSkolla - Platform Digital Sekolah' otomatis terkirim.",
         ],
       },
       {
@@ -577,9 +529,6 @@ export const GUIDES: RoleGuide[] = [
           "Klik 'Bayar Sekarang' untuk pembayaran online (QRIS/Bank/E-Wallet).",
           "Notifikasi WA 'Pembayaran SPP Berhasil' dengan banner branded otomatis terkirim setelah lunas.",
           "Download kwitansi PDF setelah pembayaran berhasil.",
-        ],
-        tips: [
-          "Pembayaran terverifikasi otomatis via webhook — saldo masuk realtime ke sekolah.",
         ],
       },
       {
