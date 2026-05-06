@@ -61,7 +61,7 @@ export function BendaharaSidebar() {
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border/30 font-['Inter',sans-serif]">
       <SidebarHeader className="p-3 pb-2">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 p-3 shadow-lg shadow-emerald-600/15">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] p-3 shadow-lg shadow-[#5B6CF9]/15">
           <div className="absolute -top-4 -right-4 h-16 w-16 rounded-full bg-white/10 blur-xl" />
           <div className="relative z-10 flex items-center gap-2.5">
             <div className="h-10 w-10 rounded-lg bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 overflow-hidden">
@@ -100,7 +100,7 @@ export function BendaharaSidebar() {
                           onClick={() => isMobile && setOpenMobile(false)}
                           className={`relative rounded-xl px-3 py-2.5 transition-all duration-200 gap-3 ${
                             active
-                              ? "bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-semibold shadow-lg shadow-emerald-600/20"
+                              ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white font-semibold shadow-lg shadow-[#5B6CF9]/20"
                               : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                           }`}
                         >

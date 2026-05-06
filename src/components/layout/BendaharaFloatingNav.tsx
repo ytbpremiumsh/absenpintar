@@ -20,13 +20,13 @@ export function BendaharaFloatingNav() {
   return (
     <nav className="md:hidden fixed bottom-3 inset-x-0 z-40 flex justify-center px-3 pointer-events-none">
       <div className="pointer-events-auto relative flex items-center gap-1 bg-white/95 dark:bg-card/95 backdrop-blur-xl rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
-        <NavBtn icon={Home} label="Beranda" active={isActive("/bendahara", true)} color="#10B981" onClick={() => navigate("/bendahara")} />
+        <NavBtn icon={Home} label="Beranda" active={isActive("/bendahara", true)} color="#5B6CF9" onClick={() => navigate("/bendahara")} />
         <NavBtn icon={CreditCard} label="Bayar" active={isActive("/bendahara/transaksi")} color="#EC4899" onClick={() => navigate("/bendahara/transaksi")} />
 
         <Sheet>
           <SheetTrigger asChild>
             <button
-              className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(16,185,129,0.7)] ring-4 ring-background transition-transform active:scale-95 hover:scale-105 shrink-0"
+              className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(91,108,249,0.7)] ring-4 ring-background transition-transform active:scale-95 hover:scale-105 shrink-0"
               aria-label="Menu Lainnya"
             >
               <LayoutGrid className="h-5 w-5" />
@@ -37,7 +37,7 @@ export function BendaharaFloatingNav() {
               <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-3">
-              <SheetItem icon={Users} label="Data Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/bendahara/siswa")} />
+              <SheetItem icon={Users} label="Data Siswa" gradient="from-[#5B6CF9] to-[#4c5ded]" onClick={() => navigate("/bendahara/siswa")} />
               <SheetItem icon={Receipt} label="Tarif SPP" gradient="from-indigo-500 to-violet-600" onClick={() => navigate("/bendahara/tarif")} />
               <SheetItem icon={FileText} label="Generate" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/bendahara/generate")} />
               <SheetItem icon={Upload} label="Import" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/bendahara/import-export")} />
