@@ -19,22 +19,51 @@ serve(async (req) => {
 
     const { email, password, full_name, role, school_id, npsn, school_name, school_address, phone, referral_code } = await req.json();
 
+    // Basic validation with clear, actionable messages (Indonesian)
+    if (!email || !password) {
+      throw new Error('Email & password wajib diisi sebelum mendaftar.');
+    }
+    if (!full_name || !full_name.trim()) {
+      throw new Error('Nama lengkap admin wajib diisi.');
+    }
+    // For school_admin self-registration, school_name must be provided (or school_id for invited users)
+    if (role === 'school_admin' && !school_id && (!school_name || !school_name.trim())) {
+      throw new Error('Nama sekolah wajib diisi. Silakan lengkapi data sekolah terlebih dahulu (cari NPSN atau isi manual).');
+    }
+
     // Determine school_id: use provided or create/find school
     let resolvedSchoolId = school_id;
 
     if (!resolvedSchoolId && school_name) {
-      // Try to find existing school by name
-      const { data: existingSchool } = await supabaseAdmin
-        .from('schools')
-        .select('id')
-        .ilike('name', school_name)
-        .maybeSingle();
+      // Prefer exact match by NPSN if provided (most reliable)
+      let existingSchool: any = null;
+      if (npsn) {
+        const { data } = await supabaseAdmin
+          .from('schools')
+          .select('id')
+          .eq('npsn', npsn)
+          .maybeSingle();
+        existingSchool = data;
+      }
+
+      // Only fall back to name match when NPSN was NOT provided (manual mode)
+      // and even then require an exact (case-insensitive) name match to avoid
+      // attaching new admins to unrelated schools with similar names.
+      if (!existingSchool && !npsn) {
+        const { data } = await supabaseAdmin
+          .from('schools')
+          .select('id')
+          .ilike('name', school_name.trim())
+          .limit(1)
+          .maybeSingle();
+        existingSchool = data;
+      }
 
       if (existingSchool) {
         resolvedSchoolId = existingSchool.id;
       } else {
         // Create new school
-        const insertData: any = { name: school_name, address: school_address || null };
+        const insertData: any = { name: school_name.trim(), address: school_address?.trim() || null };
         if (npsn) insertData.npsn = npsn;
 
         const { data: newSchool, error: schoolError } = await supabaseAdmin
@@ -43,9 +72,15 @@ serve(async (req) => {
           .select('id')
           .single();
 
-        if (schoolError) throw new Error('Gagal membuat sekolah: ' + schoolError.message);
+        if (schoolError) {
+          throw new Error('Gagal mendaftarkan data sekolah: ' + schoolError.message + '. Silakan periksa nama sekolah & NPSN, lalu coba lagi.');
+        }
         resolvedSchoolId = newSchool.id;
       }
+    }
+
+    if (role === 'school_admin' && !resolvedSchoolId) {
+      throw new Error('Sekolah belum berhasil terdaftar. Mohon lengkapi data sekolah (gunakan pencarian NPSN atau isi nama sekolah secara manual), lalu klik "Daftar" kembali.');
     }
 
     // Create user
