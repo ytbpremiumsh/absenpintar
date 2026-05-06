@@ -3074,6 +3074,7 @@ export function BendaharaSaldo() {
 export function BendaharaPencairan() {
   const { profile, user } = useAuth();
   const [available, setAvailable] = useState({ count: 0, gross: 0, fee: 0, net: 0 });
+  const [breakdown, setBreakdown] = useState({ onlineTotal: 0, onlineSettled: 0, offlineCount: 0, offlineGross: 0 });
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bankManageOpen, setBankManageOpen] = useState(false);
@@ -3116,9 +3117,10 @@ export function BendaharaPencairan() {
         await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
         syncingRef.current = false;
       }
-      const [avRes, hRes] = await Promise.all([
+      const [avRes, hRes, allPaidRes] = await Promise.all([
         supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null),
         supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
+        supabase.from("spp_invoices").select("payment_method, settlement_id, total_amount").eq("school_id", profile.school_id).eq("status", "paid"),
       ]);
       if (cancelled) return;
       const items = avRes.data || [];
@@ -3127,6 +3129,19 @@ export function BendaharaPencairan() {
         gross: items.reduce((s, i) => s + (i.total_amount || 0), 0),
         fee: items.reduce((s, i) => s + (i.gateway_fee || 0), 0),
         net: items.reduce((s, i) => s + (i.net_amount || 0), 0),
+      });
+      const allPaid = (allPaidRes.data || []) as any[];
+      const isOffline = (m: string | null) => {
+        const v = (m || "").toLowerCase();
+        return v === "offline_cash" || v === "offline_transfer";
+      };
+      const online = allPaid.filter((x) => !isOffline(x.payment_method));
+      const offline = allPaid.filter((x) => isOffline(x.payment_method));
+      setBreakdown({
+        onlineTotal: online.length,
+        onlineSettled: online.filter((x) => x.settlement_id).length,
+        offlineCount: offline.length,
+        offlineGross: offline.reduce((s, x) => s + (x.total_amount || 0), 0),
       });
       setHistory(hRes.data || []);
       setLoadingHistory(false);
@@ -3236,8 +3251,28 @@ export function BendaharaPencairan() {
       {/* Info banner: pembayaran offline tidak ikut */}
       <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
         <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-          Saldo di sini <b>hanya pembayaran online (QRIS / Transfer Bank)</b>. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) tidak ikut dicairkan karena uangnya sudah ada di tangan sekolah. Catatan offline tetap bisa dilihat di <b>Detail Siswa &gt; Riwayat Pembayaran</b>.
+        <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed space-y-1.5">
+          <p>
+            Saldo di sini <b>hanya pembayaran online (QRIS / Transfer Bank)</b>. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) tidak ikut dicairkan karena uangnya sudah ada di tangan sekolah. Catatan offline tetap bisa dilihat di <b>Detail Siswa &gt; Riwayat Pembayaran</b>.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 pt-2 border-t border-blue-200 dark:border-blue-900">
+            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
+              <p className="text-[10px] text-blue-700 dark:text-blue-300">Total Online (Lunas)</p>
+              <p className="font-bold text-sm">{breakdown.onlineTotal} trx</p>
+            </div>
+            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
+              <p className="text-[10px] text-blue-700 dark:text-blue-300">Sudah Dicairkan</p>
+              <p className="font-bold text-sm">{breakdown.onlineSettled} trx</p>
+            </div>
+            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
+              <p className="text-[10px] text-blue-700 dark:text-blue-300">Siap Cair</p>
+              <p className="font-bold text-sm text-emerald-700 dark:text-emerald-300">{available.count} trx</p>
+            </div>
+            <div className="rounded-md bg-white/70 dark:bg-blue-950/50 px-2 py-1.5">
+              <p className="text-[10px] text-blue-700 dark:text-blue-300">Offline (di sekolah)</p>
+              <p className="font-bold text-sm">{breakdown.offlineCount} trx · {fmtIDR(breakdown.offlineGross)}</p>
+            </div>
+          </div>
         </div>
       </div>
 
