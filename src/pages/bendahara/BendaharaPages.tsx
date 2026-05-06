@@ -3092,6 +3092,7 @@ export function BendaharaSaldo() {
 export function BendaharaPencairan() {
   const { profile, user } = useAuth();
   const [available, setAvailable] = useState({ count: 0, gross: 0, fee: 0, net: 0 });
+  const [availableItems, setAvailableItems] = useState<any[]>([]);
   const [breakdown, setBreakdown] = useState({ onlineTotal: 0, onlineSettled: 0, offlineCount: 0, offlineGross: 0 });
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -3136,12 +3137,13 @@ export function BendaharaPencairan() {
         syncingRef.current = false;
       }
       const [avRes, hRes, allPaidRes] = await Promise.all([
-        supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null),
+        supabase.from("spp_invoices").select("id,total_amount,gateway_fee,net_amount").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null),
         supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
-        supabase.from("spp_invoices").select("payment_method, settlement_id, total_amount").eq("school_id", profile.school_id).eq("status", "paid"),
+        supabase.from("spp_invoices").select("payment_method, settlement_id, total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid"),
       ]);
       if (cancelled) return;
       const items = avRes.data || [];
+      setAvailableItems(items);
       setAvailable({
         count: items.length,
         gross: items.reduce((s, i) => s + (i.total_amount || 0), 0),
@@ -3154,6 +3156,28 @@ export function BendaharaPencairan() {
         return v === "offline_cash" || v === "offline_transfer";
       };
       const online = allPaid.filter((x) => !isOffline(x.payment_method));
+      const invoiceBySettlement = online.reduce((map, x) => {
+        if (!x.settlement_id) return map;
+        const current = map.get(x.settlement_id) || { count: 0, gross: 0, fee: 0, net: 0 };
+        current.count += 1;
+        current.gross += x.total_amount || 0;
+        current.fee += x.gateway_fee || 0;
+        current.net += x.net_amount || 0;
+        map.set(x.settlement_id, current);
+        return map;
+      }, new Map<string, { count: number; gross: number; fee: number; net: number }>());
+      const reconciledHistory = ((hRes.data || []) as any[]).map((s) => {
+        const inv = invoiceBySettlement.get(s.id) || { count: 0, gross: 0, fee: 0, net: 0 };
+        const withdrawFee = s.withdraw_fee ?? 3000;
+        return {
+          ...s,
+          total_transactions: inv.count,
+          total_gross: inv.gross,
+          total_gateway_fee: inv.fee,
+          total_net: inv.net,
+          final_payout: Math.max(0, inv.net - withdrawFee),
+        };
+      });
       const offline = allPaid.filter((x) => isOffline(x.payment_method));
       setBreakdown({
         onlineTotal: online.length,
@@ -3161,7 +3185,7 @@ export function BendaharaPencairan() {
         offlineCount: offline.length,
         offlineGross: offline.reduce((s, x) => s + (x.total_amount || 0), 0),
       });
-      setHistory(hRes.data || []);
+      setHistory(reconciledHistory);
       setLoadingHistory(false);
     };
     load();
