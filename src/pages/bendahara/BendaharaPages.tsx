@@ -220,7 +220,7 @@ export function BendaharaDashboard() {
 
       {/* RINCIAN KEUANGAN — colorful tile grid (di bawah header dashboard) */}
       <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70 dark:ring-slate-800/60">
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 px-5 py-3.5 flex items-center gap-2.5">
+        <div className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] px-5 py-3.5 flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
             <Wallet className="h-4 w-4 text-white" />
           </div>
@@ -267,7 +267,7 @@ export function BendaharaDashboard() {
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Pembayaran Bulanan */}
         <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-indigo-900/5 ring-1 ring-indigo-100 dark:ring-indigo-900/30">
-          <div className="bg-gradient-to-r from-indigo-600 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] px-5 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
                 <TrendingUp className="h-4 w-4 text-white" />
@@ -300,7 +300,7 @@ export function BendaharaDashboard() {
 
         {/* Pembayaran per Kelas */}
         <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-indigo-900/5 ring-1 ring-indigo-100 dark:ring-indigo-900/30">
-          <div className="bg-gradient-to-r from-indigo-600 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] px-5 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
                 <BarChart3 className="h-4 w-4 text-white" />
@@ -335,7 +335,7 @@ export function BendaharaDashboard() {
 
       {/* RIWAYAT SISWA MEMBAYAR */}
       <div className="rounded-2xl overflow-hidden bg-white dark:bg-card shadow-lg shadow-emerald-900/5 ring-1 ring-emerald-100 dark:ring-emerald-900/30">
-        <div className="bg-gradient-to-r from-teal-600 via-emerald-600 to-green-600 px-5 py-3.5 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25">
               <CheckCircle2 className="h-4 w-4 text-white" />
