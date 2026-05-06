@@ -147,6 +147,7 @@ const SchoolSettings = () => {
     const { error: schoolErr } = await supabase.from("schools").update({
       name, address, logo: logo || null,
       npsn: npsn || null, city: city || null, province: province || null, timezone,
+      holiday_days: holidayDays,
     } as any).eq("id", profile.school_id);
 
     const settingsPayload = {
