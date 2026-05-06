@@ -31,8 +31,9 @@ const SuperAdminRegistrationWA = () => {
     admin_notify_enabled: "false",
     admin_notify_ticket_template: "",
     admin_notify_withdrawal_template: "",
+    admin_notify_bendahara_template: "",
   });
-  const [adminTesting, setAdminTesting] = useState<"ticket" | "withdrawal" | null>(null);
+  const [adminTesting, setAdminTesting] = useState<"ticket" | "withdrawal" | "bendahara" | null>(null);
 
   // QR state
   const [mpwaNumber, setMpwaNumber] = useState("");
@@ -58,6 +59,7 @@ const SuperAdminRegistrationWA = () => {
         "mpwa_platform_api_key", "mpwa_platform_sender", "mpwa_platform_connected", "onesender_enabled",
         "admin_notify_phone", "admin_notify_enabled",
         "admin_notify_ticket_template", "admin_notify_withdrawal_template",
+        "admin_notify_bendahara_template",
       ]);
 
     const map: Record<string, string> = {};
