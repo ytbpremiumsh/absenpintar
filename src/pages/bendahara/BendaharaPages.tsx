@@ -3117,9 +3117,10 @@ export function BendaharaPencairan() {
         await supabase.functions.invoke("spp-mayar", { body: { action: "sync_paid_invoices" } }).catch(() => null);
         syncingRef.current = false;
       }
-      const [avRes, hRes] = await Promise.all([
+      const [avRes, hRes, allPaidRes] = await Promise.all([
         supabase.from("spp_invoices").select("total_amount, gateway_fee, net_amount").eq("school_id", profile.school_id).eq("status", "paid").not("payment_method", "in", "(offline_cash,offline_transfer)").is("settlement_id", null),
         supabase.from("spp_settlements").select("*").eq("school_id", profile.school_id).order("created_at", { ascending: false }),
+        supabase.from("spp_invoices").select("payment_method, settlement_id, total_amount").eq("school_id", profile.school_id).eq("status", "paid"),
       ]);
       if (cancelled) return;
       const items = avRes.data || [];
@@ -3128,6 +3129,19 @@ export function BendaharaPencairan() {
         gross: items.reduce((s, i) => s + (i.total_amount || 0), 0),
         fee: items.reduce((s, i) => s + (i.gateway_fee || 0), 0),
         net: items.reduce((s, i) => s + (i.net_amount || 0), 0),
+      });
+      const allPaid = (allPaidRes.data || []) as any[];
+      const isOffline = (m: string | null) => {
+        const v = (m || "").toLowerCase();
+        return v === "offline_cash" || v === "offline_transfer";
+      };
+      const online = allPaid.filter((x) => !isOffline(x.payment_method));
+      const offline = allPaid.filter((x) => isOffline(x.payment_method));
+      setBreakdown({
+        onlineTotal: online.length,
+        onlineSettled: online.filter((x) => x.settlement_id).length,
+        offlineCount: offline.length,
+        offlineGross: offline.reduce((s, x) => s + (x.total_amount || 0), 0),
       });
       setHistory(hRes.data || []);
       setLoadingHistory(false);
