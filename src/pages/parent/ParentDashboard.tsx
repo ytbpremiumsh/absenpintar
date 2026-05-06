@@ -327,6 +327,7 @@ export default function ParentDashboard() {
             );
           })}
         </div>
+        </div>
       </div>
 
       {/* Content */}
