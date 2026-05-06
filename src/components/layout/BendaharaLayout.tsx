@@ -27,12 +27,19 @@ export function BendaharaLayout() {
   const [school, setSchool] = useState<{ name?: string; npsn?: string; address?: string; city?: string; province?: string } | null>(null);
   const [openProfile, setOpenProfile] = useState(false);
   const [openSchool, setOpenSchool] = useState(false);
+  const [headerLogo, setHeaderLogo] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile?.school_id) return;
     supabase.from("schools").select("name, npsn, address, city, province").eq("id", profile.school_id).maybeSingle()
       .then(({ data }) => { if (data) setSchool(data); });
   }, [profile?.school_id]);
+
+  useEffect(() => {
+    supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
+      if (data?.value) setHeaderLogo(data.value as string);
+    });
+  }, []);
 
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
