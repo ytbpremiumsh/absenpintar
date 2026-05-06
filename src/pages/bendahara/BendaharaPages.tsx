@@ -2116,9 +2116,11 @@ export function BendaharaSPPDetail() {
     if (error || !data?.success) { toast.error(data?.error || error?.message || "Gagal"); return; }
     if (data.payment_url) {
       toast.success(regen ? "Link baru berhasil dibuat" : "Link berhasil dibuat");
-      // Auto kirim WA tagihan ke wali (kalau ada nomor)
-      if (inv.parent_phone) {
-        await sendWa({ ...inv, payment_url: data.payment_url });
+      // Auto kirim WA tagihan ke wali (pakai NOMOR TERKINI dari data siswa, bukan snapshot invoice)
+      const currentPhone = student?.parent_phone || inv.parent_phone;
+      const currentName = student?.parent_name || inv.parent_name;
+      if (currentPhone) {
+        await sendWa({ ...inv, payment_url: data.payment_url, parent_phone: currentPhone, parent_name: currentName });
       }
       load();
     }
@@ -2127,16 +2129,23 @@ export function BendaharaSPPDetail() {
   const copyLink = (url: string) => { navigator.clipboard.writeText(url); toast.success("Link disalin"); };
 
   const sendWa = async (inv: any) => {
-    if (!inv.parent_phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
+    // Selalu pakai nomor terkini dari data siswa (bukan snapshot invoice yang bisa basi)
+    const phone = student?.parent_phone || inv.parent_phone;
+    const parentName = student?.parent_name || inv.parent_name;
+    if (!phone) { toast.error("Wali murid tidak punya nomor WA"); return; }
     if (!inv.payment_url) { toast.error("Buat link pembayaran dulu"); return; }
     const { data: schoolRow } = await supabase.from("schools").select("name").eq("id", profile!.school_id).maybeSingle();
     const schoolName = schoolRow?.name || "Sekolah";
-    const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${inv.parent_name || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.`;
+    const msg = `*${schoolName} — Tagihan SPP Baru*\n\nYth. Bapak/Ibu *${parentName || "Wali"}*,\n\nTagihan SPP ananda:\n• Nama    : ${inv.student_name}\n• Kelas   : ${inv.class_name}\n• Periode : ${inv.period_label}\n• Nominal : ${fmtIDR(inv.total_amount)}\n• Jatuh tempo: ${inv.due_date ? new Date(inv.due_date).toLocaleDateString("id-ID") : "-"}\n\nSilakan lakukan pembayaran via *QRIS / Transfer Bank* pada link berikut:\n${brandPaymentUrl(inv.payment_url)}\n\nTerima kasih.`;
     setBusy(`wa-${inv.id}`);
     toast.loading("Mengirim WA...");
     const { error } = await supabase.functions.invoke("send-whatsapp", {
-      body: { school_id: profile!.school_id, phone: inv.parent_phone, message: msg, message_type: "spp_invoice" },
+      body: { school_id: profile!.school_id, phone, message: msg, message_type: "spp_invoice" },
     });
+    // Sinkronkan snapshot invoice agar tidak basi lagi
+    if (!error && (phone !== inv.parent_phone || parentName !== inv.parent_name)) {
+      await supabase.from("spp_invoices").update({ parent_phone: phone, parent_name: parentName }).eq("id", inv.id);
+    }
     toast.dismiss(); setBusy(null);
     if (error) toast.error("Gagal kirim"); else toast.success("Terkirim ke WA wali");
   };
