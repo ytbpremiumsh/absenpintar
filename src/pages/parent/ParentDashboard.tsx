@@ -14,6 +14,8 @@ import {
   Phone, ClipboardList, BookOpen, CheckCircle2, XCircle, Clock,
   Sparkles, TrendingUp, Pin, Paperclip, MessageCircle, User, MapPin, Bell,
   Wallet, AlertCircle, Download, ExternalLink, RefreshCw, Receipt, MoreHorizontal,
+  Send, ScanLine, History as HistoryIcon, Home, Briefcase, LayoutGrid, UserCircle2,
+  ArrowUpRight, Grid3x3,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -233,60 +235,150 @@ export default function ParentDashboard() {
   const current = students.find((s) => s.id === selectedStudent);
 
 
+  // Compute today summary for hero card
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayLog = attendance.find((a) => a.date === todayKey);
+  const monthAttendance = attendance.filter((a) => {
+    const d = new Date(a.date); const n = new Date();
+    return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+  });
+  const monthHadir = monthAttendance.filter((a) => a.status === "hadir").length;
+  const monthRate = monthAttendance.length ? Math.round((monthHadir / monthAttendance.length) * 100) : 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#5B6CF9]/5 via-background to-background pb-28">
-      {/* Glass Header */}
-      <div className="relative bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 0%, white 1px, transparent 1px), radial-gradient(circle at 80% 100%, white 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-6">
-          <div className="flex items-center justify-between gap-3 mb-5">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-10 w-10 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0 ring-1 ring-white/30">
-                <GraduationCap className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-white/70 font-medium">Wali Murid</p>
-                <h1 className="text-sm sm:text-base font-bold truncate">{current?.schools?.name || "Sekolah"}</h1>
-              </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32">
+      {/* Top Bar — Payou-style */}
+      <div className="max-w-md mx-auto px-5 pt-5 pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
+              <GraduationCap className="h-5 w-5 text-white" />
             </div>
-            <div className="flex items-center gap-1">
-              <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur flex items-center justify-center transition-colors" aria-label="Notifikasi">
-                <Bell className="h-4 w-4" />
-                {announcements.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-400 ring-2 ring-[#5B6CF9] animate-pulse" />
-                )}
-              </button>
-              <Button onClick={logout} variant="ghost" size="sm" className="text-white hover:bg-white/15 rounded-xl h-9">
-                <LogOut className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Keluar</span>
-              </Button>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Murid</p>
+              <h1 className="text-sm font-bold truncate text-foreground">{current?.schools?.name || "Sekolah"}</h1>
             </div>
           </div>
-
-          {/* Student Card */}
-          <Card className="p-3.5 border-0 shadow-xl rounded-2xl bg-white/95 backdrop-blur">
-            <div className="flex items-center gap-3">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center font-bold text-white text-lg overflow-hidden shrink-0">
-                {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-foreground truncate">{current?.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{current?.class} • NIS {current?.student_id}</p>
-              </div>
-              {students.length > 1 && (
-                <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                  <SelectTrigger className="w-auto h-9 text-xs rounded-xl border-[#5B6CF9]/30"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
+              <Bell className="h-4 w-4 text-foreground" />
+              {announcements.length > 0 && (
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
               )}
-            </div>
-          </Card>
+            </button>
+            <button onClick={logout} className="h-9 w-9 rounded-full bg-white border border-border/60 hover:border-red-300 flex items-center justify-center transition-colors shadow-sm" aria-label="Keluar">
+              <LogOut className="h-4 w-4 text-foreground" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-3 sm:px-5 -mt-1 pt-4 space-y-4">
+      <div className="max-w-md mx-auto px-4 space-y-4">
+        {/* HERO CARD — Payou style */}
+        {tab === "home" && (
+          <div className="relative">
+            {/* Main blue hero card */}
+            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-5 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
+              {/* Decorative blobs */}
+              <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+              <div className="absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5 blur-2xl" />
+              <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
+
+              {/* Student info row */}
+              <div className="relative flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base overflow-hidden shrink-0">
+                  {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
+                  <p className="text-sm font-semibold truncate">{current?.name}</p>
+                </div>
+                {students.length > 1 && (
+                  <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                    <SelectTrigger className="w-auto h-8 text-[11px] rounded-full bg-white/15 border-white/30 text-white backdrop-blur"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              {/* Big metric */}
+              <div className="relative mt-4 flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-4xl font-extrabold tracking-tight leading-none">{monthRate}<span className="text-2xl">%</span></p>
+                  <p className="text-[11px] text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{monthAttendance.length} hari</p>
+                </div>
+                <div className="flex flex-col items-end">
+                  <Badge className="bg-white/20 text-white border-0 text-[10px] backdrop-blur">
+                    {todayLog ? STATUS_LABEL[todayLog.status]?.label || todayLog.status : "Belum Absen"}
+                  </Badge>
+                  <p className="text-[10px] text-white/70 mt-1">Hari ini</p>
+                </div>
+              </div>
+
+              {/* 3 round action buttons */}
+              <div className="relative mt-5 flex items-center justify-around">
+                <button onClick={() => setTab("leave")} className="flex flex-col items-center gap-1.5 group">
+                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <Send className="h-4 w-4" />
+                  </div>
+                  <span className="text-[10px] font-medium text-white/90">Ajukan Izin</span>
+                </button>
+                <button onClick={() => setTab("attendance")} className="flex flex-col items-center gap-1.5 group">
+                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <ScanLine className="h-4 w-4" />
+                  </div>
+                  <span className="text-[10px] font-medium text-white/90">Riwayat</span>
+                </button>
+                <button onClick={() => setTab("info")} className="flex flex-col items-center gap-1.5 group">
+                  <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-hover:bg-white/25 transition-all group-active:scale-95">
+                    <HistoryIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-[10px] font-medium text-white/90">Pengumuman</span>
+                </button>
+              </div>
+
+              {/* Pay SPP banner inside hero (green pill) */}
+              {sppData.total_tunggakan > 0 && (
+                <button
+                  onClick={() => setTab("spp")}
+                  className="relative mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 text-white font-semibold text-xs shadow-lg hover:opacity-95 transition-all active:scale-[0.98]"
+                >
+                  <Wallet className="h-3.5 w-3.5" />
+                  Bayar SPP — Rp {sppData.total_tunggakan.toLocaleString("id-ID")}
+                </button>
+              )}
+            </div>
+
+            {/* Service Grid 4x2 — Payou-style colored icons */}
+            <div className="mt-5 grid grid-cols-4 gap-3">
+              <ServiceIcon icon={ClipboardList} label="Absensi" color="#5B6CF9" bg="#EEF0FE" onClick={() => setTab("attendance")} />
+              <ServiceIcon icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => setTab("schedule")} />
+              <ServiceIcon icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => setTab("spp")} />
+              <ServiceIcon icon={Megaphone} label="Info" color="#EC4899" bg="#FDE8F2" onClick={() => setTab("info")} />
+              <ServiceIcon icon={FileText} label="Izin" color="#8B5CF6" bg="#F1ECFE" onClick={() => setTab("leave")} />
+              <ServiceIcon icon={Phone} label="Wali Kelas" color="#0EA5E9" bg="#E1F4FE" onClick={() => setTab("contact")} />
+              <ServiceIcon icon={TrendingUp} label="Statistik" color="#EF4444" bg="#FEE7E7" onClick={() => setTab("attendance")} />
+              <ServiceIcon icon={Grid3x3} label="Lainnya" color="#64748B" bg="#EEF1F5" onClick={() => setTab("info")} />
+            </div>
+
+            {/* Promo / Offers card */}
+            <Card className="mt-5 p-3.5 border-0 shadow-card rounded-2xl bg-gradient-to-r from-pink-100 via-pink-50 to-orange-50 dark:from-pink-950/30 dark:via-pink-950/20 dark:to-orange-950/20">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white shrink-0 shadow-md">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-wider text-pink-600 font-bold">Tips Hari Ini</p>
+                  <p className="text-xs font-semibold text-foreground leading-snug mt-0.5">Pantau kehadiran anak setiap hari & dapatkan notifikasi otomatis</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
         {/* HOME */}
         {tab === "home" && (
           <>
@@ -814,96 +906,44 @@ export default function ParentDashboard() {
 
       </div>
 
-      {/* Bottom Footer Nav — compact 4 tabs + More */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="max-w-4xl mx-auto px-2 py-1.5">
-          <div className="flex items-center justify-around gap-1">
-            {PRIMARY_TABS.map((t) => {
-              const Icon = t.icon;
-              const active = tab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all flex-1 max-w-[80px]",
-                    active ? "text-[#5B6CF9]" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <div className={cn(
-                    "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
-                    active ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md scale-110" : ""
-                  )}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <span className="text-[10px] font-medium">{t.label}</span>
-                </button>
-              );
-            })}
+      {/* Bottom Floating Nav — Payou-style with center FAB */}
+      <nav className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
+        <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
+          {/* Left 2 tabs */}
+          <FabNavBtn icon={Home} label="Beranda" active={tab === "home"} color="#10B981" onClick={() => setTab("home")} />
+          <FabNavBtn icon={ClipboardList} label="Absensi" active={tab === "attendance"} color="#5B6CF9" onClick={() => setTab("attendance")} />
 
-            {/* More button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <button
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all flex-1 max-w-[80px]",
-                    MORE_TABS.find((m) => m.id === tab) ? "text-[#5B6CF9]" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <div className={cn(
-                    "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
-                    MORE_TABS.find((m) => m.id === tab) ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md scale-110" : ""
-                  )}>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </div>
-                  <span className="text-[10px] font-medium">Lainnya</span>
-                </button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
-                <SheetHeader className="mb-4">
-                  <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
-                </SheetHeader>
-                <div className="grid grid-cols-1 gap-2">
-                  {MORE_TABS.map((m) => {
-                    const Icon = m.icon;
-                    const active = tab === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        onClick={() => {
-                          setTab(m.id);
-                          (document.activeElement as HTMLElement)?.blur();
-                          // close sheet via Escape simulation
-                          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-                        }}
-                        className={cn(
-                          "flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left",
-                          active
-                            ? "bg-gradient-to-br from-[#5B6CF9]/10 to-[#4c5ded]/10 border-[#5B6CF9]/30"
-                            : "bg-card border-border hover:bg-muted/50"
-                        )}
-                      >
-                        <div className={cn(
-                          "h-11 w-11 rounded-xl flex items-center justify-center shrink-0",
-                          active
-                            ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md"
-                            : "bg-muted text-muted-foreground"
-                        )}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm">{m.label}</p>
-                          <p className="text-[11px] text-muted-foreground">{m.desc}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          {/* Center FAB */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(91,108,249,0.7)] ring-4 ring-white dark:ring-card transition-transform active:scale-95 hover:scale-105 shrink-0"
+                aria-label="Menu Lainnya"
+              >
+                <LayoutGrid className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
+              </SheetHeader>
+              <div className="grid grid-cols-3 gap-3">
+                <SheetMenuItem icon={Megaphone} label="Pengumuman" color="#EC4899" bg="#FDE8F2" onClick={() => { setTab("info"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={FileText} label="Pengajuan Izin" color="#8B5CF6" bg="#F1ECFE" onClick={() => { setTab("leave"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={Phone} label="Wali Kelas" color="#0EA5E9" bg="#E1F4FE" onClick={() => { setTab("contact"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => { setTab("schedule"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => { setTab("spp"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={LogOut} label="Keluar" color="#EF4444" bg="#FEE7E7" onClick={logout} />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Right 2 tabs */}
+          <FabNavBtn icon={Wallet} label="SPP" active={tab === "spp"} color="#F59E0B" onClick={() => setTab("spp")} />
+          <FabNavBtn icon={CalendarDays} label="Jadwal" active={tab === "schedule"} color="#5B6CF9" onClick={() => setTab("schedule")} />
         </div>
       </nav>
+
 
       <PaymentIframeDialog
         open={!!paymentIframe}
@@ -976,6 +1016,37 @@ function SectionTitle({ icon: Icon, title, onMore }: any) {
         </button>
       )}
     </div>
+  );
+}
+
+function ServiceIcon({ icon: Icon, label, color, bg, onClick }: any) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-1.5 group active:scale-95 transition-transform">
+      <div className="h-14 w-14 rounded-2xl flex items-center justify-center shadow-[0_8px_18px_-10px_rgba(0,0,0,0.25)] group-hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.3)] transition-shadow ring-1 ring-black/[0.03]" style={{ backgroundColor: bg }}>
+        <Icon className="h-6 w-6" style={{ color }} strokeWidth={2.2} />
+      </div>
+      <span className="text-[10px] font-medium text-foreground/80 text-center leading-tight">{label}</span>
+    </button>
+  );
+}
+
+function FabNavBtn({ icon: Icon, label, active, color, onClick }: any) {
+  return (
+    <button onClick={onClick} className={cn("flex flex-col items-center gap-0.5 flex-1 py-1.5 rounded-2xl transition-all", active && "scale-105")}>
+      <Icon className="h-5 w-5 transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }} strokeWidth={active ? 2.5 : 2} />
+      <span className="text-[9px] font-semibold transition-colors" style={{ color: active ? color : "hsl(var(--muted-foreground))" }}>{label}</span>
+    </button>
+  );
+}
+
+function SheetMenuItem({ icon: Icon, label, color, bg, onClick }: any) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card hover:bg-muted/40 border border-border/40 transition-all active:scale-95">
+      <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: bg }}>
+        <Icon className="h-5 w-5" style={{ color }} strokeWidth={2.2} />
+      </div>
+      <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{label}</span>
+    </button>
   );
 }
 
