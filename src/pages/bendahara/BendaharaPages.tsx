@@ -427,12 +427,15 @@ export function BendaharaDashboard() {
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Siswa</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Kelas</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Periode</TableHead>
+                    <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold">Metode</TableHead>
                     <TableHead className="text-emerald-800 dark:text-emerald-300 font-semibold text-right">Jumlah</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentPaidList.map((t, idx) => (
-                    <TableRow key={t.id} className={`[&>td]:whitespace-nowrap ${idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"}`}>
+                  {recentPaidList.map((t, idx) => {
+                    const m = formatPaymentMethod(t.payment_method);
+                    return (
+                    <TableRow key={t.id} onClick={() => setDetailInv(t)} className={`cursor-pointer transition-colors [&>td]:whitespace-nowrap ${idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-emerald-50/30 dark:bg-emerald-950/10"} hover:bg-indigo-50/70 dark:hover:bg-indigo-950/20`}>
                       <TableCell className="text-xs whitespace-nowrap text-muted-foreground">{new Date(t.paid_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -448,14 +451,20 @@ export function BendaharaDashboard() {
                               </div>
                             );
                           })()}
-                          <span>{t.student_name}</span>
+                          <span className="hover:underline">{t.student_name}</span>
                         </div>
                       </TableCell>
                       <TableCell><Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 hover:bg-indigo-100 border-0">{t.class_name}</Badge></TableCell>
                       <TableCell className="text-xs">{t.period_label}</TableCell>
+                      <TableCell className="text-xs">
+                        <Badge variant="outline" className={m.isOffline ? "border-slate-400 text-slate-700 bg-slate-50 dark:bg-slate-900/40 dark:text-slate-300" : "border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300"}>
+                          {m.label}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right font-bold text-emerald-600">{fmtIDR(t.total_amount)}</TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
               </div>
