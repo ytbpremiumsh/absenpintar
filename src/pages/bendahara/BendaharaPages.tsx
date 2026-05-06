@@ -135,7 +135,24 @@ export function BendaharaDashboard() {
     setDetailBusy(`pdf-${inv.id}`);
     try {
       const { data: schoolRow } = await supabase.from("schools").select("name, address, city, province, npsn").eq("id", profile.school_id).maybeSingle();
-      await downloadSppInvoicePDF(inv, schoolRow || { name: "Sekolah" });
+      await downloadSppInvoicePDF({
+        invoice: {
+          invoice_number: inv.invoice_number,
+          student_name: inv.student_name,
+          class_name: inv.class_name,
+          period_label: inv.period_label,
+          amount: inv.amount ?? inv.total_amount,
+          denda: inv.denda || 0,
+          total_amount: inv.total_amount,
+          due_date: inv.due_date,
+          paid_at: inv.paid_at,
+          payment_method: inv.payment_method,
+          status: inv.status,
+          created_at: inv.created_at,
+        },
+        student: { student_id: inv.student_id, nisn: inv.nisn, parent_name: inv.parent_name },
+        school: { name: schoolRow?.name || "Sekolah", address: schoolRow?.address, npsn: schoolRow?.npsn },
+      });
       toast.success("Invoice diunduh");
     } catch (e: any) {
       toast.error("Gagal unduh invoice");
