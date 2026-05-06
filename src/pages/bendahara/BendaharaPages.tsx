@@ -654,18 +654,22 @@ function BendaharaMobileDashboard({
             <p className="text-xs text-muted-foreground text-center py-6">Belum ada pembayaran</p>
           ) : (
             <div className="divide-y divide-border/40">
-              {recentPaidList.slice(0, 6).map((t) => (
-                <div key={t.id} className="px-4 py-2.5 flex items-center gap-3">
+              {recentPaidList.slice(0, 6).map((t) => {
+                const m = formatPaymentMethod(t.payment_method);
+                return (
+                <button key={t.id} onClick={() => onSelectPaid?.(t)} className="w-full text-left px-4 py-2.5 flex items-center gap-3 active:bg-indigo-50 dark:active:bg-indigo-950/20 transition-colors">
                   <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#3D4FE0] text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {(t.student_name || "?")[0]}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold truncate">{t.student_name}</p>
                     <p className="text-[10px] text-muted-foreground truncate">{t.class_name} • {t.period_label}</p>
+                    <span className={`inline-block mt-0.5 text-[9px] px-1.5 py-0.5 rounded border ${m.isOffline ? "border-slate-300 text-slate-700 bg-slate-50 dark:bg-slate-900/40 dark:text-slate-300" : "border-emerald-300 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300"}`}>{m.label}</span>
                   </div>
                   <p className="text-xs font-bold text-[#3D4FE0] shrink-0">{fmtIDR(t.total_amount)}</p>
-                </div>
-              ))}
+                </button>
+                );
+              })}
             </div>
           )}
         </div>
