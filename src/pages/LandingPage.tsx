@@ -581,12 +581,12 @@ const LandingPage = () => {
                     <s.icon className="h-5.5 w-5.5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 line-through opacity-70">{s.problem}</span>
-                      <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-                        <ArrowRight className="h-3.5 w-3.5 text-[#5B6CF9] shrink-0" />
+                    <div className="flex items-center gap-1.5 mb-2 flex-nowrap overflow-hidden">
+                      <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400 line-through opacity-70 whitespace-nowrap truncate">{s.problem}</span>
+                      <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="shrink-0">
+                        <ArrowRight className="h-3 w-3 text-[#5B6CF9]" />
                       </motion.span>
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#5B6CF9]">{s.solution}</span>
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-[#5B6CF9] whitespace-nowrap truncate">{s.solution}</span>
                     </div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">{s.solution}</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{s.desc}</p>
