@@ -19,10 +19,11 @@ import dashboardPreviewStack from "@/assets/dashboard-preview-stack.png";
 import illustrationScan from "@/assets/illustration-scan.png";
 import illustrationRegister from "@/assets/illustration-register.png";
 import illustrationMonitor from "@/assets/illustration-monitor.png";
-import dashboardSchoolImg from "@/assets/dashboard-school.jpg";
-import dashboardTeacherImg from "@/assets/dashboard-teacher.jpg";
-import dashboardParentImg from "@/assets/dashboard-parent.jpg";
-import dashboardBendaharaImg from "@/assets/dashboard-bendahara.jpg";
+// Dashboard previews — gunakan cover yang sama seperti halaman /panduan
+const dashboardSchoolImg = "/panduan/school-dashboard.jpg";
+const dashboardTeacherImg = "/panduan/teacher-dashboard-uswatun.jpg";
+const dashboardParentImg = "/panduan/parent-login.jpg";
+const dashboardBendaharaImg = "/panduan/bendahara-dashboard.jpg";
 import { cn } from "@/lib/utils";
 
 const fadeUp = {
