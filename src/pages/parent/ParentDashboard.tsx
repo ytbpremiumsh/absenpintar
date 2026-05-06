@@ -358,22 +358,22 @@ export default function ParentDashboard() {
               <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(circle at 25% 0%, white 1.2px, transparent 1.2px), radial-gradient(circle at 75% 100%, white 1.2px, transparent 1.2px)", backgroundSize: "28px 28px" }} />
 
               {/* Student info row */}
-              <div className="relative flex items-center gap-2.5">
-                <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base overflow-hidden shrink-0">
+              <div className="relative flex items-center gap-2.5 md:gap-3.5">
+                <div className="h-11 w-11 md:h-14 md:w-14 rounded-2xl bg-white/20 backdrop-blur ring-1 ring-white/30 flex items-center justify-center font-bold text-white text-base md:text-xl overflow-hidden shrink-0">
                   {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
-                  <p className="text-sm font-semibold leading-snug break-words">{current?.name}</p>
+                  <p className="text-[10px] md:text-[11px] uppercase tracking-wider text-white/70 font-semibold">Ringkasan Bulan Ini</p>
+                  <p className="text-sm md:text-lg font-semibold leading-snug break-words">{current?.name}</p>
                   {current?.class && (
-                    <p className="text-[10px] text-white/75 leading-tight truncate mt-0.5">
+                    <p className="text-[10px] md:text-xs text-white/75 leading-tight truncate mt-0.5">
                       <span className="opacity-80">Kelas</span> {current.class}
                     </p>
                   )}
                 </div>
                 {students.length > 1 && (
                   <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                    <SelectTrigger className="w-[72px] h-7 px-2 text-[10px] rounded-full bg-white/15 border-white/30 text-white backdrop-blur shrink-0 [&>span]:truncate"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-[72px] md:w-[110px] h-7 md:h-8 px-2 text-[10px] md:text-xs rounded-full bg-white/15 border-white/30 text-white backdrop-blur shrink-0 [&>span]:truncate"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                     </SelectContent>
@@ -382,16 +382,16 @@ export default function ParentDashboard() {
               </div>
 
               {/* Big metric */}
-              <div className="relative mt-4 flex items-end justify-between gap-3">
+              <div className="relative mt-4 md:mt-6 flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-4xl font-extrabold tracking-tight leading-none">{monthRate}<span className="text-2xl">%</span></p>
-                  <p className="text-[11px] text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{monthAttendance.length} hari</p>
+                  <p className="text-4xl md:text-6xl font-extrabold tracking-tight leading-none">{monthRate}<span className="text-2xl md:text-3xl">%</span></p>
+                  <p className="text-[11px] md:text-sm text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{monthAttendance.length} hari</p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <Badge className="bg-white/20 text-white border-0 text-[10px] backdrop-blur">
+                  <Badge className="bg-white/20 text-white border-0 text-[10px] md:text-xs backdrop-blur">
                     {todayLog ? STATUS_LABEL[todayLog.status]?.label || todayLog.status : "Belum Absen"}
                   </Badge>
-                  <p className="text-[10px] text-white/70 mt-1">Hari ini</p>
+                  <p className="text-[10px] md:text-xs text-white/70 mt-1">Hari ini</p>
                 </div>
               </div>
 
