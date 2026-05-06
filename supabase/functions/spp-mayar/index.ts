@@ -175,26 +175,22 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   const slugify = (s: string, max = 14) =>
     String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "").slice(0, max) || "siswa";
-  // Format: spp.{name14}.{inv8}.{uniq8}@atskolla.com → max ~44 chars (< Mayar 55).
+  // Keep payload minimal — same shape as the working subscription flow.
+  // Mayar's dedupe gets stricter when extra fields (customer{}, merchantName, expiredAt) are present.
   const studentSlug = slugify(inv.student_name, 14);
   const invoiceShort = String(inv.id || "").replace(/-/g, "").slice(0, 8) || uniq;
   const buyerEmail = `spp.${studentSlug}.${invoiceShort}.${uniq}@atskolla.com`;
-  const buyerName = inv.parent_name?.trim()
-    ? `${inv.parent_name} (Wali ${inv.student_name})`
-    : `Wali ${inv.student_name}`;
-  // Mayar dedupe checks `name` too — embed short ref to keep every name unique
-  // while staying readable on the payment page.
+  // Vary mobile each retry to defeat phone-based dedupe
+  const baseMobile = attempt === 0
+    ? ((inv.parent_phone || "08000000000").replace(/\D/g, "") || "08000000000")
+    : `0800${String(Date.now()).slice(-7)}`;
   const payload = {
-    name: `SPP ${inv.period_label} - ${inv.student_name} (${inv.class_name}) #${invoiceShort}${uniq.slice(-3)}`,
+    name: `SPP ${inv.period_label} - ${inv.student_name} #${invoiceShort}${uniq}`,
     amount: safeAmount,
-    description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name} - Total Rp ${safeAmount.toLocaleString("id-ID")} [REF:${invoiceShort}-${uniq}]`,
+    description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name}`,
     email: buyerEmail,
-    mobile: (inv.parent_phone || "08000000000").replace(/\D/g, ""),
-    customerName: buyerName,
-    customer: { name: buyerName, email: buyerEmail, mobile: (inv.parent_phone || "08000000000").replace(/\D/g, "") },
+    mobile: baseMobile,
     redirectUrl: "https://atskolla.com/parent",
-    merchantName: "ATSkolla",
-    expiredAt: expiry.toISOString(),
   };
   const res = await fetch("https://api.mayar.id/hl/v1/payment/create", {
     method: "POST",
