@@ -2919,6 +2919,7 @@ export function BendaharaPencairan() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
