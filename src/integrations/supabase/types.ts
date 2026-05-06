@@ -1672,6 +1672,7 @@ export type Database = {
           city: string | null
           created_at: string
           group_id: string | null
+          holiday_days: number[]
           id: string
           logo: string | null
           name: string
@@ -1684,6 +1685,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           group_id?: string | null
+          holiday_days?: number[]
           id?: string
           logo?: string | null
           name: string
@@ -1696,6 +1698,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           group_id?: string | null
+          holiday_days?: number[]
           id?: string
           logo?: string | null
           name?: string
