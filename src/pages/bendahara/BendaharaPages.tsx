@@ -1801,10 +1801,10 @@ function ClassGroupedList({ students, filterAY, filterMonth, navigate, invoices,
 
             {/* Tabel siswa — dengan avatar berwarna */}
             {isOpen && (
-              <div className="border-t border-border/60 bg-gradient-to-b from-secondary/20 to-transparent">
+              <div className="border-t border-border/60 bg-gradient-to-b from-secondary/20 to-transparent overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-secondary/40 hover:bg-secondary/40 border-border/40">
+                    <TableRow className="bg-secondary/40 hover:bg-secondary/40 border-border/40 [&_th]:whitespace-nowrap">
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Siswa</TableHead>
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground hidden md:table-cell">NIS</TableHead>
                       <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground text-center">Bulan</TableHead>
