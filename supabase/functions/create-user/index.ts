@@ -277,9 +277,37 @@ serve(async (req) => {
 
           let sent = false;
 
-          // 1. Try OneSender (platform)
-          if (ps.wa_api_url && ps.wa_api_key) {
+          // 1. Primary: Platform MPWA
+          if (ps.mpwa_platform_connected === 'true' && ps.mpwa_platform_api_key && ps.mpwa_platform_sender) {
             try {
+              console.log('[create-user] Sending via MPWA, sender:', ps.mpwa_platform_sender);
+              const res = await fetch('https://app.ayopintar.com/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: ps.mpwa_platform_api_key,
+                  sender: ps.mpwa_platform_sender,
+                  number: formattedPhone,
+                  message,
+                }),
+              });
+              const text = await res.text();
+              let data: any;
+              try { data = JSON.parse(text); } catch { data = { status: false }; }
+              console.log('[create-user] MPWA response:', JSON.stringify(data).substring(0, 200));
+              if (data?.status !== false) {
+                sent = true;
+                console.log('[create-user] WA register sent via MPWA to', formattedPhone);
+              }
+            } catch (e) {
+              console.error('[create-user] MPWA error:', e);
+            }
+          }
+
+          // 2. Fallback: OneSender (only if MPWA fails)
+          if (!sent && ps.wa_api_url && ps.wa_api_key) {
+            try {
+              console.log('[create-user] Fallback to OneSender');
               const waResponse = await fetch(ps.wa_api_url, {
                 method: 'POST',
                 headers: {
@@ -302,33 +330,6 @@ serve(async (req) => {
               }
             } catch (e) {
               console.error('[create-user] OneSender error:', e);
-            }
-          }
-
-          // 2. Fallback: Platform MPWA
-          if (!sent && ps.mpwa_platform_connected === 'true' && ps.mpwa_platform_api_key && ps.mpwa_platform_sender) {
-            try {
-              console.log('[create-user] Fallback to MPWA, sender:', ps.mpwa_platform_sender);
-              const res = await fetch('https://app.ayopintar.com/send-message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  api_key: ps.mpwa_platform_api_key,
-                  sender: ps.mpwa_platform_sender,
-                  number: formattedPhone,
-                  message,
-                }),
-              });
-              const text = await res.text();
-              let data: any;
-              try { data = JSON.parse(text); } catch { data = { status: false }; }
-              console.log('[create-user] MPWA response:', JSON.stringify(data).substring(0, 200));
-              if (data?.status !== false) {
-                sent = true;
-                console.log('[create-user] WA register sent via MPWA to', formattedPhone);
-              }
-            } catch (e) {
-              console.error('[create-user] MPWA error:', e);
             }
           }
 
