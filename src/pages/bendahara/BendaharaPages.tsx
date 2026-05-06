@@ -202,7 +202,13 @@ export function BendaharaDashboard() {
     const totalNet = paid.reduce((s, i) => s + (i.net_amount || 0), 0);
     const settled = settlements.filter(s => s.status === "paid").reduce((s, x) => s + (x.final_payout || 0), 0);
     const settleFee = settlements.filter(s => s.status === "paid").length * 3000;
-    const availableBalance = totalNet - settlements.filter(s => ["pending","approved","paid"].includes(s.status)).reduce((s, x) => s + (x.total_net || 0), 0);
+    // Saldo siap cair = invoice online (bukan offline) yang sudah paid & belum di-settle
+    const isOffline = (m: any) => {
+      const v = (m || "").toString().toLowerCase();
+      return v === "offline_cash" || v === "offline_transfer";
+    };
+    const readyToSettle = paid.filter((i: any) => !i.settlement_id && !isOffline(i.payment_method));
+    const availableBalance = readyToSettle.reduce((s, i: any) => s + (i.net_amount || 0), 0);
     return {
       monthBills: monthInv.reduce((s, i) => s + (i.total_amount || 0), 0),
       paidCount: paid.length,
