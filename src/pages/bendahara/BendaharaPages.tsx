@@ -3074,6 +3074,7 @@ export function BendaharaSaldo() {
 export function BendaharaPencairan() {
   const { profile, user } = useAuth();
   const [available, setAvailable] = useState({ count: 0, gross: 0, fee: 0, net: 0 });
+  const [breakdown, setBreakdown] = useState({ onlineTotal: 0, onlineSettled: 0, offlineCount: 0, offlineGross: 0 });
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bankManageOpen, setBankManageOpen] = useState(false);
