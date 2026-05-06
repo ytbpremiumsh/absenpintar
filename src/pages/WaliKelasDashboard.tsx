@@ -196,7 +196,20 @@ const WaliKelasDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      {/* ============ MOBILE — Fintech Payou-style (primary) ============ */}
+      <WaliKelasMobileDashboard
+        stats={stats}
+        percentage={percentage}
+        classNames={classNames}
+        myClassRanks={myClassRanks}
+        students={filteredStudents}
+        search={search}
+        setSearch={setSearch}
+      />
+
+      {/* ============ DESKTOP / TABLET (md+) ============ */}
+      <div className="hidden md:block space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Dashboard Wali Kelas</h1>
         <p className="text-muted-foreground text-sm">
