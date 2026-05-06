@@ -2958,12 +2958,21 @@ export function BendaharaSaldo() {
   const feePercentTotal = items.reduce((s, i) => s + Math.round((i.total_amount || 0) * (feeCfg.percent / 100)), 0);
   const feeFlatTotal = txCount * feeCfg.flat;
 
+  // Saldo aktif harus sama dengan halaman Pencairan:
+  // hanya transaksi online yang sudah lunas dan belum terikat settlement.
+  const activeItems = items.filter((i) => !i.settlement_id);
+  const activeTotals = activeItems.reduce((acc, i) => ({
+    gross: acc.gross + (i.total_amount || 0),
+    fee: acc.fee + (i.gateway_fee || 0),
+    net: acc.net + (i.net_amount || 0),
+  }), { gross: 0, fee: 0, net: 0 });
+  const lockedNet = Math.max(0, totals.net - activeTotals.net);
+
   // Saldo
   const settled = settlements.filter(s => s.status === "paid").reduce((s, x) => s + (x.final_payout || 0), 0);
   const settledFeePencairan = settlements.filter(s => s.status === "paid").reduce((s, x) => s + (x.withdraw_fee || 0), 0);
   const pendingPayout = settlements.filter(s => ["pending", "approved"].includes(s.status)).reduce((s, x) => s + (x.total_net || 0), 0);
-  const lockedNet = settlements.filter(s => ["pending", "approved", "paid"].includes(s.status)).reduce((s, x) => s + (x.total_net || 0), 0);
-  const activeBalance = Math.max(0, totals.net - lockedNet);
+  const activeBalance = Math.max(0, activeTotals.net);
 
   return (
     <div className="space-y-4">
@@ -2972,7 +2981,7 @@ export function BendaharaSaldo() {
       <div className="rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2">
         <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
         <div className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-          <b>Saldo Aktif</b> hanya berisi pembayaran <b>online via Mayar</b> (QRIS / Transfer Bank / E-Wallet). Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) <b>tidak masuk</b> ke saldo pencairan karena uangnya sudah diterima sekolah secara langsung.
+          <b>Saldo Aktif</b> hanya berisi pembayaran <b>online (QRIS / Transfer Bank)</b> yang belum diajukan pencairan. Pembayaran <b>offline</b> (tunai / transfer manual ke rekening sekolah) <b>tidak masuk</b> ke saldo pencairan karena uangnya sudah diterima sekolah secara langsung.
         </div>
       </div>
 
