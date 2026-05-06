@@ -2094,7 +2094,7 @@ export function BendaharaSPPDetail() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader><TableRow>
+              <TableHeader><TableRow className="[&_th]:whitespace-nowrap">
                 <TableHead>Bulan</TableHead><TableHead>Invoice</TableHead><TableHead>Nominal</TableHead>
                 <TableHead>Tgl Bayar</TableHead><TableHead>Metode</TableHead><TableHead>Status</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
@@ -2110,7 +2110,7 @@ export function BendaharaSPPDetail() {
                   .map((inv) => {
                   const dStatus = inv._displayStatus || inv.status;
                   return (
-                    <TableRow key={inv.id} className={inv.status === "expired" ? "opacity-60" : ""}>
+                    <TableRow key={inv.id} className={`[&>td]:whitespace-nowrap ${inv.status === "expired" ? "opacity-60" : ""}`}>
                       <TableCell className="font-medium text-sm">{inv.period_label}</TableCell>
                       <TableCell className="text-xs font-mono">{inv.invoice_number}</TableCell>
                       <TableCell className="font-semibold">{fmtIDR(inv.total_amount)}</TableCell>
