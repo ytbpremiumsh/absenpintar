@@ -44,9 +44,19 @@ serve(async (req) => {
     const event = body.event || body['event.received'] || body.eventName || body.type;
     const data = body.data;
 
+    // CRITICAL: Mayar mengirim event 'payment.reminder' dengan data.status="SUCCESS"
+    // yang artinya reminder BERHASIL DIKIRIM (bukan payment paid). Sebelumnya webhook
+    // salah memproses ini sebagai pembayaran sukses → invoice ditandai LUNAS padahal
+    // wali murid belum bayar. Perketat: HANYA proses bila event di whitelist paid,
+    // ATAU transactionStatus/paymentStatus benar-benar paid (bukan data.status).
     const acceptedEvents = ['payment.received', 'payment.completed', 'payment.success', 'payment.paid'];
-    if (event && !acceptedEvents.includes(event) && !isPaidStatus(data?.status)) {
-      return new Response(JSON.stringify({ message: 'Event ignored', event }), {
+    const txStatus = String(data?.transactionStatus || data?.paymentStatus || '').toLowerCase();
+    const txIsPaid = ['paid', 'settled', 'success', 'completed'].includes(txStatus);
+    const isAcceptedEvent = event && acceptedEvents.includes(event);
+
+    if (!isAcceptedEvent && !txIsPaid) {
+      console.log('Webhook ignored — bukan event paid', { event, dataStatus: data?.status, txStatus });
+      return new Response(JSON.stringify({ message: 'Event ignored', event, txStatus }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
