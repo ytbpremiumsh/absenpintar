@@ -906,96 +906,44 @@ export default function ParentDashboard() {
 
       </div>
 
-      {/* Bottom Footer Nav — compact 4 tabs + More */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="max-w-4xl mx-auto px-2 py-1.5">
-          <div className="flex items-center justify-around gap-1">
-            {PRIMARY_TABS.map((t) => {
-              const Icon = t.icon;
-              const active = tab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all flex-1 max-w-[80px]",
-                    active ? "text-[#5B6CF9]" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <div className={cn(
-                    "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
-                    active ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md scale-110" : ""
-                  )}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <span className="text-[10px] font-medium">{t.label}</span>
-                </button>
-              );
-            })}
+      {/* Bottom Floating Nav — Payou-style with center FAB */}
+      <nav className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
+        <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
+          {/* Left 2 tabs */}
+          <FabNavBtn icon={Home} label="Beranda" active={tab === "home"} color="#10B981" onClick={() => setTab("home")} />
+          <FabNavBtn icon={ClipboardList} label="Absensi" active={tab === "attendance"} color="#5B6CF9" onClick={() => setTab("attendance")} />
 
-            {/* More button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <button
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all flex-1 max-w-[80px]",
-                    MORE_TABS.find((m) => m.id === tab) ? "text-[#5B6CF9]" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <div className={cn(
-                    "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
-                    MORE_TABS.find((m) => m.id === tab) ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md scale-110" : ""
-                  )}>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </div>
-                  <span className="text-[10px] font-medium">Lainnya</span>
-                </button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
-                <SheetHeader className="mb-4">
-                  <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
-                </SheetHeader>
-                <div className="grid grid-cols-1 gap-2">
-                  {MORE_TABS.map((m) => {
-                    const Icon = m.icon;
-                    const active = tab === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        onClick={() => {
-                          setTab(m.id);
-                          (document.activeElement as HTMLElement)?.blur();
-                          // close sheet via Escape simulation
-                          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-                        }}
-                        className={cn(
-                          "flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left",
-                          active
-                            ? "bg-gradient-to-br from-[#5B6CF9]/10 to-[#4c5ded]/10 border-[#5B6CF9]/30"
-                            : "bg-card border-border hover:bg-muted/50"
-                        )}
-                      >
-                        <div className={cn(
-                          "h-11 w-11 rounded-xl flex items-center justify-center shrink-0",
-                          active
-                            ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-md"
-                            : "bg-muted text-muted-foreground"
-                        )}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm">{m.label}</p>
-                          <p className="text-[11px] text-muted-foreground">{m.desc}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          {/* Center FAB */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="relative -mt-8 mx-1 h-14 w-14 rounded-full bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center shadow-[0_12px_28px_-8px_rgba(91,108,249,0.7)] ring-4 ring-white dark:ring-card transition-transform active:scale-95 hover:scale-105 shrink-0"
+                aria-label="Menu Lainnya"
+              >
+                <LayoutGrid className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-3xl border-0 pb-8">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
+              </SheetHeader>
+              <div className="grid grid-cols-3 gap-3">
+                <SheetMenuItem icon={Megaphone} label="Pengumuman" color="#EC4899" bg="#FDE8F2" onClick={() => { setTab("info"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={FileText} label="Pengajuan Izin" color="#8B5CF6" bg="#F1ECFE" onClick={() => { setTab("leave"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={Phone} label="Wali Kelas" color="#0EA5E9" bg="#E1F4FE" onClick={() => { setTab("contact"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={CalendarDays} label="Jadwal" color="#10B981" bg="#E6FAF3" onClick={() => { setTab("schedule"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={Wallet} label="SPP" color="#F59E0B" bg="#FEF5E1" onClick={() => { setTab("spp"); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); }} />
+                <SheetMenuItem icon={LogOut} label="Keluar" color="#EF4444" bg="#FEE7E7" onClick={logout} />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Right 2 tabs */}
+          <FabNavBtn icon={Wallet} label="SPP" active={tab === "spp"} color="#F59E0B" onClick={() => setTab("spp")} />
+          <FabNavBtn icon={CalendarDays} label="Jadwal" active={tab === "schedule"} color="#5B6CF9" onClick={() => setTab("schedule")} />
         </div>
       </nav>
+
 
       <PaymentIframeDialog
         open={!!paymentIframe}
