@@ -396,6 +396,7 @@ export function BendaharaDashboard() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </div>
         )}
