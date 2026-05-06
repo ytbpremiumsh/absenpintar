@@ -3035,23 +3035,13 @@ export function BendaharaSaldo() {
         <StatCard label="Total Fee Dibebankan" value={fmtIDR(totals.fee)} sub="lihat rincian" icon={Banknote} gradient="from-slate-500 to-slate-700" />
       </div>
 
-      {/* Rincian Biaya - Versi sederhana */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Banknote className="h-4 w-4 text-slate-600" /> Total Biaya yang Sudah Dipotong
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border bg-slate-50 dark:bg-slate-900/30 p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Total potongan dari semua pencairan yang sudah cair</p>
-            <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{fmtIDR(feePercentTotal + settledFeePencairan)}</p>
-            <p className="text-[11px] text-muted-foreground mt-2">
-              Sudah termasuk biaya layanan & biaya pencairan.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Info tarif - ringkas */}
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 p-3 flex gap-2 items-start">
+        <AlertCircle className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
+        <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+          Setiap transaksi online otomatis dipotong <b>{feeCfg.percent}%</b> sebagai biaya layanan, ditambah <b>Rp 3.000</b> per pencairan. Tarif ini sudah ditetapkan dan berlaku otomatis.
+        </div>
+      </div>
 
       {/* Tabel Riwayat */}
       <Card className="border-0 shadow-sm">
