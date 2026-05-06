@@ -448,7 +448,7 @@ const EditAttendance = () => {
               </TableBody>
             </Table>
           )}
-        </ScrollArea>
+        </div>
       </Card>
     </div>
   );
