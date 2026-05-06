@@ -175,12 +175,26 @@ async function createMayarLink(apiKey: string, inv: any, attempt = 0): Promise<{
   // Mayar requires integer amount (IDR, no decimals). Force-cast to avoid
   // mismatch when DB returns numeric/string with decimals.
   const safeAmount = Math.max(1000, Math.round(Number(inv.total_amount) || 0));
+  // Build unique buyer email per student to avoid Mayar reusing a previously
+  // registered customer profile (which causes wrong "Kepada" name on the
+  // payment page). Falls back to a stable per-invoice email.
+  const slugify = (s: string) =>
+    String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, ".").replace(/^\.+|\.+$/g, "").slice(0, 40) || "siswa";
+  const studentSlug = slugify(inv.student_name);
+  const invoiceShort = String(inv.id || "").replace(/-/g, "").slice(0, 8) || uniq.slice(-8);
+  const buyerEmail = `spp.${studentSlug}.${invoiceShort}@atskolla.com`;
+  const buyerName = inv.parent_name?.trim()
+    ? `${inv.parent_name} (Wali ${inv.student_name})`
+    : `Wali ${inv.student_name}`;
   const payload = {
-    name: `${buildInvoiceTitle(inv)} #${uniq.slice(-6).toUpperCase()}`,
+    name: `SPP ${inv.period_label} - ${inv.student_name} (${inv.class_name})`,
     amount: safeAmount,
-    description: `Pembayaran SPP ${inv.period_label} — ${inv.student_name} (${inv.class_name}) — Total Rp ${safeAmount.toLocaleString("id-ID")} [${uniq}]`,
-    email: "spp@atskolla.com",
+    description: `Pembayaran SPP ${inv.period_label} a.n. ${inv.student_name} - Kelas ${inv.class_name} - Total Rp ${safeAmount.toLocaleString("id-ID")} [${uniq}]`,
+    email: buyerEmail,
     mobile: (inv.parent_phone || "08000000000").replace(/\D/g, ""),
+    customerName: buyerName,
+    customer: { name: buyerName, email: buyerEmail, mobile: (inv.parent_phone || "08000000000").replace(/\D/g, "") },
     redirectUrl: "https://atskolla.com/parent",
     merchantName: "ATSkolla",
     expiredAt: expiry.toISOString(),

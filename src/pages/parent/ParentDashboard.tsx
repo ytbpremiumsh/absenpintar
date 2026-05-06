@@ -95,7 +95,7 @@ export default function ParentDashboard() {
   const navigate = useNavigate();
   const [token] = useState(() => localStorage.getItem("parent_token") || "");
   const [students, setStudents] = useState<any[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [selectedStudent, setSelectedStudent] = useState<string>(() => localStorage.getItem("parent_selected_student") || "");
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("home");
 
@@ -135,10 +135,19 @@ export default function ParentDashboard() {
     invoke("me").then((d) => {
       if (d?.code === "UNAUTH") { localStorage.removeItem("parent_token"); navigate("/parent/login"); return; }
       setStudents(d.students || []);
-      if (d.students?.length) setSelectedStudent(d.students[0].id);
+      if (d.students?.length) {
+        const saved = localStorage.getItem("parent_selected_student");
+        const exists = saved && d.students.some((s: any) => s.id === saved);
+        setSelectedStudent(exists ? saved! : d.students[0].id);
+      }
       setLoading(false);
     });
   }, [token, invoke, navigate]);
+
+  // Persist selected student across refreshes
+  useEffect(() => {
+    if (selectedStudent) localStorage.setItem("parent_selected_student", selectedStudent);
+  }, [selectedStudent]);
 
   const loadTab = useCallback(async () => {
     if (!selectedStudent) return;
