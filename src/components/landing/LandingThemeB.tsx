@@ -699,7 +699,19 @@ const LandingThemeB = () => {
                 </ul>
               </div>
 
-              {/* Contact (moved up to replace Akses Cepat slot) */}
+              {/* Tautan */}
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Tautan</p>
+                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
+                  <li><button onClick={() => navigate("/login")} className="hover:text-indigo-600 transition-colors">Login</button></li>
+                  <li><button onClick={() => navigate("/register")} className="hover:text-indigo-600 transition-colors">Daftar Gratis</button></li>
+                  <li><button onClick={() => navigate("/parent-login")} className="hover:text-indigo-600 transition-colors">Portal Wali Murid</button></li>
+                  <li><button onClick={() => navigate("/affiliate-login")} className="hover:text-indigo-600 transition-colors">Affiliate</button></li>
+                  <li><button onClick={() => navigate("/panduan")} className="hover:text-indigo-600 transition-colors">Panduan</button></li>
+                </ul>
+              </div>
+
+              {/* Kontak Kami */}
               <div>
                 <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Kontak Kami</p>
                 <ul className="space-y-3 text-sm text-slate-500 dark:text-slate-400">
@@ -721,18 +733,6 @@ const LandingThemeB = () => {
                       <span className="leading-snug">{get("footer_address")}</span>
                     </li>
                   )}
-                </ul>
-              </div>
-
-              {/* Tautan (renamed from Akses Cepat) */}
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white mb-4">Tautan</p>
-                <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
-                  <li><button onClick={() => navigate("/login")} className="hover:text-indigo-600 transition-colors">Login</button></li>
-                  <li><button onClick={() => navigate("/register")} className="hover:text-indigo-600 transition-colors">Daftar Gratis</button></li>
-                  <li><button onClick={() => navigate("/parent-login")} className="hover:text-indigo-600 transition-colors">Portal Wali Murid</button></li>
-                  <li><button onClick={() => navigate("/affiliate-login")} className="hover:text-indigo-600 transition-colors">Affiliate</button></li>
-                  <li><button onClick={() => navigate("/panduan")} className="hover:text-indigo-600 transition-colors">Panduan</button></li>
                 </ul>
               </div>
             </div>
