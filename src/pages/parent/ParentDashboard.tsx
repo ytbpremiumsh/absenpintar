@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import atskollaLogo from "@/assets/Logo_atskolla.png";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "#10b981",
@@ -110,6 +111,13 @@ export default function ParentDashboard() {
   const [sppBusy, setSppBusy] = useState<string | null>(null);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
+  const [headerLogo, setHeaderLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
+      if (data?.value) setHeaderLogo(data.value as string);
+    });
+  }, []);
 
   const [leaveForm, setLeaveForm] = useState<{ type: string; date: string; reason: string; attachment_url: string | null }>({ type: "izin", date: new Date().toISOString().slice(0, 10), reason: "", attachment_url: null });
 
@@ -252,11 +260,15 @@ export default function ParentDashboard() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
-              <GraduationCap className="h-5 w-5 text-white" />
+              <img src={headerLogo || atskollaLogo} alt="Logo Sekolah" className="h-6 w-6 md:h-7 md:w-7 object-contain" />
             </div>
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Murid</p>
-              <h1 className="text-sm md:text-base font-bold truncate text-foreground">{current?.schools?.name || "Sekolah"}</h1>
+            <div className="min-w-0 leading-tight">
+              <h1 className="text-xs sm:text-sm md:text-base font-bold truncate text-foreground max-w-[170px] sm:max-w-[260px]">
+                {current?.schools?.name || "Sekolah"}
+              </h1>
+              <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground font-semibold -mt-0.5">
+                Wali Murid<span className="hidden sm:inline"> · Portal Orang Tua</span>
+              </p>
             </div>
           </div>
 
