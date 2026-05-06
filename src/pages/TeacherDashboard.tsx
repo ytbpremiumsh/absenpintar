@@ -90,6 +90,8 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     if (!schoolId || !user) return;
+    // Lazy backfill auto-Alfa untuk hari sekolah lampau
+    import("@/lib/autoMarkAlfa").then(m => m.triggerAutoMarkAlfa(schoolId));
     const fetchData = async () => {
       const [schedulesRes, classesRes, subjectsRes] = await Promise.all([
         supabase.from("teaching_schedules").select("*").eq("school_id", schoolId).eq("teacher_id", user.id).eq("is_active", true),

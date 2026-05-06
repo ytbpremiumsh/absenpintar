@@ -110,6 +110,8 @@ const Dashboard = () => {
   const fetchData = useCallback(async () => {
     if (!profile?.school_id) { setLoading(false); return; }
     const schoolId = profile.school_id;
+    // Lazy backfill auto-Alfa untuk hari sekolah lampau (max 1×/hari per browser)
+    import("@/lib/autoMarkAlfa").then(m => m.triggerAutoMarkAlfa(schoolId));
     const today = getLocalDateString("Asia/Jakarta");
 
     const [studentsRes, logsRes, classesRes, waliRes] = await Promise.all([

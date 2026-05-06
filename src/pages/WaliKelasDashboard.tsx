@@ -70,6 +70,8 @@ const WaliKelasDashboard = () => {
     if (assignments.length === 0) { setLoading(false); return; }
     const fetchData = async () => {
       const schoolId = assignments[0].school_id;
+      // Lazy backfill auto-Alfa untuk hari sekolah lampau
+      import("@/lib/autoMarkAlfa").then(m => m.triggerAutoMarkAlfa(schoolId));
       const classNames = assignments.map((a) => a.class_name);
 
       const { data: studentData } = await supabase
