@@ -20,6 +20,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { formatPaymentMethodLabel } from "@/lib/paymentMethod";
 
 const fmtIDR = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n || 0);
@@ -465,7 +466,7 @@ export default function SuperAdminBendahara() {
                       <TableCell className="text-xs">{i.class_name}</TableCell>
                       <TableCell className="text-xs">{i.period_label}</TableCell>
                       <TableCell className="text-right text-sm font-semibold">{fmtIDR(i.total_amount)}</TableCell>
-                      <TableCell className="text-xs uppercase">{i.payment_method || "—"}</TableCell>
+                      <TableCell className="text-xs">{formatPaymentMethodLabel(i.payment_method)}</TableCell>
                       <TableCell className="text-[11px] text-muted-foreground whitespace-nowrap">{fmtDate(i.paid_at)}</TableCell>
                       <TableCell className="text-center">
                         {i.settlement_id

@@ -29,6 +29,7 @@ import "jspdf-autotable";
 import { downloadSppInvoicePDF, generateSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { brandPaymentUrl } from "@/lib/utils";
+import { formatPaymentMethodLabel } from "@/lib/paymentMethod";
 
 const fmtIDR = (n: number) => `Rp ${(n || 0).toLocaleString("id-ID")}`;
 const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -36,12 +37,8 @@ const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustu
 // Helper: format payment_method jadi label rapi
 const formatPaymentMethod = (m?: string | null): { label: string; isOffline: boolean } => {
   const v = (m || "").toLowerCase();
-  if (v === "offline_cash") return { label: "Tunai (Offline)", isOffline: true };
-  if (v === "offline_transfer") return { label: "Transfer Manual (Offline)", isOffline: true };
-  if (v === "qris") return { label: "QRIS", isOffline: false };
-  if (v.includes("transfer") || v.includes("bank")) return { label: "Transfer Bank", isOffline: false };
-  if (v === "mayar" || v === "" || !v) return { label: "QRIS / Transfer Bank", isOffline: false };
-  return { label: m || "-", isOffline: false };
+  const isOffline = v === "offline_cash" || v === "offline_transfer";
+  return { label: formatPaymentMethodLabel(m), isOffline };
 };
 
 // Helper: hitung tahun ajaran (Juli-Juni). Bulan 7-12 = year/year+1, bulan 1-6 = year-1/year
@@ -2749,7 +2746,7 @@ export function BendaharaImportExport() {
       "Jatuh Tempo": i.due_date ? new Date(i.due_date).toLocaleDateString("id-ID") : "",
       "Status": i.status === "paid" ? "Lunas" : i.status === "pending" ? "Pending" : i.status === "expired" ? "Kadaluarsa" : "Belum Bayar",
       "Tgl Bayar": i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "",
-      "Metode": i.payment_method || "",
+      "Metode": formatPaymentMethodLabel(i.payment_method),
     }));
 
     const filterTag = `${expAY === "all" ? "ALL" : expAY.replace("/", "-")}_${expClass === "all" ? "SEMUA-KELAS" : expClass.replace(/\s/g, "-")}_${expStatus.toUpperCase()}`;
@@ -3559,7 +3556,7 @@ export function BendaharaLaporan() {
       "Jatuh Tempo": i.due_date ? new Date(i.due_date).toLocaleDateString("id-ID") : "",
       "Status": i.status === "paid" ? "Lunas" : i.status === "pending" ? "Pending" : i.status === "expired" ? "Kadaluarsa" : "Belum Bayar",
       "Tgl Bayar": i.paid_at ? new Date(i.paid_at).toLocaleDateString("id-ID") : "",
-      "Metode": i.payment_method || "",
+      "Metode": formatPaymentMethodLabel(i.payment_method),
     }));
 
     const filterTag = `${expAY === "all" ? "ALL" : expAY.replace("/", "-")}_${expClass === "all" ? "SEMUA-KELAS" : expClass.replace(/\s/g, "-")}_${expStatus.toUpperCase()}`;

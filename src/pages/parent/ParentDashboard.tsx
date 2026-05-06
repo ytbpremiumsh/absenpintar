@@ -23,6 +23,7 @@ import { downloadSppInvoicePDF } from "@/lib/sppInvoicePDF";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
+import { formatPaymentMethodLabel } from "@/lib/paymentMethod";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "#10b981",
@@ -1008,7 +1009,7 @@ export default function ParentDashboard() {
                           <p className="text-sm font-bold truncate">{inv.period_label}</p>
                           <Badge className="bg-emerald-500 text-white border-0 text-[9px]">LUNAS</Badge>
                         </div>
-                        <p className="text-[11px] text-muted-foreground">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"} • {(inv.payment_method || "Mayar").toUpperCase()}</p>
+                        <p className="text-[11px] text-muted-foreground">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"} • {formatPaymentMethodLabel(inv.payment_method)}</p>
                         <p className="text-sm font-extrabold text-emerald-600 mt-0.5">Rp {(inv.total_amount || 0).toLocaleString("id-ID")}</p>
                       </div>
                       <Button size="sm" variant="outline" className="shrink-0" disabled={sppBusy === `pdf-${inv.id}`} onClick={() => downloadSppPdf(inv)}>
