@@ -138,6 +138,7 @@ const OrderIdCard = () => {
 
       if (payError) throw payError;
       if (payData?.payment_url) {
+        setPaymentTxnId(payData.transaction_id || null);
         setPaymentIframe(payData.payment_url);
       }
 
