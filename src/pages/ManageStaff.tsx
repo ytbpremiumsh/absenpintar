@@ -48,6 +48,7 @@ const ManageStaff = () => {
   const [formEmail, setFormEmail] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [formPhone, setFormPhone] = useState("");
+  const [formNip, setFormNip] = useState("");
   const [formRoles, setFormRoles] = useState<{ staff: boolean; teacher: boolean; bendahara: boolean }>({ staff: true, teacher: false, bendahara: false });
 
   // Detail/Edit
@@ -57,6 +58,7 @@ const ManageStaff = () => {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editNip, setEditNip] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editRoles, setEditRoles] = useState<{ staff: boolean; teacher: boolean; bendahara: boolean }>({ staff: false, teacher: false, bendahara: false });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -66,6 +68,10 @@ const ManageStaff = () => {
   // QR dialog
   const [qrDialog, setQrDialog] = useState(false);
   const [qrTarget, setQrTarget] = useState<StaffMember | null>(null);
+
+  // Attendance detail dialog
+  const [attendanceDialog, setAttendanceDialog] = useState(false);
+  const [attendanceTarget, setAttendanceTarget] = useState<StaffMember | null>(null);
 
   // Bulk import
   const [importDialog, setImportDialog] = useState(false);
