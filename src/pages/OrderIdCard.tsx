@@ -56,6 +56,7 @@ const OrderIdCard = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [paymentTxnId, setPaymentTxnId] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("status") === "success") {
