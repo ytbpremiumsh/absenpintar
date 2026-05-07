@@ -48,27 +48,31 @@ export default function LeaveRequests() {
 
   const fetchData = async () => {
     if (!schoolId) { setLoading(false); return; }
-    let classFilter: string[] = [];
-    if (!isAdmin && user) {
-      const { data: ct } = await supabase
-        .from("class_teachers").select("class_name").eq("user_id", user.id).eq("school_id", schoolId);
-      classFilter = (ct || []).map(c => c.class_name);
-      setMyClasses(classFilter);
-      if (classFilter.length === 0) { setItems([]); setLoading(false); return; }
-    }
+    setLoading(true);
+    try {
+      let classFilter: string[] = [];
+      if (!isAdmin && user) {
+        const { data: ct } = await supabase
+          .from("class_teachers").select("class_name").eq("user_id", user.id).eq("school_id", schoolId);
+        classFilter = (ct || []).map(c => c.class_name);
+        setMyClasses(classFilter);
+        if (classFilter.length === 0) { setItems([]); return; }
+      }
 
-    const { data } = await supabase
-      .from("parent_leave_requests")
-      .select("id, type, date, reason, status, review_note, created_at, attachment_url, parent_phone, student_id, students(name, class, student_id)")
-      .eq("school_id", schoolId)
-      .order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("parent_leave_requests")
+        .select("id, type, date, reason, status, review_note, created_at, attachment_url, parent_phone, student_id, students(name, class, student_id)")
+        .eq("school_id", schoolId)
+        .order("created_at", { ascending: false });
 
-    let rows = (data || []) as any[];
-    if (!isAdmin && classFilter.length > 0) {
-      rows = rows.filter(r => classFilter.includes(r.students?.class));
+      let rows = (data || []) as any[];
+      if (!isAdmin && classFilter.length > 0) {
+        rows = rows.filter(r => classFilter.includes(r.students?.class));
+      }
+      setItems(rows);
+    } finally {
+      setLoading(false);
     }
-    setItems(rows);
-    setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, [schoolId, user, isAdmin]);

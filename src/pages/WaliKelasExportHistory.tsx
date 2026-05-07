@@ -93,26 +93,29 @@ const WaliKelasExportHistory = () => {
     if (!profile?.school_id || !selectedClass) { setLoading(false); return; }
     const fetchData = async () => {
       setLoading(true);
-      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
-      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
+      try {
+        const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
+        const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
 
-      const studentsRes = await supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id!).eq("class", selectedClass).order("name");
-      const studentData = studentsRes.data || [];
-      setStudents(studentData);
+        const studentsRes = await supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id!).eq("class", selectedClass).order("name");
+        const studentData = studentsRes.data || [];
+        setStudents(studentData);
 
-      if (studentData.length > 0) {
-        const ids = studentData.map(s => s.id);
-        const [d, p] = await Promise.all([
-          supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
-          supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "pulang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
-        ]);
-        setDatangLogs(d.data || []);
-        setPulangLogs(p.data || []);
-      } else {
-        setDatangLogs([]);
-        setPulangLogs([]);
+        if (studentData.length > 0) {
+          const ids = studentData.map(s => s.id);
+          const [d, p] = await Promise.all([
+            supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
+            supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "pulang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
+          ]);
+          setDatangLogs(d.data || []);
+          setPulangLogs(p.data || []);
+        } else {
+          setDatangLogs([]);
+          setPulangLogs([]);
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, [profile?.school_id, selectedClass, selectedMonth, selectedYear]);
