@@ -30,6 +30,7 @@ function rowToEditor(r: PanduanRow): EditorGuide {
     intro: r.intro || "",
     cover: r.cover || "",
     mobileMockup: r.mobile_mockup || "",
+    mobileMockupEnabled: r.mobile_mockup_enabled !== false,
     color: r.color,
     highlights: Array.isArray(r.highlights) ? (r.highlights as string[]) : [],
     steps: Array.isArray(r.steps) ? (r.steps as PanduanStep[]) : [],
