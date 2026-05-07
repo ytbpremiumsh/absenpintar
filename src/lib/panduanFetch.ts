@@ -44,6 +44,7 @@ export type PanduanRow = {
   intro: string;
   cover: string | null;
   mobile_mockup: string | null;
+  mobile_mockup_enabled: boolean | null;
   color: string;
   highlights: unknown;
   steps: unknown;
