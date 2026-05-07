@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Settings, LogOut, School, Landmark } from "lucide-react";
+import { Settings, LogOut, School, Landmark, ShieldCheck, Loader2, Phone } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 
@@ -27,6 +29,10 @@ export function BendaharaLayout() {
   const [school, setSchool] = useState<{ name?: string; npsn?: string; address?: string; city?: string; province?: string } | null>(null);
   const [openProfile, setOpenProfile] = useState(false);
   const [openSchool, setOpenSchool] = useState(false);
+  const [openConfirmer, setOpenConfirmer] = useState(false);
+  const [staffList, setStaffList] = useState<Array<{ user_id: string; full_name: string; phone: string | null; role: string }>>([]);
+  const [confirmerId, setConfirmerId] = useState<string>("");
+  const [savingConfirmer, setSavingConfirmer] = useState(false);
   const [headerLogo, setHeaderLogo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,6 +46,51 @@ export function BendaharaLayout() {
       if (data?.value) setHeaderLogo(data.value as string);
     });
   }, []);
+
+  // Load staff/teacher list and current confirmer when dialog opens
+  useEffect(() => {
+    if (!openConfirmer || !profile?.school_id) return;
+    (async () => {
+      const { data: profs } = await supabase.from("profiles")
+        .select("user_id, full_name, phone").eq("school_id", profile.school_id);
+      const ids = (profs || []).map((p: any) => p.user_id);
+      if (!ids.length) { setStaffList([]); return; }
+      const { data: roleRows } = await supabase.from("user_roles")
+        .select("user_id, role").in("user_id", ids);
+      const roleMap = new Map<string, string>();
+      (roleRows || []).forEach((r: any) => {
+        // priority: school_admin > staff > teacher > class_teacher > bendahara
+        const order: Record<string, number> = { school_admin: 1, staff: 2, teacher: 3, class_teacher: 4, bendahara: 5 };
+        const cur = roleMap.get(r.user_id);
+        if (!cur || (order[r.role] ?? 9) < (order[cur] ?? 9)) roleMap.set(r.user_id, r.role);
+      });
+      const list = (profs || [])
+        .filter((p: any) => roleMap.has(p.user_id))
+        .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name, phone: p.phone, role: roleMap.get(p.user_id)! }))
+        .sort((a, b) => a.full_name.localeCompare(b.full_name));
+      setStaffList(list);
+      const { data: settings } = await supabase.from("bendahara_settings")
+        .select("confirmer_user_id").eq("school_id", profile.school_id).maybeSingle();
+      setConfirmerId((settings as any)?.confirmer_user_id || "");
+    })();
+  }, [openConfirmer, profile?.school_id]);
+
+  const saveConfirmer = async () => {
+    if (!confirmerId) { toast.error("Pilih penanggung jawab"); return; }
+    const target = staffList.find(s => s.user_id === confirmerId);
+    if (!target?.phone) { toast.error("Penanggung jawab belum punya nomor WhatsApp di profilnya"); return; }
+    setSavingConfirmer(true);
+    // upsert
+    const { data: existing } = await supabase.from("bendahara_settings")
+      .select("id").eq("school_id", profile!.school_id).maybeSingle();
+    const res = existing
+      ? await supabase.from("bendahara_settings").update({ confirmer_user_id: confirmerId }).eq("id", (existing as any).id)
+      : await supabase.from("bendahara_settings").insert({ school_id: profile!.school_id, confirmer_user_id: confirmerId } as any);
+    setSavingConfirmer(false);
+    if (res.error) { toast.error(res.error.message); return; }
+    toast.success(`Penanggung jawab OTP: ${target.full_name}`);
+    setOpenConfirmer(false);
+  };
 
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
@@ -107,6 +158,9 @@ export function BendaharaLayout() {
                 <DropdownMenuItem onClick={() => navigate("/bendahara/pencairan?manage=bank")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <Landmark className="h-4 w-4 mr-2.5 text-muted-foreground" /> Rekening Pencairan
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setOpenConfirmer(true)} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                  <ShieldCheck className="h-4 w-4 mr-2.5 text-muted-foreground" /> Penanggung Jawab OTP
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <LogOut className="h-4 w-4 mr-2.5" /> Keluar
@@ -153,6 +207,50 @@ export function BendaharaLayout() {
             <div className="grid grid-cols-2 gap-3">
               <div><Label className="text-xs text-muted-foreground">Kota</Label><Input readOnly value={school?.city || "-"} className="bg-muted/40" /></div>
               <div><Label className="text-xs text-muted-foreground">Provinsi</Label><Input readOnly value={school?.province || "-"} className="bg-muted/40" /></div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Penanggung Jawab OTP */}
+      <Dialog open={openConfirmer} onOpenChange={setOpenConfirmer}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Penanggung Jawab OTP Pencairan</DialogTitle>
+            <DialogDescription>
+              Pilih satu guru/staff yang akan menerima kode OTP via WhatsApp setiap kali Bendahara mengajukan pencairan dana. Pilihan ini hanya untuk konfirmasi keamanan — tidak mengubah hak akses dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div>
+              <Label className="text-xs">Pilih Penanggung Jawab</Label>
+              <Select value={confirmerId} onValueChange={setConfirmerId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Pilih guru/staff..." /></SelectTrigger>
+                <SelectContent>
+                  {staffList.length === 0 && <div className="p-3 text-xs text-muted-foreground">Belum ada staff/guru</div>}
+                  {staffList.map(s => (
+                    <SelectItem key={s.user_id} value={s.user_id} disabled={!s.phone}>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{s.full_name} <span className="text-[10px] text-muted-foreground">({s.role})</span></span>
+                        <span className="text-[10px] font-mono text-muted-foreground">{s.phone || "Belum ada nomor WA"}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground mt-1">Hanya guru/staff dengan nomor WhatsApp yang bisa dipilih.</p>
+            </div>
+            {confirmerId && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-xs flex items-center gap-2">
+                <Phone className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>OTP akan dikirim ke <b>{staffList.find(s => s.user_id === confirmerId)?.full_name}</b> ({staffList.find(s => s.user_id === confirmerId)?.phone})</span>
+              </div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setOpenConfirmer(false)} className="flex-1">Batal</Button>
+              <Button onClick={saveConfirmer} disabled={savingConfirmer || !confirmerId} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                {savingConfirmer ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan"}
+              </Button>
             </div>
           </div>
         </DialogContent>
