@@ -53,7 +53,7 @@ const TOUR_STEPS = [
   },
   {
     icon: Rocket,
-    title: "Siap Digunakan! 🚀",
+    title: "Siap Digunakan!",
     desc: "Sekarang kamu sudah siap menggunakan ATSkolla. Mulai kelola absensi dengan lebih mudah dan efisien.",
     color: "from-indigo-500 to-violet-600",
   },
