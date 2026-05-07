@@ -352,57 +352,10 @@ const ManageStaff = () => {
         </div>
       } />
 
-      {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Memuat data...</div>
-      ) : staff.length === 0 ? (
-        <Card className="border-0 shadow-card">
-          <CardContent className="p-10 text-center">
-            <Users2 className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">Belum ada guru/staff/bendahara ditambahkan</p>
-            <Button variant="outline" className="mt-4" onClick={() => setShowDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Tambah Pertama
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
+      {/* Stats header */}
+      {!loading && staff.length > 0 && (
         <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {staff.map((member, i) => (
-              <motion.div key={member.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full">
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3">
-                      {member.photo_url ? (
-                        <img src={member.photo_url} alt={member.full_name} className="h-12 w-12 rounded-xl object-cover shrink-0 border border-border/50" />
-                      ) : (
-                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
-                          {member.full_name.charAt(0)}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-sm truncate">{member.full_name}</h3>
-                        {getRoleBadges(member.roles)}
-                      </div>
-                      <div className="flex gap-1 shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
-                          <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
-                          <Pencil className="h-3.5 w-3.5 text-primary" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive/60 hover:text-destructive" onClick={() => handleDelete(member)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Stats footer */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Card className="border-0 shadow-card">
               <CardContent className="p-4 text-center">
                 <Users2 className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
@@ -431,6 +384,88 @@ const ManageStaff = () => {
                 <p className="text-[11px] text-muted-foreground font-medium">Bendahara</p>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Info: dashboard access explanation */}
+          <Card className="border-0 shadow-card bg-gradient-to-br from-[#5B6CF9]/5 to-violet-500/5">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-xl bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
+                  <Shield className="h-4 w-4 text-[#5B6CF9]" />
+                </div>
+                <div className="space-y-1.5 min-w-0">
+                  <p className="text-sm font-bold">Tentang Hak Akses Dashboard</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Setiap akun bisa diberi <span className="font-semibold text-foreground">lebih dari satu role</span> (Guru, Operator, atau Bendahara). Ketika user login, jika punya beberapa role, akan muncul halaman <span className="font-semibold text-foreground">"Pilih Dashboard"</span> untuk memilih akan masuk ke dashboard mana.
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Setelah masuk, user tetap bisa <span className="font-semibold text-foreground">berpindah dashboard</span> kapan saja melalui menu <span className="font-semibold text-foreground">"Switch Dashboard"</span> di sidebar — tanpa perlu logout.
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <Badge variant="secondary" className="text-[10px] border-0 bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400">
+                      <GraduationCap className="h-3 w-3 mr-1" /> Guru → Dashboard Wali Kelas
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] border-0 bg-[#5B6CF9]/10 text-[#5B6CF9]">
+                      <Shield className="h-3 w-3 mr-1" /> Operator → Dashboard Sekolah
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] border-0 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                      <Wallet className="h-3 w-3 mr-1" /> Bendahara → Dashboard SPP
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {loading ? (
+        <div className="text-center py-12 text-muted-foreground">Memuat data...</div>
+      ) : staff.length === 0 ? (
+        <Card className="border-0 shadow-card">
+          <CardContent className="p-10 text-center">
+            <Users2 className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground">Belum ada guru/staff/bendahara ditambahkan</p>
+            <Button variant="outline" className="mt-4" onClick={() => setShowDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Tambah Pertama
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {staff.map((member, i) => (
+              <motion.div key={member.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex items-start gap-3">
+                      {member.photo_url ? (
+                        <img src={member.photo_url} alt={member.full_name} className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl object-cover shrink-0 border border-border/50" />
+                      ) : (
+                        <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center text-white text-base sm:text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
+                          {member.full_name.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-sm truncate">{member.full_name}</h3>
+                        {getRoleBadges(member.roles)}
+                      </div>
+                      <div className="flex gap-0.5 shrink-0 -mr-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
+                          <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
+                          <Pencil className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive/60 hover:text-destructive" onClick={() => handleDelete(member)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </>
       )}
