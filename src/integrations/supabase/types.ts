@@ -1239,6 +1239,8 @@ export type Database = {
           id: string
           lifetime_points: number
           phone: string | null
+          photo_url: string | null
+          qr_code: string | null
           referral_code: string | null
           referred_by: string | null
           school_id: string | null
@@ -1253,6 +1255,8 @@ export type Database = {
           id?: string
           lifetime_points?: number
           phone?: string | null
+          photo_url?: string | null
+          qr_code?: string | null
           referral_code?: string | null
           referred_by?: string | null
           school_id?: string | null
@@ -1267,6 +1271,8 @@ export type Database = {
           id?: string
           lifetime_points?: number
           phone?: string | null
+          photo_url?: string | null
+          qr_code?: string | null
           referral_code?: string | null
           referred_by?: string | null
           school_id?: string | null
@@ -2277,6 +2283,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      teacher_attendance_logs: {
+        Row: {
+          attendance_type: string
+          created_at: string
+          date: string
+          id: string
+          method: string
+          notes: string | null
+          recorded_by: string | null
+          school_id: string
+          status: string
+          time: string
+          user_id: string
+        }
+        Insert: {
+          attendance_type?: string
+          created_at?: string
+          date?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          recorded_by?: string | null
+          school_id: string
+          status?: string
+          time?: string
+          user_id: string
+        }
+        Update: {
+          attendance_type?: string
+          created_at?: string
+          date?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          recorded_by?: string | null
+          school_id?: string
+          status?: string
+          time?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       teaching_schedules: {
         Row: {
