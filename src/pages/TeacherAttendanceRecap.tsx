@@ -94,7 +94,7 @@ const TeacherAttendanceRecap = () => {
   const exportExcel = () => {
     const header = ["Nama", "Role", ...dayArray.map((d) => String(d)), "Hadir", "Tidak"];
     const data = rows.map((r) => [
-      r.full_name, r.roles.join("/"),
+      r.full_name, r.roles.map(roleLabel).join("/"),
       ...dayArray.map((d) => {
         const t = tab === "datang" ? r.days[d]?.datang : r.days[d]?.pulang;
         return t ? t.slice(0, 5) : "-";
