@@ -35,12 +35,20 @@ function AppContent() {
   const isMobileDevice = useIsMobile();
 
   const [headerLogo, setHeaderLogo] = useState<string | null>(null);
+  const [schoolName, setSchoolName] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
       if (data?.value) setHeaderLogo(data.value);
     });
   }, []);
+
+  useEffect(() => {
+    if (!profile?.school_id) return;
+    supabase.from("schools").select("name").eq("id", profile.school_id).maybeSingle().then(({ data }) => {
+      if (data?.name) setSchoolName(data.name);
+    });
+  }, [profile?.school_id]);
 
   if (loading) {
     return (
