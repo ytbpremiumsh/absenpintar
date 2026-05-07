@@ -4,12 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { MessageSquare, Loader2, ArrowLeft, Minus, Plus, ShieldCheck, Zap, TrendingUp } from "lucide-react";
+import { MessageSquare, Loader2, ArrowLeft, Minus, Plus, ShieldCheck, Zap, TrendingUp, Wallet, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
+import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
 
 const WaCredit = () => {
