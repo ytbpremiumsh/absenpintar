@@ -202,6 +202,7 @@ const Subscription = () => {
         window.location.reload();
       } else if (result?.payment_url) {
         toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentTxnId(result.transaction_id || null);
         setPaymentIframe(result.payment_url);
       } else {
         toast.error("Gagal mendapatkan link pembayaran");
