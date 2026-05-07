@@ -276,20 +276,39 @@ const ScanQR = () => {
       const data = await res.json();
       if (!res.ok) { console.log("Face scan:", data.error); return; }
 
-      if (data.match && data.student) {
+      if (data.match) {
         scanPaused.current = true;
         const attType = await getAttendanceType();
         setCurrentAttType(attType);
-
         const today = new Date().toISOString().slice(0, 10);
-        const { data: existing } = await supabase.from("attendance_logs")
-          .select("id").eq("student_id", data.student.id).eq("date", today).eq("attendance_type", attType).maybeSingle();
 
-        setAlreadyRecorded(!!existing);
-        setScannedStudent(data.student);
-        setConfirmed(false);
-        setScanMethod("face");
-        toast.success(`Wajah dikenali: ${data.student.name}`);
+        if (data.type === "teacher" && data.teacher) {
+          const { data: existing } = await supabase.from("teacher_attendance_logs" as any)
+            .select("id").eq("user_id", data.teacher.user_id).eq("date", today).eq("attendance_type", attType).maybeSingle();
+          setAlreadyRecorded(!!existing);
+          setScannedStudent({
+            id: data.teacher.user_id,
+            name: data.teacher.full_name,
+            class: "Guru / Staff",
+            student_id: "—",
+            parent_name: "",
+            parent_phone: "",
+            photo_url: data.teacher.photo_url,
+            __isTeacher: true,
+            __teacherUserId: data.teacher.user_id,
+          });
+          setConfirmed(false);
+          setScanMethod("face");
+          toast.success(`Wajah dikenali: ${data.teacher.full_name}`);
+        } else if (data.student) {
+          const { data: existing } = await supabase.from("attendance_logs")
+            .select("id").eq("student_id", data.student.id).eq("date", today).eq("attendance_type", attType).maybeSingle();
+          setAlreadyRecorded(!!existing);
+          setScannedStudent(data.student);
+          setConfirmed(false);
+          setScanMethod("face");
+          toast.success(`Wajah dikenali: ${data.student.name}`);
+        }
       }
     } catch (err: any) {
       console.log("Face recognition error:", err.message);
