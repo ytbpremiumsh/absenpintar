@@ -12,6 +12,9 @@ import * as XLSX from "xlsx";
 
 const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
+const ROLE_LABEL: Record<string, string> = { teacher: "Guru", staff: "Operator", bendahara: "Bendahara" };
+const roleLabel = (r: string) => ROLE_LABEL[r] || r;
+
 interface TeacherRow {
   user_id: string;
   full_name: string;
