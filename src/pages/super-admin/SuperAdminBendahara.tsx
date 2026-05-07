@@ -261,6 +261,14 @@ export default function SuperAdminBendahara() {
           .eq("status", "paid")
           .is("settlement_id", null);
       }
+
+      // When rejected, release any invoices linked to this settlement so saldo kembali
+      if (newStatus === "rejected") {
+        await supabase.from("spp_invoices")
+          .update({ settlement_id: null })
+          .eq("school_id", reviewing.school_id)
+          .eq("settlement_id", reviewing.id);
+      }
       toast.success(`Status pencairan diperbarui: ${newStatus}`);
       setReviewOpen(false);
       setReviewing(null);
