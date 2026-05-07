@@ -1140,8 +1140,8 @@ export function BendaharaTarif() {
                       <TableCell><Switch checked={t.is_active} onCheckedChange={() => toggle(t)} /></TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => openEdit(t)} className="h-8 px-2"><FileText className="h-3.5 w-3.5" /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => remove(t)} className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"><AlertCircle className="h-3.5 w-3.5" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => openEdit(t)} className="h-8 px-2 text-[#5B6CF9] hover:text-[#5B6CF9] hover:bg-[#5B6CF9]/10" title="Edit"><Pencil className="h-3.5 w-3.5" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => remove(t)} className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50" title="Hapus"><Trash2 className="h-3.5 w-3.5" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
