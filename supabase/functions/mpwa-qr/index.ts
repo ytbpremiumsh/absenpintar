@@ -16,7 +16,7 @@ serve(async (req) => {
 
     if (!action || !school_id) {
       return new Response(JSON.stringify({ error: 'action and school_id are required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -45,7 +45,7 @@ serve(async (req) => {
 
     if (!finalApiKey) {
       return new Response(JSON.stringify({ error: 'MPWA API Key belum dikonfigurasi. Hubungi administrator.' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -75,7 +75,7 @@ serve(async (req) => {
     if (action === 'connect') {
       if (!finalSender) {
         return new Response(JSON.stringify({ error: 'Nomor WhatsApp (sender) harus diisi terlebih dahulu' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
@@ -127,7 +127,7 @@ serve(async (req) => {
     if (action === 'disconnect') {
       if (!finalSender) {
         return new Response(JSON.stringify({ error: 'Sender tidak ditemukan' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
@@ -145,12 +145,12 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ error: 'Unknown action' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('MPWA QR error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

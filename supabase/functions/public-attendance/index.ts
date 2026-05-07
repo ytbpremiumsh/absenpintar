@@ -14,7 +14,7 @@ serve(async (req) => {
     const school_id = url.searchParams.get("school_id");
     if (!school_id) {
       return new Response(JSON.stringify({ error: "school_id is required" }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -37,7 +37,7 @@ serve(async (req) => {
 
     if (schoolRes.error || !schoolRes.data) {
       return new Response(JSON.stringify({ error: "Sekolah tidak ditemukan" }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -145,7 +145,7 @@ serve(async (req) => {
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
