@@ -15,16 +15,42 @@ serve(async (req) => {
 
     const { captured_image, school_id } = await req.json();
     if (!captured_image || !school_id) {
-      return new Response(JSON.stringify({ error: "captured_image and school_id are required" }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ success: false, error: "captured_image dan school_id wajib diisi" }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Fetch students with photos from this school
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+
+    // Server-side subscription gating: only School/Premium plans (or any active trial) may use Face Recognition
+    const { data: sub } = await supabaseAdmin
+      .from("school_subscriptions")
+      .select("status, expires_at, subscription_plans(name)")
+      .eq("school_id", school_id)
+      .in("status", ["active", "trial"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const planName = (sub as any)?.subscription_plans?.name || "Free";
+    const isTrial = sub?.status === "trial";
+    const notExpired = sub?.expires_at ? new Date(sub.expires_at) > new Date() : false;
+    const allowedPlan = ["School", "Premium"].includes(planName);
+    const allowed = (isTrial && notExpired) || (allowedPlan && notExpired);
+
+    if (!allowed) {
+      return new Response(JSON.stringify({
+        success: false,
+        match: false,
+        error: "Face Recognition hanya tersedia untuk paket School, Premium, atau Trial aktif. Silakan upgrade paket Anda.",
+        code: "PLAN_REQUIRED",
+      }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const { data: students, error: studentsError } = await supabaseAdmin
       .from('students')
@@ -34,8 +60,8 @@ serve(async (req) => {
 
     if (studentsError) throw studentsError;
     if (!students || students.length === 0) {
-      return new Response(JSON.stringify({ error: "Tidak ada siswa dengan foto di sekolah ini" }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ success: false, match: false, error: "Tidak ada siswa dengan foto di sekolah ini" }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
