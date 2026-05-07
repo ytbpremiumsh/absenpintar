@@ -464,32 +464,33 @@ const ManageStaff = () => {
         </Card>
       ) : (
         <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
             {staff.map((member, i) => (
-              <motion.div key={member.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full">
-                  <CardContent className="p-4 sm:p-5">
-                    <div className="flex items-start gap-3">
+              <motion.div key={member.user_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full cursor-pointer" onClick={() => openAttendance(member)}>
+                  <CardContent className="p-2.5 sm:p-3">
+                    <div className="flex items-center gap-2.5">
                       {member.photo_url ? (
-                        <img src={member.photo_url} alt={member.full_name} className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl object-cover shrink-0 border border-border/50" />
+                        <img src={member.photo_url} alt={member.full_name} className="h-10 w-10 rounded-lg object-cover shrink-0 border border-border/50" />
                       ) : (
-                        <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center text-white text-base sm:text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
+                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
                           {member.full_name.charAt(0)}
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-sm truncate">{member.full_name}</h3>
+                        <h3 className="font-bold text-xs truncate">{member.full_name}</h3>
+                        {member.nip && <p className="text-[10px] text-muted-foreground truncate">NIP: {member.nip}</p>}
                         {getRoleBadges(member.roles)}
                       </div>
-                      <div className="flex gap-0.5 shrink-0 -mr-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
+                      <div className="flex gap-0 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
                           <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Edit" onClick={() => openDetail(member)}>
                           <Pencil className="h-3.5 w-3.5 text-primary" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive/60 hover:text-destructive" onClick={() => handleDelete(member)}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" title="Hapus" onClick={() => handleDelete(member)}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
