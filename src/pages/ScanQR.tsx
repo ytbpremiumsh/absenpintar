@@ -174,20 +174,60 @@ const ScanQR = () => {
       const { data, error } = await supabase
         .from("students").select("*").eq("school_id", profile.school_id)
         .or(`student_id.eq.${trimmed},qr_code.eq.${trimmed}`).maybeSingle();
-      if (error || !data) { toast.error("Siswa tidak ditemukan untuk kode: " + trimmed); return; }
 
-      const attType = await getAttendanceType();
-      setCurrentAttType(attType);
+      if (!error && data) {
+        const attType = await getAttendanceType();
+        setCurrentAttType(attType);
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: existing } = await supabase.from("attendance_logs")
+          .select("id").eq("student_id", data.id).eq("date", today).eq("attendance_type", attType).maybeSingle();
+        setAlreadyRecorded(!!existing);
+        setScannedStudent(data);
+        setConfirmed(false);
+        setScanMethod("barcode");
+        scanPaused.current = true;
+        return;
+      }
 
-      const today = new Date().toISOString().slice(0, 10);
-      const { data: existing } = await supabase.from("attendance_logs")
-        .select("id").eq("student_id", data.id).eq("date", today).eq("attendance_type", attType).maybeSingle();
+      // Try teacher/staff lookup (qr_code = user_id)
+      const { data: teacherProfile } = await supabase
+        .from("profiles").select("user_id, full_name, photo_url, qr_code")
+        .eq("school_id", profile.school_id)
+        .or(`user_id.eq.${trimmed},qr_code.eq.${trimmed}`).maybeSingle();
 
-      setAlreadyRecorded(!!existing);
-      setScannedStudent(data);
-      setConfirmed(false);
-      setScanMethod("barcode");
-      scanPaused.current = true;
+      if (teacherProfile) {
+        // Verify role is teacher/staff/bendahara
+        const { data: rolesData } = await supabase
+          .from("user_roles").select("role").eq("user_id", teacherProfile.user_id);
+        const validRoles = (rolesData || []).map((r: any) => r.role);
+        if (!validRoles.some((r: string) => ["teacher", "staff", "bendahara", "school_admin"].includes(r))) {
+          toast.error("Kode tidak valid: " + trimmed);
+          return;
+        }
+        const attType = await getAttendanceType();
+        setCurrentAttType(attType);
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: existing } = await supabase.from("teacher_attendance_logs" as any)
+          .select("id").eq("user_id", teacherProfile.user_id).eq("date", today).eq("attendance_type", attType).maybeSingle();
+        setAlreadyRecorded(!!existing);
+        setScannedStudent({
+          id: teacherProfile.user_id,
+          name: teacherProfile.full_name,
+          class: validRoles.includes("teacher") ? "Guru" : validRoles.includes("bendahara") ? "Bendahara" : "Staff",
+          student_id: "—",
+          parent_name: "",
+          parent_phone: "",
+          photo_url: teacherProfile.photo_url,
+          __isTeacher: true,
+          __teacherUserId: teacherProfile.user_id,
+        });
+        setConfirmed(false);
+        setScanMethod("barcode");
+        scanPaused.current = true;
+        return;
+      }
+
+      toast.error("Tidak ditemukan untuk kode: " + trimmed);
     } finally { isLookingUp.current = false; }
   }, [profile?.school_id, getAttendanceType]);
 
