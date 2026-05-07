@@ -29,6 +29,8 @@ interface StaffMember {
   phone: string | null;
   nip: string | null;
   roles: string[];
+  presentToday?: boolean;
+  arrivalTime?: string | null;
 }
 
 const ROLE_META: Record<string, { label: string; icon: any; cls: string }> = {
