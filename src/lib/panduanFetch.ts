@@ -60,6 +60,7 @@ function rowToGuide(r: PanduanRow): PanduanGuide {
     color: r.color || "from-indigo-500 to-blue-600",
     cover: r.cover || "",
     mobileMockup: r.mobile_mockup || "",
+    mobileMockupEnabled: r.mobile_mockup_enabled !== false,
     intro: r.intro || "",
     highlights: Array.isArray(r.highlights) ? (r.highlights as string[]) : [],
     steps: Array.isArray(r.steps) ? (r.steps as PanduanStep[]) : [],
