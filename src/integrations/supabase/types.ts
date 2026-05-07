@@ -1238,6 +1238,7 @@ export type Database = {
           full_name: string
           id: string
           lifetime_points: number
+          nip: string | null
           phone: string | null
           photo_url: string | null
           qr_code: string | null
@@ -1254,6 +1255,7 @@ export type Database = {
           full_name: string
           id?: string
           lifetime_points?: number
+          nip?: string | null
           phone?: string | null
           photo_url?: string | null
           qr_code?: string | null
@@ -1270,6 +1272,7 @@ export type Database = {
           full_name?: string
           id?: string
           lifetime_points?: number
+          nip?: string | null
           phone?: string | null
           photo_url?: string | null
           qr_code?: string | null
