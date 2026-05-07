@@ -3153,19 +3153,6 @@ export function BendaharaPencairan() {
   const [refreshKey, setRefreshKey] = useState(0);
   const syncingRef = useRef(false);
 
-  // OTP confirmation
-  const [otpOpen, setOtpOpen] = useState(false);
-  const [otpStep, setOtpStep] = useState<"sending" | "input">("sending");
-  const [otpCode, setOtpCode] = useState("");
-  const [otpInfo, setOtpInfo] = useState<{ phone_masked: string; name: string } | null>(null);
-  const [otpResendCooldown, setOtpResendCooldown] = useState(0);
-
-  useEffect(() => {
-    if (otpResendCooldown <= 0) return;
-    const t = setInterval(() => setOtpResendCooldown(c => Math.max(0, c - 1)), 1000);
-    return () => clearInterval(t);
-  }, [otpResendCooldown]);
-
   // Auto-open bank manager via ?manage=bank
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -3290,40 +3277,7 @@ export function BendaharaPencairan() {
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
       .eq("school_id", profile!.school_id).in("id", invoiceIds).is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
-    setConfirmOpen(false); setOtpOpen(false); setOtpCode(""); setSubmitting(false); setRefreshKey(k => k + 1);
-  };
-
-  const requestOtp = async () => {
-    if (!profile?.school_id) return;
-    setOtpStep("sending"); setOtpOpen(true); setOtpCode(""); setOtpInfo(null);
-    const res = await supabase.functions.invoke("bendahara-otp", {
-      body: { action: "send", school_id: profile.school_id },
-    });
-    const data: any = res.data;
-    if (res.error || data?.error) {
-      toast.error(data?.error || "Gagal kirim OTP");
-      setOtpOpen(false);
-      return;
-    }
-    setOtpInfo({ phone_masked: data.phone_masked, name: data.name });
-    setOtpStep("input");
-    setOtpResendCooldown(60);
-    toast.success(`OTP terkirim ke ${data.name}`);
-  };
-
-  const verifyOtpAndSubmit = async () => {
-    if (otpCode.length !== 6) { toast.error("OTP harus 6 digit"); return; }
-    setSubmitting(true);
-    const res = await supabase.functions.invoke("bendahara-otp", {
-      body: { action: "verify", school_id: profile!.school_id, otp_code: otpCode },
-    });
-    const data: any = res.data;
-    if (res.error || data?.error) {
-      toast.error(data?.error || "OTP salah");
-      setSubmitting(false);
-      return;
-    }
-    await submit();
+    setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
   };
 
   const saveAccount = async () => {
@@ -3546,7 +3500,7 @@ export function BendaharaPencairan() {
               <Button variant="outline" onClick={() => { setConfirmOpen(false); setBankManageOpen(true); }} disabled={submitting}>
                 Periksa / Ubah
               </Button>
-              <Button onClick={requestOtp} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={submit} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ya, Cairkan"}
               </Button>
             </div>
@@ -3595,63 +3549,6 @@ export function BendaharaPencairan() {
               <Button onClick={saveAccount} className="w-full bg-emerald-600 hover:bg-emerald-700">Simpan Rekening</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* OTP Konfirmasi Pencairan */}
-      <Dialog open={otpOpen} onOpenChange={(o) => { if (!submitting) { setOtpOpen(o); if (!o) { setOtpCode(""); setOtpInfo(null); } } }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Konfirmasi OTP WhatsApp</DialogTitle>
-            <DialogDescription>
-              Untuk keamanan, pencairan harus dikonfirmasi dengan kode OTP yang dikirim ke WhatsApp penanggung jawab.
-            </DialogDescription>
-          </DialogHeader>
-          {otpStep === "sending" ? (
-            <div className="py-8 flex flex-col items-center gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-              <p className="text-sm text-muted-foreground">Mengirim OTP via WhatsApp...</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-sm">
-                <p className="text-xs text-muted-foreground mb-1">Kode OTP dikirim ke</p>
-                <p className="font-bold">{otpInfo?.name}</p>
-                <p className="font-mono text-xs text-emerald-700 dark:text-emerald-400">WA {otpInfo?.phone_masked}</p>
-              </div>
-              <div>
-                <Label className="text-xs">Masukkan 6 digit OTP</Label>
-                <Input
-                  value={otpCode}
-                  onChange={e => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="000000"
-                  inputMode="numeric"
-                  maxLength={6}
-                  className="text-center text-2xl font-mono tracking-[0.5em] mt-1"
-                  autoFocus
-                />
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Berlaku 5 menit</span>
-                <button
-                  type="button"
-                  disabled={otpResendCooldown > 0 || submitting}
-                  onClick={requestOtp}
-                  className="text-emerald-600 hover:underline disabled:text-muted-foreground disabled:no-underline"
-                >
-                  {otpResendCooldown > 0 ? `Kirim ulang (${otpResendCooldown}s)` : "Kirim ulang OTP"}
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={() => { setOtpOpen(false); setOtpCode(""); }} disabled={submitting}>
-                  Batal
-                </Button>
-                <Button onClick={verifyOtpAndSubmit} disabled={submitting || otpCode.length !== 6} className="bg-emerald-600 hover:bg-emerald-700">
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verifikasi & Cairkan"}
-                </Button>
-              </div>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -271,40 +271,9 @@ export type Database = {
         }
         Relationships: []
       }
-      bendahara_otps: {
-        Row: {
-          created_at: string
-          expires_at: string
-          id: string
-          otp_code: string
-          phone: string
-          school_id: string
-          used: boolean
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          otp_code: string
-          phone: string
-          school_id: string
-          used?: boolean
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          otp_code?: string
-          phone?: string
-          school_id?: string
-          used?: boolean
-        }
-        Relationships: []
-      }
       bendahara_settings: {
         Row: {
           api_key: string | null
-          confirmer_user_id: string | null
           created_at: string
           environment: string
           id: string
@@ -318,7 +287,6 @@ export type Database = {
         }
         Insert: {
           api_key?: string | null
-          confirmer_user_id?: string | null
           created_at?: string
           environment?: string
           id?: string
@@ -332,7 +300,6 @@ export type Database = {
         }
         Update: {
           api_key?: string | null
-          confirmer_user_id?: string | null
           created_at?: string
           environment?: string
           id?: string
