@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
 import * as XLSX from "xlsx";
-import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import QRCodeDisplay from "@/components/QRCodeDisplay";
 
 interface StaffMember {
   user_id: string;
