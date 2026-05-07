@@ -311,7 +311,8 @@ const ManageStaff = () => {
           user_id: selectedStaff.user_id,
           full_name: editName.trim(),
           ...(editEmail.trim() ? { email: editEmail.trim() } : {}),
-          ...(editPhone.trim() ? { phone: editPhone.trim() } : {}),
+          phone: editPhone.trim(),
+          nip: editNip.trim(),
           ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
         },
       });
