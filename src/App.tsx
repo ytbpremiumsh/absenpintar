@@ -109,6 +109,7 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/select-role" element={<SelectRole />} />
       <Route path="/live/:schoolId" element={<PublicMonitoring />} />
       <Route path="/live/:schoolId/:className" element={<PublicClassMonitoring />} />
       <Route path="/attendance/:schoolId" element={<PublicAttendanceMonitoring />} />
