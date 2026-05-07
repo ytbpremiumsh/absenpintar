@@ -368,15 +368,19 @@ const ManageStaff = () => {
   };
 
   const getRoleBadges = (roles: string[]) => (
-    <div className="flex flex-wrap gap-1 mt-0.5">
+    <div className="flex flex-wrap gap-1 mt-1">
       {roles.map((r) => {
         const meta = ROLE_META[r];
         if (!meta) return null;
         const Icon = meta.icon;
         return (
-          <Badge key={r} variant="secondary" className={`text-[10px] border-0 ${meta.cls}`}>
-            <Icon className="h-3 w-3 mr-1" /> {meta.label}
-          </Badge>
+          <span
+            key={r}
+            title={meta.label}
+            className={`inline-flex items-center justify-center h-5 w-5 rounded-md ${meta.cls}`}
+          >
+            <Icon className="h-3 w-3" />
+          </span>
         );
       })}
     </div>
