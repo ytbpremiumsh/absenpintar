@@ -43,6 +43,7 @@ export default function SelectRole() {
     const d = dashboards.find((x) => x.key === selected);
     if (!d) return;
     sessionStorage.setItem("dashboard_chosen", "1");
+    sessionStorage.setItem("active_dashboard", d.key);
     navigate(d.path, { replace: true });
   };
 
