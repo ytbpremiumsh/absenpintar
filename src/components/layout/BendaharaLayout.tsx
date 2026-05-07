@@ -29,6 +29,10 @@ export function BendaharaLayout() {
   const [school, setSchool] = useState<{ name?: string; npsn?: string; address?: string; city?: string; province?: string } | null>(null);
   const [openProfile, setOpenProfile] = useState(false);
   const [openSchool, setOpenSchool] = useState(false);
+  const [openConfirmer, setOpenConfirmer] = useState(false);
+  const [staffList, setStaffList] = useState<Array<{ user_id: string; full_name: string; phone: string | null; role: string }>>([]);
+  const [confirmerId, setConfirmerId] = useState<string>("");
+  const [savingConfirmer, setSavingConfirmer] = useState(false);
   const [headerLogo, setHeaderLogo] = useState<string | null>(null);
 
   useEffect(() => {
