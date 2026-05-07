@@ -383,7 +383,7 @@ function DnsTutorial({ domain }: { domain?: string }) {
       </div>
 
       <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-1">💡 Tips</h4>
+        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-1">Tips</h4>
         <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
           <li>Gunakan subdomain seperti <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">absensi.sekolahku.sch.id</code> agar tidak mengganggu website utama</li>
           <li>Jika menggunakan Cloudflare, pastikan Proxy Status diatur ke <strong>DNS Only</strong> (ikon awan abu-abu)</li>
