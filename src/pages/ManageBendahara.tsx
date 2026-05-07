@@ -147,11 +147,11 @@ export default function ManageBendahara() {
             const hasExtra = (u.extra_roles && u.extra_roles.length > 0);
             return (
             <Card key={u.user_id} className="border-0 shadow-card"><CardContent className="p-5 flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold shrink-0">{u.full_name[0]}</div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center font-bold shrink-0">{u.full_name[0]}</div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm truncate">{u.full_name}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  <Badge className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0"><Wallet className="h-3 w-3 mr-1" /> Bendahara</Badge>
+                  <Badge className="text-[10px] bg-[#5B6CF9]/10 text-[#5B6CF9] dark:bg-[#5B6CF9]/20 dark:text-[#8b97fb] border-0"><Wallet className="h-3 w-3 mr-1" /> Bendahara</Badge>
                   {u.extra_roles?.includes("teacher") && (
                     <Badge2 variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 border-0"><GraduationCap className="h-3 w-3 mr-1" /> Guru</Badge2>
                   )}
@@ -164,7 +164,7 @@ export default function ManageBendahara() {
                 </div>
               </div>
               {!hasExtra && (
-                <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => openEdit(u)} title="Edit">
+                <Button variant="ghost" size="sm" className="text-[#5B6CF9] hover:text-[#4c5ded] hover:bg-[#5B6CF9]/10" onClick={() => openEdit(u)} title="Edit">
                   <Pencil className="h-4 w-4" />
                 </Button>
               )}
@@ -201,7 +201,7 @@ export default function ManageBendahara() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={assignBendahara} disabled={assigning || !assignTarget} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={assignBendahara} disabled={assigning || !assignTarget} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
                   {assigning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />} Berikan Akses Bendahara
                 </Button>
               </>
@@ -219,7 +219,7 @@ export default function ManageBendahara() {
             <div><Label>Email</Label><div className="relative"><Mail className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="pl-9" /></div></div>
             <div><Label>Password</Label><div className="relative"><Lock className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="pl-9" /></div></div>
             <div><Label>WhatsApp</Label><div className="relative"><Phone className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="pl-9" /></div></div>
-            <Button onClick={create} disabled={creating} className="w-full bg-emerald-600 hover:bg-emerald-700">
+            <Button onClick={create} disabled={creating} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
               {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Buat Akun
             </Button>
           </div>
@@ -261,7 +261,7 @@ export default function ManageBendahara() {
             </div>
             <div className="flex gap-2 pt-1">
               <Button variant="outline" onClick={() => setEditOpen(false)} className="flex-1">Batal</Button>
-              <Button onClick={saveEdit} disabled={savingEdit} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={saveEdit} disabled={savingEdit} className="flex-1 bg-[#5B6CF9] hover:bg-[#4c5ded]">
                 {savingEdit ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Pencil className="h-4 w-4 mr-2" />} Simpan
               </Button>
             </div>
