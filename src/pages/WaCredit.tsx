@@ -76,6 +76,7 @@ const WaCredit = () => {
       if (error) throw error;
       if (data?.payment_url) {
         toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentTxnId(data.transaction_id || null);
         setPaymentIframe(data.payment_url);
       } else {
         throw new Error(data?.error || "Tidak mendapatkan link pembayaran");
