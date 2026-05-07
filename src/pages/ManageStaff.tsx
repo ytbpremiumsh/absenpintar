@@ -19,12 +19,15 @@ import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
 import * as XLSX from "xlsx";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
+import StaffAttendanceDetailDialog from "@/components/staff/StaffAttendanceDetailDialog";
 
 interface StaffMember {
   user_id: string;
   full_name: string;
   photo_url: string | null;
   qr_code: string | null;
+  phone: string | null;
+  nip: string | null;
   roles: string[];
 }
 
@@ -45,6 +48,7 @@ const ManageStaff = () => {
   const [formEmail, setFormEmail] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [formPhone, setFormPhone] = useState("");
+  const [formNip, setFormNip] = useState("");
   const [formRoles, setFormRoles] = useState<{ staff: boolean; teacher: boolean; bendahara: boolean }>({ staff: true, teacher: false, bendahara: false });
 
   // Detail/Edit
@@ -54,6 +58,7 @@ const ManageStaff = () => {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editNip, setEditNip] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editRoles, setEditRoles] = useState<{ staff: boolean; teacher: boolean; bendahara: boolean }>({ staff: false, teacher: false, bendahara: false });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -63,6 +68,10 @@ const ManageStaff = () => {
   // QR dialog
   const [qrDialog, setQrDialog] = useState(false);
   const [qrTarget, setQrTarget] = useState<StaffMember | null>(null);
+
+  // Attendance detail dialog
+  const [attendanceDialog, setAttendanceDialog] = useState(false);
+  const [attendanceTarget, setAttendanceTarget] = useState<StaffMember | null>(null);
 
   // Bulk import
   const [importDialog, setImportDialog] = useState(false);
@@ -74,7 +83,7 @@ const ManageStaff = () => {
 
   const fetchStaff = async () => {
     if (!schoolId) { setLoading(false); return; }
-    const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, photo_url, qr_code").eq("school_id", schoolId);
+    const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, photo_url, qr_code, phone, nip").eq("school_id", schoolId);
     if (!profiles || profiles.length === 0) { setStaff([]); setLoading(false); return; }
 
     const userIds = profiles.map((p) => p.user_id);
@@ -89,7 +98,7 @@ const ManageStaff = () => {
 
     const staffList: StaffMember[] = profiles
       .filter((p) => roleMap.has(p.user_id))
-      .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name, photo_url: p.photo_url, qr_code: p.qr_code || p.user_id, roles: roleMap.get(p.user_id) || [] }));
+      .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name, photo_url: p.photo_url, qr_code: p.qr_code || p.user_id, phone: p.phone || null, nip: p.nip || null, roles: roleMap.get(p.user_id) || [] }));
 
     setStaff(staffList);
     setLoading(false);
@@ -111,7 +120,7 @@ const ManageStaff = () => {
     try {
       // Use first role as primary, then add the rest
       const res = await supabase.functions.invoke("create-user", {
-        body: { email: formEmail, password: formPassword, full_name: formName, role: selectedRoles[0], school_id: schoolId, phone: formPhone },
+        body: { email: formEmail, password: formPassword, full_name: formName, role: selectedRoles[0], school_id: schoolId, phone: formPhone, nip: formNip },
       });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
@@ -129,7 +138,7 @@ const ManageStaff = () => {
 
       toast.success(`Akun ${formName} berhasil ditambahkan`);
       setShowDialog(false);
-      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPhone("");
+      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPhone(""); setFormNip("");
       setFormRoles({ staff: true, teacher: false, bendahara: false });
       fetchStaff();
     } catch (err: any) {
@@ -235,11 +244,12 @@ const ManageStaff = () => {
     fetchStaff();
   };
 
-  const openDetail = (member: StaffMember) => {
+  const openDetail = async (member: StaffMember) => {
     setSelectedStaff(member);
     setEditName(member.full_name);
     setEditEmail("");
-    setEditPhone("");
+    setEditPhone(member.phone || "");
+    setEditNip(member.nip || "");
     setEditPassword("");
     setEditRoles({
       staff: member.roles.includes("staff"),
@@ -248,6 +258,21 @@ const ManageStaff = () => {
     });
     setEditMode(false);
     setDetailDialog(true);
+    // Fetch authoritative email + phone + nip from edge function (auth.users)
+    try {
+      const res = await supabase.functions.invoke("get-user-detail", { body: { user_id: member.user_id } });
+      const d = res.data;
+      if (d && !d.error) {
+        if (d.email) setEditEmail(d.email);
+        if (d.phone) setEditPhone(d.phone);
+        if (d.nip) setEditNip(d.nip);
+      }
+    } catch {}
+  };
+
+  const openAttendance = (member: StaffMember) => {
+    setAttendanceTarget(member);
+    setAttendanceDialog(true);
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -286,7 +311,8 @@ const ManageStaff = () => {
           user_id: selectedStaff.user_id,
           full_name: editName.trim(),
           ...(editEmail.trim() ? { email: editEmail.trim() } : {}),
-          ...(editPhone.trim() ? { phone: editPhone.trim() } : {}),
+          phone: editPhone.trim(),
+          nip: editNip.trim(),
           ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
         },
       });
@@ -355,61 +381,66 @@ const ManageStaff = () => {
       {/* Stats header */}
       {!loading && staff.length > 0 && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Users2 className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
-                <p className="text-2xl font-bold">{staff.length}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Total Akun</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <Users2 className="h-4 w-4 text-[#5B6CF9] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{staff.length}</p>
+                  <p className="text-[10px] text-muted-foreground">Total Akun</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <GraduationCap className="h-5 w-5 mx-auto mb-1 text-violet-500" />
-                <p className="text-2xl font-bold">{totalGuru}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Guru</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-violet-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{totalGuru}</p>
+                  <p className="text-[10px] text-muted-foreground">Guru</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Shield className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
-                <p className="text-2xl font-bold">{totalOperator}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Operator</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <Shield className="h-4 w-4 text-[#5B6CF9] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{totalOperator}</p>
+                  <p className="text-[10px] text-muted-foreground">Operator</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Wallet className="h-5 w-5 mx-auto mb-1 text-amber-500" />
-                <p className="text-2xl font-bold">{totalBendahara}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Bendahara</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-amber-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{totalBendahara}</p>
+                  <p className="text-[10px] text-muted-foreground">Bendahara</p>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Info: dashboard access explanation */}
+          {/* Info: dashboard access explanation (compact) */}
           <Card className="border-0 shadow-card bg-gradient-to-br from-[#5B6CF9]/5 to-violet-500/5">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-xl bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
-                  <Shield className="h-4 w-4 text-[#5B6CF9]" />
+            <CardContent className="p-3">
+              <div className="flex items-start gap-2.5">
+                <div className="h-7 w-7 rounded-lg bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
+                  <Shield className="h-3.5 w-3.5 text-[#5B6CF9]" />
                 </div>
                 <div className="space-y-1.5 min-w-0">
-                  <p className="text-sm font-bold">Tentang Hak Akses Dashboard</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Setiap akun bisa diberi <span className="font-semibold text-foreground">lebih dari satu role</span> (Guru, Operator, atau Bendahara). Ketika user login, jika punya beberapa role, akan muncul halaman <span className="font-semibold text-foreground">"Pilih Dashboard"</span> untuk memilih akan masuk ke dashboard mana.
+                  <p className="text-xs font-bold">Hak Akses Dashboard</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Satu akun bisa punya banyak role. Saat login, user akan diminta memilih dashboard.
                   </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Setelah masuk, user tetap bisa <span className="font-semibold text-foreground">berpindah dashboard</span> kapan saja melalui menu <span className="font-semibold text-foreground">"Switch Dashboard"</span> di sidebar — tanpa perlu logout.
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <Badge variant="secondary" className="text-[10px] border-0 bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400">
-                      <GraduationCap className="h-3 w-3 mr-1" /> Guru → Dashboard Wali Kelas
+                  <div className="flex flex-wrap gap-1">
+                    <Badge variant="secondary" className="text-[9px] border-0 bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 py-0">
+                      <GraduationCap className="h-2.5 w-2.5 mr-0.5" />Guru → Wali Kelas
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px] border-0 bg-[#5B6CF9]/10 text-[#5B6CF9]">
-                      <Shield className="h-3 w-3 mr-1" /> Operator → Dashboard Sekolah
+                    <Badge variant="secondary" className="text-[9px] border-0 bg-[#5B6CF9]/10 text-[#5B6CF9] py-0">
+                      <Shield className="h-2.5 w-2.5 mr-0.5" />Operator → Sekolah
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px] border-0 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
-                      <Wallet className="h-3 w-3 mr-1" /> Bendahara → Dashboard SPP
+                    <Badge variant="secondary" className="text-[9px] border-0 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 py-0">
+                      <Wallet className="h-2.5 w-2.5 mr-0.5" />Bendahara → SPP
                     </Badge>
                   </div>
                 </div>
@@ -433,32 +464,33 @@ const ManageStaff = () => {
         </Card>
       ) : (
         <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
             {staff.map((member, i) => (
-              <motion.div key={member.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full">
-                  <CardContent className="p-4 sm:p-5">
-                    <div className="flex items-start gap-3">
+              <motion.div key={member.user_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full cursor-pointer" onClick={() => openAttendance(member)}>
+                  <CardContent className="p-2.5 sm:p-3">
+                    <div className="flex items-center gap-2.5">
                       {member.photo_url ? (
-                        <img src={member.photo_url} alt={member.full_name} className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl object-cover shrink-0 border border-border/50" />
+                        <img src={member.photo_url} alt={member.full_name} className="h-10 w-10 rounded-lg object-cover shrink-0 border border-border/50" />
                       ) : (
-                        <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center text-white text-base sm:text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
+                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
                           {member.full_name.charAt(0)}
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-sm truncate">{member.full_name}</h3>
+                        <h3 className="font-bold text-xs truncate">{member.full_name}</h3>
+                        {member.nip && <p className="text-[10px] text-muted-foreground truncate">NIP: {member.nip}</p>}
                         {getRoleBadges(member.roles)}
                       </div>
-                      <div className="flex gap-0.5 shrink-0 -mr-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
+                      <div className="flex gap-0 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
                           <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Edit" onClick={() => openDetail(member)}>
                           <Pencil className="h-3.5 w-3.5 text-primary" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive/60 hover:text-destructive" onClick={() => handleDelete(member)}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" title="Hapus" onClick={() => handleDelete(member)}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -522,6 +554,10 @@ const ManageStaff = () => {
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="08xxxxxxxxxx" type="tel" value={formPhone} onChange={(e) => setFormPhone(e.target.value)} className="pl-9" />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>NIP / NIK (opsional)</Label>
+              <Input placeholder="Nomor Induk Pegawai" value={formNip} onChange={(e) => setFormNip(e.target.value)} />
             </div>
             <Button onClick={handleCreate} disabled={creating} className="w-full gradient-primary hover:opacity-90">
               {creating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</> : <><Plus className="h-4 w-4 mr-2" /> Buat Akun</>}
@@ -603,15 +639,19 @@ const ManageStaff = () => {
                     <Label className="text-xs">Email Login</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Kosongkan jika tidak diubah" type="email" className="pl-9" />
+                      <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="email@sekolah.com" type="email" className="pl-9" />
                     </div>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">No. WhatsApp</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="Kosongkan jika tidak diubah" type="tel" className="pl-9" />
+                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="08xxxxxxxxxx" type="tel" className="pl-9" />
                     </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">NIP / NIK</Label>
+                    <Input value={editNip} onChange={(e) => setEditNip(e.target.value)} placeholder="Nomor Induk Pegawai" />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Password Baru</Label>
@@ -724,6 +764,14 @@ const ManageStaff = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <StaffAttendanceDetailDialog
+        open={attendanceDialog}
+        onOpenChange={setAttendanceDialog}
+        userId={attendanceTarget?.user_id || null}
+        fullName={attendanceTarget?.full_name || ""}
+        schoolId={schoolId}
+      />
     </div>
     </PremiumGate>
   );

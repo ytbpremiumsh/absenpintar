@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { email, password, full_name, role, school_id, npsn, school_name, school_address, phone, referral_code } = await req.json();
+    const { email, password, full_name, role, school_id, npsn, school_name, school_address, phone, referral_code, nip } = await req.json();
 
     // Basic validation with clear, actionable messages (Indonesian)
     if (!email || !password) {
@@ -104,6 +104,7 @@ serve(async (req) => {
     const profileUpdate: any = { full_name, referral_code: refCodeGenerated };
     if (resolvedSchoolId) profileUpdate.school_id = resolvedSchoolId;
     if (phone) profileUpdate.phone = phone;
+    if (nip) profileUpdate.nip = nip;
 
     await supabaseAdmin
       .from('profiles')
