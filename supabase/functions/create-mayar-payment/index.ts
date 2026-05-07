@@ -234,7 +234,7 @@ serve(async (req) => {
 
     const existing = await findRecentPending({ school_id: schoolId, plan_id: plan.id });
     if (existing?.mayar_payment_url) {
-      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return ok({ payment_url: brandPaymentUrl(existing.mayar_payment_url), transaction_id: existing.id });
     }
 
     const redirectUrl = `${siteUrl}/subscription?status=success`;
@@ -245,12 +245,12 @@ serve(async (req) => {
       redirectUrl
     );
 
-    await supabaseAdmin.from("payment_transactions").insert({
+    const { data: txn } = await supabaseAdmin.from("payment_transactions").insert({
       school_id: schoolId, plan_id: plan.id, amount: plan.price, status: "pending",
       mayar_transaction_id: paymentLink?.id || null, mayar_payment_url: paymentLink?.link || null,
-    });
+    }).select("id").single();
 
-    return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return ok({ payment_url: brandPaymentUrl(paymentLink.link), transaction_id: txn?.id || null });
   } catch (error) {
     console.error("create-mayar-payment error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {
