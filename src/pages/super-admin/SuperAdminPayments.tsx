@@ -90,7 +90,7 @@ const SuperAdminPayments = () => {
 
   const formatRupiah = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
   const statusMap: Record<string, { label: string; cls: string }> = {
-    paid: { label: "Lunas ✓", cls: "bg-success/10 text-success border-success/20" },
+    paid: { label: "Lunas", cls: "bg-success/10 text-success border-success/20" },
     pending: { label: "Pending", cls: "bg-warning/10 text-warning border-warning/20" },
     failed: { label: "Gagal", cls: "bg-destructive/10 text-destructive border-destructive/20" },
     expired: { label: "Expired", cls: "bg-muted text-muted-foreground" },

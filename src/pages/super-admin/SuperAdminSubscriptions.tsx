@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { School, Calendar, CheckCircle2, XCircle, Clock, Pencil, Plus, Minus, Webhook, Copy, Check, Key, Eye, EyeOff, Loader2 } from "lucide-react";
+import { School, Calendar, CheckCircle2, XCircle, Clock, Pencil, Plus, Minus, Webhook, Copy, Check, Key, Eye, EyeOff, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -211,7 +211,7 @@ const SuperAdminSubscriptions = () => {
                 ) : hasKey ? (
                   <code className="text-[11px] bg-background/80 px-3 py-1.5 rounded-lg border text-foreground">{maskedKey}</code>
                 ) : (
-                  <span className="text-[11px] text-destructive font-medium">⚠ Belum dikonfigurasi</span>
+                  <span className="text-[11px] text-destructive font-medium inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Belum dikonfigurasi</span>
                 )}
                 <Button variant="outline" size="sm" className="h-8 shrink-0" onClick={() => { setNewApiKey(""); setShowKey(false); setApiKeyDialog(true); }}>
                   <Pencil className="h-3.5 w-3.5 mr-1" /> Ubah
@@ -251,7 +251,7 @@ const SuperAdminSubscriptions = () => {
                             {st.label}
                           </Badge>
                           {expired && sub.status === "active" && (
-                            <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px]">⚠ Sudah Expired</Badge>
+                            <Badge className="bg-warning/10 text-warning border-warning/20 text-[10px] gap-1"><AlertTriangle className="h-3 w-3" /> Sudah Expired</Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground">

@@ -438,7 +438,7 @@ const SuperAdminRegistrationWA = () => {
                   OneSender digunakan sebagai gateway utama sistem ATSkolla. Konfigurasi ini berlaku untuk notifikasi registrasi platform.
                   {!osEnabled && (
                     <span className="block mt-1 text-amber-600 font-semibold">
-                      ⚠️ Gateway OneSender saat ini dinonaktifkan. Sekolah tidak dapat menggunakan OneSender.
+                      Gateway OneSender saat ini dinonaktifkan. Sekolah tidak dapat menggunakan OneSender.
                     </span>
                   )}
                 </p>

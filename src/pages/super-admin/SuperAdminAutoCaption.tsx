@@ -66,7 +66,7 @@ const TOPIC_PRESETS = [
 
 const REWRITE_STYLES = [
   { v: "improve", label: "Tingkatkan Kualitas" },
-  { v: "mimic", label: "🎯 Tiru Gaya Contoh (Style Mimic)" },
+  { v: "mimic", label: "Tiru Gaya Contoh (Style Mimic)" },
   { v: "shorter", label: "Lebih Singkat" },
   { v: "longer", label: "Lebih Panjang" },
   { v: "professional", label: "Lebih Profesional" },
@@ -535,7 +535,7 @@ export default function SuperAdminAutoCaption() {
           {results.length > 0 && (
             <Card className="bg-muted/30 border-dashed">
               <CardContent className="p-3 text-[11px] text-muted-foreground">
-                <p className="font-semibold text-foreground mb-1">💡 Tips Format:</p>
+                <p className="font-semibold text-foreground mb-1">Tips Format:</p>
                 <ul className="space-y-0.5 list-disc list-inside">
                   <li><b>Bold/Italic</b> menggunakan unicode — langsung tampil tebal/miring saat di-paste ke Facebook, Instagram, WhatsApp, Twitter, LinkedIn.</li>
                   <li>Highlight teks dulu → klik tombol format (B / I / U / dll).</li>
