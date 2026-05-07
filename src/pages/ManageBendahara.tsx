@@ -119,10 +119,19 @@ export default function ManageBendahara() {
     <div className="space-y-6">
       <PageHeader icon={Wallet} title="Kelola Bendahara" subtitle="Tambah Bendahara baru atau berikan tanggung jawab Bendahara ke guru/staff yang sudah ada" variant="emerald" actions={
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setAssignOpen(true)} variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-xl text-xs">
+          <div className="hidden lg:flex items-center gap-3 mr-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
+            <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center">
+              <Wallet className="h-4 w-4 text-white" />
+            </div>
+            <div className="leading-tight">
+              <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">Total Bendahara</p>
+              <p className="text-base font-extrabold text-white">{list.length} Orang</p>
+            </div>
+          </div>
+          <Button onClick={() => setAssignOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur-sm rounded-xl text-xs font-semibold shadow-md">
             <UserPlus className="h-4 w-4 mr-2" /> Beri Tanggung Jawab
           </Button>
-          <Button onClick={() => setOpen(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
+          <Button onClick={() => setOpen(true)} className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-bold shadow-lg shadow-black/10">
             <Plus className="h-4 w-4 mr-2" /> Tambah Bendahara Baru
           </Button>
         </div>
