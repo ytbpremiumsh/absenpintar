@@ -47,6 +47,51 @@ export function BendaharaLayout() {
     });
   }, []);
 
+  // Load staff/teacher list and current confirmer when dialog opens
+  useEffect(() => {
+    if (!openConfirmer || !profile?.school_id) return;
+    (async () => {
+      const { data: profs } = await supabase.from("profiles")
+        .select("user_id, full_name, phone").eq("school_id", profile.school_id);
+      const ids = (profs || []).map((p: any) => p.user_id);
+      if (!ids.length) { setStaffList([]); return; }
+      const { data: roleRows } = await supabase.from("user_roles")
+        .select("user_id, role").in("user_id", ids);
+      const roleMap = new Map<string, string>();
+      (roleRows || []).forEach((r: any) => {
+        // priority: school_admin > staff > teacher > class_teacher > bendahara
+        const order: Record<string, number> = { school_admin: 1, staff: 2, teacher: 3, class_teacher: 4, bendahara: 5 };
+        const cur = roleMap.get(r.user_id);
+        if (!cur || (order[r.role] ?? 9) < (order[cur] ?? 9)) roleMap.set(r.user_id, r.role);
+      });
+      const list = (profs || [])
+        .filter((p: any) => roleMap.has(p.user_id))
+        .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name, phone: p.phone, role: roleMap.get(p.user_id)! }))
+        .sort((a, b) => a.full_name.localeCompare(b.full_name));
+      setStaffList(list);
+      const { data: settings } = await supabase.from("bendahara_settings")
+        .select("confirmer_user_id").eq("school_id", profile.school_id).maybeSingle();
+      setConfirmerId((settings as any)?.confirmer_user_id || "");
+    })();
+  }, [openConfirmer, profile?.school_id]);
+
+  const saveConfirmer = async () => {
+    if (!confirmerId) { toast.error("Pilih penanggung jawab"); return; }
+    const target = staffList.find(s => s.user_id === confirmerId);
+    if (!target?.phone) { toast.error("Penanggung jawab belum punya nomor WhatsApp di profilnya"); return; }
+    setSavingConfirmer(true);
+    // upsert
+    const { data: existing } = await supabase.from("bendahara_settings")
+      .select("id").eq("school_id", profile!.school_id).maybeSingle();
+    const res = existing
+      ? await supabase.from("bendahara_settings").update({ confirmer_user_id: confirmerId }).eq("id", (existing as any).id)
+      : await supabase.from("bendahara_settings").insert({ school_id: profile!.school_id, confirmer_user_id: confirmerId } as any);
+    setSavingConfirmer(false);
+    if (res.error) { toast.error(res.error.message); return; }
+    toast.success(`Penanggung jawab OTP: ${target.full_name}`);
+    setOpenConfirmer(false);
+  };
+
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   if (!roles.includes("bendahara") && !roles.includes("school_admin") && !roles.includes("super_admin")) {
