@@ -124,13 +124,13 @@ IMPORTANT:
 
     if (!aiResponse.ok) {
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Terlalu banyak permintaan, coba lagi nanti" }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ success: false, match: false, error: "Terlalu banyak permintaan, coba lagi nanti" }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "Kredit AI habis" }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ success: false, match: false, error: "Kredit AI habis" }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       const errText = await aiResponse.text();
@@ -140,21 +140,21 @@ IMPORTANT:
 
     const aiData = await aiResponse.json();
     const content = aiData.choices?.[0]?.message?.content || "";
-    
-    // Parse AI response
+
     const jsonMatch = content.match(/\{[^}]+\}/);
     if (!jsonMatch) {
-      return new Response(JSON.stringify({ match: false, error: "Could not parse AI response" }), {
+      return new Response(JSON.stringify({ success: true, match: false, error: "Could not parse AI response" }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const result = JSON.parse(jsonMatch[0]);
-    
+
     if (result.match && result.student_index) {
       const matchedStudent = studentBatch[result.student_index - 1];
       if (matchedStudent) {
         return new Response(JSON.stringify({
+          success: true,
           match: true,
           student: {
             id: matchedStudent.id,
@@ -171,14 +171,14 @@ IMPORTANT:
       }
     }
 
-    return new Response(JSON.stringify({ match: false }), {
+    return new Response(JSON.stringify({ success: true, match: false }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error("Face recognition error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ success: false, match: false, error: error.message }), {
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
