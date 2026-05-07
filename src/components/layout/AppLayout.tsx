@@ -53,15 +53,24 @@ function AppContent() {
   if (!user) return <Navigate to="/login" replace />;
   if (roles.includes("super_admin")) return <Navigate to="/super-admin" replace />;
 
-  // Bendahara-only → redirect ke /bendahara dashboard
+  const activeDashboard = typeof window !== "undefined" ? sessionStorage.getItem("active_dashboard") : null;
+
+  // Bendahara: hanya redirect jika user secara aktif memilih dashboard bendahara,
+  // atau jika role-nya cuma bendahara (tidak ada role lain).
   const isBendaharaOnly = roles.includes("bendahara") && !roles.includes("school_admin") && !roles.includes("staff") && !roles.includes("teacher");
-  if (isBendaharaOnly && !location.pathname.startsWith("/bendahara") && location.pathname !== "/account-settings" && location.pathname !== "/support") {
+  if ((activeDashboard === "bendahara" || isBendaharaOnly) && !location.pathname.startsWith("/bendahara") && location.pathname !== "/account-settings" && location.pathname !== "/support") {
     return <Navigate to="/bendahara" replace />;
   }
 
-  const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
+  // Teacher: aktif jika user memilih dashboard guru, atau hanya punya role teacher.
+  const isTeacherActive = activeDashboard === "teacher" || (roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff"));
+  const isTeacherOnly = isTeacherActive;
   if (isTeacherOnly && location.pathname === "/dashboard") {
     return <Navigate to="/teacher-dashboard" replace />;
+  }
+  // Sebaliknya: jika user memilih admin/operator tapi sedang di /teacher-dashboard, redirect ke /dashboard
+  if (!isTeacherActive && location.pathname === "/teacher-dashboard" && (roles.includes("school_admin") || roles.includes("staff"))) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   const initials = profile?.full_name
