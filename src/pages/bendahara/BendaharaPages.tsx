@@ -3290,7 +3290,40 @@ export function BendaharaPencairan() {
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
       .eq("school_id", profile!.school_id).in("id", invoiceIds).is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
-    setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
+    setConfirmOpen(false); setOtpOpen(false); setOtpCode(""); setSubmitting(false); setRefreshKey(k => k + 1);
+  };
+
+  const requestOtp = async () => {
+    if (!profile?.school_id) return;
+    setOtpStep("sending"); setOtpOpen(true); setOtpCode(""); setOtpInfo(null);
+    const res = await supabase.functions.invoke("bendahara-otp", {
+      body: { action: "send", school_id: profile.school_id },
+    });
+    const data: any = res.data;
+    if (res.error || data?.error) {
+      toast.error(data?.error || "Gagal kirim OTP");
+      setOtpOpen(false);
+      return;
+    }
+    setOtpInfo({ phone_masked: data.phone_masked, name: data.name });
+    setOtpStep("input");
+    setOtpResendCooldown(60);
+    toast.success(`OTP terkirim ke ${data.name}`);
+  };
+
+  const verifyOtpAndSubmit = async () => {
+    if (otpCode.length !== 6) { toast.error("OTP harus 6 digit"); return; }
+    setSubmitting(true);
+    const res = await supabase.functions.invoke("bendahara-otp", {
+      body: { action: "verify", school_id: profile!.school_id, otp_code: otpCode },
+    });
+    const data: any = res.data;
+    if (res.error || data?.error) {
+      toast.error(data?.error || "OTP salah");
+      setSubmitting(false);
+      return;
+    }
+    await submit();
   };
 
   const saveAccount = async () => {
