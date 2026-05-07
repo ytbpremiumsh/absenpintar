@@ -134,9 +134,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_custom_domain" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return ok({ payment_url: brandPaymentUrl(existing.mayar_payment_url), transaction_id: existing.id });
       }
 
       const redirectUrl = `${siteUrl}/custom-domain?status=success`;
@@ -160,9 +158,7 @@ serve(async (req) => {
         payment_transaction_id: txn?.id || null, expires_at: subRes?.data?.expires_at || null,
       }, { onConflict: "school_id,addon_type" });
 
-      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return ok({ payment_url: brandPaymentUrl(paymentLink.link), transaction_id: txn?.id || null });
     }
 
     // ═══════════════════════════════════════════
