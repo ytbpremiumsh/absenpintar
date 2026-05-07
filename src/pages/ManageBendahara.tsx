@@ -201,7 +201,7 @@ export default function ManageBendahara() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={assignBendahara} disabled={assigning || !assignTarget} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={assignBendahara} disabled={assigning || !assignTarget} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
                   {assigning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />} Berikan Akses Bendahara
                 </Button>
               </>
@@ -219,7 +219,7 @@ export default function ManageBendahara() {
             <div><Label>Email</Label><div className="relative"><Mail className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="pl-9" /></div></div>
             <div><Label>Password</Label><div className="relative"><Lock className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="pl-9" /></div></div>
             <div><Label>WhatsApp</Label><div className="relative"><Phone className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="pl-9" /></div></div>
-            <Button onClick={create} disabled={creating} className="w-full bg-emerald-600 hover:bg-emerald-700">
+            <Button onClick={create} disabled={creating} className="w-full bg-[#5B6CF9] hover:bg-[#4c5ded]">
               {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Buat Akun
             </Button>
           </div>
@@ -261,7 +261,7 @@ export default function ManageBendahara() {
             </div>
             <div className="flex gap-2 pt-1">
               <Button variant="outline" onClick={() => setEditOpen(false)} className="flex-1">Batal</Button>
-              <Button onClick={saveEdit} disabled={savingEdit} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={saveEdit} disabled={savingEdit} className="flex-1 bg-[#5B6CF9] hover:bg-[#4c5ded]">
                 {savingEdit ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Pencil className="h-4 w-4 mr-2" />} Simpan
               </Button>
             </div>
