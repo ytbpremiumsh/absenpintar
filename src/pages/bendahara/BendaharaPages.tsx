@@ -3153,6 +3153,19 @@ export function BendaharaPencairan() {
   const [refreshKey, setRefreshKey] = useState(0);
   const syncingRef = useRef(false);
 
+  // OTP confirmation
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [otpStep, setOtpStep] = useState<"sending" | "input">("sending");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpInfo, setOtpInfo] = useState<{ phone_masked: string; name: string } | null>(null);
+  const [otpResendCooldown, setOtpResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpResendCooldown <= 0) return;
+    const t = setInterval(() => setOtpResendCooldown(c => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(t);
+  }, [otpResendCooldown]);
+
   // Auto-open bank manager via ?manage=bank
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
