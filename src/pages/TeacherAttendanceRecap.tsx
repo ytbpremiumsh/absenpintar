@@ -199,7 +199,7 @@ const TeacherAttendanceRecap = () => {
                           </Avatar>
                           <div>
                             <p className="font-semibold text-foreground leading-tight">{r.full_name}</p>
-                            <p className="text-[10px] text-muted-foreground">{r.roles.join(" • ")}</p>
+                            <p className="text-[10px] text-muted-foreground">{r.roles.map(roleLabel).join(" • ")}</p>
                           </div>
                         </div>
                       </td>
