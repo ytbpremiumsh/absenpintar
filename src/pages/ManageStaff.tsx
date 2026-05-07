@@ -120,7 +120,7 @@ const ManageStaff = () => {
     try {
       // Use first role as primary, then add the rest
       const res = await supabase.functions.invoke("create-user", {
-        body: { email: formEmail, password: formPassword, full_name: formName, role: selectedRoles[0], school_id: schoolId, phone: formPhone },
+        body: { email: formEmail, password: formPassword, full_name: formName, role: selectedRoles[0], school_id: schoolId, phone: formPhone, nip: formNip },
       });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
@@ -138,7 +138,7 @@ const ManageStaff = () => {
 
       toast.success(`Akun ${formName} berhasil ditambahkan`);
       setShowDialog(false);
-      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPhone("");
+      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPhone(""); setFormNip("");
       setFormRoles({ staff: true, teacher: false, bendahara: false });
       fetchStaff();
     } catch (err: any) {
