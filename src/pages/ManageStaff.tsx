@@ -352,6 +352,73 @@ const ManageStaff = () => {
         </div>
       } />
 
+      {/* Stats header */}
+      {!loading && staff.length > 0 && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <Users2 className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
+                <p className="text-2xl font-bold">{staff.length}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Total Akun</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <GraduationCap className="h-5 w-5 mx-auto mb-1 text-violet-500" />
+                <p className="text-2xl font-bold">{totalGuru}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Guru</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <Shield className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
+                <p className="text-2xl font-bold">{totalOperator}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Operator</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <Wallet className="h-5 w-5 mx-auto mb-1 text-amber-500" />
+                <p className="text-2xl font-bold">{totalBendahara}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Bendahara</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Info: dashboard access explanation */}
+          <Card className="border-0 shadow-card bg-gradient-to-br from-[#5B6CF9]/5 to-violet-500/5">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-xl bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
+                  <Shield className="h-4 w-4 text-[#5B6CF9]" />
+                </div>
+                <div className="space-y-1.5 min-w-0">
+                  <p className="text-sm font-bold">Tentang Hak Akses Dashboard</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Setiap akun bisa diberi <span className="font-semibold text-foreground">lebih dari satu role</span> (Guru, Operator, atau Bendahara). Ketika user login, jika punya beberapa role, akan muncul halaman <span className="font-semibold text-foreground">"Pilih Dashboard"</span> untuk memilih akan masuk ke dashboard mana.
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Setelah masuk, user tetap bisa <span className="font-semibold text-foreground">berpindah dashboard</span> kapan saja melalui menu <span className="font-semibold text-foreground">"Switch Dashboard"</span> di sidebar — tanpa perlu logout.
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <Badge variant="secondary" className="text-[10px] border-0 bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400">
+                      <GraduationCap className="h-3 w-3 mr-1" /> Guru → Dashboard Wali Kelas
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] border-0 bg-[#5B6CF9]/10 text-[#5B6CF9]">
+                      <Shield className="h-3 w-3 mr-1" /> Operator → Dashboard Sekolah
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] border-0 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                      <Wallet className="h-3 w-3 mr-1" /> Bendahara → Dashboard SPP
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">Memuat data...</div>
       ) : staff.length === 0 ? (
