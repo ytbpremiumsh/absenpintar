@@ -178,7 +178,7 @@ const ReferralDashboard = () => {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Semua reward sudah tercapai! 🎉</p>
+                <p className="text-sm text-muted-foreground">Semua reward sudah tercapai!</p>
               )}
 
               {/* Achievement badges */}
