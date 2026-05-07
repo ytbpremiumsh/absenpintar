@@ -130,7 +130,9 @@ export function useSubscriptionFeatures(): PlanFeatures {
     fetch();
   }, [profile?.school_id]);
 
-  const features = PLAN_FEATURES[planName] || PLAN_FEATURES.Free;
+  const baseFeatures = PLAN_FEATURES[planName] || PLAN_FEATURES.Free;
+  // Active trial unlocks Face Recognition regardless of plan name
+  const features = isTrial ? { ...baseFeatures, canFaceRecognition: true } : baseFeatures;
 
   return { planName, isTrial, trialDaysLeft, trialExpiresAt, loading, ...features };
 }
