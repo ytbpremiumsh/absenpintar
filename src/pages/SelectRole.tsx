@@ -2,16 +2,26 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Check, ArrowLeft, MessageCircle } from "lucide-react";
-import { getAvailableDashboards, type DashboardOption } from "@/lib/dashboards";
+import {
+  LogOut,
+  Check,
+  Crown,
+  LayoutDashboard,
+  Shield,
+  GraduationCap,
+  Wallet,
+} from "lucide-react";
+import { getAvailableDashboards } from "@/lib/dashboards";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 
-// Override gradient: school admin = ungu (purple)
-const overrideGradient = (d: DashboardOption): string => {
-  if (d.key === "school_admin") return "from-violet-500 to-purple-600";
-  return d.gradient;
+// Outline icon override for the picker (separate from sidebar icons)
+const OUTLINE_ICONS: Record<string, any> = {
+  super_admin: Crown,
+  school_admin: LayoutDashboard,
+  staff: Shield,
+  teacher: GraduationCap,
+  bendahara: Wallet,
 };
 
 export default function SelectRole() {
@@ -44,121 +54,98 @@ export default function SelectRole() {
   if (loading || dashboards.length <= 1) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#5B6CF9] via-[#6B5DF5] to-[#8B5CF6] p-4 sm:p-8 flex items-center justify-center">
-      <div className="w-full max-w-6xl bg-background rounded-3xl shadow-2xl overflow-hidden relative">
-        {/* Top progress bar */}
-        <div className="h-1 w-full bg-muted">
-          <div className="h-full w-1/3 bg-gradient-to-r from-[#5B6CF9] to-violet-600" />
-        </div>
-
-        <div className="p-6 sm:p-10">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-violet-600 flex items-center justify-center shadow-md">
-                <img src={atskollaLogo} alt="ATSkolla" className="h-6 w-6 object-contain" />
-              </div>
-              <span className="font-extrabold tracking-tight text-[#5B6CF9]">ATSkolla</span>
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 p-4 sm:p-8 flex items-center justify-center">
+      <div className="w-full max-w-3xl bg-background rounded-2xl shadow-2xl shadow-slate-300/40 dark:shadow-black/40">
+        <div className="px-6 sm:px-12 py-10 sm:py-14">
+          {/* Header / Logo */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-violet-600 flex items-center justify-center shadow-md mb-3">
+              <img src={atskollaLogo} alt="ATSkolla" className="h-7 w-7 object-contain" />
             </div>
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-muted-foreground hover:text-foreground transition flex items-center gap-1.5"
-            >
-              <MessageCircle className="h-4 w-4" /> Keluar
-            </button>
-          </div>
-
-          {/* Title */}
-          <div className="text-center mb-10">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2 tracking-tight">
-              Halo, {profile?.full_name || "User"}
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-wide text-[#5B6CF9]">
+              Pilih Dashboard
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Pilih dashboard yang ingin Anda buka hari ini.
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Halo, <span className="font-medium text-foreground">{profile?.full_name || "User"}</span> — pilih dashboard yang ingin Anda buka.
             </p>
           </div>
 
-          {/* Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {/* Cards centered */}
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-10 mb-10">
             {dashboards.map((d, i) => {
-              const Icon = d.icon;
+              const Icon = OUTLINE_ICONS[d.key] ?? d.icon;
               const isSelected = selected === d.key;
-              const grad = overrideGradient(d);
               return (
-                <motion.div
+                <motion.button
                   key={d.key}
-                  initial={{ opacity: 0, y: 16 }}
+                  type="button"
+                  onClick={() => setSelected(d.key)}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex flex-col items-center group focus:outline-none"
                 >
-                  <Card
-                    onClick={() => setSelected(d.key)}
-                    className={`relative cursor-pointer p-5 sm:p-6 h-full border-2 transition-all duration-200 rounded-2xl overflow-hidden group ${
+                  <div
+                    className={`relative h-24 w-24 sm:h-28 sm:w-28 rounded-lg flex items-center justify-center transition-all duration-200 ${
                       isSelected
-                        ? `bg-gradient-to-br ${grad} text-white border-transparent shadow-xl -translate-y-1`
-                        : "bg-card hover:border-[#5B6CF9]/40 hover:-translate-y-0.5 hover:shadow-lg"
+                        ? "border-2 border-[#5B6CF9] bg-[#5B6CF9]/[0.04] shadow-md shadow-[#5B6CF9]/20"
+                        : "border border-slate-200 dark:border-slate-800 group-hover:border-[#5B6CF9]/50"
                     }`}
                   >
-                    {/* Check / radio indicator */}
-                    <div
-                      className={`absolute top-3 right-3 h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${
-                        isSelected
-                          ? "bg-white border-white text-[#5B6CF9]"
-                          : "border-muted-foreground/30 bg-transparent"
+                    <Icon
+                      className={`h-11 w-11 sm:h-12 sm:w-12 transition-colors ${
+                        isSelected ? "text-[#5B6CF9]" : "text-slate-300 dark:text-slate-600 group-hover:text-[#5B6CF9]/60"
                       }`}
-                    >
-                      {isSelected && <Check className="h-4 w-4" strokeWidth={3} />}
-                    </div>
-
-                    {/* Icon illustration */}
-                    <div className="flex items-center justify-center h-24 sm:h-28 mb-4">
-                      <div
-                        className={`h-20 w-20 rounded-2xl flex items-center justify-center transition ${
-                          isSelected
-                            ? "bg-white/20 backdrop-blur"
-                            : `bg-gradient-to-br ${grad} text-white shadow-lg group-hover:scale-105`
-                        }`}
+                      strokeWidth={1.5}
+                    />
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-md bg-[#5B6CF9] text-white flex items-center justify-center shadow-md"
                       >
-                        <Icon className="h-10 w-10" strokeWidth={1.6} />
-                      </div>
-                    </div>
-
-                    {/* Text */}
-                    <div className="text-center">
-                      <p className={`font-bold text-base mb-1 ${isSelected ? "text-white" : ""}`}>
-                        {d.label}
-                      </p>
-                      <p className={`text-xs leading-relaxed ${isSelected ? "text-white/85" : "text-muted-foreground"}`}>
-                        {d.description}
-                      </p>
-                    </div>
-                  </Card>
-                </motion.div>
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                      </motion.div>
+                    )}
+                  </div>
+                  <span
+                    className={`mt-3 text-sm font-medium transition-colors ${
+                      isSelected ? "text-[#5B6CF9]" : "text-slate-400 group-hover:text-[#5B6CF9]/80"
+                    }`}
+                  >
+                    {d.label}
+                  </span>
+                </motion.button>
               );
             })}
           </div>
 
-          {/* Footer actions */}
-          <div className="flex items-center justify-between gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-              className="h-12 w-12 rounded-full border border-border hover:bg-muted"
-              aria-label="Keluar"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-
+          {/* Continue button */}
+          <div className="flex justify-center">
             <Button
               onClick={handleContinue}
               disabled={!selected}
-              className="h-14 px-12 sm:px-16 rounded-full text-base font-semibold bg-gradient-to-r from-[#5B6CF9] to-violet-600 hover:opacity-95 shadow-lg shadow-[#5B6CF9]/30"
+              className="h-12 px-10 rounded-md text-sm font-medium bg-[#5B6CF9] hover:bg-[#4c5ded] text-white shadow-lg shadow-[#5B6CF9]/30"
             >
               Lanjutkan
             </Button>
+          </div>
 
-            <div className="h-12 w-12" />
+          {/* Step dots */}
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[#5B6CF9]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+          </div>
+
+          {/* Sign out */}
+          <div className="text-center mt-6">
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Keluar
+            </button>
           </div>
         </div>
       </div>
