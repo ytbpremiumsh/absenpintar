@@ -130,6 +130,7 @@ export default function SuperAdminPanduan() {
         intro: active.intro,
         cover: active.cover || null,
         mobile_mockup: active.mobileMockup || null,
+        mobile_mockup_enabled: active.mobileMockupEnabled,
         color: active.color,
         highlights: active.highlights,
         steps: active.steps,
