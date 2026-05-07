@@ -96,100 +96,131 @@ const WaCredit = () => {
   const creditPercent = waCredits ? Math.min(100, (waCredits.balance / Math.max(waCredits.total_purchased, 1)) * 100) : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/addons")} className="shrink-0">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center">
-              <MessageSquare className="h-5 w-5 text-white" />
-            </div>
-            Kredit Pesan WhatsApp
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">Top-up kredit pesan untuk notifikasi absensi & broadcast</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={MessageSquare}
+        title="Kredit Pesan WhatsApp"
+        subtitle="Top-up kredit pesan untuk notifikasi absensi & broadcast"
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/addons")}
+            className="bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Kembali
+          </Button>
+        }
+      />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left: Credit Status */}
-        <div className="space-y-5">
+      <div className="grid gap-5 lg:grid-cols-5">
+        {/* Left: Credit Status (3 cols) */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="lg:col-span-3 space-y-4"
+        >
           {/* Balance Card */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="overflow-hidden border-2">
-              <div className="bg-gradient-to-r from-violet-600 to-purple-700 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-white/70 font-medium">Sisa Kredit Pesan</p>
-                    <p className="text-4xl font-extrabold mt-1">{waCredits ? waCredits.balance.toLocaleString("id-ID") : "0"}</p>
-                    <p className="text-sm text-white/70 mt-1">pesan tersedia</p>
-                  </div>
-                  <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <MessageSquare className="h-8 w-8" />
-                  </div>
+          <Card className="overflow-hidden border-0 shadow-card">
+            <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-purple-700 p-6 text-white">
+              <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+              <div className="absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/5 blur-xl" />
+              <div className="relative flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-white/75 font-medium uppercase tracking-wide">Sisa Kredit Pesan</p>
+                  <p className="text-4xl sm:text-5xl font-extrabold mt-2 tabular-nums leading-none">
+                    {waCredits ? waCredits.balance.toLocaleString("id-ID") : "0"}
+                  </p>
+                  <p className="text-xs sm:text-sm text-white/75 mt-2">pesan tersedia</p>
+                </div>
+                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0">
+                  <MessageSquare className="h-7 w-7 sm:h-8 sm:w-8" />
                 </div>
               </div>
-              <CardContent className="p-5 space-y-4">
-                {waCredits && (
-                  <>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Pemakaian</span>
-                        <span className="font-semibold">{waCredits.total_used.toLocaleString("id-ID")} / {waCredits.total_purchased.toLocaleString("id-ID")}</span>
-                      </div>
-                      <Progress value={creditPercent} className="h-2.5" />
+            </div>
+            <CardContent className="p-5 space-y-4">
+              {waCredits ? (
+                <>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-baseline text-sm">
+                      <span className="text-muted-foreground font-medium">Pemakaian</span>
+                      <span className="font-semibold tabular-nums text-foreground">
+                        {waCredits.total_used.toLocaleString("id-ID")}
+                        <span className="text-muted-foreground"> / {waCredits.total_purchased.toLocaleString("id-ID")}</span>
+                      </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { label: "Total Beli", val: waCredits.total_purchased.toLocaleString("id-ID"), icon: TrendingUp },
-                        { label: "Terpakai", val: waCredits.total_used.toLocaleString("id-ID"), icon: Zap },
-                        { label: "Sisa", val: waCredits.balance.toLocaleString("id-ID"), icon: ShieldCheck },
-                      ].map((s) => (
-                        <div key={s.label} className="p-3 rounded-xl bg-muted/50 border text-center">
-                          <s.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
-                          <p className="text-xs text-muted-foreground">{s.label}</p>
-                          <p className="font-bold text-sm">{s.val}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {!waCredits && (
-                  <div className="text-center py-4">
-                    <p className="text-muted-foreground text-sm">Belum ada kredit. Beli kredit pertama Anda!</p>
+                    <Progress value={creditPercent} className="h-2" />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {[
+                      { label: "Total Beli", val: waCredits.total_purchased.toLocaleString("id-ID"), icon: TrendingUp, color: "text-violet-600 bg-violet-50 dark:bg-violet-950/40" },
+                      { label: "Terpakai", val: waCredits.total_used.toLocaleString("id-ID"), icon: Zap, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/40" },
+                      { label: "Sisa", val: waCredits.balance.toLocaleString("id-ID"), icon: ShieldCheck, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" },
+                    ].map((s) => (
+                      <div key={s.label} className="p-3 rounded-xl bg-muted/40 border border-border/60 text-center">
+                        <div className={`h-7 w-7 mx-auto rounded-lg flex items-center justify-center mb-1.5 ${s.color}`}>
+                          <s.icon className="h-3.5 w-3.5" />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">{s.label}</p>
+                        <p className="font-bold text-sm tabular-nums mt-0.5">{s.val}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-6">
+                  <Wallet className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-muted-foreground text-sm">Belum ada kredit. Beli kredit pertama Anda!</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* Right: Purchase */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-2 h-full">
-            <CardContent className="p-6 space-y-5">
-              <div>
-                <h3 className="font-bold text-lg">Beli Kredit Pesan</h3>
-                <p className="text-sm text-muted-foreground mt-1">Pilih jumlah paket yang ingin dibeli</p>
+        {/* Right: Purchase (2 cols) */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="lg:col-span-2"
+        >
+          <Card className="border-0 shadow-card h-full">
+            <CardContent className="p-5 sm:p-6 space-y-4">
+              <div className="flex items-start gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-4.5 w-4.5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-base">Beli Kredit Pesan</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Pilih jumlah paket yang ingin dibeli</p>
+                </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium">Harga per paket</span>
-                  <Badge variant="secondary" className="text-xs">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border border-violet-200/60 dark:border-violet-900/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Harga per paket</span>
+                  <Badge variant="secondary" className="text-[10px] bg-white/80 dark:bg-background/40 font-semibold">
                     {waCreditPerPack.toLocaleString("id-ID")} pesan
                   </Badge>
                 </div>
-                <p className="text-2xl font-extrabold text-foreground">Rp {waCreditPrice.toLocaleString("id-ID")}</p>
+                <p className="text-2xl font-extrabold text-foreground tabular-nums">
+                  Rp {waCreditPrice.toLocaleString("id-ID")}
+                </p>
               </div>
 
               {/* Quantity Selector */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Jumlah Paket</label>
-                <div className="flex items-center gap-3">
-                  <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setWaPacks(Math.max(1, waPacks - 1))}>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Jumlah Paket</label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 shrink-0 rounded-xl"
+                    onClick={() => setWaPacks(Math.max(1, waPacks - 1))}
+                    disabled={waPacks <= 1}
+                  >
                     <Minus className="h-4 w-4" />
                   </Button>
                   <Input
@@ -198,30 +229,47 @@ const WaCredit = () => {
                     max={100}
                     value={waPacks}
                     onChange={(e) => setWaPacks(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 text-center font-bold text-lg h-10"
+                    className="h-10 text-center font-bold text-base flex-1 rounded-xl"
                   />
-                  <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setWaPacks(Math.min(100, waPacks + 1))}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 shrink-0 rounded-xl"
+                    onClick={() => setWaPacks(Math.min(100, waPacks + 1))}
+                    disabled={waPacks >= 100}
+                  >
                     <Plus className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm text-muted-foreground">= <strong>{(waPacks * waCreditPerPack).toLocaleString("id-ID")}</strong> pesan</span>
                 </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  = <strong className="text-foreground tabular-nums">{(waPacks * waCreditPerPack).toLocaleString("id-ID")}</strong> pesan
+                </p>
               </div>
 
               {/* Total */}
-              <div className="p-4 rounded-xl bg-muted/50 border flex items-center justify-between">
-                <span className="font-medium">Total Pembayaran</span>
-                <span className="text-xl font-extrabold text-primary">Rp {(waPacks * waCreditPrice).toLocaleString("id-ID")}</span>
+              <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between">
+                <span className="text-sm font-semibold">Total Pembayaran</span>
+                <span className="text-xl font-extrabold text-primary tabular-nums">
+                  Rp {(waPacks * waCreditPrice).toLocaleString("id-ID")}
+                </span>
               </div>
 
-              <Button className="w-full h-12 text-base" onClick={handleBuy} disabled={purchasing}>
+              <Button
+                className="w-full h-11 text-sm font-semibold gradient-primary text-primary-foreground"
+                onClick={handleBuy}
+                disabled={purchasing}
+              >
                 {purchasing ? (
-                  <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Memproses...</>
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</>
                 ) : (
-                  <><MessageSquare className="h-5 w-5 mr-2" /> Beli Kredit Sekarang</>
+                  <><MessageSquare className="h-4 w-4 mr-2" /> Beli Kredit Sekarang</>
                 )}
               </Button>
 
-              <p className="text-xs text-muted-foreground text-center">Pembayaran diproses melalui payment gateway yang aman</p>
+              <p className="text-[11px] text-muted-foreground text-center flex items-center justify-center gap-1">
+                <ShieldCheck className="h-3 w-3" />
+                Pembayaran diproses melalui payment gateway aman
+              </p>
             </CardContent>
           </Card>
         </motion.div>
