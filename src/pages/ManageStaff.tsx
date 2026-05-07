@@ -404,43 +404,25 @@ const ManageStaff = () => {
       {/* Stats header */}
       {!loading && staff.length > 0 && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-2.5 flex items-center gap-2">
-                <Users2 className="h-4 w-4 text-[#5B6CF9] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-base font-bold leading-none">{staff.length}</p>
-                  <p className="text-[10px] text-muted-foreground">Total Akun</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-2.5 flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-violet-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-base font-bold leading-none">{totalGuru}</p>
-                  <p className="text-[10px] text-muted-foreground">Guru</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-2.5 flex items-center gap-2">
-                <Shield className="h-4 w-4 text-[#5B6CF9] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-base font-bold leading-none">{totalOperator}</p>
-                  <p className="text-[10px] text-muted-foreground">Operator</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-2.5 flex items-center gap-2">
-                <Wallet className="h-4 w-4 text-amber-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-base font-bold leading-none">{totalBendahara}</p>
-                  <p className="text-[10px] text-muted-foreground">Bendahara</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { label: "Total Akun", value: staff.length, Icon: Users2, color: "text-[#5B6CF9]", bg: "bg-[#5B6CF9]/10" },
+              { label: "Guru", value: totalGuru, Icon: GraduationCap, color: "text-violet-600", bg: "bg-violet-500/10" },
+              { label: "Operator", value: totalOperator, Icon: Shield, color: "text-[#5B6CF9]", bg: "bg-[#5B6CF9]/10" },
+              { label: "Bendahara", value: totalBendahara, Icon: Wallet, color: "text-amber-600", bg: "bg-amber-500/10" },
+            ].map(({ label, value, Icon, color, bg }) => (
+              <Card key={label} className="border border-border/50 shadow-none">
+                <CardContent className="p-3 flex items-center gap-3">
+                  <div className={`h-9 w-9 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
+                    <Icon className={`h-4 w-4 ${color}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg font-bold leading-tight">{value}</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight truncate">{label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Info: dashboard access explanation (compact) */}
