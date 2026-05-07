@@ -511,7 +511,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
           <div className="p-6 text-center space-y-3">
             <CheckCircle2 className="h-14 w-14 text-success-foreground mx-auto" />
             <DialogTitle className="text-lg font-bold text-success-foreground">
-              ✅ Absensi {attendanceType === "pulang" ? "Pulang" : "Datang"} Berhasil
+              Absensi {attendanceType === "pulang" ? "Pulang" : "Datang"} Berhasil
             </DialogTitle>
             <DialogDescription className="text-success-foreground/90 text-sm">
               <p><strong>{scannedStudent?.name}</strong></p>
