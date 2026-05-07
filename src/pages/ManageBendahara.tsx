@@ -117,7 +117,7 @@ export default function ManageBendahara() {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Wallet} title="Kelola Bendahara" subtitle="Tambah Bendahara baru atau berikan tanggung jawab Bendahara ke guru/staff yang sudah ada" variant="emerald" actions={
+      <PageHeader icon={Wallet} title="Kelola Bendahara" subtitle="Tambah Bendahara baru atau berikan tanggung jawab Bendahara ke guru/staff yang sudah ada" actions={
         <div className="flex flex-wrap gap-2">
           <div className="hidden lg:flex items-center gap-3 mr-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
             <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center">
@@ -131,7 +131,7 @@ export default function ManageBendahara() {
           <Button onClick={() => setAssignOpen(true)} className="bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur-sm rounded-xl text-xs font-semibold shadow-md">
             <UserPlus className="h-4 w-4 mr-2" /> Beri Tanggung Jawab
           </Button>
-          <Button onClick={() => setOpen(true)} className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-bold shadow-lg shadow-black/10">
+          <Button onClick={() => setOpen(true)} className="bg-white text-[#5B6CF9] hover:bg-white/90 rounded-xl text-xs font-bold shadow-lg shadow-black/10">
             <Plus className="h-4 w-4 mr-2" /> Tambah Bendahara Baru
           </Button>
         </div>
