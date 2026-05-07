@@ -41,7 +41,7 @@ const ReferralDashboard = () => {
   };
 
   const handleShareWA = () => {
-    const text = `🎓 Gunakan ATSkolla untuk absensi digital sekolah! Daftar gratis:\n${referralLink}`;
+    const text = `Gunakan ATSkolla untuk absensi digital sekolah! Daftar gratis:\n${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
