@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, Save, Loader2, Send, School, Pencil, Plus, Smartphone, Wifi, WifiOff } from "lucide-react";
+import { MessageSquare, Save, Loader2, Send, School, Pencil, Plus, Smartphone, Wifi, WifiOff, ArrowDownToLine, ArrowUpFromLine, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -212,7 +212,7 @@ const SuperAdminWhatsApp = () => {
     try {
       const body: any = {
         phone: testPhone.replace(/\D/g, ""),
-        message: `✅ Tes koneksi WhatsApp Gateway (${int.gateway_type === "mpwa" ? "MPWA" : "OneSender"}) untuk ${int.school_name} berhasil!\n\nPesan ini dikirim dari Smart School Pickup System.`,
+        message: `Tes koneksi WhatsApp Gateway (${int.gateway_type === "mpwa" ? "MPWA" : "OneSender"}) untuk ${int.school_name} berhasil!\n\nPesan ini dikirim dari ATSkolla Attendance System.`,
       };
 
       if (int.gateway_type === "mpwa") {
@@ -382,9 +382,9 @@ const SuperAdminWhatsApp = () => {
             {/* Template Tabs */}
             <Tabs defaultValue="arrive" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="arrive" className="text-xs">📥 Datang</TabsTrigger>
-                <TabsTrigger value="depart" className="text-xs">📤 Pulang</TabsTrigger>
-                <TabsTrigger value="group" className="text-xs">👥 Group</TabsTrigger>
+                <TabsTrigger value="arrive" className="text-xs gap-1"><ArrowDownToLine className="h-3 w-3" /> Datang</TabsTrigger>
+                <TabsTrigger value="depart" className="text-xs gap-1"><ArrowUpFromLine className="h-3 w-3" /> Pulang</TabsTrigger>
+                <TabsTrigger value="group" className="text-xs gap-1"><Users className="h-3 w-3" /> Group</TabsTrigger>
               </TabsList>
 
               <TabsContent value="arrive" className="space-y-2 mt-3">
