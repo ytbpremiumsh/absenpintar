@@ -295,7 +295,13 @@ const CustomDomain = () => {
         open={!!paymentIframe}
         paymentUrl={paymentIframe}
         title="Pembayaran Custom Domain — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+        checkPaid={async () => {
+          if (!paymentTxnId) return false;
+          const { data } = await supabase.from("payment_transactions").select("status").eq("id", paymentTxnId).maybeSingle();
+          return data?.status === "paid";
+        }}
+        onPaid={() => { window.location.href = "/custom-domain?status=success"; }}
+        onClose={() => { setPaymentIframe(null); setPaymentTxnId(null); }}
       />
     </div>
   );
