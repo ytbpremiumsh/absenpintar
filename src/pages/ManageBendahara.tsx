@@ -30,17 +30,49 @@ export default function ManageBendahara() {
   const [editForm, setEditForm] = useState({ full_name: "", email: "", password: "", phone: "" });
   const [savingEdit, setSavingEdit] = useState(false);
 
+  // Assign existing user as Bendahara
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignables, setAssignables] = useState<AssignableUser[]>([]);
+  const [assignTarget, setAssignTarget] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
+
   const load = async () => {
     if (!profile?.school_id) { setLoading(false); return; }
     const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").eq("school_id", profile.school_id);
-    if (!profiles) { setList([]); setLoading(false); return; }
+    if (!profiles) { setList([]); setAssignables([]); setLoading(false); return; }
     const ids = profiles.map(p => p.user_id);
-    const { data: roles } = await supabase.from("user_roles").select("user_id").in("user_id", ids).eq("role", "bendahara" as any);
-    const set = new Set((roles || []).map((r: any) => r.user_id));
-    setList(profiles.filter(p => set.has(p.user_id)));
+    const { data: allRoles } = await supabase.from("user_roles").select("user_id, role").in("user_id", ids);
+    const rolesByUser = new Map<string, string[]>();
+    (allRoles || []).forEach((r: any) => {
+      const arr = rolesByUser.get(r.user_id) || [];
+      arr.push(r.role);
+      rolesByUser.set(r.user_id, arr);
+    });
+    const bend: BendaharaUser[] = [];
+    const assn: AssignableUser[] = [];
+    profiles.forEach(p => {
+      const rs = rolesByUser.get(p.user_id) || [];
+      if (rs.includes("bendahara")) {
+        bend.push({ user_id: p.user_id, full_name: p.full_name, extra_roles: rs.filter(r => r !== "bendahara") });
+      } else if (rs.includes("teacher") || rs.includes("staff")) {
+        assn.push({ user_id: p.user_id, full_name: p.full_name, roles: rs });
+      }
+    });
+    setList(bend);
+    setAssignables(assn);
     setLoading(false);
   };
   useEffect(() => { load(); }, [profile?.school_id]);
+
+  const assignBendahara = async () => {
+    if (!assignTarget) { toast.error("Pilih guru/staff terlebih dahulu"); return; }
+    setAssigning(true);
+    const { error } = await supabase.from("user_roles").insert({ user_id: assignTarget, role: "bendahara" as any });
+    setAssigning(false);
+    if (error) { toast.error("Gagal: " + error.message); return; }
+    toast.success("Tanggung jawab Bendahara berhasil diberikan");
+    setAssignOpen(false); setAssignTarget(""); load();
+  };
 
   const create = async () => {
     if (!form.full_name || !form.email || !form.password) { toast.error("Lengkapi data"); return; }
