@@ -3159,6 +3159,12 @@ export function BendaharaPencairan() {
   const [otpPhoneMasked, setOtpPhoneMasked] = useState("");
   const [otpResendIn, setOtpResendIn] = useState(0);
 
+  useEffect(() => {
+    if (otpResendIn <= 0) return;
+    const t = setTimeout(() => setOtpResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [otpResendIn]);
+
   // Auto-open bank manager via ?manage=bank
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
