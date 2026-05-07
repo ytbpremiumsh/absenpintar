@@ -132,7 +132,7 @@ const Subscription = () => {
       if (latestPayment?.status === "paid") {
         if (pollingRef.current) clearInterval(pollingRef.current);
         setPaymentSuccess(true);
-        toast.success("🎉 Pembayaran berhasil! Paket Anda telah di-upgrade otomatis.");
+        toast.success("Pembayaran berhasil! Paket Anda telah di-upgrade otomatis.");
         setTimeout(() => window.location.replace("/subscription"), 2500);
       } else if (attempts >= maxAttempts) {
         if (pollingRef.current) clearInterval(pollingRef.current);
@@ -263,7 +263,7 @@ const Subscription = () => {
               <CheckCircle2 className={`h-6 w-6 shrink-0 ${paymentSuccess ? "text-success" : "text-primary"}`} />
               <div className="flex-1">
                 <p className="text-sm font-bold text-foreground">
-                  {paymentSuccess ? "🎉 Pembayaran Berhasil — Upgrade Sukses!" : "⏳ Menunggu Konfirmasi Pembayaran..."}
+                  {paymentSuccess ? "Pembayaran Berhasil — Upgrade Sukses!" : "Menunggu Konfirmasi Pembayaran..."}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {paymentSuccess
@@ -285,7 +285,7 @@ const Subscription = () => {
               <AlertTriangle className="h-6 w-6 shrink-0 text-warning" />
               <div className="flex-1">
                 <p className="text-sm font-bold text-foreground">
-                  ⏰ Masa Trial Berakhir {daysLeft} Hari Lagi!
+                  Masa Trial Berakhir {daysLeft} Hari Lagi!
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Segera upgrade ke paket berbayar agar fitur premium tetap aktif. Setelah trial berakhir, akun akan otomatis pindah ke paket Free.
@@ -308,7 +308,7 @@ const Subscription = () => {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-lg sm:text-xl font-extrabold text-primary-foreground truncate">Paket {planName}</h2>
                    <Badge className="bg-white/20 text-primary-foreground border-0 text-[10px]">
-                    {isTrialSub ? "🎁 Trial" : hasActiveSub && !isFree ? "Aktif" : isFree ? "Gratis" : "Expired"}
+                    {isTrialSub ? "Trial" : hasActiveSub && !isFree ? "Aktif" : isFree ? "Gratis" : "Expired"}
                   </Badge>
                 </div>
                 <p className="text-xl sm:text-2xl font-extrabold text-primary-foreground mt-0.5">
@@ -344,7 +344,7 @@ const Subscription = () => {
                     {new Date(currentSub.started_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
                   </span>
                   <span className={`text-[10px] font-medium ${daysLeft !== null && daysLeft <= 7 ? "text-warning" : "text-muted-foreground"}`}>
-                    {daysLeft !== null && daysLeft <= 7 ? `⚠ ${daysLeft} hari lagi` : `${Math.round(periodProgress)}% terpakai`}
+                    {daysLeft !== null && daysLeft <= 7 ? `${daysLeft} hari lagi` : `${Math.round(periodProgress)}% terpakai`}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
                     {new Date(currentSub.expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
@@ -377,7 +377,7 @@ const Subscription = () => {
                     Terpakai: {waCredits.total_used.toLocaleString("id-ID")}
                   </span>
                   <span className={`text-[10px] font-medium ${waCredits.balance < 100 ? "text-warning" : "text-muted-foreground"}`}>
-                    {waCredits.balance < 100 ? "⚠ Kredit hampir habis" : `Sisa ${Math.round(waCredits.total_purchased > 0 ? (waCredits.balance / waCredits.total_purchased) * 100 : 0)}%`}
+                    {waCredits.balance < 100 ? "Kredit hampir habis" : `Sisa ${Math.round(waCredits.total_purchased > 0 ? (waCredits.balance / waCredits.total_purchased) * 100 : 0)}%`}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
                     Total: {waCredits.total_purchased.toLocaleString("id-ID")}
@@ -569,18 +569,18 @@ const Subscription = () => {
                     }`}>
                       {/* Top Banner */}
                       {isCurrent && (
-                        <div className="gradient-primary text-primary-foreground text-[11px] font-semibold text-center py-1.5">
-                          ✓ Paket Saat Ini
+                        <div className="gradient-primary text-primary-foreground text-[11px] font-semibold text-center py-1.5 flex items-center justify-center gap-1">
+                          <Check className="h-3 w-3" /> Paket Saat Ini
                         </div>
                       )}
                       {!isCurrent && highlighted && (
-                        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[11px] font-semibold text-center py-1.5">
-                          ⭐ Rekomendasi
+                        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[11px] font-semibold text-center py-1.5 flex items-center justify-center gap-1">
+                          <Star className="h-3 w-3" /> Rekomendasi
                         </div>
                       )}
                       {!isCurrent && !highlighted && isPremium && (
-                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-semibold text-center py-1.5">
-                          👑 Premium
+                        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-semibold text-center py-1.5 flex items-center justify-center gap-1">
+                          <Crown className="h-3 w-3" /> Premium
                         </div>
                       )}
 
