@@ -23,6 +23,7 @@ const CustomDomain = () => {
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [paymentTxnId, setPaymentTxnId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("platform_settings").select("value").eq("key", "addon_custom_domain_enabled").maybeSingle().then(({ data }) => {
