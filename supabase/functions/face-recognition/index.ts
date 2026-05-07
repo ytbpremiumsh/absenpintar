@@ -52,25 +52,45 @@ serve(async (req) => {
       });
     }
 
-    const { data: students, error: studentsError } = await supabaseAdmin
-      .from('students')
-      .select('id, name, student_id, class, photo_url, parent_name, parent_phone')
-      .eq('school_id', school_id)
-      .not('photo_url', 'is', null);
+    const [studentsRes, teachersRes, rolesRes] = await Promise.all([
+      supabaseAdmin
+        .from('students')
+        .select('id, name, student_id, class, photo_url, parent_name, parent_phone')
+        .eq('school_id', school_id)
+        .not('photo_url', 'is', null),
+      supabaseAdmin
+        .from('profiles')
+        .select('user_id, full_name, photo_url, qr_code')
+        .eq('school_id', school_id)
+        .not('photo_url', 'is', null),
+      supabaseAdmin
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['teacher', 'staff', 'bendahara']),
+    ]);
 
-    if (studentsError) throw studentsError;
-    if (!students || students.length === 0) {
-      return new Response(JSON.stringify({ success: false, match: false, error: "Tidak ada siswa dengan foto di sekolah ini" }), {
+    if (studentsRes.error) throw studentsRes.error;
+    const students = studentsRes.data || [];
+    const allTeacherIds = new Set((rolesRes.data || []).map((r: any) => r.user_id));
+    const teachers = (teachersRes.data || []).filter((t: any) => allTeacherIds.has(t.user_id));
+
+    if (students.length === 0 && teachers.length === 0) {
+      return new Response(JSON.stringify({ success: false, match: false, error: "Tidak ada data dengan foto" }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Build image content for AI - send captured image + up to 20 student photos
-    const studentBatch = students.slice(0, 20);
-    
-    const studentList = studentBatch.map((s, i) => 
-      `Student #${i + 1}: Name="${s.name}", ID="${s.student_id}", Class="${s.class}"`
+    // Build image content for AI - send captured image + up to 15 students + 5 teachers
+    const studentBatch = students.slice(0, 15);
+    const teacherBatch = teachers.slice(0, 5);
+
+    const studentList = studentBatch.map((s, i) =>
+      `Person #${i + 1} [STUDENT]: Name="${s.name}", ID="${s.student_id}", Class="${s.class}"`
     ).join('\n');
+    const teacherList = teacherBatch.map((t: any, i) =>
+      `Person #${studentBatch.length + i + 1} [TEACHER]: Name="${t.full_name}"`
+    ).join('\n');
+    const combinedList = [studentList, teacherList].filter(Boolean).join('\n');
 
     const imageContent: any[] = [
       {
