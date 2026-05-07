@@ -66,7 +66,7 @@ const TOPIC_PRESETS = [
 
 const REWRITE_STYLES = [
   { v: "improve", label: "Tingkatkan Kualitas" },
-  { v: "mimic", label: "🎯 Tiru Gaya Contoh (Style Mimic)" },
+  { v: "mimic", label: "Tiru Gaya Contoh (Style Mimic)" },
   { v: "shorter", label: "Lebih Singkat" },
   { v: "longer", label: "Lebih Panjang" },
   { v: "professional", label: "Lebih Profesional" },
@@ -154,16 +154,21 @@ export default function SuperAdminAutoCaption() {
   const generate = async () => {
     if (!topic.trim()) return toast.error("Isi topik konten dulu");
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("auto-caption", {
-      body: { mode: "generate", platform, content_type: contentType, tone, length, topic, audience, cta, variants, emoji, hashtags },
-    });
-    setLoading(false);
-    if (error || !data?.success) {
-      toast.error("Gagal: " + (data?.error || error?.message || "unknown"));
-      return;
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-caption", {
+        body: { mode: "generate", platform, content_type: contentType, tone, length, topic, audience, cta, variants, emoji, hashtags },
+      });
+      if (error || !data?.success) {
+        toast.error("Gagal: " + (data?.error || error?.message || "unknown"));
+        return;
+      }
+      setResults(data.variants);
+      toast.success(`${data.variants.length} varian berhasil dibuat`);
+    } catch (e: any) {
+      toast.error("Gagal: " + (e?.message || "unknown"));
+    } finally {
+      setLoading(false);
     }
-    setResults(data.variants);
-    toast.success(`${data.variants.length} varian berhasil dibuat`);
   };
 
   const rewrite = async () => {
@@ -175,24 +180,29 @@ export default function SuperAdminAutoCaption() {
     if (rewriteStyle === "custom" && !customInstruction.trim())
       return toast.error("Isi instruksi custom-nya");
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("auto-caption", {
-      body: {
-        mode: "rewrite",
-        source_text: sourceText,
-        rewrite_style: rewriteStyle,
-        custom_instruction: customInstruction,
-        reference_text: referenceText,
-        variants: rewriteVariants,
-        platform,
-      },
-    });
-    setLoading(false);
-    if (error || !data?.success) {
-      toast.error("Gagal: " + (data?.error || error?.message || "unknown"));
-      return;
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-caption", {
+        body: {
+          mode: "rewrite",
+          source_text: sourceText,
+          rewrite_style: rewriteStyle,
+          custom_instruction: customInstruction,
+          reference_text: referenceText,
+          variants: rewriteVariants,
+          platform,
+        },
+      });
+      if (error || !data?.success) {
+        toast.error("Gagal: " + (data?.error || error?.message || "unknown"));
+        return;
+      }
+      setResults(data.variants);
+      toast.success(`Rewrite selesai (${data.variants.length} versi)`);
+    } catch (e: any) {
+      toast.error("Gagal: " + (e?.message || "unknown"));
+    } finally {
+      setLoading(false);
     }
-    setResults(data.variants);
-    toast.success(`Rewrite selesai (${data.variants.length} versi)`);
   };
 
   const copy = (text: string) => {
@@ -535,7 +545,7 @@ export default function SuperAdminAutoCaption() {
           {results.length > 0 && (
             <Card className="bg-muted/30 border-dashed">
               <CardContent className="p-3 text-[11px] text-muted-foreground">
-                <p className="font-semibold text-foreground mb-1">💡 Tips Format:</p>
+                <p className="font-semibold text-foreground mb-1">Tips Format:</p>
                 <ul className="space-y-0.5 list-disc list-inside">
                   <li><b>Bold/Italic</b> menggunakan unicode — langsung tampil tebal/miring saat di-paste ke Facebook, Instagram, WhatsApp, Twitter, LinkedIn.</li>
                   <li>Highlight teks dulu → klik tombol format (B / I / U / dll).</li>

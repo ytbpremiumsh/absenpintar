@@ -438,7 +438,7 @@ const SuperAdminRegistrationWA = () => {
                   OneSender digunakan sebagai gateway utama sistem ATSkolla. Konfigurasi ini berlaku untuk notifikasi registrasi platform.
                   {!osEnabled && (
                     <span className="block mt-1 text-amber-600 font-semibold">
-                      ⚠️ Gateway OneSender saat ini dinonaktifkan. Sekolah tidak dapat menggunakan OneSender.
+                      Gateway OneSender saat ini dinonaktifkan. Sekolah tidak dapat menggunakan OneSender.
                     </span>
                   )}
                 </p>
@@ -628,7 +628,7 @@ const SuperAdminRegistrationWA = () => {
               onChange={(e) => setSettings({ ...settings, admin_notify_ticket_template: e.target.value })}
               rows={6}
               className="resize-none font-mono text-xs"
-              placeholder="🎫 Tiket Bantuan Baru..."
+              placeholder="Tiket Bantuan Baru..."
             />
           </div>
 
@@ -660,7 +660,7 @@ const SuperAdminRegistrationWA = () => {
               onChange={(e) => setSettings({ ...settings, admin_notify_withdrawal_template: e.target.value })}
               rows={6}
               className="resize-none font-mono text-xs"
-              placeholder="💰 Pengajuan Pencairan Dana..."
+              placeholder="Pengajuan Pencairan Dana..."
             />
             <p className="text-[10px] text-muted-foreground">
               <Info className="h-3 w-3 inline mr-1" />
@@ -696,7 +696,7 @@ const SuperAdminRegistrationWA = () => {
               onChange={(e) => setSettings({ ...settings, admin_notify_bendahara_template: e.target.value })}
               rows={8}
               className="resize-none font-mono text-xs"
-              placeholder="🏦 Pencairan Dana Bendahara..."
+              placeholder="Pencairan Dana Bendahara..."
             />
             <p className="text-[10px] text-muted-foreground">
               <Info className="h-3 w-3 inline mr-1" />

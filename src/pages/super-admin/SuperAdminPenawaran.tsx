@@ -36,12 +36,13 @@ const SuperAdminPenawaran = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    supabase.from("promo_content").select("key, value").then(({ data }) => {
-      if (data) {
-        setContent(Object.fromEntries(data.map((d) => [d.key, d.value])));
-      }
-      setLoading(false);
-    });
+    supabase.from("promo_content").select("key, value")
+      .then(({ data }) => {
+        if (data) {
+          setContent(Object.fromEntries(data.map((d) => [d.key, d.value])));
+        }
+      })
+      .then(() => setLoading(false), () => setLoading(false));
   }, []);
 
   const handleSave = async () => {
@@ -52,10 +53,12 @@ const SuperAdminPenawaran = () => {
       );
       await Promise.all(updates);
       toast.success("Konten penawaran berhasil disimpan!");
-    } catch {
+    } catch (e) {
+      console.error("Save promo_content failed", e);
       toast.error("Gagal menyimpan");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   if (loading) {

@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Database, Download, RefreshCw, Shield, Clock, HardDrive, Loader2,
   CheckCircle, Table2, BarChart3, FileDown, Cloud,
-  BookOpen, ExternalLink, Key, FolderOpen,
+  BookOpen, ExternalLink, Key, FolderOpen, Folder, FileText, Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -53,8 +53,9 @@ const SuperAdminBackup = () => {
       }
     } catch (err: any) {
       toast.error("Gagal memuat statistik: " + err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchStats(); }, []);
@@ -339,12 +340,12 @@ const SuperAdminBackup = () => {
               <FolderOpen className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold text-foreground">Struktur Folder di Google Drive</p>
-                <div className="text-[11px] text-muted-foreground font-mono bg-muted/50 rounded-lg p-3">
-                  <p>📁 ATSkolla Backup/</p>
-                  <p className="pl-4">📁 2026-04-11/</p>
-                  <p className="pl-8">📄 backup_2026-04-11T08-00-00.json</p>
-                  <p className="pl-4">📁 2026-04-12/</p>
-                  <p className="pl-8">📄 backup_2026-04-12T08-00-00.json</p>
+                <div className="text-[11px] text-muted-foreground font-mono bg-muted/50 rounded-lg p-3 space-y-0.5">
+                  <p className="flex items-center gap-1.5"><Folder className="h-3 w-3" /> ATSkolla Backup/</p>
+                  <p className="pl-4 flex items-center gap-1.5"><Folder className="h-3 w-3" /> 2026-04-11/</p>
+                  <p className="pl-8 flex items-center gap-1.5"><FileText className="h-3 w-3" /> backup_2026-04-11T08-00-00.json</p>
+                  <p className="pl-4 flex items-center gap-1.5"><Folder className="h-3 w-3" /> 2026-04-12/</p>
+                  <p className="pl-8 flex items-center gap-1.5"><FileText className="h-3 w-3" /> backup_2026-04-12T08-00-00.json</p>
                 </div>
               </div>
             </div>
@@ -356,7 +357,7 @@ const SuperAdminBackup = () => {
               <Key className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Google Client ID:</span>
               {googleClientId && googleClientId !== "YOUR_GOOGLE_CLIENT_ID" ? (
-                <span className="text-xs text-success font-medium">Terkonfigurasi ✓</span>
+                <span className="text-xs text-success font-medium inline-flex items-center gap-1">Terkonfigurasi <Check className="h-3 w-3" /></span>
               ) : (
                 <span className="text-xs text-amber-500 font-medium">Belum dikonfigurasi</span>
               )}
@@ -470,7 +471,7 @@ const SuperAdminBackup = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="h-6 w-6 rounded-full bg-success text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">✓</div>
+                  <div className="h-6 w-6 rounded-full bg-success text-white flex items-center justify-center shrink-0 mt-0.5"><Check className="h-3.5 w-3.5" /></div>
                   <div>
                     <p className="text-xs font-bold text-foreground">Selesai!</p>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">

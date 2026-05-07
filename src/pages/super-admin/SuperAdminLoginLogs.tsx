@@ -60,13 +60,16 @@ export default function SuperAdminLoginLogs() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("login_logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(500) as { data: LoginLog[] | null };
-    setLogs(data || []);
-    setLoading(false);
+    try {
+      const { data } = await supabase
+        .from("login_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500) as { data: LoginLog[] | null };
+      setLogs(data || []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filtered = logs.filter((l) => {

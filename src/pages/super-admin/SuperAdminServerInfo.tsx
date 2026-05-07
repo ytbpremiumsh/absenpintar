@@ -145,9 +145,12 @@ export default function SuperAdminServerInfo() {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await fetchDbStats();
-      simulateResources();
-      setLoading(false);
+      try {
+        await fetchDbStats();
+        simulateResources();
+      } finally {
+        setLoading(false);
+      }
     };
     init();
 
@@ -157,9 +160,12 @@ export default function SuperAdminServerInfo() {
 
   const handleRefresh = async () => {
     setLoading(true);
-    await fetchDbStats();
-    simulateResources();
-    setLoading(false);
+    try {
+      await fetchDbStats();
+      simulateResources();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

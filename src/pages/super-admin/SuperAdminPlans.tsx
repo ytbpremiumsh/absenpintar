@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Check } from "lucide-react";
 import { PlanCardsGrid } from "@/components/PlanCardsGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -193,7 +193,7 @@ const SuperAdminPlans = () => {
               <ul className="space-y-1">
                 {plan.features.map((f, i) => (
                   <li key={i} className="text-sm text-foreground flex items-start gap-1.5">
-                    <span className="text-success mt-0.5">✓</span> {f}
+                    <Check className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" /> {f}
                   </li>
                 ))}
               </ul>
