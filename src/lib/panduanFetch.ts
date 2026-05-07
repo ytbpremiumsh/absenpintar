@@ -18,6 +18,7 @@ export type PanduanGuide = {
   color: string;
   cover: string;
   mobileMockup: string;
+  mobileMockupEnabled: boolean;
   intro: string;
   highlights: string[];
   steps: PanduanStep[];
