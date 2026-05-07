@@ -1,0 +1,1 @@
+UPDATE public.spp_invoices SET settlement_id = NULL WHERE settlement_id = 'c08086a3-52cc-4b18-903a-7d4120fb31d8';
