@@ -1,0 +1,1 @@
+ALTER TABLE public.panduan_content ADD COLUMN IF NOT EXISTS mobile_mockup_enabled boolean NOT NULL DEFAULT true;
