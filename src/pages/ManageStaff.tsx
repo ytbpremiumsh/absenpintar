@@ -1,17 +1,16 @@
 import { PageHeader } from "@/components/PageHeader";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Plus, Trash2, Users2, Mail, Lock, Loader2, Phone, Shield, Pencil, GraduationCap, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle,
+  Plus, Trash2, Users2, Mail, Lock, Loader2, Phone, Shield, Pencil, GraduationCap, Upload, Download, FileSpreadsheet, CheckCircle2, XCircle, Wallet, Camera, QrCode,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,12 +18,21 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
 import * as XLSX from "xlsx";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 
 interface StaffMember {
   user_id: string;
   full_name: string;
-  roles: string[]; // supports multiple roles
+  photo_url: string | null;
+  qr_code: string | null;
+  roles: string[];
 }
+
+const ROLE_META: Record<string, { label: string; icon: any; cls: string }> = {
+  teacher: { label: "Guru", icon: GraduationCap, cls: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400" },
+  staff: { label: "Operator", icon: Shield, cls: "bg-[#5B6CF9]/10 text-[#5B6CF9]" },
+  bendahara: { label: "Bendahara", icon: Wallet, cls: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400" },
+};
 
 const ManageStaff = () => {
   const { profile } = useAuth();
@@ -37,7 +45,7 @@ const ManageStaff = () => {
   const [formEmail, setFormEmail] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [formPhone, setFormPhone] = useState("");
-  const [formRole, setFormRole] = useState<"staff" | "teacher">("staff");
+  const [formRoles, setFormRoles] = useState<{ staff: boolean; teacher: boolean; bendahara: boolean }>({ staff: true, teacher: false, bendahara: false });
 
   // Detail/Edit
   const [detailDialog, setDetailDialog] = useState(false);
@@ -47,9 +55,14 @@ const ManageStaff = () => {
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editPassword, setEditPassword] = useState("");
-  const [editRoleStaff, setEditRoleStaff] = useState(false);
-  const [editRoleTeacher, setEditRoleTeacher] = useState(false);
+  const [editRoles, setEditRoles] = useState<{ staff: boolean; teacher: boolean; bendahara: boolean }>({ staff: false, teacher: false, bendahara: false });
   const [savingEdit, setSavingEdit] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // QR dialog
+  const [qrDialog, setQrDialog] = useState(false);
+  const [qrTarget, setQrTarget] = useState<StaffMember | null>(null);
 
   // Bulk import
   const [importDialog, setImportDialog] = useState(false);
@@ -61,13 +74,12 @@ const ManageStaff = () => {
 
   const fetchStaff = async () => {
     if (!schoolId) { setLoading(false); return; }
-    const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").eq("school_id", schoolId);
+    const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, photo_url, qr_code").eq("school_id", schoolId);
     if (!profiles || profiles.length === 0) { setStaff([]); setLoading(false); return; }
 
     const userIds = profiles.map((p) => p.user_id);
-    const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("user_id", userIds).in("role", ["staff", "teacher"]);
+    const { data: roles } = await supabase.from("user_roles").select("user_id, role").in("user_id", userIds).in("role", ["staff", "teacher", "bendahara"]);
 
-    // Group roles by user_id
     const roleMap = new Map<string, string[]>();
     (roles || []).forEach((r) => {
       const existing = roleMap.get(r.user_id) || [];
@@ -77,7 +89,7 @@ const ManageStaff = () => {
 
     const staffList: StaffMember[] = profiles
       .filter((p) => roleMap.has(p.user_id))
-      .map((p) => ({ user_id: p.user_id, full_name: p.full_name, roles: roleMap.get(p.user_id) || [] }));
+      .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name, photo_url: p.photo_url, qr_code: p.qr_code || p.user_id, roles: roleMap.get(p.user_id) || [] }));
 
     setStaff(staffList);
     setLoading(false);
@@ -89,19 +101,36 @@ const ManageStaff = () => {
     if (!formName || !formEmail || !formPassword) { toast.error("Nama, email, dan password harus diisi"); return; }
     if (!schoolId) { toast.error("Data sekolah belum dimuat, silakan tunggu sebentar"); return; }
     if (formPassword.length < 6) { toast.error("Password minimal 6 karakter"); return; }
+    const selectedRoles: string[] = [];
+    if (formRoles.staff) selectedRoles.push("staff");
+    if (formRoles.teacher) selectedRoles.push("teacher");
+    if (formRoles.bendahara) selectedRoles.push("bendahara");
+    if (selectedRoles.length === 0) { toast.error("Pilih minimal satu role"); return; }
 
     setCreating(true);
     try {
+      // Use first role as primary, then add the rest
       const res = await supabase.functions.invoke("create-user", {
-        body: { email: formEmail, password: formPassword, full_name: formName, role: formRole, school_id: schoolId, phone: formPhone },
+        body: { email: formEmail, password: formPassword, full_name: formName, role: selectedRoles[0], school_id: schoolId, phone: formPhone },
       });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
 
-      const roleLabel = formRole === "teacher" ? "Guru" : "Staff";
-      toast.success(`${roleLabel} ${formName} berhasil ditambahkan`);
+      const newUserId = res.data?.user_id;
+      if (newUserId && selectedRoles.length > 1) {
+        for (const role of selectedRoles.slice(1)) {
+          await supabase.from("user_roles").insert({ user_id: newUserId, role: role as any });
+        }
+      }
+      // Set qr_code = user_id
+      if (newUserId) {
+        await supabase.from("profiles").update({ qr_code: newUserId }).eq("user_id", newUserId);
+      }
+
+      toast.success(`Akun ${formName} berhasil ditambahkan`);
       setShowDialog(false);
-      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPhone(""); setFormRole("staff");
+      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPhone("");
+      setFormRoles({ staff: true, teacher: false, bendahara: false });
       fetchStaff();
     } catch (err: any) {
       toast.error(err.message || "Gagal membuat akun");
@@ -112,20 +141,22 @@ const ManageStaff = () => {
     const data = [
       { full_name: "Budi Santoso", email: "budi@sekolah.sch.id", password: "rahasia123", role: "teacher", phone: "081234567890" },
       { full_name: "Siti Aminah", email: "siti@sekolah.sch.id", password: "rahasia123", role: "staff", phone: "081298765432" },
+      { full_name: "Rahmat Hidayat", email: "rahmat@sekolah.sch.id", password: "rahasia123", role: "bendahara", phone: "081200000000" },
     ];
     const ws = XLSX.utils.json_to_sheet(data, { header: ["full_name", "email", "password", "role", "phone"] });
     ws["!cols"] = [{ wch: 24 }, { wch: 28 }, { wch: 16 }, { wch: 12 }, { wch: 16 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Guru-Staff");
     const info = [
-      ["Petunjuk Import Akun Guru & Staff"],
+      ["Petunjuk Import Akun Guru, Staff & Bendahara"],
       [""],
       ["Kolom wajib: full_name, email, password, role"],
       ["Kolom opsional: phone"],
       [""],
       ["role harus salah satu dari:"],
-      ["  - teacher  (untuk Guru)"],
-      ["  - staff    (untuk Staff/Operator)"],
+      ["  - teacher    (untuk Guru / Wali Kelas)"],
+      ["  - staff      (untuk Staff / Operator)"],
+      ["  - bendahara  (untuk Bendahara SPP)"],
       [""],
       ["Password minimal 6 karakter."],
       ["Hapus baris contoh sebelum upload."],
@@ -173,12 +204,15 @@ const ManageStaff = () => {
     for (const r of importRows) {
       try {
         if (!r.password || r.password.length < 6) throw new Error("Password minimal 6 karakter");
-        if (!["teacher", "staff"].includes(r.role)) throw new Error("Role harus 'teacher' atau 'staff'");
+        if (!["teacher", "staff", "bendahara"].includes(r.role)) throw new Error("Role harus 'teacher', 'staff', atau 'bendahara'");
         const res = await supabase.functions.invoke("create-user", {
           body: { email: r.email, password: r.password, full_name: r.full_name, role: r.role, school_id: schoolId, phone: r.phone },
         });
         if (res.error) throw new Error(res.error.message);
         if (res.data?.error) throw new Error(res.data.error);
+        if (res.data?.user_id) {
+          await supabase.from("profiles").update({ qr_code: res.data.user_id }).eq("user_id", res.data.user_id);
+        }
         results.push({ name: r.full_name, email: r.email, ok: true });
       } catch (err: any) {
         results.push({ name: r.full_name, email: r.email, ok: false, error: err.message });
@@ -193,8 +227,7 @@ const ManageStaff = () => {
   };
 
   const handleDelete = async (member: StaffMember) => {
-    if (!confirm(`Hapus semua role ${member.full_name}? Akun tidak akan dihapus, hanya role yang dicabut.`)) return;
-    // Delete all staff/teacher roles
+    if (!confirm(`Cabut semua role ${member.full_name}? Akun tidak akan dihapus, hanya role yang dicabut.`)) return;
     for (const role of member.roles) {
       await supabase.from("user_roles").delete().eq("user_id", member.user_id).eq("role", role as any);
     }
@@ -208,21 +241,46 @@ const ManageStaff = () => {
     setEditEmail("");
     setEditPhone("");
     setEditPassword("");
-    setEditRoleStaff(member.roles.includes("staff"));
-    setEditRoleTeacher(member.roles.includes("teacher"));
+    setEditRoles({
+      staff: member.roles.includes("staff"),
+      teacher: member.roles.includes("teacher"),
+      bendahara: member.roles.includes("bendahara"),
+    });
     setEditMode(false);
     setDetailDialog(true);
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedStaff) return;
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${selectedStaff.user_id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("teacher-photos").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from("teacher-photos").getPublicUrl(path);
+      const { error: updErr } = await supabase.from("profiles").update({ photo_url: publicUrl }).eq("user_id", selectedStaff.user_id);
+      if (updErr) throw updErr;
+      setSelectedStaff({ ...selectedStaff, photo_url: publicUrl });
+      toast.success("Foto berhasil diunggah");
+      fetchStaff();
+    } catch (err: any) {
+      toast.error("Gagal upload foto: " + err.message);
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleSaveEdit = async () => {
     if (!selectedStaff || !editName.trim()) return;
-    if (!editRoleStaff && !editRoleTeacher) {
-      toast.error("Minimal pilih satu role (Staff atau Guru)");
+    if (!editRoles.staff && !editRoles.teacher && !editRoles.bendahara) {
+      toast.error("Minimal pilih satu role");
       return;
     }
     setSavingEdit(true);
     try {
-      // Update name, email, password via edge function
       const res = await supabase.functions.invoke("update-user", {
         body: {
           user_id: selectedStaff.user_id,
@@ -234,19 +292,17 @@ const ManageStaff = () => {
       });
       if (res.data?.error) throw new Error(res.data.error);
 
-      // Sync roles
       const currentRoles = selectedStaff.roles;
       const wantedRoles: string[] = [];
-      if (editRoleStaff) wantedRoles.push("staff");
-      if (editRoleTeacher) wantedRoles.push("teacher");
+      if (editRoles.staff) wantedRoles.push("staff");
+      if (editRoles.teacher) wantedRoles.push("teacher");
+      if (editRoles.bendahara) wantedRoles.push("bendahara");
 
-      // Add missing roles
       for (const role of wantedRoles) {
         if (!currentRoles.includes(role)) {
           await supabase.from("user_roles").insert({ user_id: selectedStaff.user_id, role: role as any });
         }
       }
-      // Remove unwanted roles
       for (const role of currentRoles) {
         if (!wantedRoles.includes(role)) {
           await supabase.from("user_roles").delete().eq("user_id", selectedStaff.user_id).eq("role", role as any);
@@ -262,27 +318,30 @@ const ManageStaff = () => {
     fetchStaff();
   };
 
-  const getRoleBadges = (roles: string[]) => {
-    return (
-      <div className="flex flex-wrap gap-1 mt-0.5">
-        {roles.includes("teacher") && (
-          <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 border-0">
-            <GraduationCap className="h-3 w-3 mr-1" /> Guru
+  const getRoleBadges = (roles: string[]) => (
+    <div className="flex flex-wrap gap-1 mt-0.5">
+      {roles.map((r) => {
+        const meta = ROLE_META[r];
+        if (!meta) return null;
+        const Icon = meta.icon;
+        return (
+          <Badge key={r} variant="secondary" className={`text-[10px] border-0 ${meta.cls}`}>
+            <Icon className="h-3 w-3 mr-1" /> {meta.label}
           </Badge>
-        )}
-        {roles.includes("staff") && (
-          <Badge variant="secondary" className="text-[10px]">
-            <Shield className="h-3 w-3 mr-1" /> Operator
-          </Badge>
-        )}
-      </div>
-    );
-  };
+        );
+      })}
+    </div>
+  );
+
+  // Stats
+  const totalGuru = staff.filter((s) => s.roles.includes("teacher")).length;
+  const totalOperator = staff.filter((s) => s.roles.includes("staff")).length;
+  const totalBendahara = staff.filter((s) => s.roles.includes("bendahara")).length;
 
   return (
     <PremiumGate featureLabel="Kelola Guru & Staff" featureKey="canMultiStaff" requiredPlan="School">
     <div className="space-y-6">
-      <PageHeader icon={Shield} title="Guru & Staff" subtitle="Tambah dan kelola akun guru dan staff/operator" actions={
+      <PageHeader icon={Shield} title="Guru & Staff" subtitle="Kelola akun guru, staff/operator, dan bendahara" actions={
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => setImportDialog(true)} variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-xl text-xs">
             <Upload className="h-4 w-4 mr-2" /> Import Excel
@@ -299,65 +358,110 @@ const ManageStaff = () => {
         <Card className="border-0 shadow-card">
           <CardContent className="p-10 text-center">
             <Users2 className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">Belum ada guru/staff ditambahkan</p>
+            <p className="text-muted-foreground">Belum ada guru/staff/bendahara ditambahkan</p>
             <Button variant="outline" className="mt-4" onClick={() => setShowDialog(true)}>
               <Plus className="h-4 w-4 mr-2" /> Tambah Pertama
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {staff.map((member, i) => (
-            <motion.div key={member.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-primary-foreground text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : "gradient-primary"}`}>
-                      {member.full_name.charAt(0)}
+        <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {staff.map((member, i) => (
+              <motion.div key={member.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3">
+                      {member.photo_url ? (
+                        <img src={member.photo_url} alt={member.full_name} className="h-12 w-12 rounded-xl object-cover shrink-0 border border-border/50" />
+                      ) : (
+                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
+                          {member.full_name.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-sm truncate">{member.full_name}</h3>
+                        {getRoleBadges(member.roles)}
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
+                          <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
+                          <Pencil className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive/60 hover:text-destructive" onClick={() => handleDelete(member)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-sm truncate">{member.full_name}</h3>
-                      {getRoleBadges(member.roles)}
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetail(member)}>
-                        <Pencil className="h-3.5 w-3.5 text-primary" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive/60 hover:text-destructive" onClick={() => handleDelete(member)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Stats footer */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <Users2 className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
+                <p className="text-2xl font-bold">{staff.length}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Total Akun</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <GraduationCap className="h-5 w-5 mx-auto mb-1 text-violet-500" />
+                <p className="text-2xl font-bold">{totalGuru}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Guru</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <Shield className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
+                <p className="text-2xl font-bold">{totalOperator}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Operator</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-card">
+              <CardContent className="p-4 text-center">
+                <Wallet className="h-5 w-5 mx-auto mb-1 text-amber-500" />
+                <p className="text-2xl font-bold">{totalBendahara}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">Bendahara</p>
+              </CardContent>
+            </Card>
+          </div>
+        </>
       )}
 
       {/* Create Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Tambah Guru / Staff Baru</DialogTitle>
-            <DialogDescription>Buat akun login untuk guru atau staff operator</DialogDescription>
+            <DialogTitle>Tambah Akun Baru</DialogTitle>
+            <DialogDescription>Buat akun login untuk guru, staff/operator, atau bendahara. Bisa pilih lebih dari satu role.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label>Tipe Akun</Label>
-              <Select value={formRole} onValueChange={(v) => setFormRole(v as "staff" | "teacher")}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="staff">
-                    <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> Staff / Operator</span>
-                  </SelectItem>
-                  <SelectItem value="teacher">
-                    <span className="flex items-center gap-2"><GraduationCap className="h-4 w-4" /> Guru</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Role / Hak Akses (bisa lebih dari 1)</Label>
+              <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={formRoles.staff} onCheckedChange={(v) => setFormRoles({ ...formRoles, staff: !!v })} />
+                  <Shield className="h-4 w-4 text-[#5B6CF9]" />
+                  <span className="text-sm">Staff / Operator</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={formRoles.teacher} onCheckedChange={(v) => setFormRoles({ ...formRoles, teacher: !!v })} />
+                  <GraduationCap className="h-4 w-4 text-violet-500" />
+                  <span className="text-sm">Guru / Wali Kelas</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={formRoles.bendahara} onCheckedChange={(v) => setFormRoles({ ...formRoles, bendahara: !!v })} />
+                  <Wallet className="h-4 w-4 text-amber-500" />
+                  <span className="text-sm">Bendahara (SPP)</span>
+                </label>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Nama Lengkap</Label>
@@ -385,7 +489,7 @@ const ManageStaff = () => {
               </div>
             </div>
             <Button onClick={handleCreate} disabled={creating} className="w-full gradient-primary hover:opacity-90">
-              {creating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</> : <><Plus className="h-4 w-4 mr-2" /> Buat Akun {formRole === "teacher" ? "Guru" : "Staff"}</>}
+              {creating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</> : <><Plus className="h-4 w-4 mr-2" /> Buat Akun</>}
             </Button>
           </div>
         </DialogContent>
@@ -393,7 +497,7 @@ const ManageStaff = () => {
 
       {/* Detail/Edit Dialog */}
       <Dialog open={detailDialog} onOpenChange={setDetailDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users2 className="h-5 w-5 text-primary" />
@@ -403,8 +507,23 @@ const ManageStaff = () => {
           {selectedStaff && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className={`h-14 w-14 rounded-xl flex items-center justify-center text-primary-foreground text-xl font-bold shrink-0 ${selectedStaff.roles.includes("teacher") ? "bg-violet-500" : "gradient-primary"}`}>
-                  {selectedStaff.full_name.charAt(0)}
+                <div className="relative shrink-0">
+                  {selectedStaff.photo_url ? (
+                    <img src={selectedStaff.photo_url} alt={selectedStaff.full_name} className="h-16 w-16 rounded-xl object-cover border border-border" />
+                  ) : (
+                    <div className={`h-16 w-16 rounded-xl flex items-center justify-center text-white text-xl font-bold ${selectedStaff.roles.includes("teacher") ? "bg-violet-500" : selectedStaff.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
+                      {selectedStaff.full_name.charAt(0)}
+                    </div>
+                  )}
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPhoto}
+                    className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-[#5B6CF9] text-white flex items-center justify-center shadow-lg border-2 border-background hover:bg-[#4c5ded] transition disabled:opacity-50"
+                    title="Upload foto untuk Face Recognition"
+                  >
+                    {uploadingPhoto ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                  </button>
                 </div>
                 <div className="flex-1">
                   {editMode ? (
@@ -416,6 +535,7 @@ const ManageStaff = () => {
                     <>
                       <h3 className="font-bold text-lg">{selectedStaff.full_name}</h3>
                       {getRoleBadges(selectedStaff.roles)}
+                      <p className="text-[10px] text-muted-foreground mt-1">Klik ikon kamera untuk upload foto Face Recognition</p>
                     </>
                   )}
                 </div>
@@ -423,22 +543,25 @@ const ManageStaff = () => {
 
               {editMode && (
                 <div className="space-y-3">
-                  {/* Role checkboxes */}
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold">Role / Hak Akses</Label>
-                    <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-semibold">Role / Hak Akses (bisa pilih lebih dari 1)</Label>
+                    <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-3">
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox checked={editRoleStaff} onCheckedChange={(v) => setEditRoleStaff(!!v)} />
-                        <Shield className="h-4 w-4 text-primary" />
+                        <Checkbox checked={editRoles.staff} onCheckedChange={(v) => setEditRoles({ ...editRoles, staff: !!v })} />
+                        <Shield className="h-4 w-4 text-[#5B6CF9]" />
                         <span className="text-sm">Staff / Operator</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox checked={editRoleTeacher} onCheckedChange={(v) => setEditRoleTeacher(!!v)} />
+                        <Checkbox checked={editRoles.teacher} onCheckedChange={(v) => setEditRoles({ ...editRoles, teacher: !!v })} />
                         <GraduationCap className="h-4 w-4 text-violet-500" />
-                        <span className="text-sm">Guru</span>
+                        <span className="text-sm">Guru / Wali Kelas</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox checked={editRoles.bendahara} onCheckedChange={(v) => setEditRoles({ ...editRoles, bendahara: !!v })} />
+                        <Wallet className="h-4 w-4 text-amber-500" />
+                        <span className="text-sm">Bendahara (SPP)</span>
                       </label>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">Bisa memilih keduanya sekaligus</p>
                   </div>
 
                   <div className="space-y-1">
@@ -484,11 +607,37 @@ const ManageStaff = () => {
         </DialogContent>
       </Dialog>
 
+      {/* QR Dialog */}
+      <Dialog open={qrDialog} onOpenChange={setQrDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="h-5 w-5 text-[#5B6CF9]" /> QR Absensi
+            </DialogTitle>
+            <DialogDescription>
+              Scan QR ini di halaman Scan Absensi untuk mencatat kehadiran.
+            </DialogDescription>
+          </DialogHeader>
+          {qrTarget && (
+            <div className="flex flex-col items-center gap-3 py-2">
+              <div className="bg-white p-4 rounded-xl border border-border">
+                <QRCodeDisplay value={qrTarget.qr_code || qrTarget.user_id} size={200} />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-base">{qrTarget.full_name}</p>
+                {getRoleBadges(qrTarget.roles)}
+                <p className="text-[10px] text-muted-foreground mt-2 font-mono break-all">{qrTarget.qr_code || qrTarget.user_id}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Bulk Import Dialog */}
       <Dialog open={importDialog} onOpenChange={(o) => { setImportDialog(o); if (!o) { setImportRows([]); setImportResults([]); } }}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5 text-primary" /> Import Massal Guru & Staff</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5 text-primary" /> Import Massal</DialogTitle>
             <DialogDescription>Unduh template, isi data, lalu upload untuk membuat banyak akun sekaligus.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -497,7 +646,7 @@ const ManageStaff = () => {
               <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
                 <li>Unduh template Excel di bawah ini</li>
                 <li>Isi kolom: <span className="font-mono">full_name, email, password, role, phone</span></li>
-                <li>Kolom <span className="font-mono">role</span> diisi <span className="font-mono">teacher</span> atau <span className="font-mono">staff</span></li>
+                <li>Kolom <span className="font-mono">role</span>: <span className="font-mono">teacher</span>, <span className="font-mono">staff</span>, atau <span className="font-mono">bendahara</span></li>
                 <li>Hapus baris contoh, lalu upload file</li>
               </ol>
               <Button variant="outline" size="sm" className="w-full mt-2" onClick={downloadTemplate}>
