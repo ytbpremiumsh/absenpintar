@@ -117,14 +117,17 @@ serve(async (req) => {
     // Determine plan features
     const sub = subRes.data as any;
     let planName = 'Free';
+    let isActiveTrial = false;
     if (sub?.subscription_plans?.name) {
-      if (sub.expires_at && new Date(sub.expires_at) < new Date()) {
+      const expired = sub.expires_at && new Date(sub.expires_at) < new Date();
+      if (expired) {
         planName = 'Free';
       } else {
         planName = sub.subscription_plans.name;
+        isActiveTrial = sub.status === 'trial';
       }
     }
-    const canFaceRecognition = planName === 'Premium';
+    const canFaceRecognition = planName === 'Premium' || planName === 'School' || isActiveTrial;
 
     return new Response(JSON.stringify({
       school: schoolRes.data,
