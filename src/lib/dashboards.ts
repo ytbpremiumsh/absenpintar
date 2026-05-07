@@ -63,7 +63,7 @@ export function getAvailableDashboards(roles: string[]): DashboardOption[] {
       description: "Sistem keuangan SPP",
       path: "/bendahara",
       icon: Wallet,
-      gradient: "from-emerald-500 to-teal-600",
+      gradient: "from-violet-500 to-purple-600",
     });
   }
   return out;
