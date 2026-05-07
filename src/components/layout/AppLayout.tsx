@@ -52,6 +52,12 @@ function AppContent() {
   if (!user) return <Navigate to="/login" replace />;
   if (roles.includes("super_admin")) return <Navigate to="/super-admin" replace />;
 
+  // Bendahara-only → redirect ke /bendahara dashboard
+  const isBendaharaOnly = roles.includes("bendahara") && !roles.includes("school_admin") && !roles.includes("staff") && !roles.includes("teacher");
+  if (isBendaharaOnly && !location.pathname.startsWith("/bendahara") && location.pathname !== "/account-settings" && location.pathname !== "/support") {
+    return <Navigate to="/bendahara" replace />;
+  }
+
   const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
   if (isTeacherOnly && location.pathname === "/dashboard") {
     return <Navigate to="/teacher-dashboard" replace />;
