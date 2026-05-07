@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
+import { PageHeader } from "@/components/PageHeader";
 
 import idcardDesign1 from "@/assets/idcard-design-1.png";
 import idcardDesign2 from "@/assets/idcard-design-2.png";
@@ -188,21 +189,23 @@ const OrderIdCard = () => {
   const currentStepIdx = stepOrder.indexOf(step as any);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/addons")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center">
-              <CreditCard className="h-5 w-5 text-white" />
-            </div>
-            Pesan ID Card Siswa
-          </h1>
-          <p className="text-muted-foreground text-sm">Cetak kartu identitas siswa dengan desain profesional</p>
-        </div>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        icon={CreditCard}
+        title="Pesan ID Card Siswa"
+        subtitle="Cetak kartu identitas siswa dengan desain profesional"
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/addons")}
+            className="bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Kembali
+          </Button>
+        }
+      />
 
       {/* Tabs */}
       <div className="flex gap-2 flex-wrap">
