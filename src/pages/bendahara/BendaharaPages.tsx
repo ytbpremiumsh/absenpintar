@@ -3267,8 +3267,34 @@ export function BendaharaPencairan() {
     setConfirmOpen(true);
   };
 
+  const sendOtp = async () => {
+    if (!user?.id || !profile?.school_id) return;
+    setOtpSending(true);
+    const { data, error } = await supabase.functions.invoke("send-bendahara-otp", {
+      body: { user_id: user.id, school_id: profile.school_id },
+    });
+    setOtpSending(false);
+    if (error || data?.error) { toast.error(data?.error || error?.message || "Gagal mengirim OTP"); return; }
+    setOtpPhoneMasked(data?.phone_masked || "");
+    setOtpStep(true);
+    setOtpCode("");
+    setOtpResendIn(60);
+    toast.success("Kode OTP dikirim via WhatsApp");
+  };
+
   const submit = async () => {
+    if (!user?.id) return;
+    if (otpCode.length !== 6) { toast.error("Masukkan 6 digit kode OTP"); return; }
     setSubmitting(true);
+    // 1) Verifikasi OTP
+    const { data: vData, error: vErr } = await supabase.functions.invoke("verify-bendahara-otp", {
+      body: { user_id: user.id, otp_code: otpCode },
+    });
+    if (vErr || vData?.error) {
+      toast.error(vData?.error || vErr?.message || "OTP tidak valid");
+      setSubmitting(false); return;
+    }
+    // 2) Eksekusi pencairan
     const code = `STL-${Date.now().toString().slice(-8)}`;
     const invoiceIds = availableItems.map((item) => item.id).filter(Boolean);
     if (invoiceIds.length === 0) { toast.error("Tidak ada saldo"); setSubmitting(false); return; }
@@ -3284,6 +3310,7 @@ export function BendaharaPencairan() {
       .eq("school_id", profile!.school_id).in("id", invoiceIds).is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
     setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
+    setOtpStep(false); setOtpCode(""); setOtpPhoneMasked("");
   };
 
   const saveAccount = async () => {
