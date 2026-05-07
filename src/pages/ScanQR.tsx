@@ -396,6 +396,32 @@ const ScanQR = () => {
 
     const now = new Date();
     const method = scanMethod === "face" ? "face_recognition" : "barcode";
+
+    if (scannedStudent.__isTeacher && scannedStudent.__teacherUserId) {
+      const { error } = await supabase.from("teacher_attendance_logs" as any).insert({
+        school_id: profile.school_id,
+        user_id: scannedStudent.__teacherUserId,
+        date: now.toISOString().slice(0, 10),
+        time: now.toTimeString().slice(0, 8),
+        method,
+        status: "hadir",
+        recorded_by: profile.full_name || "Petugas",
+        attendance_type: currentAttType,
+      });
+      setProcessing(false);
+      if (error) { toast.error("Gagal mencatat absensi guru: " + error.message); return; }
+      setConfirmed(true);
+      setTimeout(() => {
+        setScannedStudent(null);
+        setConfirmed(false);
+        setManualCode("");
+        setAlreadyRecorded(false);
+        scanPaused.current = false;
+        setScanMethod("barcode");
+      }, 2000);
+      return;
+    }
+
     const { error } = await supabase.from("attendance_logs").insert({
       school_id: profile.school_id,
       student_id: scannedStudent.id,
