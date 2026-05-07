@@ -93,8 +93,8 @@ const ConfirmationPopup = ({ open, scannedStudent, alreadyRecorded, processing, 
             </div>
 
             {alreadyRecorded ? (
-              <div className="bg-warning/10 border border-warning/20 rounded-lg p-2 text-xs text-warning font-medium">
-                ⚠ Siswa ini sudah tercatat absensi {currentAttType === "datang" ? "Datang" : "Pulang"} hari ini
+              <div className="bg-warning/10 border border-warning/20 rounded-lg p-2 text-xs text-warning font-medium inline-flex items-center gap-1.5 justify-center">
+                <AlertTriangle className="h-3.5 w-3.5" /> Siswa ini sudah tercatat absensi {currentAttType === "datang" ? "Datang" : "Pulang"} hari ini
               </div>
             ) : (
               <div className="space-y-2">
