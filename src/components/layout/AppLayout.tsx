@@ -120,6 +120,15 @@ function AppContent() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {getAvailableDashboards(roles).length > 1 && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/select-role")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                      <Repeat className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                      Switch Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {roles.includes("school_admin") && (
                   <DropdownMenuItem onClick={() => navigate("/school-settings")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                     <School className="h-4 w-4 mr-2.5 text-muted-foreground" />
