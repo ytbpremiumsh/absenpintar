@@ -341,7 +341,7 @@ const PublicMonitoring = () => {
                 </div>
               )}
               <div>
-                <h1 className="text-lg font-bold">{data.school?.name || "Smart Pickup"}</h1>
+                <h1 className="text-lg font-bold">{data.school?.name || "ATSkolla"}</h1>
                 <div className="flex items-center gap-2 text-xs opacity-80">
                   {isActive ? <LiveDot /> : <span className="h-2.5 w-2.5 rounded-full bg-destructive" />}
                   <span>{isActive ? "Live Monitoring Kepulangan" : "Sistem Nonaktif"}</span>
@@ -539,7 +539,7 @@ const PublicMonitoring = () => {
         <div className="text-center py-4 border-t border-border">
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <LiveDot />
-            <span>Smart Pickup System • Data diperbarui realtime</span>
+            <span>ATSkolla Attendance System • Data diperbarui realtime</span>
           </div>
         </div>
       </div>
