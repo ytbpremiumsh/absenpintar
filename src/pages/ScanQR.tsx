@@ -22,6 +22,8 @@ interface FoundStudent {
   parent_name: string;
   parent_phone: string;
   photo_url: string | null;
+  __isTeacher?: boolean;
+  __teacherUserId?: string;
 }
 
 // Auto-confirm dialog with 3s countdown
