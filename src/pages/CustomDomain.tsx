@@ -59,6 +59,7 @@ const CustomDomain = () => {
         window.location.reload();
       } else if (data?.payment_url) {
         toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentTxnId(data.transaction_id || null);
         setPaymentIframe(data.payment_url);
       }
     } catch (e: any) {
