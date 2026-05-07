@@ -163,7 +163,7 @@ const OrderIdCard = () => {
         body: { addon_type: "idcard", order_id: order.id, school_id: profile?.school_id },
       });
       if (error) throw error;
-      if (data?.payment_url) setPaymentIframe(data.payment_url);
+      if (data?.payment_url) { setPaymentTxnId(data.transaction_id || null); setPaymentIframe(data.payment_url); }
     } catch (e: any) {
       toast.error(e.message || "Gagal membuat pembayaran");
     }
