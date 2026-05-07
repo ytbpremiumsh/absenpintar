@@ -555,6 +555,10 @@ const ManageStaff = () => {
                 <Input placeholder="08xxxxxxxxxx" type="tel" value={formPhone} onChange={(e) => setFormPhone(e.target.value)} className="pl-9" />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>NIP / NIK (opsional)</Label>
+              <Input placeholder="Nomor Induk Pegawai" value={formNip} onChange={(e) => setFormNip(e.target.value)} />
+            </div>
             <Button onClick={handleCreate} disabled={creating} className="w-full gradient-primary hover:opacity-90">
               {creating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</> : <><Plus className="h-4 w-4 mr-2" /> Buat Akun</>}
             </Button>
