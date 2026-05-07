@@ -111,7 +111,7 @@ const PITCH_SECTIONS = [
     title: "Product",
     icon: Package,
     color: "from-indigo-500 to-blue-700",
-    content: "ATSkolla adalah platform web-based yang dapat diakses dari browser manapun. Fitur utama meliputi: Scan Barcode & QR Code, Face Recognition AI, Notifikasi WhatsApp otomatis, Dashboard monitoring real-time, Manajemen kelas & siswa, Rekap absensi nasional, Export Excel & PDF, serta sistem penjemputan siswa.",
+    content: "ATSkolla adalah platform web-based yang dapat diakses dari browser manapun. Fitur utama meliputi: Scan Barcode & QR Code, Face Recognition AI, Notifikasi WhatsApp otomatis, Dashboard monitoring real-time, Manajemen kelas & siswa, Rekap absensi nasional, Export Excel & PDF.",
     highlights: [
       "Scan Barcode/QR Code — instan dan akurat",
       "Face Recognition AI — keamanan level tertinggi",

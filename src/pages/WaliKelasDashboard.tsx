@@ -69,77 +69,79 @@ const WaliKelasDashboard = () => {
   useEffect(() => {
     if (assignments.length === 0) { setLoading(false); return; }
     const fetchData = async () => {
-      const schoolId = assignments[0].school_id;
-      const classNames = assignments.map((a) => a.class_name);
+      try {
+        const schoolId = assignments[0].school_id;
+        const classNames = assignments.map((a) => a.class_name);
 
-      const { data: studentData } = await supabase
-        .from("students").select("id, name, student_id, class, photo_url")
-        .eq("school_id", schoolId).in("class", classNames).order("class").order("name");
+        const { data: studentData } = await supabase
+          .from("students").select("id, name, student_id, class, photo_url")
+          .eq("school_id", schoolId).in("class", classNames).order("class").order("name");
 
-      if (!studentData || studentData.length === 0) {
-        setStudents([]);
+        if (!studentData || studentData.length === 0) {
+          setStudents([]);
+          return;
+        }
+
+        const studentIds = studentData.map((s) => s.id);
+
+        // Today's attendance
+        const { data: attendanceData } = await supabase
+          .from("attendance_logs").select("student_id, status, time, method")
+          .eq("school_id", schoolId).eq("date", today).in("student_id", studentIds);
+
+        const attendanceMap = new Map<string, { status: string; time: string; method: string }>();
+        (attendanceData || []).forEach((a) => {
+          attendanceMap.set(a.student_id, { status: a.status, time: a.time, method: a.method });
+        });
+
+        const merged: StudentWithAttendance[] = studentData.map((s) => {
+          const att = attendanceMap.get(s.id);
+          return { ...s, status: att?.status || "belum", time: att?.time || null, method: att?.method || null };
+        });
+        setStudents(merged);
+
+        // Fetch ALL school classes for ranking (30 days)
+        const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+        const [allStudentsRes, allLogsRes] = await Promise.all([
+          supabase.from("students").select("id, class").eq("school_id", schoolId),
+          supabase.from("attendance_logs")
+            .select("student_id, status, students(class)")
+            .eq("school_id", schoolId)
+            .gte("date", thirtyAgo)
+            .lte("date", today)
+            .limit(5000),
+        ]);
+
+        const allSchoolStudents = allStudentsRes.data || [];
+        const allLogs = allLogsRes.data || [];
+
+        // Count students per class
+        const classStudentCount: Record<string, number> = {};
+        allSchoolStudents.forEach((s: any) => {
+          classStudentCount[s.class] = (classStudentCount[s.class] || 0) + 1;
+        });
+
+        // Calculate ranking
+        const byClass: Record<string, { hadir: number; total: number }> = {};
+        allLogs.forEach((l: any) => {
+          const cls = (l.students as any)?.class || "?";
+          if (!byClass[cls]) byClass[cls] = { hadir: 0, total: 0 };
+          byClass[cls].total++;
+          if (l.status === "hadir") byClass[cls].hadir++;
+        });
+
+        const ranking = Object.entries(byClass).map(([cls, d]) => ({
+          name: cls,
+          rate: d.total > 0 ? Math.round((d.hadir / d.total) * 100) : 0,
+          hadir: d.hadir,
+          total: d.total,
+          students: classStudentCount[cls] || 0,
+        })).sort((a, b) => b.rate - a.rate);
+
+        setClassRanking(ranking);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const studentIds = studentData.map((s) => s.id);
-
-      // Today's attendance
-      const { data: attendanceData } = await supabase
-        .from("attendance_logs").select("student_id, status, time, method")
-        .eq("school_id", schoolId).eq("date", today).in("student_id", studentIds);
-
-      const attendanceMap = new Map<string, { status: string; time: string; method: string }>();
-      (attendanceData || []).forEach((a) => {
-        attendanceMap.set(a.student_id, { status: a.status, time: a.time, method: a.method });
-      });
-
-      const merged: StudentWithAttendance[] = studentData.map((s) => {
-        const att = attendanceMap.get(s.id);
-        return { ...s, status: att?.status || "belum", time: att?.time || null, method: att?.method || null };
-      });
-      setStudents(merged);
-
-      // Fetch ALL school classes for ranking (30 days)
-      const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
-      const [allStudentsRes, allLogsRes] = await Promise.all([
-        supabase.from("students").select("id, class").eq("school_id", schoolId),
-        supabase.from("attendance_logs")
-          .select("student_id, status, students(class)")
-          .eq("school_id", schoolId)
-          .gte("date", thirtyAgo)
-          .lte("date", today)
-          .limit(5000),
-      ]);
-
-      const allSchoolStudents = allStudentsRes.data || [];
-      const allLogs = allLogsRes.data || [];
-
-      // Count students per class
-      const classStudentCount: Record<string, number> = {};
-      allSchoolStudents.forEach((s: any) => {
-        classStudentCount[s.class] = (classStudentCount[s.class] || 0) + 1;
-      });
-
-      // Calculate ranking
-      const byClass: Record<string, { hadir: number; total: number }> = {};
-      allLogs.forEach((l: any) => {
-        const cls = (l.students as any)?.class || "?";
-        if (!byClass[cls]) byClass[cls] = { hadir: 0, total: 0 };
-        byClass[cls].total++;
-        if (l.status === "hadir") byClass[cls].hadir++;
-      });
-
-      const ranking = Object.entries(byClass).map(([cls, d]) => ({
-        name: cls,
-        rate: d.total > 0 ? Math.round((d.hadir / d.total) * 100) : 0,
-        hadir: d.hadir,
-        total: d.total,
-        students: classStudentCount[cls] || 0,
-      })).sort((a, b) => b.rate - a.rate);
-
-      setClassRanking(ranking);
-      setLoading(false);
     };
     fetchData();
   }, [assignments, today]);
@@ -364,7 +366,7 @@ const WaliKelasDashboard = () => {
                           </div>
                           {mc.rank <= 3 && (
                             <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${RANK_STYLES[mc.rank - 1]?.badge || ""}`}>
-                              {mc.rank === 1 ? "🥇" : mc.rank === 2 ? "🥈" : "🥉"}
+                              #{mc.rank}
                             </div>
                           )}
                         </div>
@@ -440,11 +442,7 @@ const WaliKelasDashboard = () => {
                         <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm ${
                           style ? `${style.bg} ${style.color}` : "bg-muted text-muted-foreground"
                         }`}>
-                          {i < 3 ? (
-                            <span className="text-lg">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</span>
-                          ) : (
-                            <span>#{i + 1}</span>
-                          )}
+                          <span>#{i + 1}</span>
                         </div>
 
                         {/* Class Info */}

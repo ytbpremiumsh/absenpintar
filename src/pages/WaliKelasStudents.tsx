@@ -54,31 +54,34 @@ const WaliKelasStudents = () => {
     if (!assignments.length || !selectedClass) { setLoading(false); return; }
     const fetchData = async () => {
       setLoading(true);
-      const schoolId = assignments[0].school_id;
+      try {
+        const schoolId = assignments[0].school_id;
 
-      const { data: studentData } = await supabase
-        .from("students").select("id, name, student_id, class, gender, photo_url, parent_name, parent_phone")
-        .eq("school_id", schoolId).eq("class", selectedClass).order("name");
+        const { data: studentData } = await supabase
+          .from("students").select("id, name, student_id, class, gender, photo_url, parent_name, parent_phone")
+          .eq("school_id", schoolId).eq("class", selectedClass).order("name");
 
-      setStudents(studentData || []);
+        setStudents(studentData || []);
 
-      if (studentData && studentData.length > 0) {
-        const ids = studentData.map(s => s.id);
-        const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
-        const { data: logs } = await supabase
-          .from("attendance_logs").select("student_id, status")
-          .eq("school_id", schoolId).gte("date", thirtyAgo).in("student_id", ids);
+        if (studentData && studentData.length > 0) {
+          const ids = studentData.map(s => s.id);
+          const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+          const { data: logs } = await supabase
+            .from("attendance_logs").select("student_id, status")
+            .eq("school_id", schoolId).gte("date", thirtyAgo).in("student_id", ids);
 
-        const summary: Record<string, { hadir: number; izin: number; sakit: number; alfa: number; total: number }> = {};
-        (logs || []).forEach(l => {
-          if (!summary[l.student_id]) summary[l.student_id] = { hadir: 0, izin: 0, sakit: 0, alfa: 0, total: 0 };
-          summary[l.student_id].total++;
-          const s = l.status as keyof typeof summary[string];
-          if (s in summary[l.student_id]) (summary[l.student_id] as any)[s]++;
-        });
-        setAttendanceSummary(summary);
+          const summary: Record<string, { hadir: number; izin: number; sakit: number; alfa: number; total: number }> = {};
+          (logs || []).forEach(l => {
+            if (!summary[l.student_id]) summary[l.student_id] = { hadir: 0, izin: 0, sakit: 0, alfa: 0, total: 0 };
+            summary[l.student_id].total++;
+            const s = l.status as keyof typeof summary[string];
+            if (s in summary[l.student_id]) (summary[l.student_id] as any)[s]++;
+          });
+          setAttendanceSummary(summary);
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, [assignments, selectedClass]);

@@ -58,28 +58,31 @@ const WaliKelasAttendance = () => {
     if (!assignments.length || !selectedClass) { setLoading(false); return; }
     const fetchData = async () => {
       setLoading(true);
-      const schoolId = assignments[0].school_id;
+      try {
+        const schoolId = assignments[0].school_id;
 
-      const { data: studentData } = await supabase
-        .from("students").select("id, name, student_id, class, photo_url")
-        .eq("school_id", schoolId).eq("class", selectedClass).order("name");
+        const { data: studentData } = await supabase
+          .from("students").select("id, name, student_id, class, photo_url")
+          .eq("school_id", schoolId).eq("class", selectedClass).order("name");
 
-      setStudents(studentData || []);
+        setStudents(studentData || []);
 
-      if (studentData && studentData.length > 0) {
-        const ids = studentData.map(s => s.id);
-        const { data: attData } = await supabase
-          .from("attendance_logs").select("id, student_id, status, time, date")
-          .eq("school_id", schoolId).eq("date", selectedDate).in("student_id", ids);
+        if (studentData && studentData.length > 0) {
+          const ids = studentData.map(s => s.id);
+          const { data: attData } = await supabase
+            .from("attendance_logs").select("id, student_id, status, time, date")
+            .eq("school_id", schoolId).eq("date", selectedDate).in("student_id", ids);
 
-        const map = new Map<string, AttendanceRecord>();
-        (attData || []).forEach(a => map.set(a.student_id, a));
-        setAttendance(map);
-      } else {
-        setAttendance(new Map());
+          const map = new Map<string, AttendanceRecord>();
+          (attData || []).forEach(a => map.set(a.student_id, a));
+          setAttendance(map);
+        } else {
+          setAttendance(new Map());
+        }
+        setChanges(new Map());
+      } finally {
+        setLoading(false);
       }
-      setChanges(new Map());
-      setLoading(false);
     };
     fetchData();
   }, [assignments, selectedClass, selectedDate]);
@@ -161,7 +164,7 @@ const WaliKelasAttendance = () => {
       if ((deliveryTarget === "parent_only" || deliveryTarget === "both") && parentPhone) {
         const tpl = integration.attendance_arrive_template || "";
         const message = tpl ? apply(tpl)
-          : `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${hhmm}.\n\nMetode: Manual Wali Kelas\n\n_Pesan otomatis dari ATSkolla_`;
+          : `*Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nAnanda *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${hhmm}.\n\nMetode: Manual Wali Kelas\n\n_Pesan otomatis dari ATSkolla_`;
         tasks.push(supabase.functions.invoke("send-whatsapp", {
           body: { school_id: schoolId, phone: parentPhone, message, message_type: "attendance", student_name: student.name },
         }));
@@ -170,7 +173,7 @@ const WaliKelasAttendance = () => {
       if ((deliveryTarget === "group_only" || deliveryTarget === "both") && groupId) {
         const tpl = integration.attendance_group_template || "";
         const message = tpl ? apply(tpl)
-          : `📋 *Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nSiswa *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${hhmm}.\n\nMetode: Manual Wali Kelas\n\n_Pesan otomatis dari ATSkolla_`;
+          : `*Notifikasi Absensi ${typeLabel}*\n\n${schoolName}\n\nSiswa *${student.name}* (Kelas ${student.class}) telah tercatat ${typeLabel.toLowerCase()} pada ${dayName}, pukul ${hhmm}.\n\nMetode: Manual Wali Kelas\n\n_Pesan otomatis dari ATSkolla_`;
         tasks.push(supabase.functions.invoke("send-whatsapp", {
           body: { school_id: schoolId, group_id: groupId, message, message_type: "attendance_group", student_name: student.name },
         }));

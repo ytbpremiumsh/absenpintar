@@ -231,13 +231,13 @@ const History = () => {
     const topAbsentees = Object.values(studentAlfa).sort((a, b) => b.count - a.count).slice(0, 10);
 
     const insights: string[] = [];
-    if (attendanceRate >= 90) insights.push(`✅ Tingkat kehadiran sangat baik (${attendanceRate.toFixed(1)}%).`);
-    else if (attendanceRate >= 75) insights.push(`⚠️ Tingkat kehadiran cukup (${attendanceRate.toFixed(1)}%), perlu peningkatan.`);
-    else insights.push(`🔴 Tingkat kehadiran rendah (${attendanceRate.toFixed(1)}%), perlu perhatian serius.`);
-    if (bestClass) insights.push(`🏆 Kelas terbaik: ${bestClass[0]} dengan ${bestClass[1].total > 0 ? Math.round((bestClass[1].hadir / bestClass[1].total) * 100) : 0}% kehadiran.`);
-    if (topAbsentees.length > 0) insights.push(`📋 ${topAbsentees[0].name} (${topAbsentees[0].class}) memiliki ${topAbsentees[0].count} kali alfa terbanyak.`);
+    if (attendanceRate >= 90) insights.push(`Tingkat kehadiran sangat baik (${attendanceRate.toFixed(1)}%).`);
+    else if (attendanceRate >= 75) insights.push(`Tingkat kehadiran cukup (${attendanceRate.toFixed(1)}%), perlu peningkatan.`);
+    else insights.push(`Tingkat kehadiran rendah (${attendanceRate.toFixed(1)}%), perlu perhatian serius.`);
+    if (bestClass) insights.push(`Kelas terbaik: ${bestClass[0]} dengan ${bestClass[1].total > 0 ? Math.round((bestClass[1].hadir / bestClass[1].total) * 100) : 0}% kehadiran.`);
+    if (topAbsentees.length > 0) insights.push(`${topAbsentees[0].name} (${topAbsentees[0].class}) memiliki ${topAbsentees[0].count} kali alfa terbanyak.`);
     const worstDay = dowData.filter(d => d.Alfa > 0).sort((a, b) => b.Alfa - a.Alfa)[0];
-    if (worstDay) insights.push(`📅 Hari ${worstDay.name} memiliki alfa terbanyak (${worstDay.Alfa} kali).`);
+    if (worstDay) insights.push(`Hari ${worstDay.name} memiliki alfa terbanyak (${worstDay.Alfa} kali).`);
 
     const allStudentStats = Object.values(studentStats).sort((a, b) => {
       const rateA = a.total > 0 ? a.hadir / a.total : 0;

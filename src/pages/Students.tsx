@@ -271,7 +271,7 @@ const Students = () => {
       const headerH = 340;
       const instructions = qrInstructions.length > 0 ? qrInstructions : [
         "Tunjukkan QR Code ini kepada guru/petugas piket",
-        "Petugas akan scan QR saat penjemputan",
+        "Tunjukkan QR ini saat absensi pulang",
         "Orang tua/wali akan menerima notifikasi otomatis",
         "Jangan berikan QR Code kepada orang lain",
         "Segera lapor jika QR Code hilang/rusak",
@@ -341,7 +341,7 @@ const Students = () => {
       ctx.fillStyle = "#1e3a8a";
       ctx.font = "bold 28px system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("📋 Petunjuk Penggunaan", canvasW / 2, instrStartY + 45);
+      ctx.fillText("Petunjuk Penggunaan", canvasW / 2, instrStartY + 45);
       ctx.fillStyle = "#374151";
       ctx.font = "24px system-ui, sans-serif";
       ctx.textAlign = "left";
@@ -360,7 +360,7 @@ const Students = () => {
       ctx.fillStyle = "#991b1b";
       ctx.font = "bold 22px system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("⚠️ QR Code ini bersifat rahasia & hanya untuk keperluan sekolah", canvasW / 2, noticeY + 50);
+      ctx.fillText("QR Code ini bersifat rahasia & hanya untuk keperluan sekolah", canvasW / 2, noticeY + 50);
 
       ctx.fillStyle = "#9ca3af";
       ctx.font = "24px system-ui, sans-serif";
@@ -677,9 +677,9 @@ const Students = () => {
                 <span className="text-xs font-medium">Download QR</span>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">📦 Semua Kelas</SelectItem>
+                <SelectItem value="all">Semua Kelas</SelectItem>
                 {allClasses.map((cls) => (
-                  <SelectItem key={cls} value={cls}>📁 Kelas {cls} ({students.filter(s => s.class === cls).length})</SelectItem>
+                  <SelectItem key={cls} value={cls}>Kelas {cls} ({students.filter(s => s.class === cls).length})</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -58,29 +58,32 @@ const WaliKelasHistory = () => {
     if (!profile?.school_id || !selectedClass) { setLoading(false); return; }
     const fetchData = async () => {
       setLoading(true);
-      const [studentsRes, logsRes] = await Promise.all([
-        supabase.from("students").select("id, name, student_id, class").eq("school_id", profile.school_id!).eq("class", selectedClass).order("name"),
-        supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id!).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate),
-      ]);
+      try {
+        const [studentsRes, logsRes] = await Promise.all([
+          supabase.from("students").select("id, name, student_id, class").eq("school_id", profile.school_id!).eq("class", selectedClass).order("name"),
+          supabase.from("attendance_logs").select("student_id, date, status, attendance_type").eq("school_id", profile.school_id!).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate),
+        ]);
 
-      const studentData = studentsRes.data || [];
-      setAllStudents(studentData);
+        const studentData = studentsRes.data || [];
+        setAllStudents(studentData);
 
-      if (studentData.length > 0) {
-        const ids = studentData.map(s => s.id);
-        const { data: filteredLogs } = await supabase
-          .from("attendance_logs")
-          .select("student_id, date, status, attendance_type")
-          .eq("school_id", profile.school_id!)
-          .eq("attendance_type", "datang")
-          .gte("date", startDate)
-          .lte("date", endDate)
-          .in("student_id", ids);
-        setLogs(filteredLogs || []);
-      } else {
-        setLogs([]);
+        if (studentData.length > 0) {
+          const ids = studentData.map(s => s.id);
+          const { data: filteredLogs } = await supabase
+            .from("attendance_logs")
+            .select("student_id, date, status, attendance_type")
+            .eq("school_id", profile.school_id!)
+            .eq("attendance_type", "datang")
+            .gte("date", startDate)
+            .lte("date", endDate)
+            .in("student_id", ids);
+          setLogs(filteredLogs || []);
+        } else {
+          setLogs([]);
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, [profile?.school_id, selectedClass, startDate, endDate]);
