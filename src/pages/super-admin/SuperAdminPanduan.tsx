@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { iconForRole, type PanduanGuide, type PanduanRow, type PanduanStep } from "@/lib/panduanFetch";
 
 const COLOR_PRESETS = [
@@ -30,6 +31,7 @@ function rowToEditor(r: PanduanRow): EditorGuide {
     intro: r.intro || "",
     cover: r.cover || "",
     mobileMockup: r.mobile_mockup || "",
+    mobileMockupEnabled: r.mobile_mockup_enabled !== false,
     color: r.color,
     highlights: Array.isArray(r.highlights) ? (r.highlights as string[]) : [],
     steps: Array.isArray(r.steps) ? (r.steps as PanduanStep[]) : [],
@@ -129,6 +131,7 @@ export default function SuperAdminPanduan() {
         intro: active.intro,
         cover: active.cover || null,
         mobile_mockup: active.mobileMockup || null,
+        mobile_mockup_enabled: active.mobileMockupEnabled,
         color: active.color,
         highlights: active.highlights,
         steps: active.steps,
@@ -248,7 +251,16 @@ export default function SuperAdminPanduan() {
 
           {/* Cover & Mockup */}
           <Card className="p-5 space-y-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Gambar Cover & Mockup Mobile</h2>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Gambar Cover & Mockup Mobile</h2>
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+                <Switch
+                  checked={active.mobileMockupEnabled}
+                  onCheckedChange={(v) => patchActive({ mobileMockupEnabled: v })}
+                />
+                Tampilkan mockup mobile di halaman publik
+              </label>
+            </div>
             <div className="grid md:grid-cols-2 gap-5">
               <ImagePicker
                 label="Gambar Cover (Desktop)"

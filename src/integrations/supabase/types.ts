@@ -819,6 +819,7 @@ export type Database = {
           intro: string
           label: string
           mobile_mockup: string | null
+          mobile_mockup_enabled: boolean
           role_id: string
           short_label: string
           sort_order: number
@@ -834,6 +835,7 @@ export type Database = {
           intro?: string
           label: string
           mobile_mockup?: string | null
+          mobile_mockup_enabled?: boolean
           role_id: string
           short_label: string
           sort_order?: number
@@ -849,6 +851,7 @@ export type Database = {
           intro?: string
           label?: string
           mobile_mockup?: string | null
+          mobile_mockup_enabled?: boolean
           role_id?: string
           short_label?: string
           sort_order?: number

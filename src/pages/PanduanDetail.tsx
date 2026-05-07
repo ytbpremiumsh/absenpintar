@@ -33,6 +33,8 @@ export default function PanduanDetail() {
 
   const guide = guides.find((g) => g.id === role);
   if (!guide) return <Navigate to="/panduan" replace />;
+  const mobileEnabled = guide.mobileMockupEnabled !== false;
+  const effectiveView: ViewMode = mobileEnabled ? viewMode : "desktop";
   const Icon = guide.icon;
 
   return (
@@ -69,25 +71,27 @@ export default function PanduanDetail() {
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto px-4 -mt-2">
-        <div className="flex items-center justify-center">
-          <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white border border-slate-200 shadow-sm">
-            <button onClick={() => setViewMode("desktop")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${viewMode === "desktop" ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow" : "text-slate-500 hover:text-slate-800"}`}
-              aria-pressed={viewMode === "desktop"}>
-              <Monitor className="h-4 w-4" /> Desktop
-            </button>
-            <button onClick={() => setViewMode("mobile")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${viewMode === "mobile" ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow" : "text-slate-500 hover:text-slate-800"}`}
-              aria-pressed={viewMode === "mobile"}>
-              <Smartphone className="h-4 w-4" /> Mobile
-            </button>
+      {mobileEnabled && (
+        <section className="max-w-4xl mx-auto px-4 -mt-2">
+          <div className="flex items-center justify-center">
+            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white border border-slate-200 shadow-sm">
+              <button onClick={() => setViewMode("desktop")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${viewMode === "desktop" ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow" : "text-slate-500 hover:text-slate-800"}`}
+                aria-pressed={viewMode === "desktop"}>
+                <Monitor className="h-4 w-4" /> Desktop
+              </button>
+              <button onClick={() => setViewMode("mobile")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${viewMode === "mobile" ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow" : "text-slate-500 hover:text-slate-800"}`}
+                aria-pressed={viewMode === "mobile"}>
+                <Smartphone className="h-4 w-4" /> Mobile
+              </button>
+            </div>
           </div>
-        </div>
-        <p className="text-center text-xs text-slate-400 mt-2">
-          {viewMode === "desktop" ? "Tampilan saat dibuka di laptop / komputer" : "Tampilan saat dibuka di HP Android / iOS"}
-        </p>
-      </section>
+          <p className="text-center text-xs text-slate-400 mt-2">
+            {viewMode === "desktop" ? "Tampilan saat dibuka di laptop / komputer" : "Tampilan saat dibuka di HP Android / iOS"}
+          </p>
+        </section>
+      )}
 
       <section className="max-w-4xl mx-auto px-4 py-8">
         <div className="space-y-6">
@@ -123,7 +127,7 @@ export default function PanduanDetail() {
 
               {step.image && (
                 <AnimatePresence mode="wait">
-                  {viewMode === "desktop" ? (
+                  {effectiveView === "desktop" ? (
                     <motion.div key="desktop" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                       <img src={step.image} alt={`${step.title} — Tampilan Desktop`} loading="lazy" decoding="async" className="w-full h-auto rounded-2xl" />
                     </motion.div>
