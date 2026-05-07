@@ -56,7 +56,7 @@ const PLAN_FEATURES: Record<string, Omit<PlanFeatures, "planName" | "loading" | 
     canMultiBranch: false,
     canWhatsApp: true,
     canMultiStaff: true,
-    canFaceRecognition: false,
+    canFaceRecognition: true,
     maxClasses: 999,
     maxStudentsPerClass: 999,
     maxStudentsTotal: null,
@@ -130,7 +130,9 @@ export function useSubscriptionFeatures(): PlanFeatures {
     fetch();
   }, [profile?.school_id]);
 
-  const features = PLAN_FEATURES[planName] || PLAN_FEATURES.Free;
+  const baseFeatures = PLAN_FEATURES[planName] || PLAN_FEATURES.Free;
+  // Active trial unlocks Face Recognition regardless of plan name
+  const features = isTrial ? { ...baseFeatures, canFaceRecognition: true } : baseFeatures;
 
   return { planName, isTrial, trialDaysLeft, trialExpiresAt, loading, ...features };
 }
