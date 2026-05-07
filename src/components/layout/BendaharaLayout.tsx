@@ -211,6 +211,50 @@ export function BendaharaLayout() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Penanggung Jawab OTP */}
+      <Dialog open={openConfirmer} onOpenChange={setOpenConfirmer}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Penanggung Jawab OTP Pencairan</DialogTitle>
+            <DialogDescription>
+              Pilih satu guru/staff yang akan menerima kode OTP via WhatsApp setiap kali Bendahara mengajukan pencairan dana. Pilihan ini hanya untuk konfirmasi keamanan — tidak mengubah hak akses dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div>
+              <Label className="text-xs">Pilih Penanggung Jawab</Label>
+              <Select value={confirmerId} onValueChange={setConfirmerId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Pilih guru/staff..." /></SelectTrigger>
+                <SelectContent>
+                  {staffList.length === 0 && <div className="p-3 text-xs text-muted-foreground">Belum ada staff/guru</div>}
+                  {staffList.map(s => (
+                    <SelectItem key={s.user_id} value={s.user_id} disabled={!s.phone}>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{s.full_name} <span className="text-[10px] text-muted-foreground">({s.role})</span></span>
+                        <span className="text-[10px] font-mono text-muted-foreground">{s.phone || "Belum ada nomor WA"}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground mt-1">Hanya guru/staff dengan nomor WhatsApp yang bisa dipilih.</p>
+            </div>
+            {confirmerId && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-xs flex items-center gap-2">
+                <Phone className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>OTP akan dikirim ke <b>{staffList.find(s => s.user_id === confirmerId)?.full_name}</b> ({staffList.find(s => s.user_id === confirmerId)?.phone})</span>
+              </div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setOpenConfirmer(false)} className="flex-1">Batal</Button>
+              <Button onClick={saveConfirmer} disabled={savingConfirmer || !confirmerId} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                {savingConfirmer ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }
