@@ -23,6 +23,7 @@ const CustomDomain = () => {
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [paymentTxnId, setPaymentTxnId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("platform_settings").select("value").eq("key", "addon_custom_domain_enabled").maybeSingle().then(({ data }) => {
@@ -58,6 +59,7 @@ const CustomDomain = () => {
         window.location.reload();
       } else if (data?.payment_url) {
         toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentTxnId(data.transaction_id || null);
         setPaymentIframe(data.payment_url);
       }
     } catch (e: any) {
@@ -293,7 +295,13 @@ const CustomDomain = () => {
         open={!!paymentIframe}
         paymentUrl={paymentIframe}
         title="Pembayaran Custom Domain — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+        checkPaid={async () => {
+          if (!paymentTxnId) return false;
+          const { data } = await supabase.from("payment_transactions").select("status").eq("id", paymentTxnId).maybeSingle();
+          return data?.status === "paid";
+        }}
+        onPaid={() => { window.location.href = "/custom-domain?status=success"; }}
+        onClose={() => { setPaymentIframe(null); setPaymentTxnId(null); }}
       />
     </div>
   );
@@ -375,7 +383,7 @@ function DnsTutorial({ domain }: { domain?: string }) {
       </div>
 
       <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-1">💡 Tips</h4>
+        <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-1">Tips</h4>
         <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
           <li>Gunakan subdomain seperti <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">absensi.sekolahku.sch.id</code> agar tidak mengganggu website utama</li>
           <li>Jika menggunakan Cloudflare, pastikan Proxy Status diatur ke <strong>DNS Only</strong> (ikon awan abu-abu)</li>

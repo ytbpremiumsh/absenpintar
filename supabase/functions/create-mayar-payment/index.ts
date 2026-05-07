@@ -77,6 +77,11 @@ serve(async (req) => {
       return data;
     };
 
+    const ok = (payload: Record<string, unknown>) =>
+      new Response(JSON.stringify({ success: true, ...payload }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
     const getAnyPlanId = async () => {
       const { data } = await supabaseAdmin.from("subscription_plans").select("id").limit(1).single();
       return data?.id;
@@ -96,9 +101,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_idcard" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return ok({ payment_url: brandPaymentUrl(existing.mayar_payment_url), transaction_id: existing.id });
       }
 
       const redirectUrl = `${siteUrl}/order-idcard?status=success`;
@@ -118,9 +121,7 @@ serve(async (req) => {
 
       await supabaseAdmin.from("id_card_orders").update({ payment_transaction_id: txn?.id || null }).eq("id", order_id);
 
-      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return ok({ payment_url: brandPaymentUrl(paymentLink.link), transaction_id: txn?.id || null });
     }
 
     // ═══════════════════════════════════════════
@@ -133,9 +134,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_custom_domain" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return ok({ payment_url: brandPaymentUrl(existing.mayar_payment_url), transaction_id: existing.id });
       }
 
       const redirectUrl = `${siteUrl}/custom-domain?status=success`;
@@ -159,9 +158,7 @@ serve(async (req) => {
         payment_transaction_id: txn?.id || null, expires_at: subRes?.data?.expires_at || null,
       }, { onConflict: "school_id,addon_type" });
 
-      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return ok({ payment_url: brandPaymentUrl(paymentLink.link), transaction_id: txn?.id || null });
     }
 
     // ═══════════════════════════════════════════
@@ -182,9 +179,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_wa_credit" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return ok({ payment_url: brandPaymentUrl(existing.mayar_payment_url), transaction_id: existing.id });
       }
 
       const redirectUrl = `${siteUrl}/wa-credit?status=success`;
@@ -196,15 +191,13 @@ serve(async (req) => {
       );
 
       const anyPlanId = await getAnyPlanId();
-      await supabaseAdmin.from("payment_transactions").insert({
+      const { data: txn } = await supabaseAdmin.from("payment_transactions").insert({
         school_id: schoolId, plan_id: anyPlanId || schoolId, amount: totalAmount, status: "pending",
         mayar_transaction_id: paymentLink?.id || null, mayar_payment_url: paymentLink?.link || null,
         payment_method: "addon_wa_credit",
-      });
+      }).select("id").single();
 
-      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return ok({ payment_url: brandPaymentUrl(paymentLink.link), transaction_id: txn?.id || null });
     }
 
     // ═══════════════════════════════════════════
@@ -241,7 +234,7 @@ serve(async (req) => {
 
     const existing = await findRecentPending({ school_id: schoolId, plan_id: plan.id });
     if (existing?.mayar_payment_url) {
-      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return ok({ payment_url: brandPaymentUrl(existing.mayar_payment_url), transaction_id: existing.id });
     }
 
     const redirectUrl = `${siteUrl}/subscription?status=success`;
@@ -252,12 +245,12 @@ serve(async (req) => {
       redirectUrl
     );
 
-    await supabaseAdmin.from("payment_transactions").insert({
+    const { data: txn } = await supabaseAdmin.from("payment_transactions").insert({
       school_id: schoolId, plan_id: plan.id, amount: plan.price, status: "pending",
       mayar_transaction_id: paymentLink?.id || null, mayar_payment_url: paymentLink?.link || null,
-    });
+    }).select("id").single();
 
-    return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return ok({ payment_url: brandPaymentUrl(paymentLink.link), transaction_id: txn?.id || null });
   } catch (error) {
     console.error("create-mayar-payment error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message }), {

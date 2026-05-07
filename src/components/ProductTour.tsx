@@ -5,7 +5,7 @@ import { X, ChevronLeft, ChevronRight, Sparkles, LayoutDashboard, Users, UserChe
 const TOUR_STEPS = [
   {
     icon: Sparkles,
-    title: "Selamat Datang di ATSkolla 👋",
+    title: "Selamat Datang di ATSkolla",
     desc: "ATSkolla membantu mengelola absensi siswa, guru, dan staff dalam satu sistem terintegrasi.",
     color: "from-indigo-500 to-blue-600",
   },
@@ -53,7 +53,7 @@ const TOUR_STEPS = [
   },
   {
     icon: Rocket,
-    title: "Siap Digunakan! 🚀",
+    title: "Siap Digunakan!",
     desc: "Sekarang kamu sudah siap menggunakan ATSkolla. Mulai kelola absensi dengan lebih mudah dan efisien.",
     color: "from-indigo-500 to-violet-600",
   },

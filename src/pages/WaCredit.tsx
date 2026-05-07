@@ -25,6 +25,7 @@ const WaCredit = () => {
   const [loading, setLoading] = useState(true);
   const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [paymentTxnId, setPaymentTxnId] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("status") === "success") {
@@ -75,6 +76,7 @@ const WaCredit = () => {
       if (error) throw error;
       if (data?.payment_url) {
         toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentTxnId(data.transaction_id || null);
         setPaymentIframe(data.payment_url);
       } else {
         throw new Error(data?.error || "Tidak mendapatkan link pembayaran");
@@ -278,7 +280,13 @@ const WaCredit = () => {
         open={!!paymentIframe}
         paymentUrl={paymentIframe}
         title="Pembelian Kredit WhatsApp — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+        checkPaid={async () => {
+          if (!paymentTxnId) return false;
+          const { data } = await supabase.from("payment_transactions").select("status").eq("id", paymentTxnId).maybeSingle();
+          return data?.status === "paid";
+        }}
+        onPaid={() => { window.location.href = "/wa-credit?status=success"; }}
+        onClose={() => { setPaymentIframe(null); setPaymentTxnId(null); }}
       />
     </div>
   );

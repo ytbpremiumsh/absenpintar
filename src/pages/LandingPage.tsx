@@ -899,7 +899,7 @@ const LandingPage = () => {
           {/* Bottom bar */}
           <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-xs text-slate-500">© {new Date().getFullYear()} {get("footer_brand_name", "ATSkolla")} — {get("footer_brand_tagline", "Platform Digital Sekolah")}. All rights reserved.</p>
-            <p className="text-[10px] text-slate-600">Dipercaya sekolah-sekolah di seluruh Indonesia 🇮🇩</p>
+            <p className="text-[10px] text-slate-600">Dipercaya sekolah-sekolah di seluruh Indonesia</p>
           </div>
         </div>
       </footer>

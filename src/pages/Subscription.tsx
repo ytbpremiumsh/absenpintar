@@ -41,6 +41,7 @@ const Subscription = () => {
   const [currentPlan, setCurrentPlan] = useState<any>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [paymentTxnId, setPaymentTxnId] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const [usage, setUsage] = useState<UsageStats>({ classCount: 0, studentCount: 0, maxClasses: 2, maxStudentsPerClass: 10, maxStudentsTotal: 20 });
   const [subscriptionHistory, setSubscriptionHistory] = useState<any[]>([]);
@@ -201,6 +202,7 @@ const Subscription = () => {
         window.location.reload();
       } else if (result?.payment_url) {
         toast.success("Membuka halaman pembayaran (QRIS / Transfer Bank)...");
+        setPaymentTxnId(result.transaction_id || null);
         setPaymentIframe(result.payment_url);
       } else {
         toast.error("Gagal mendapatkan link pembayaran");
@@ -669,7 +671,13 @@ const Subscription = () => {
         open={!!paymentIframe}
         paymentUrl={paymentIframe}
         title="Pembayaran Langganan — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+        checkPaid={async () => {
+          if (!paymentTxnId) return false;
+          const { data } = await supabase.from("payment_transactions").select("status").eq("id", paymentTxnId).maybeSingle();
+          return data?.status === "paid";
+        }}
+        onPaid={() => { window.location.href = "/subscription?status=success"; }}
+        onClose={() => { setPaymentIframe(null); setPaymentTxnId(null); }}
       />
     </>
   );

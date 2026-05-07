@@ -56,6 +56,7 @@ const OrderIdCard = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [paymentTxnId, setPaymentTxnId] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("status") === "success") {
@@ -137,6 +138,7 @@ const OrderIdCard = () => {
 
       if (payError) throw payError;
       if (payData?.payment_url) {
+        setPaymentTxnId(payData.transaction_id || null);
         setPaymentIframe(payData.payment_url);
       }
 
@@ -161,7 +163,7 @@ const OrderIdCard = () => {
         body: { addon_type: "idcard", order_id: order.id, school_id: profile?.school_id },
       });
       if (error) throw error;
-      if (data?.payment_url) setPaymentIframe(data.payment_url);
+      if (data?.payment_url) { setPaymentTxnId(data.transaction_id || null); setPaymentIframe(data.payment_url); }
     } catch (e: any) {
       toast.error(e.message || "Gagal membuat pembayaran");
     }
@@ -671,7 +673,15 @@ const OrderIdCard = () => {
         open={!!paymentIframe}
         paymentUrl={paymentIframe}
         title="Pembayaran ID Card — QRIS / Transfer Bank"
-        onClose={() => { setPaymentIframe(null); window.location.reload(); }}
+        checkPaid={async () => {
+          if (!paymentTxnId) return false;
+          const { data } = await supabase.from("payment_transactions").select("status").eq("id", paymentTxnId).maybeSingle();
+          return data?.status === "paid";
+        }}
+        onPaid={() => {
+          window.location.href = "/order-idcard?status=success";
+        }}
+        onClose={() => { setPaymentIframe(null); setPaymentTxnId(null); }}
       />
     </div>
   );

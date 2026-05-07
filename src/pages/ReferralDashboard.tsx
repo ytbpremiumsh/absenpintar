@@ -41,7 +41,7 @@ const ReferralDashboard = () => {
   };
 
   const handleShareWA = () => {
-    const text = `🎓 Gunakan ATSkolla untuk absensi digital sekolah! Daftar gratis:\n${referralLink}`;
+    const text = `Gunakan ATSkolla untuk absensi digital sekolah! Daftar gratis:\n${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -49,7 +49,7 @@ const ReferralDashboard = () => {
     try {
       await claimReward(rewardId);
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-      toast.success("🎉 Reward berhasil ditukar!");
+      toast.success("Reward berhasil ditukar!");
     } catch (err: any) {
       toast.error(err.message || "Gagal menukar reward");
     }
@@ -178,7 +178,7 @@ const ReferralDashboard = () => {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Semua reward sudah tercapai! 🎉</p>
+                <p className="text-sm text-muted-foreground">Semua reward sudah tercapai!</p>
               )}
 
               {/* Achievement badges */}

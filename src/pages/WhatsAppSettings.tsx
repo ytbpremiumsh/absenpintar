@@ -313,7 +313,7 @@ const WhatsAppSettings = () => {
       if (data?.connected) {
         setMpwaConnected(true);
         setQrData(null);
-        toast.success("🎉 Device berhasil terhubung!");
+        toast.success("Device berhasil terhubung!");
       } else if (data?.error) {
         toast.error(data.error);
       } else {

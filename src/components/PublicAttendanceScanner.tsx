@@ -131,7 +131,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
       setAttendanceType(data.attendance_type || "datang");
       setConfirmed(true);
       const typeLabel = (data.attendance_type || "datang") === "datang" ? "Datang" : "Pulang";
-      toast.success(`✅ ${data.student.name} - ${typeLabel}!`);
+      toast.success(`${data.student.name} - ${typeLabel}!`);
       onAttendanceRecorded?.();
       setTimeout(() => resetState(), 3000);
     } catch (err: any) {
@@ -511,7 +511,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
           <div className="p-6 text-center space-y-3">
             <CheckCircle2 className="h-14 w-14 text-success-foreground mx-auto" />
             <DialogTitle className="text-lg font-bold text-success-foreground">
-              ✅ Absensi {attendanceType === "pulang" ? "Pulang" : "Datang"} Berhasil
+              Absensi {attendanceType === "pulang" ? "Pulang" : "Datang"} Berhasil
             </DialogTitle>
             <DialogDescription className="text-success-foreground/90 text-sm">
               <p><strong>{scannedStudent?.name}</strong></p>
