@@ -101,9 +101,7 @@ serve(async (req) => {
 
       const existing = await findRecentPending({ school_id: schoolId, payment_method: "addon_idcard" });
       if (existing?.mayar_payment_url) {
-        return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(existing.mayar_payment_url) }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return ok({ payment_url: brandPaymentUrl(existing.mayar_payment_url), transaction_id: existing.id });
       }
 
       const redirectUrl = `${siteUrl}/order-idcard?status=success`;
@@ -123,9 +121,7 @@ serve(async (req) => {
 
       await supabaseAdmin.from("id_card_orders").update({ payment_transaction_id: txn?.id || null }).eq("id", order_id);
 
-      return new Response(JSON.stringify({ success: true, payment_url: brandPaymentUrl(paymentLink.link) }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return ok({ payment_url: brandPaymentUrl(paymentLink.link), transaction_id: txn?.id || null });
     }
 
     // ═══════════════════════════════════════════
