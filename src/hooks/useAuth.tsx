@@ -126,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    try { sessionStorage.removeItem("active_dashboard"); sessionStorage.removeItem("dashboard_chosen"); } catch {}
     await supabase.auth.signOut();
   };
 

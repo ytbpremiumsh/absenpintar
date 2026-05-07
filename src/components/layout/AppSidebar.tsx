@@ -111,7 +111,8 @@ export function AppSidebar() {
     });
   }, [user, profile?.school_id]);
 
-  const isTeacherOnly = roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff");
+  const activeDashboard = typeof window !== "undefined" ? sessionStorage.getItem("active_dashboard") : null;
+  const isTeacherOnly = activeDashboard === "teacher" || (roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff"));
 
   const handleLogout = async () => {
     await signOut();
