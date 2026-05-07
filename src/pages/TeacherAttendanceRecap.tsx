@@ -2,27 +2,34 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, ChevronRight, UsersRound, ArrowDownToLine, ArrowUpFromLine, Calendar, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, UsersRound, Calendar, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
 const ROLE_LABEL: Record<string, string> = { teacher: "Guru", staff: "Operator", bendahara: "Bendahara" };
 const roleLabel = (r: string) => ROLE_LABEL[r] || r;
 
+const STATUS_EXCEL_COLORS: Record<string, { bg: string; fg: string }> = {
+  H: { bg: "#dcfce7", fg: "#16a34a" },
+  S: { bg: "#dbeafe", fg: "#2563eb" },
+  I: { bg: "#fef9c3", fg: "#ca8a04" },
+  A: { bg: "#fecaca", fg: "#dc2626" },
+};
+
 interface TeacherRow {
   user_id: string;
   full_name: string;
   photo_url: string | null;
   roles: string[];
-  days: Record<number, { datang?: string; pulang?: string }>;
-  total: { H: number; A: number };
+  days: Record<number, string>; // H/S/I/A or "" (no record yet)
+  totals: { H: number; S: number; I: number; A: number };
 }
+
+const STATUS_TO_CODE: Record<string, string> = { hadir: "H", sakit: "S", izin: "I", alfa: "A" };
 
 const TeacherAttendanceRecap = () => {
   const { profile } = useAuth();
@@ -30,8 +37,10 @@ const TeacherAttendanceRecap = () => {
   const [teachers, setTeachers] = useState<{ user_id: string; full_name: string; photo_url: string | null; roles: string[] }[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"datang" | "pulang">("datang");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [schoolName, setSchoolName] = useState("");
+  const [schoolCity, setSchoolCity] = useState("");
+  const [principalName, setPrincipalName] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -43,25 +52,35 @@ const TeacherAttendanceRecap = () => {
         const start = new Date(year, month, 1).toISOString().slice(0, 10);
         const end = new Date(year, month + 1, 0).toISOString().slice(0, 10);
 
+        const { data: school } = await supabase.from("schools").select("name, city").eq("id", profile.school_id).maybeSingle();
+        if (school) { setSchoolName(school.name || ""); setSchoolCity(school.city || ""); }
+
         const { data: profs } = await supabase.from("profiles")
           .select("user_id, full_name, photo_url").eq("school_id", profile.school_id);
         const ids = (profs || []).map((p) => p.user_id);
         if (ids.length === 0) { setTeachers([]); setLogs([]); return; }
 
         const { data: rolesData } = await supabase.from("user_roles")
-          .select("user_id, role").in("user_id", ids).in("role", ["teacher", "staff", "bendahara"]);
+          .select("user_id, role").in("user_id", ids).in("role", ["teacher", "staff", "bendahara", "school_admin"]);
         const roleMap = new Map<string, string[]>();
         (rolesData || []).forEach((r: any) => {
           const arr = roleMap.get(r.user_id) || [];
           arr.push(r.role);
           roleMap.set(r.user_id, arr);
         });
-        const filtered = (profs || []).filter((p) => roleMap.has(p.user_id))
-          .map((p) => ({ ...p, roles: roleMap.get(p.user_id) || [] }));
+
+        // Find principal (first school_admin)
+        const adminEntry = (profs || []).find((p) => (roleMap.get(p.user_id) || []).includes("school_admin"));
+        if (adminEntry) setPrincipalName(adminEntry.full_name || "");
+
+        const filtered = (profs || []).filter((p) => {
+          const r = roleMap.get(p.user_id) || [];
+          return r.includes("teacher") || r.includes("staff") || r.includes("bendahara");
+        }).map((p) => ({ ...p, roles: (roleMap.get(p.user_id) || []).filter(r => r !== "school_admin") }));
         setTeachers(filtered);
 
         const { data: lgs } = await supabase.from("teacher_attendance_logs" as any)
-          .select("user_id, date, time, status, attendance_type")
+          .select("user_id, date, status, attendance_type")
           .eq("school_id", profile.school_id).gte("date", start).lte("date", end);
         setLogs(lgs || []);
       } finally { setLoading(false); }
@@ -71,50 +90,117 @@ const TeacherAttendanceRecap = () => {
 
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
   const dayArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const monthLabel = `${MONTH_NAMES[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
 
-  const filteredTeachers = useMemo(() => {
-    return teachers.filter((t) => roleFilter === "all" ? true : t.roles.includes(roleFilter));
-  }, [teachers, roleFilter]);
+  // Determine which days are "past or today" for marking A
+  const today = new Date();
+  const isCurrentOrPastMonth = (currentMonth.getFullYear() < today.getFullYear()) ||
+    (currentMonth.getFullYear() === today.getFullYear() && currentMonth.getMonth() <= today.getMonth());
+
+  const filteredTeachers = useMemo(() =>
+    teachers.filter((t) => roleFilter === "all" ? true : t.roles.includes(roleFilter)),
+  [teachers, roleFilter]);
 
   const rows: TeacherRow[] = useMemo(() => {
     return filteredTeachers.map((t) => {
-      const days: Record<number, { datang?: string; pulang?: string }> = {};
-      let H = 0, A = 0;
+      const days: Record<number, string> = {};
+      const totals = { H: 0, S: 0, I: 0, A: 0 };
       const myLogs = logs.filter((l) => l.user_id === t.user_id);
       for (const d of dayArray) {
         const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-        const dl = myLogs.find((l) => l.date === dateStr && (l.attendance_type || "datang") === "datang");
-        const pl = myLogs.find((l) => l.date === dateStr && l.attendance_type === "pulang");
-        days[d] = { datang: dl?.time, pulang: pl?.time };
-        const target = tab === "datang" ? dl : pl;
-        if (target) H++;
+        // Use 'datang' record (or any if no datang) to determine status
+        const log = myLogs.find((l) => l.date === dateStr && (l.attendance_type || "datang") === "datang")
+          || myLogs.find((l) => l.date === dateStr);
+        // Check if this day has passed (today or before)
+        const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d);
+        const isPast = checkDate <= today;
+        const dow = checkDate.getDay(); // 0 Sun, 6 Sat
+        const isWeekend = dow === 0 || dow === 6;
+
+        if (log) {
+          const code = STATUS_TO_CODE[log.status] || "H";
+          days[d] = code;
+          totals[code as "H"|"S"|"I"|"A"]++;
+        } else if (isPast && !isWeekend && isCurrentOrPastMonth) {
+          days[d] = "A";
+          totals.A++;
+        } else {
+          days[d] = "";
+        }
       }
-      A = daysInMonth - H;
-      return { user_id: t.user_id, full_name: t.full_name, photo_url: t.photo_url, roles: t.roles, days, total: { H, A } };
+      return { user_id: t.user_id, full_name: t.full_name, photo_url: t.photo_url, roles: t.roles, days, totals };
     });
-  }, [filteredTeachers, logs, dayArray, currentMonth, daysInMonth, tab]);
+  }, [filteredTeachers, logs, dayArray, currentMonth, daysInMonth]);
 
   const exportExcel = () => {
-    const header = ["Nama", "Role", ...dayArray.map((d) => String(d)), "Hadir", "Tidak"];
-    const data = rows.map((r) => [
-      r.full_name, r.roles.map(roleLabel).join("/"),
-      ...dayArray.map((d) => {
-        const t = tab === "datang" ? r.days[d]?.datang : r.days[d]?.pulang;
-        return t ? t.slice(0, 5) : "-";
-      }),
-      r.total.H, r.total.A,
-    ]);
-    const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Rekap Guru");
-    XLSX.writeFile(wb, `Rekap_Absensi_Guru_${MONTH_NAMES[currentMonth.getMonth()]}_${currentMonth.getFullYear()}_${tab}.xlsx`);
-    toast.success("Berhasil mengunduh rekap");
+    if (!rows.length) { toast.error("Tidak ada data"); return; }
+    const titleLabel = "REKAP ABSENSI GURU & STAFF";
+    const totalCols = 3 + daysInMonth + 4;
+
+    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="utf-8"><style>
+      td, th { border: 1px solid #999; padding: 3px 4px; font-family: Arial; font-size: 9pt; text-align: center; }
+      th { background: #4f46e5; color: white; font-weight: bold; }
+      .name { text-align: left; min-width: 160px; }
+      .role { text-align: left; min-width: 100px; }
+      .title { font-size: 14pt; font-weight: bold; text-align: center; border: none; }
+      .subtitle { font-size: 11pt; text-align: center; border: none; }
+      .H { background: ${STATUS_EXCEL_COLORS.H.bg}; color: ${STATUS_EXCEL_COLORS.H.fg}; font-weight: bold; }
+      .S { background: ${STATUS_EXCEL_COLORS.S.bg}; color: ${STATUS_EXCEL_COLORS.S.fg}; font-weight: bold; }
+      .I { background: ${STATUS_EXCEL_COLORS.I.bg}; color: ${STATUS_EXCEL_COLORS.I.fg}; font-weight: bold; }
+      .A { background: ${STATUS_EXCEL_COLORS.A.bg}; color: ${STATUS_EXCEL_COLORS.A.fg}; font-weight: bold; }
+    </style></head><body><table>`;
+
+    html += `<tr><td colspan="${totalCols}" class="title">${titleLabel}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" class="subtitle">${schoolName}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" class="subtitle">Periode: ${monthLabel}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}"></td></tr>`;
+    html += `<tr><th rowspan="2">NO</th><th rowspan="2" class="name">NAMA</th><th rowspan="2" class="role">JABATAN</th>`;
+    html += `<th colspan="${daysInMonth}">TANGGAL</th><th colspan="4">KET</th></tr><tr>`;
+    for (let d = 1; d <= daysInMonth; d++) html += `<th>${d}</th>`;
+    html += `<th class="H">H</th><th class="S">S</th><th class="I">I</th><th class="A">A</th></tr>`;
+
+    rows.forEach((r, i) => {
+      html += `<tr><td>${i + 1}</td><td class="name">${r.full_name}</td><td class="role">${r.roles.map(roleLabel).join(", ")}</td>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const code = r.days[d] || "";
+        html += `<td${code ? ` class="${code}"` : ""}>${code || "-"}</td>`;
+      }
+      html += `<td class="H">${r.totals.H || ""}</td><td class="S">${r.totals.S || ""}</td><td class="I">${r.totals.I || ""}</td><td class="A">${r.totals.A || ""}</td></tr>`;
+    });
+
+    html += `<tr><td colspan="${totalCols}"></td></tr><tr><td colspan="${totalCols}"></td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none">${schoolCity || schoolName}, ........................ ${currentMonth.getFullYear()}</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">Mengetahui,</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold">Kepala Sekolah</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="border:none">&nbsp;</td></tr><tr><td colspan="${totalCols}" style="border:none">&nbsp;</td></tr><tr><td colspan="${totalCols}" style="border:none">&nbsp;</td></tr>`;
+    html += `<tr><td colspan="${totalCols}" style="text-align:right;border:none;font-weight:bold;text-decoration:underline">${principalName || "(...........................................)"}</td></tr>`;
+    html += `</table></body></html>`;
+
+    const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Rekap-Absensi-Guru-Staff-${MONTH_NAMES[currentMonth.getMonth()]}-${currentMonth.getFullYear()}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Excel berhasil diunduh!");
   };
 
   const navigateMonth = (dir: number) => {
     const d = new Date(currentMonth);
     d.setMonth(d.getMonth() + dir);
     setCurrentMonth(d);
+  };
+
+  const getCellBadge = (code: string) => {
+    switch (code) {
+      case "H": return "bg-emerald-500 text-white";
+      case "S": return "bg-violet-500 text-white";
+      case "I": return "bg-amber-400 text-white";
+      case "A": return "bg-red-500 text-white";
+      default: return "";
+    }
   };
 
   return (
@@ -127,12 +213,12 @@ const TeacherAttendanceRecap = () => {
           </div>
           <div>
             <h1 className="text-lg font-bold">Rekap Absensi Guru & Staff</h1>
-            <p className="text-white/70 text-xs">Datang & Pulang per bulan</p>
+            <p className="text-white/70 text-xs">Format bulanan dengan kode H/S/I/A — siap cetak & TTD Kepala Sekolah</p>
           </div>
         </div>
       </div>
 
-      <Card className="border-0 shadow-lg rounded-2xl">
+      <Card className="border border-border/50 shadow-none rounded-2xl">
         <CardContent className="p-4 space-y-3">
           <div className="flex flex-wrap items-center gap-2 justify-between">
             <div className="flex items-center gap-2">
@@ -141,7 +227,7 @@ const TeacherAttendanceRecap = () => {
               </Button>
               <div className="px-3 py-1.5 bg-muted/50 rounded-lg flex items-center gap-2 text-sm font-semibold">
                 <Calendar className="h-3.5 w-3.5" />
-                {MONTH_NAMES[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                {monthLabel}
               </div>
               <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg" onClick={() => navigateMonth(1)}>
                 <ChevronRight className="h-4 w-4" />
@@ -151,7 +237,7 @@ const TeacherAttendanceRecap = () => {
               <Select value={roleFilter} onValueChange={setRoleFilter}>
                 <SelectTrigger className="h-9 w-[140px] rounded-lg text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Role</SelectItem>
+                  <SelectItem value="all">Semua Jabatan</SelectItem>
                   <SelectItem value="teacher">Guru</SelectItem>
                   <SelectItem value="staff">Operator</SelectItem>
                   <SelectItem value="bendahara">Bendahara</SelectItem>
@@ -163,67 +249,110 @@ const TeacherAttendanceRecap = () => {
             </div>
           </div>
 
-          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-            <TabsList className="grid grid-cols-2 w-full max-w-sm">
-              <TabsTrigger value="datang" className="gap-1.5"><ArrowDownToLine className="h-3.5 w-3.5" />Datang</TabsTrigger>
-              <TabsTrigger value="pulang" className="gap-1.5"><ArrowUpFromLine className="h-3.5 w-3.5" />Pulang</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-4 text-xs pt-1">
+            <div className="flex items-center gap-1.5"><span className="inline-flex items-center justify-center h-5 w-5 rounded-md bg-emerald-500 text-white text-[10px] font-bold">H</span> Hadir</div>
+            <div className="flex items-center gap-1.5"><span className="inline-flex items-center justify-center h-5 w-5 rounded-md bg-violet-500 text-white text-[10px] font-bold">S</span> Sakit</div>
+            <div className="flex items-center gap-1.5"><span className="inline-flex items-center justify-center h-5 w-5 rounded-md bg-amber-400 text-white text-[10px] font-bold">I</span> Izin</div>
+            <div className="flex items-center gap-1.5"><span className="inline-flex items-center justify-center h-5 w-5 rounded-md bg-red-500 text-white text-[10px] font-bold">A</span> Alfa</div>
+          </div>
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+      <Card className="border border-border/50 shadow-none rounded-2xl overflow-hidden">
         <CardContent className="p-0">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="text-base font-bold text-foreground">
+              Rekapitulasi — {monthLabel}{" "}
+              <span className="text-muted-foreground font-normal text-sm">({rows.length} orang)</span>
+            </h2>
+          </div>
+
           {loading ? (
             <div className="p-12 text-center text-sm text-muted-foreground">Memuat data...</div>
           ) : rows.length === 0 ? (
             <div className="p-12 text-center text-sm text-muted-foreground">Belum ada data guru/staff</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-muted/40 sticky top-0">
-                  <tr>
-                    <th className="text-left px-3 py-2 font-semibold sticky left-0 bg-muted/40 z-10 min-w-[200px]">Nama</th>
+              <table className="w-full text-xs border-collapse min-w-[900px]">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th rowSpan={2} className="px-3 py-2.5 text-left font-semibold text-muted-foreground w-10 sticky left-0 bg-card z-10">No</th>
+                    <th rowSpan={2} className="px-3 py-2.5 text-left font-semibold text-muted-foreground min-w-[200px]">Nama & Jabatan</th>
+                    <th colSpan={daysInMonth} className="px-1 py-2 text-center font-bold text-primary uppercase text-[10px] tracking-wider">Tanggal</th>
+                    <th colSpan={5} className="px-1 py-2 text-center font-bold text-primary uppercase text-[10px] tracking-wider">Keterangan</th>
+                  </tr>
+                  <tr className="border-b border-border bg-muted/30">
                     {dayArray.map((d) => (
-                      <th key={d} className="px-1.5 py-2 font-semibold w-10 text-center">{d}</th>
+                      <th key={d} className="px-0.5 py-1.5 text-center font-medium text-muted-foreground w-7 text-[10px]">{d}</th>
                     ))}
-                    <th className="px-2 py-2 font-semibold text-center text-emerald-600">H</th>
-                    <th className="px-2 py-2 font-semibold text-center text-red-600">A</th>
+                    <th className="px-1 py-1.5 text-center font-bold text-emerald-600 w-7 text-[10px]">H</th>
+                    <th className="px-1 py-1.5 text-center font-bold text-violet-600 w-7 text-[10px]">S</th>
+                    <th className="px-1 py-1.5 text-center font-bold text-amber-600 w-7 text-[10px]">I</th>
+                    <th className="px-1 py-1.5 text-center font-bold text-red-600 w-7 text-[10px]">A</th>
+                    <th className="px-1 py-1.5 text-center font-bold text-primary w-10 text-[10px]">%</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.user_id} className="border-t border-border/30 hover:bg-muted/20">
-                      <td className="px-3 py-2 sticky left-0 bg-card z-10">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-7 w-7">
-                            <AvatarImage src={r.photo_url || undefined} />
-                            <AvatarFallback className="text-[10px] bg-[#5B6CF9]/10 text-[#5B6CF9]">{r.full_name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold text-foreground leading-tight">{r.full_name}</p>
-                            <p className="text-[10px] text-muted-foreground">{r.roles.map(roleLabel).join(" • ")}</p>
+                  {rows.map((r, i) => {
+                    const total = r.totals.H + r.totals.S + r.totals.I + r.totals.A;
+                    const pct = total > 0 ? Math.round((r.totals.H / total) * 100) : 0;
+                    return (
+                      <tr key={r.user_id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                        <td className="px-3 py-3 text-center font-medium text-muted-foreground sticky left-0 bg-card z-10">{i + 1}</td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar className="h-8 w-8 shrink-0">
+                              <AvatarImage src={r.photo_url || undefined} />
+                              <AvatarFallback className="text-[10px] font-bold bg-primary/10 text-primary">{r.full_name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <p className="text-[12px] font-semibold text-foreground truncate">{r.full_name}</p>
+                              <p className="text-[10px] text-muted-foreground">{r.roles.map(roleLabel).join(" • ")}</p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      {dayArray.map((d) => {
-                        const t = tab === "datang" ? r.days[d]?.datang : r.days[d]?.pulang;
-                        return (
-                          <td key={d} className="px-1 py-2 text-center">
-                            {t ? (
-                              <span className="inline-block px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-semibold">{t.slice(0, 5)}</span>
-                            ) : (
-                              <span className="text-muted-foreground/40">-</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                      <td className="px-2 py-2 text-center font-bold text-emerald-600">{r.total.H}</td>
-                      <td className="px-2 py-2 text-center font-bold text-red-600">{r.total.A}</td>
-                    </tr>
-                  ))}
+                        </td>
+                        {dayArray.map((d) => {
+                          const code = r.days[d] || "";
+                          const badgeClass = getCellBadge(code);
+                          return (
+                            <td key={d} className="px-0 py-2 text-center">
+                              {code ? (
+                                <span className={`inline-flex items-center justify-center h-6 w-6 rounded-md text-[10px] font-bold ${badgeClass}`}>{code}</span>
+                              ) : (
+                                <span className="inline-flex items-center justify-center h-6 w-6 rounded-md bg-muted/40 border border-border/30" />
+                              )}
+                            </td>
+                          );
+                        })}
+                        <td className="px-1 py-2 text-center font-bold text-emerald-600">{r.totals.H || 0}</td>
+                        <td className="px-1 py-2 text-center font-bold text-violet-600">{r.totals.S || 0}</td>
+                        <td className="px-1 py-2 text-center font-bold text-amber-600">{r.totals.I || 0}</td>
+                        <td className="px-1 py-2 text-center font-bold text-red-600">{r.totals.A || 0}</td>
+                        <td className={`px-1 py-2 text-center font-bold text-[10px] ${pct >= 80 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-red-600"}`}>
+                          {total > 0 ? `${pct}%` : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {rows.length > 0 && (
+            <div className="p-6 border-t border-border">
+              <div className="flex justify-end">
+                <div className="text-center text-xs text-muted-foreground space-y-1">
+                  <p>{schoolCity || schoolName}, ........................ {currentMonth.getFullYear()}</p>
+                  <p className="font-semibold text-foreground">Mengetahui,</p>
+                  <p className="font-semibold text-foreground">Kepala Sekolah</p>
+                  <div className="h-16" />
+                  <p className="font-semibold text-foreground border-b border-foreground inline-block min-w-[200px]">
+                    {principalName ? `( ${principalName} )` : "(.................................)"}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
