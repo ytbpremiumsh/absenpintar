@@ -368,15 +368,19 @@ const ManageStaff = () => {
   };
 
   const getRoleBadges = (roles: string[]) => (
-    <div className="flex flex-wrap gap-1 mt-0.5">
+    <div className="flex flex-wrap gap-1 mt-1">
       {roles.map((r) => {
         const meta = ROLE_META[r];
         if (!meta) return null;
         const Icon = meta.icon;
         return (
-          <Badge key={r} variant="secondary" className={`text-[10px] border-0 ${meta.cls}`}>
-            <Icon className="h-3 w-3 mr-1" /> {meta.label}
-          </Badge>
+          <span
+            key={r}
+            title={meta.label}
+            className={`inline-flex items-center justify-center h-5 w-5 rounded-md ${meta.cls}`}
+          >
+            <Icon className="h-3 w-3" />
+          </span>
         );
       })}
     </div>
@@ -425,28 +429,47 @@ const ManageStaff = () => {
             ))}
           </div>
 
-          {/* Info: dashboard access explanation (compact) */}
-          <Card className="border-0 shadow-card bg-gradient-to-br from-[#5B6CF9]/5 to-violet-500/5">
-            <CardContent className="p-3">
+          {/* Info: dashboard access explanation */}
+          <Card className="border border-border/50 shadow-none bg-gradient-to-br from-[#5B6CF9]/5 to-violet-500/5">
+            <CardContent className="p-4 space-y-3">
               <div className="flex items-start gap-2.5">
-                <div className="h-7 w-7 rounded-lg bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
-                  <Shield className="h-3.5 w-3.5 text-[#5B6CF9]" />
+                <div className="h-8 w-8 rounded-lg bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
+                  <Shield className="h-4 w-4 text-[#5B6CF9]" />
                 </div>
-                <div className="space-y-1.5 min-w-0">
-                  <p className="text-xs font-bold">Hak Akses Dashboard</p>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Satu akun bisa punya banyak role. Saat login, user akan diminta memilih dashboard.
+                <div className="min-w-0">
+                  <p className="text-sm font-bold leading-tight">Keterangan Hak Akses</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">
+                    Ikon pada kartu menunjukkan dashboard apa saja yang bisa dibuka oleh akun tersebut. Satu akun bisa memiliki lebih dari satu akses — saat login, pengguna akan diminta memilih dashboard yang ingin dibuka.
                   </p>
-                  <div className="flex flex-wrap gap-1">
-                    <Badge variant="secondary" className="text-[9px] border-0 bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 py-0">
-                      <GraduationCap className="h-2.5 w-2.5 mr-0.5" />Guru → Wali Kelas
-                    </Badge>
-                    <Badge variant="secondary" className="text-[9px] border-0 bg-[#5B6CF9]/10 text-[#5B6CF9] py-0">
-                      <Shield className="h-2.5 w-2.5 mr-0.5" />Operator → Sekolah
-                    </Badge>
-                    <Badge variant="secondary" className="text-[9px] border-0 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 py-0">
-                      <Wallet className="h-2.5 w-2.5 mr-0.5" />Bendahara → SPP
-                    </Badge>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                <div className="flex items-start gap-2 rounded-lg bg-white/60 dark:bg-card/60 border border-border/50 p-2.5">
+                  <span className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 shrink-0">
+                    <GraduationCap className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold leading-tight">Guru</p>
+                    <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">Akses Dashboard Wali Kelas: kelola siswa & absensi kelasnya.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 rounded-lg bg-white/60 dark:bg-card/60 border border-border/50 p-2.5">
+                  <span className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-[#5B6CF9]/10 text-[#5B6CF9] shrink-0">
+                    <Shield className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold leading-tight">Operator</p>
+                    <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">Akses Dashboard Sekolah: kelola seluruh data sekolah & absensi.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 rounded-lg bg-white/60 dark:bg-card/60 border border-border/50 p-2.5">
+                  <span className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 shrink-0">
+                    <Wallet className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold leading-tight">Bendahara</p>
+                    <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">Akses Dashboard SPP: kelola tagihan & pembayaran siswa.</p>
                   </div>
                 </div>
               </div>
