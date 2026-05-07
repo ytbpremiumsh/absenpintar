@@ -171,6 +171,37 @@ const WhatsAppSettings = () => {
   const [onesenderEnabled, setOnesenderEnabled] = useState(true);
   const [teachingReminderEnabled, setTeachingReminderEnabled] = useState(false);
   const [teachingReminderTemplate, setTeachingReminderTemplate] = useState('📋 *Pengingat Jadwal Mengajar*\n\nBapak/Ibu *{teacher_name}*,\n\nMata pelajaran *{subject_name}* untuk kelas *{class_name}* akan dimulai dalam 15 menit.\n\nWaktu: {start_time} - {end_time}\nRuangan: {room}\n\n_Pesan otomatis dari ATSkolla_');
+  const [testReminderPhone, setTestReminderPhone] = useState("089501123808");
+  const [testingReminder, setTestingReminder] = useState(false);
+
+  const handleTestReminder = async () => {
+    if (!testReminderPhone.trim()) { toast.error("Masukkan nomor WhatsApp"); return; }
+    if (!schoolId) { toast.error("School ID tidak ditemukan"); return; }
+    setTestingReminder(true);
+    try {
+      const now = new Date();
+      const start = new Date(now.getTime() + 15 * 60000);
+      const end = new Date(start.getTime() + 45 * 60000);
+      const fmt = (d: Date) => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const message = teachingReminderTemplate
+        .replace(/\{teacher_name\}/g, "Guru Uji Coba")
+        .replace(/\{subject_name\}/g, "Matematika")
+        .replace(/\{class_name\}/g, "VII-A")
+        .replace(/\{start_time\}/g, fmt(start))
+        .replace(/\{end_time\}/g, fmt(end))
+        .replace(/\{room\}/g, "Ruang 101");
+      const { data, error } = await supabase.functions.invoke("send-whatsapp", {
+        body: { school_id: schoolId, phone: testReminderPhone, message, message_type: "teaching_reminder" },
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any).error || "Gagal kirim");
+      toast.success("Test reminder terkirim ke " + testReminderPhone);
+    } catch (e: any) {
+      toast.error("Gagal: " + (e.message || e));
+    } finally {
+      setTestingReminder(false);
+    }
+  };
 
   const [classes, setClasses] = useState<{ id: string; name: string; wa_group_id: string | null }[]>([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -839,6 +870,17 @@ const WhatsAppSettings = () => {
                         {p.key} <span className="text-muted-foreground">({p.label})</span>
                       </button>
                     ))}
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
+                    <Label className="text-xs font-semibold">Test Kirim Reminder</Label>
+                    <div className="flex gap-2">
+                      <Input value={testReminderPhone} onChange={(e) => setTestReminderPhone(e.target.value)} placeholder="08xxxxxxxxxx" className="h-9 text-xs" />
+                      <Button onClick={handleTestReminder} disabled={testingReminder} size="sm" className="h-9">
+                        {testingReminder ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 mr-1" />}
+                        Test
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Kirim contoh pesan reminder ke nomor di atas menggunakan template aktif.</p>
                   </div>
                 </CardContent>
               )}

@@ -96,23 +96,24 @@ Deno.serve(async (req) => {
         .replace(/\{end_time\}/g, schedule.end_time?.slice(0, 5) || "")
         .replace(/\{room\}/g, schedule.room || "-");
 
-      // Send via MPWA
-      if (integration.gateway_type === "mpwa" && integration.mpwa_api_key && integration.mpwa_sender) {
-        try {
-          const phone = teacher.phone.replace(/\D/g, "").replace(/^0/, "62");
-          await fetch(`${supabaseUrl}/functions/v1/mpwa-proxy`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceKey}` },
-            body: JSON.stringify({
-              school_id: schedule.school_id,
-              phone,
-              message,
-            }),
-          });
-          sent++;
-        } catch (e) {
-          console.error("Failed to send reminder:", e);
-        }
+      try {
+        const phone = teacher.phone.replace(/\D/g, "").replace(/^0/, "62");
+        const r = await fetch(`${supabaseUrl}/functions/v1/send-whatsapp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceKey}` },
+          body: JSON.stringify({
+            school_id: schedule.school_id,
+            phone,
+            message,
+            message_type: "teaching_reminder",
+            student_name: teacher.full_name || "",
+          }),
+        });
+        const txt = await r.text();
+        console.log(`[teaching-reminder] sent to ${phone} | ${r.status} | ${txt.substring(0, 200)}`);
+        sent++;
+      } catch (e) {
+        console.error("Failed to send reminder:", e);
       }
     }
 
