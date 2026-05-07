@@ -332,7 +332,7 @@ const Dashboard = () => {
               </p>
               {subFeatures.trialDaysLeft <= 3 && (
                 <div className="bg-warning/10 border border-warning/20 rounded-xl p-3 text-xs text-warning font-medium">
-                  ⚠️ Masa trial hampir berakhir! Upgrade sekarang agar fitur tetap aktif.
+                  Masa trial hampir berakhir! Upgrade sekarang agar fitur tetap aktif.
                 </div>
               )}
               <div className="flex gap-2">
