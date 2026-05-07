@@ -764,6 +764,14 @@ const ManageStaff = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <StaffAttendanceDetailDialog
+        open={attendanceDialog}
+        onOpenChange={setAttendanceDialog}
+        userId={attendanceTarget?.user_id || null}
+        fullName={attendanceTarget?.full_name || ""}
+        schoolId={schoolId}
+      />
     </div>
     </PremiumGate>
   );
