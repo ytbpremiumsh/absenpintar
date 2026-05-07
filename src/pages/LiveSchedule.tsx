@@ -98,17 +98,20 @@ export default function LiveSchedule() {
     if (!schoolId) return;
     const load = async () => {
       setLoading(true);
-      const [sr, subr, cr, tr] = await Promise.all([
-        supabase.from("teaching_schedules").select("id, teacher_id, subject_id, class_id, day_of_week, start_time, end_time, room").eq("school_id", schoolId).eq("is_active", true),
-        supabase.from("subjects").select("id, name, color").eq("school_id", schoolId),
-        supabase.from("classes").select("id, name").eq("school_id", schoolId),
-        supabase.from("profiles").select("user_id, full_name").eq("school_id", schoolId),
-      ]);
-      if (sr.data) setSchedules(sr.data);
-      if (subr.data) setSubjects(subr.data);
-      if (cr.data) setClasses(cr.data);
-      if (tr.data) setTeachers(tr.data);
-      setLoading(false);
+      try {
+        const [sr, subr, cr, tr] = await Promise.all([
+          supabase.from("teaching_schedules").select("id, teacher_id, subject_id, class_id, day_of_week, start_time, end_time, room").eq("school_id", schoolId).eq("is_active", true),
+          supabase.from("subjects").select("id, name, color").eq("school_id", schoolId),
+          supabase.from("classes").select("id, name").eq("school_id", schoolId),
+          supabase.from("profiles").select("user_id, full_name").eq("school_id", schoolId),
+        ]);
+        if (sr.data) setSchedules(sr.data);
+        if (subr.data) setSubjects(subr.data);
+        if (cr.data) setClasses(cr.data);
+        if (tr.data) setTeachers(tr.data);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [schoolId]);

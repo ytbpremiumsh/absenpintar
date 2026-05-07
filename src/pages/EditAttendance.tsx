@@ -59,17 +59,20 @@ const EditAttendance = () => {
   const fetchLogs = useCallback(async () => {
     if (!profile?.school_id || !selectedDate) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("attendance_logs")
-      .select("*")
-      .eq("school_id", profile.school_id)
-      .eq("date", selectedDate)
-      .eq("attendance_type", attendanceType)
-      .order("created_at", { ascending: true });
-    setLogs(data || []);
-    setEditChanges({});
-    setNewEntries({});
-    setLoading(false);
+    try {
+      const { data } = await supabase
+        .from("attendance_logs")
+        .select("*")
+        .eq("school_id", profile.school_id)
+        .eq("date", selectedDate)
+        .eq("attendance_type", attendanceType)
+        .order("created_at", { ascending: true });
+      setLogs(data || []);
+      setEditChanges({});
+      setNewEntries({});
+    } finally {
+      setLoading(false);
+    }
   }, [profile?.school_id, selectedDate, attendanceType]);
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);

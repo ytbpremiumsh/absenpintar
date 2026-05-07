@@ -84,17 +84,20 @@ export default function TeachingSchedule() {
   const fetchData = async () => {
     if (!schoolId) return;
     setLoading(true);
-    const [subjectsRes, schedulesRes, classesRes, teachersRes] = await Promise.all([
-      supabase.from("subjects").select("*").eq("school_id", schoolId).order("name"),
-      supabase.from("teaching_schedules").select("*").eq("school_id", schoolId).eq("is_active", true).order("day_of_week").order("start_time"),
-      supabase.from("classes").select("id, name").eq("school_id", schoolId).order("name"),
-      supabase.from("profiles").select("user_id, full_name").eq("school_id", schoolId),
-    ]);
-    if (subjectsRes.data) setSubjects(subjectsRes.data);
-    if (schedulesRes.data) setSchedules(schedulesRes.data);
-    if (classesRes.data) setClasses(classesRes.data);
-    if (teachersRes.data) setTeachers(teachersRes.data);
-    setLoading(false);
+    try {
+      const [subjectsRes, schedulesRes, classesRes, teachersRes] = await Promise.all([
+        supabase.from("subjects").select("*").eq("school_id", schoolId).order("name"),
+        supabase.from("teaching_schedules").select("*").eq("school_id", schoolId).eq("is_active", true).order("day_of_week").order("start_time"),
+        supabase.from("classes").select("id, name").eq("school_id", schoolId).order("name"),
+        supabase.from("profiles").select("user_id, full_name").eq("school_id", schoolId),
+      ]);
+      if (subjectsRes.data) setSubjects(subjectsRes.data);
+      if (schedulesRes.data) setSchedules(schedulesRes.data);
+      if (classesRes.data) setClasses(classesRes.data);
+      if (teachersRes.data) setTeachers(teachersRes.data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, [schoolId]);

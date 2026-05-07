@@ -89,6 +89,7 @@ const History = () => {
     if (isTeacherOnly && teacherClasses === null) return;
 
     setLoading(true);
+    try {
 
     if (isTeacherOnly && user) {
       // Teachers: use subject_attendance
@@ -132,8 +133,9 @@ const History = () => {
       setLogs(logsRes.data || []);
       setAllStudents(studentsRes.data || []);
     }
-
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [profile?.school_id, startDate, endDate, isTeacherOnly, teacherClasses, attendanceTypeTab, user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
