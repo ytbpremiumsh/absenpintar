@@ -244,11 +244,12 @@ const ManageStaff = () => {
     fetchStaff();
   };
 
-  const openDetail = (member: StaffMember) => {
+  const openDetail = async (member: StaffMember) => {
     setSelectedStaff(member);
     setEditName(member.full_name);
     setEditEmail("");
-    setEditPhone("");
+    setEditPhone(member.phone || "");
+    setEditNip(member.nip || "");
     setEditPassword("");
     setEditRoles({
       staff: member.roles.includes("staff"),
@@ -257,6 +258,21 @@ const ManageStaff = () => {
     });
     setEditMode(false);
     setDetailDialog(true);
+    // Fetch authoritative email + phone + nip from edge function (auth.users)
+    try {
+      const res = await supabase.functions.invoke("get-user-detail", { body: { user_id: member.user_id } });
+      const d = res.data;
+      if (d && !d.error) {
+        if (d.email) setEditEmail(d.email);
+        if (d.phone) setEditPhone(d.phone);
+        if (d.nip) setEditNip(d.nip);
+      }
+    } catch {}
+  };
+
+  const openAttendance = (member: StaffMember) => {
+    setAttendanceTarget(member);
+    setAttendanceDialog(true);
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
