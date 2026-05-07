@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Wallet, Trash2, Loader2, Mail, Lock, Phone, Pencil, User } from "lucide-react";
+import { Plus, Wallet, Trash2, Loader2, Mail, Lock, Phone, Pencil, User, UserPlus, GraduationCap, Shield } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge as Badge2 } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-interface BendaharaUser { user_id: string; full_name: string; }
+interface BendaharaUser { user_id: string; full_name: string; extra_roles?: string[]; }
+interface AssignableUser { user_id: string; full_name: string; roles: string[]; }
 
 export default function ManageBendahara() {
   const { profile } = useAuth();
