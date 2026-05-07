@@ -3314,7 +3314,7 @@ export function BendaharaPencairan() {
     if (error || !settlement) { toast.error(error?.message || "Gagal"); setSubmitting(false); return; }
     await supabase.from("spp_invoices").update({ settlement_id: settlement.id })
       .eq("school_id", profile!.school_id).in("id", invoiceIds).is("settlement_id", null);
-    toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
+    toast.success("Pencairan berhasil diajukan, sedang diproses");
     setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
     setOtpStep(false); setOtpCode(""); setOtpPhoneMasked("");
   };
