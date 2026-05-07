@@ -119,24 +119,27 @@ const ScanAttendanceRecap = () => {
     if (!profile?.school_id || !selectedClass) { setLoading(false); return; }
     const fetchData = async () => {
       setLoading(true);
-      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
-      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
-      const studentsRes = await supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id!).eq("class", selectedClass).order("name");
-      const studentData = studentsRes.data || [];
-      setStudents(studentData);
-      if (studentData.length > 0) {
-        const ids = studentData.map(s => s.id);
-        const [d, p] = await Promise.all([
-          supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
-          supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "pulang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
-        ]);
-        setDatangLogs(d.data || []);
-        setPulangLogs(p.data || []);
-      } else {
-        setDatangLogs([]);
-        setPulangLogs([]);
+      try {
+        const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
+        const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
+        const studentsRes = await supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id!).eq("class", selectedClass).order("name");
+        const studentData = studentsRes.data || [];
+        setStudents(studentData);
+        if (studentData.length > 0) {
+          const ids = studentData.map(s => s.id);
+          const [d, p] = await Promise.all([
+            supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "datang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
+            supabase.from("attendance_logs").select("student_id, date, status").eq("school_id", profile.school_id!).eq("attendance_type", "pulang").gte("date", startDate).lte("date", endDate).in("student_id", ids),
+          ]);
+          setDatangLogs(d.data || []);
+          setPulangLogs(p.data || []);
+        } else {
+          setDatangLogs([]);
+          setPulangLogs([]);
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, [profile?.school_id, selectedClass, selectedMonth, selectedYear, daysInMonth]);
@@ -514,28 +517,31 @@ const SubjectAttendanceRecap = () => {
     if (!profile?.school_id || !selectedSchedule) { setLoading(false); return; }
     const fetchData = async () => {
       setLoading(true);
-      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
-      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
-      const className = selectedSchedule.class_name;
-      const studentsRes = await supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id!).eq("class", className).order("name");
-      setStudents(studentsRes.data || []);
+      try {
+        const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
+        const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
+        const className = selectedSchedule.class_name;
+        const studentsRes = await supabase.from("students").select("id, name, student_id, photo_url").eq("school_id", profile.school_id!).eq("class", className).order("name");
+        setStudents(studentsRes.data || []);
 
-      const { data: schedIds } = await supabase.from("teaching_schedules")
-        .select("id").eq("school_id", profile.school_id!)
-        .eq("class_id", selectedSchedule.class_id)
-        .eq("subject_id", selectedSchedule.subject_id)
-        .eq("teacher_id", selectedSchedule.teacher_id);
+        const { data: schedIds } = await supabase.from("teaching_schedules")
+          .select("id").eq("school_id", profile.school_id!)
+          .eq("class_id", selectedSchedule.class_id)
+          .eq("subject_id", selectedSchedule.subject_id)
+          .eq("teacher_id", selectedSchedule.teacher_id);
 
-      const ids = (schedIds || []).map(s => s.id);
-      if (ids.length > 0) {
-        const { data: logs } = await supabase.from("subject_attendance")
-          .select("student_id, date, status")
-          .eq("school_id", profile.school_id!)
-          .in("teaching_schedule_id", ids)
-          .gte("date", startDate).lte("date", endDate);
-        setSubjectLogs(logs || []);
-      } else setSubjectLogs([]);
-      setLoading(false);
+        const ids = (schedIds || []).map(s => s.id);
+        if (ids.length > 0) {
+          const { data: logs } = await supabase.from("subject_attendance")
+            .select("student_id, date, status")
+            .eq("school_id", profile.school_id!)
+            .in("teaching_schedule_id", ids)
+            .gte("date", startDate).lte("date", endDate);
+          setSubjectLogs(logs || []);
+        } else setSubjectLogs([]);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [profile?.school_id, selectedSchedule, selectedMonth, selectedYear, daysInMonth]);

@@ -65,7 +65,7 @@ const PublicClassMonitoring = () => {
       const json = await res.json();
       if (json.error) return;
 
-      setSchoolName(json.school?.name || "Smart Pickup");
+      setSchoolName(json.school?.name || "ATSkolla");
 
       const classStudents: StudentStatus[] = json.classes[decodedClass] || [];
 
@@ -331,7 +331,7 @@ const PublicClassMonitoring = () => {
         <div className="text-center py-6 border-t border-border">
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <LiveDot />
-            <span>Smart Pickup System • Data kelas {decodedClass} diperbarui otomatis</span>
+            <span>ATSkolla Attendance System • Data kelas {decodedClass} diperbarui otomatis</span>
           </div>
         </div>
       </div>

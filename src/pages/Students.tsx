@@ -365,7 +365,7 @@ const Students = () => {
       ctx.fillStyle = "#9ca3af";
       ctx.font = "24px system-ui, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Smart School Pickup System", canvasW / 2, canvasH - 60);
+      ctx.fillText("ATSkolla Attendance System", canvasW / 2, canvasH - 60);
 
       canvas.toBlob((blob) => resolve(blob!), "image/png");
     });
