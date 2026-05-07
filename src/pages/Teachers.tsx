@@ -160,9 +160,6 @@ const Teachers = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        Anak ({wali.children.length})
-                      </p>
                       {wali.children.map((child: any) => (
                         <div key={child.id} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/30">
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
