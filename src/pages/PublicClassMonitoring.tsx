@@ -336,7 +336,7 @@ const PublicClassMonitoring = () => {
         </div>
       </div>
 
-      {/* Confirm Pickup Dialog */}
+      {/* Confirm Dialog */}
       <AlertDialog open={!!confirmStudent} onOpenChange={() => setConfirmStudent(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

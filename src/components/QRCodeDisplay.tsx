@@ -16,7 +16,7 @@ interface QRCodeDisplayProps {
 
 const DEFAULT_INSTRUCTIONS = [
   "Tunjukkan QR Code ini kepada guru/petugas piket",
-  "Petugas akan scan QR saat penjemputan",
+  "Tunjukkan QR ini saat absensi pulang",
   "Orang tua/wali akan menerima notifikasi otomatis",
   "Jangan berikan QR Code kepada orang lain",
   "Segera lapor jika QR Code hilang/rusak",
