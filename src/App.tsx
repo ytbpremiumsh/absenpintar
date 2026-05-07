@@ -88,6 +88,7 @@ import SchoolAnnouncements from "./pages/SchoolAnnouncements";
 import ParentLogin from "./pages/parent/ParentLogin";
 import ParentDashboard from "./pages/parent/ParentDashboard";
 import ManageBendahara from "./pages/ManageBendahara";
+import SelectRole from "./pages/SelectRole";
 import { BendaharaLayout } from "./components/layout/BendaharaLayout";
 import {
   BendaharaDashboard, BendaharaSiswa, BendaharaTarif, BendaharaGenerate,
