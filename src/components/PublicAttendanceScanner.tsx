@@ -131,7 +131,7 @@ const PublicAttendanceScanner = ({ schoolId, onAttendanceRecorded, currentMode =
       setAttendanceType(data.attendance_type || "datang");
       setConfirmed(true);
       const typeLabel = (data.attendance_type || "datang") === "datang" ? "Datang" : "Pulang";
-      toast.success(`✅ ${data.student.name} - ${typeLabel}!`);
+      toast.success(`${data.student.name} - ${typeLabel}!`);
       onAttendanceRecorded?.();
       setTimeout(() => resetState(), 3000);
     } catch (err: any) {
