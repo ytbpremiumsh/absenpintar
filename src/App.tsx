@@ -85,6 +85,7 @@ import LiveSchedule from "./pages/LiveSchedule";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherAffiliate from "./pages/TeacherAffiliate";
 import SchoolAnnouncements from "./pages/SchoolAnnouncements";
+import TeacherAttendanceRecap from "./pages/TeacherAttendanceRecap";
 import ParentLogin from "./pages/parent/ParentLogin";
 import ParentDashboard from "./pages/parent/ParentDashboard";
 import ManageBendahara from "./pages/ManageBendahara";
@@ -186,6 +187,7 @@ function AppRoutes() {
         <Route path="/history" element={<History />} />
         <Route path="/export-history" element={<ExportHistory />} />
         <Route path="/edit-attendance" element={<EditAttendance />} />
+        <Route path="/teacher-attendance" element={<TeacherAttendanceRecap />} />
         <Route path="/subscription" element={<Subscription />} />
         <Route path="/school-settings" element={<SchoolSettings />} />
         <Route path="/account-settings" element={<AccountSettings />} />

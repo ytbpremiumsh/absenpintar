@@ -265,6 +265,7 @@ export function AppSidebar() {
                 <SidebarMenu className="space-y-1">
                   {renderNavItems([
                     { title: "Rekap Absensi", url: "/export-history", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Rekap Absensi Guru", url: "/teacher-attendance", icon: UsersRound, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                     { title: "Analytic Kelas", url: "/history", icon: Activity, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                     { title: "Riwayat Absensi", url: "/edit-attendance", icon: PenLine, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                   ])}
