@@ -437,12 +437,12 @@ const ManageStaff = () => {
             {staff.map((member, i) => (
               <motion.div key={member.user_id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full">
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex items-start gap-3">
                       {member.photo_url ? (
-                        <img src={member.photo_url} alt={member.full_name} className="h-12 w-12 rounded-xl object-cover shrink-0 border border-border/50" />
+                        <img src={member.photo_url} alt={member.full_name} className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl object-cover shrink-0 border border-border/50" />
                       ) : (
-                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
+                        <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center text-white text-base sm:text-lg font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
                           {member.full_name.charAt(0)}
                         </div>
                       )}
@@ -450,7 +450,7 @@ const ManageStaff = () => {
                         <h3 className="font-bold text-sm truncate">{member.full_name}</h3>
                         {getRoleBadges(member.roles)}
                       </div>
-                      <div className="flex gap-1 shrink-0">
+                      <div className="flex gap-0.5 shrink-0 -mr-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
                           <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
                         </Button>
@@ -466,38 +466,6 @@ const ManageStaff = () => {
                 </Card>
               </motion.div>
             ))}
-          </div>
-
-          {/* Stats footer */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Users2 className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
-                <p className="text-2xl font-bold">{staff.length}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Total Akun</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <GraduationCap className="h-5 w-5 mx-auto mb-1 text-violet-500" />
-                <p className="text-2xl font-bold">{totalGuru}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Guru</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Shield className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
-                <p className="text-2xl font-bold">{totalOperator}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Operator</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Wallet className="h-5 w-5 mx-auto mb-1 text-amber-500" />
-                <p className="text-2xl font-bold">{totalBendahara}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Bendahara</p>
-              </CardContent>
-            </Card>
           </div>
         </>
       )}
