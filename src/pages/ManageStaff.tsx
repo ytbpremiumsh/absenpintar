@@ -487,40 +487,69 @@ const ManageStaff = () => {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-            {staff.map((member, i) => (
-              <motion.div key={member.user_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                <Card className="border-0 shadow-card hover:shadow-elevated transition-all h-full cursor-pointer" onClick={() => openAttendance(member)}>
-                  <CardContent className="p-2.5 sm:p-3">
-                    <div className="flex items-center gap-2.5">
-                      {member.photo_url ? (
-                        <img src={member.photo_url} alt={member.full_name} className="h-10 w-10 rounded-lg object-cover shrink-0 border border-border/50" />
-                      ) : (
-                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0 ${member.roles.includes("teacher") ? "bg-violet-500" : member.roles.includes("bendahara") ? "bg-amber-500" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]"}`}>
-                          {member.full_name.charAt(0)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {staff.map((member, i) => {
+              const isHadir = !!member.presentToday;
+              const accent = isHadir
+                ? "hover:border-emerald-300 hover:shadow-emerald-500/20 hover:bg-emerald-50/40 dark:hover:bg-emerald-500/5"
+                : "hover:border-red-300 hover:shadow-red-500/20 hover:bg-red-50/40 dark:hover:bg-red-500/5";
+              const cornerColor = isHadir
+                ? "bg-emerald-500/5 group-hover:bg-emerald-500/15"
+                : "bg-red-500/5 group-hover:bg-red-500/15";
+              const ringColor = isHadir ? "ring-emerald-400/60" : "ring-red-400/60";
+              const isTeacher = member.roles.includes("teacher");
+              const isBendahara = member.roles.includes("bendahara");
+              const avatarBg = isTeacher ? "bg-gradient-to-br from-violet-500 to-purple-600" : isBendahara ? "bg-gradient-to-br from-amber-500 to-orange-600" : "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded]";
+              return (
+                <motion.div key={member.user_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                  <Card
+                    onClick={() => openAttendance(member)}
+                    className={`group relative border border-border/50 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden h-full ${accent}`}
+                  >
+                    <div className={`absolute top-0 right-0 w-16 h-16 rounded-bl-[2.5rem] transition-all duration-500 group-hover:w-24 group-hover:h-24 ${cornerColor}`} />
+                    <CardContent className="relative p-3 space-y-2.5">
+                      <div className="flex items-start gap-2.5">
+                        <div className="relative shrink-0">
+                          {member.photo_url ? (
+                            <img src={member.photo_url} alt={member.full_name} className={`h-11 w-11 rounded-full object-cover ring-2 ${ringColor}`} />
+                          ) : (
+                            <div className={`h-11 w-11 rounded-full ${avatarBg} flex items-center justify-center text-white text-sm font-bold ring-2 ${ringColor}`}>
+                              {member.full_name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-card ${isHadir ? "bg-emerald-500" : "bg-red-500"} ${isHadir ? "animate-pulse" : ""}`} />
                         </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-xs truncate">{member.full_name}</h3>
-                        {member.nip && <p className="text-[10px] text-muted-foreground truncate">NIP: {member.nip}</p>}
-                        {getRoleBadges(member.roles)}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-sm text-foreground truncate hover:underline">{member.full_name}</h3>
+                          {member.nip && <p className="text-[10px] text-muted-foreground font-mono truncate">NIP {member.nip}</p>}
+                          {getRoleBadges(member.roles)}
+                        </div>
                       </div>
-                      <div className="flex gap-0 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
-                          <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Edit" onClick={() => openDetail(member)}>
-                          <Pencil className="h-3.5 w-3.5 text-primary" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" title="Hapus" onClick={() => handleDelete(member)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                      <div className="flex items-center justify-between pt-1.5 border-t border-border/40">
+                        <div className="min-w-0">
+                          <p className="text-[10px] text-muted-foreground">Hari ini</p>
+                          <p className={`text-xs font-bold flex items-center gap-1 ${isHadir ? "text-emerald-600" : "text-red-600"}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${isHadir ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
+                            {isHadir ? `Hadir · ${member.arrivalTime}` : "Belum Hadir"}
+                          </p>
+                        </div>
+                        <div className="flex gap-0 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="QR Absensi" onClick={() => { setQrTarget(member); setQrDialog(true); }}>
+                            <QrCode className="h-3.5 w-3.5 text-[#5B6CF9]" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Edit" onClick={() => openDetail(member)}>
+                            <Pencil className="h-3.5 w-3.5 text-primary" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" title="Hapus" onClick={() => handleDelete(member)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         </>
       )}
