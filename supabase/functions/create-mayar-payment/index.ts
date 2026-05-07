@@ -77,6 +77,11 @@ serve(async (req) => {
       return data;
     };
 
+    const ok = (payload: Record<string, unknown>) =>
+      new Response(JSON.stringify({ success: true, ...payload }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
     const getAnyPlanId = async () => {
       const { data } = await supabaseAdmin.from("subscription_plans").select("id").limit(1).single();
       return data?.id;
