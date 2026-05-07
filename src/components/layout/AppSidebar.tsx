@@ -57,7 +57,7 @@ const dataNav = [
   { title: "Wali Murid", url: "/teachers", icon: UserCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Wali Kelas", url: "/wali-kelas", icon: ClipboardCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Guru & Staff", url: "/staff", icon: UsersRound, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  { title: "Bendahara", url: "/bendahara-manage", icon: ClipboardCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]", adminOnly: true },
+  
 ];
 
 const scheduleNav = [
