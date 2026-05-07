@@ -95,20 +95,20 @@ serve(async (req) => {
     const imageContent: any[] = [
       {
         type: "text",
-        text: `You are a face recognition system for a school attendance app. 
-Compare the FIRST image (captured from camera) with the subsequent student photos.
+        text: `You are a face recognition system for a school attendance app.
+Compare the FIRST image (captured from camera) with the subsequent person photos.
 
-Your task: Determine which student (if any) matches the face in the captured image.
+Your task: Determine which person (if any) matches the face in the captured image.
 
-Student list:
-${studentList}
+Person list:
+${combinedList}
 
-The images follow in order: first is the captured image, then student photos in order (#1, #2, etc.).
+The images follow in order: first is the captured image, then person photos in order (#1, #2, etc.).
 
-IMPORTANT: 
-- If you find a match, respond ONLY with the JSON: {"match": true, "student_index": <number>}
+IMPORTANT:
+- If you find a match, respond ONLY with the JSON: {"match": true, "person_index": <number>}
 - If no match is found, respond ONLY with: {"match": false}
-- student_index is 1-based (first student = 1)
+- person_index is 1-based (first person = 1)
 - Be reasonably lenient - same person with slightly different angle/lighting should match
 - Do NOT include any other text, only the JSON`
       },
@@ -118,14 +118,11 @@ IMPORTANT:
       }
     ];
 
-    // Add student photos
-    for (const student of studentBatch) {
-      if (student.photo_url) {
-        imageContent.push({
-          type: "image_url",
-          image_url: { url: student.photo_url }
-        });
-      }
+    for (const s of studentBatch) {
+      if (s.photo_url) imageContent.push({ type: "image_url", image_url: { url: s.photo_url } });
+    }
+    for (const t of teacherBatch) {
+      if (t.photo_url) imageContent.push({ type: "image_url", image_url: { url: t.photo_url } });
     }
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -170,24 +167,27 @@ IMPORTANT:
 
     const result = JSON.parse(jsonMatch[0]);
 
-    if (result.match && result.student_index) {
-      const matchedStudent = studentBatch[result.student_index - 1];
-      if (matchedStudent) {
+    if (result.match && result.person_index) {
+      const idx = result.person_index - 1;
+      if (idx < studentBatch.length) {
+        const m = studentBatch[idx];
         return new Response(JSON.stringify({
-          success: true,
-          match: true,
+          success: true, match: true, type: "student",
           student: {
-            id: matchedStudent.id,
-            name: matchedStudent.name,
-            student_id: matchedStudent.student_id,
-            class: matchedStudent.class,
-            photo_url: matchedStudent.photo_url,
-            parent_name: matchedStudent.parent_name,
-            parent_phone: matchedStudent.parent_phone,
+            id: m.id, name: m.name, student_id: m.student_id, class: m.class,
+            photo_url: m.photo_url, parent_name: m.parent_name, parent_phone: m.parent_phone,
           }
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const tIdx = idx - studentBatch.length;
+      if (tIdx >= 0 && tIdx < teacherBatch.length) {
+        const t: any = teacherBatch[tIdx];
+        return new Response(JSON.stringify({
+          success: true, match: true, type: "teacher",
+          teacher: {
+            user_id: t.user_id, full_name: t.full_name, photo_url: t.photo_url, qr_code: t.qr_code || t.user_id,
+          }
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
     }
 
