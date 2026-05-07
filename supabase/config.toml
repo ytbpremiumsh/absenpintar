@@ -59,3 +59,39 @@ verify_jwt = false
 
 [functions.notify-admin-wa]
 verify_jwt = false
+
+[functions.affiliate]
+verify_jwt = false
+
+[functions.database-backup]
+verify_jwt = false
+
+[functions.face-recognition]
+verify_jwt = false
+
+[functions.gdrive-backup]
+verify_jwt = false
+
+[functions.lookup-npsn]
+verify_jwt = false
+
+[functions.public-attendance]
+verify_jwt = false
+
+[functions.public-monitoring]
+verify_jwt = false
+
+[functions.public-pickup]
+verify_jwt = false
+
+[functions.seed-demo]
+verify_jwt = false
+
+[functions.seed-demo-garuda]
+verify_jwt = false
+
+[functions.send-whatsapp]
+verify_jwt = false
+
+[functions.teaching-reminder]
+verify_jwt = false
