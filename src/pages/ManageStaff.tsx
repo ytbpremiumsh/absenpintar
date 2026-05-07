@@ -381,61 +381,66 @@ const ManageStaff = () => {
       {/* Stats header */}
       {!loading && staff.length > 0 && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Users2 className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
-                <p className="text-2xl font-bold">{staff.length}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Total Akun</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <Users2 className="h-4 w-4 text-[#5B6CF9] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{staff.length}</p>
+                  <p className="text-[10px] text-muted-foreground">Total Akun</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <GraduationCap className="h-5 w-5 mx-auto mb-1 text-violet-500" />
-                <p className="text-2xl font-bold">{totalGuru}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Guru</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-violet-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{totalGuru}</p>
+                  <p className="text-[10px] text-muted-foreground">Guru</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Shield className="h-5 w-5 mx-auto mb-1 text-[#5B6CF9]" />
-                <p className="text-2xl font-bold">{totalOperator}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Operator</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <Shield className="h-4 w-4 text-[#5B6CF9] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{totalOperator}</p>
+                  <p className="text-[10px] text-muted-foreground">Operator</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-card">
-              <CardContent className="p-4 text-center">
-                <Wallet className="h-5 w-5 mx-auto mb-1 text-amber-500" />
-                <p className="text-2xl font-bold">{totalBendahara}</p>
-                <p className="text-[11px] text-muted-foreground font-medium">Bendahara</p>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-amber-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-base font-bold leading-none">{totalBendahara}</p>
+                  <p className="text-[10px] text-muted-foreground">Bendahara</p>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Info: dashboard access explanation */}
+          {/* Info: dashboard access explanation (compact) */}
           <Card className="border-0 shadow-card bg-gradient-to-br from-[#5B6CF9]/5 to-violet-500/5">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-xl bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
-                  <Shield className="h-4 w-4 text-[#5B6CF9]" />
+            <CardContent className="p-3">
+              <div className="flex items-start gap-2.5">
+                <div className="h-7 w-7 rounded-lg bg-[#5B6CF9]/10 flex items-center justify-center shrink-0">
+                  <Shield className="h-3.5 w-3.5 text-[#5B6CF9]" />
                 </div>
                 <div className="space-y-1.5 min-w-0">
-                  <p className="text-sm font-bold">Tentang Hak Akses Dashboard</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Setiap akun bisa diberi <span className="font-semibold text-foreground">lebih dari satu role</span> (Guru, Operator, atau Bendahara). Ketika user login, jika punya beberapa role, akan muncul halaman <span className="font-semibold text-foreground">"Pilih Dashboard"</span> untuk memilih akan masuk ke dashboard mana.
+                  <p className="text-xs font-bold">Hak Akses Dashboard</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Satu akun bisa punya banyak role. Saat login, user akan diminta memilih dashboard.
                   </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Setelah masuk, user tetap bisa <span className="font-semibold text-foreground">berpindah dashboard</span> kapan saja melalui menu <span className="font-semibold text-foreground">"Switch Dashboard"</span> di sidebar — tanpa perlu logout.
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <Badge variant="secondary" className="text-[10px] border-0 bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400">
-                      <GraduationCap className="h-3 w-3 mr-1" /> Guru → Dashboard Wali Kelas
+                  <div className="flex flex-wrap gap-1">
+                    <Badge variant="secondary" className="text-[9px] border-0 bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 py-0">
+                      <GraduationCap className="h-2.5 w-2.5 mr-0.5" />Guru → Wali Kelas
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px] border-0 bg-[#5B6CF9]/10 text-[#5B6CF9]">
-                      <Shield className="h-3 w-3 mr-1" /> Operator → Dashboard Sekolah
+                    <Badge variant="secondary" className="text-[9px] border-0 bg-[#5B6CF9]/10 text-[#5B6CF9] py-0">
+                      <Shield className="h-2.5 w-2.5 mr-0.5" />Operator → Sekolah
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px] border-0 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
-                      <Wallet className="h-3 w-3 mr-1" /> Bendahara → Dashboard SPP
+                    <Badge variant="secondary" className="text-[9px] border-0 bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 py-0">
+                      <Wallet className="h-2.5 w-2.5 mr-0.5" />Bendahara → SPP
                     </Badge>
                   </div>
                 </div>
