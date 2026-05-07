@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
+import { PageHeader } from "@/components/PageHeader";
 
 import idcardDesign1 from "@/assets/idcard-design-1.png";
 import idcardDesign2 from "@/assets/idcard-design-2.png";
