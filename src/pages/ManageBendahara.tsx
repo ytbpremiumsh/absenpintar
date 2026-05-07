@@ -147,11 +147,11 @@ export default function ManageBendahara() {
             const hasExtra = (u.extra_roles && u.extra_roles.length > 0);
             return (
             <Card key={u.user_id} className="border-0 shadow-card"><CardContent className="p-5 flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold shrink-0">{u.full_name[0]}</div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center font-bold shrink-0">{u.full_name[0]}</div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm truncate">{u.full_name}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  <Badge className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0"><Wallet className="h-3 w-3 mr-1" /> Bendahara</Badge>
+                  <Badge className="text-[10px] bg-[#5B6CF9]/10 text-[#5B6CF9] dark:bg-[#5B6CF9]/20 dark:text-[#8b97fb] border-0"><Wallet className="h-3 w-3 mr-1" /> Bendahara</Badge>
                   {u.extra_roles?.includes("teacher") && (
                     <Badge2 variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 border-0"><GraduationCap className="h-3 w-3 mr-1" /> Guru</Badge2>
                   )}
@@ -164,7 +164,7 @@ export default function ManageBendahara() {
                 </div>
               </div>
               {!hasExtra && (
-                <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => openEdit(u)} title="Edit">
+                <Button variant="ghost" size="sm" className="text-[#5B6CF9] hover:text-[#4c5ded] hover:bg-[#5B6CF9]/10" onClick={() => openEdit(u)} title="Edit">
                   <Pencil className="h-4 w-4" />
                 </Button>
               )}
