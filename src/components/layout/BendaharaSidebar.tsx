@@ -101,8 +101,8 @@ export function BendaharaSidebar() {
                           onClick={() => isMobile && setOpenMobile(false)}
                           className={`relative rounded-xl px-3 py-2.5 transition-all duration-200 gap-3 ${
                             active
-                              ? "bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-semibold shadow-lg shadow-emerald-600/25"
-                              : "text-muted-foreground hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-300"
+                              ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white font-semibold shadow-lg shadow-[#5B6CF9]/25"
+                              : "text-muted-foreground hover:bg-[#5B6CF9]/10 hover:text-[#5B6CF9] dark:hover:text-[#8b97fb]"
                           }`}
                         >
                           <div className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${active ? "bg-white/20" : "bg-muted/80"}`}>
