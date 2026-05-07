@@ -48,11 +48,18 @@ serve(async (req) => {
 
     const siteUrl = "https://atskolla.com";
 
+    const sanitizeEmail = (raw?: string | null) => {
+      const e = (raw || "").trim().toLowerCase();
+      const local = e.includes("@") ? e.split("@")[0] : e;
+      const safeLocal = (local || "user").replace(/[^a-z0-9._-]/g, "") || "user";
+      return `${safeLocal}@atskolla.com`;
+    };
+
     const createMayarLink = async (name: string, amount: number, description: string, redirectUrl: string) => {
       const mayarRes = await fetch("https://api.mayar.id/hl/v1/payment/create", {
         method: "POST",
         headers: { Authorization: `Bearer ${mayarApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ name, amount, description, email: user.email || "noemail@school.com", mobile: "08000000000", redirectUrl }),
+        body: JSON.stringify({ name, amount, description, email: sanitizeEmail(user.email), mobile: "08000000000", redirectUrl }),
       });
       const mayarData = await mayarRes.json();
       console.log("Mayar response status:", mayarRes.status, "body:", JSON.stringify(mayarData));
