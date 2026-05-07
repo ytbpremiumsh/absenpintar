@@ -473,8 +473,8 @@ const ManageStaff = () => {
             {staff.map((member, i) => {
               const isHadir = !!member.presentToday;
               const accent = isHadir
-                ? "hover:border-emerald-300 hover:shadow-emerald-500/20 hover:bg-emerald-50/40 dark:hover:bg-emerald-500/5"
-                : "hover:border-red-300 hover:shadow-red-500/20 hover:bg-red-50/40 dark:hover:bg-red-500/5";
+                ? "hover:border-emerald-300 hover:bg-emerald-50/40 dark:hover:bg-emerald-500/5"
+                : "hover:border-red-300 hover:bg-red-50/40 dark:hover:bg-red-500/5";
               const cornerColor = isHadir
                 ? "bg-emerald-500/5 group-hover:bg-emerald-500/15"
                 : "bg-red-500/5 group-hover:bg-red-500/15";
@@ -486,7 +486,7 @@ const ManageStaff = () => {
                 <motion.div key={member.user_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                   <Card
                     onClick={() => openAttendance(member)}
-                    className={`group relative border border-border/50 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden h-full ${accent}`}
+                    className={`group relative border border-border/50 shadow-none transition-colors duration-300 cursor-pointer overflow-hidden h-full ${accent}`}
                   >
                     <div className={`absolute top-0 right-0 w-16 h-16 rounded-bl-[2.5rem] transition-all duration-500 group-hover:w-24 group-hover:h-24 ${cornerColor}`} />
                     <CardContent className="relative p-3 space-y-2.5">
