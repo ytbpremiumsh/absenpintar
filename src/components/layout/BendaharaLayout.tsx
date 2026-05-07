@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Settings, LogOut, School, Landmark } from "lucide-react";
+import { Settings, LogOut, School, Landmark, Repeat } from "lucide-react";
+import { getAvailableDashboards } from "@/lib/dashboards";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
