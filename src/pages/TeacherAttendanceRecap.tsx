@@ -12,6 +12,9 @@ import * as XLSX from "xlsx";
 
 const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
+const ROLE_LABEL: Record<string, string> = { teacher: "Guru", staff: "Operator", bendahara: "Bendahara" };
+const roleLabel = (r: string) => ROLE_LABEL[r] || r;
+
 interface TeacherRow {
   user_id: string;
   full_name: string;
@@ -94,7 +97,7 @@ const TeacherAttendanceRecap = () => {
   const exportExcel = () => {
     const header = ["Nama", "Role", ...dayArray.map((d) => String(d)), "Hadir", "Tidak"];
     const data = rows.map((r) => [
-      r.full_name, r.roles.join("/"),
+      r.full_name, r.roles.map(roleLabel).join("/"),
       ...dayArray.map((d) => {
         const t = tab === "datang" ? r.days[d]?.datang : r.days[d]?.pulang;
         return t ? t.slice(0, 5) : "-";
@@ -199,7 +202,7 @@ const TeacherAttendanceRecap = () => {
                           </Avatar>
                           <div>
                             <p className="font-semibold text-foreground leading-tight">{r.full_name}</p>
-                            <p className="text-[10px] text-muted-foreground">{r.roles.join(" • ")}</p>
+                            <p className="text-[10px] text-muted-foreground">{r.roles.map(roleLabel).join(" • ")}</p>
                           </div>
                         </div>
                       </td>
