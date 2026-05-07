@@ -32,13 +32,14 @@ serve(async (req) => {
       throw new Error('Insufficient permissions');
     }
 
-    const { user_id, full_name, email, password, phone } = await req.json();
+    const { user_id, full_name, email, password, phone, nip } = await req.json();
     if (!user_id) throw new Error('user_id is required');
 
-    // Update profile name and phone if provided
-    const profileUpdate: Record<string, string> = {};
+    // Update profile name, phone, nip if provided
+    const profileUpdate: Record<string, string | null> = {};
     if (full_name) profileUpdate.full_name = full_name;
-    if (phone) profileUpdate.phone = phone;
+    if (phone !== undefined) profileUpdate.phone = phone || null;
+    if (nip !== undefined) profileUpdate.nip = nip || null;
     
     if (Object.keys(profileUpdate).length > 0) {
       const { error: profileError } = await supabaseAdmin.from('profiles').update(profileUpdate).eq('user_id', user_id);
