@@ -65,7 +65,7 @@ export default function SelectRole() {
                 >
                   <CardContent className="p-5 flex items-center gap-4">
                     <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${d.gradient} flex items-center justify-center text-white shadow-md shrink-0`}>
-                      <Icon className="h-7 w-7" />
+                      <Icon className="h-7 w-7 shrink-0" strokeWidth={2} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-base">{d.label}</p>
