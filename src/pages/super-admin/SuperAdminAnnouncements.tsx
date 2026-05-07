@@ -33,11 +33,13 @@ const SuperAdminAnnouncements = () => {
     Promise.all([
       supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50),
       supabase.from("schools").select("id, name").order("name"),
-    ]).then(([notifRes, schoolRes]) => {
-      setNotifications(notifRes.data || []);
-      setSchools(schoolRes.data || []);
-      setLoading(false);
-    });
+    ])
+      .then(([notifRes, schoolRes]) => {
+        setNotifications(notifRes.data || []);
+        setSchools(schoolRes.data || []);
+      })
+      .catch(() => toast.error("Gagal memuat data"))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSend = async () => {

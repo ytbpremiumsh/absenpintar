@@ -36,42 +36,44 @@ const SuperAdminReferral = () => {
 
   const fetchAll = async () => {
     setLoading(true);
-    const [settingsRes, rewardsRes] = await Promise.all([
-      supabase.from('platform_settings').select('key, value')
-        .in('key', ['referral_points_register', 'referral_points_trial', 'referral_points_paid', 'referral_double_points']),
-      supabase.from('rewards').select('*').order('sort_order'),
-    ]);
-
-    const settings: Record<string, string> = {};
-    (settingsRes.data || []).forEach((s: any) => { settings[s.key] = s.value; });
-    setPointsRegister(settings.referral_points_register || '10');
-    setPointsTrial(settings.referral_points_trial || '20');
-    setPointsPaid(settings.referral_points_paid || '100');
-    setDoublePoints(settings.referral_double_points === 'true');
-    setRewards((rewardsRes.data as any) || []);
-
-    // Fetch leaderboard
     try {
-      const { data: session } = await supabase.auth.getSession();
-      const token = session.session?.access_token;
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/referral`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ action: 'leaderboard' }),
-      });
-      const data = await res.json();
-      if (data.success) setLeaderboard(data.leaderboard || []);
-    } catch {}
+      const [settingsRes, rewardsRes] = await Promise.all([
+        supabase.from('platform_settings').select('key, value')
+          .in('key', ['referral_points_register', 'referral_points_trial', 'referral_points_paid', 'referral_double_points']),
+        supabase.from('rewards').select('*').order('sort_order'),
+      ]);
 
-    // All referrals (super admin)
-    const { data: refs } = await supabase.from('referrals').select('*').order('created_at', { ascending: false }).limit(100);
-    setAllReferrals((refs as any) || []);
+      const settings: Record<string, string> = {};
+      (settingsRes.data || []).forEach((s: any) => { settings[s.key] = s.value; });
+      setPointsRegister(settings.referral_points_register || '10');
+      setPointsTrial(settings.referral_points_trial || '20');
+      setPointsPaid(settings.referral_points_paid || '100');
+      setDoublePoints(settings.referral_double_points === 'true');
+      setRewards((rewardsRes.data as any) || []);
 
-    setLoading(false);
+      // Fetch leaderboard
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        const token = session.session?.access_token;
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/referral`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ action: 'leaderboard' }),
+        });
+        const data = await res.json();
+        if (data.success) setLeaderboard(data.leaderboard || []);
+      } catch {}
+
+      // All referrals (super admin)
+      const { data: refs } = await supabase.from('referrals').select('*').order('created_at', { ascending: false }).limit(100);
+      setAllReferrals((refs as any) || []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveSettings = async () => {

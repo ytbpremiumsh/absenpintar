@@ -53,8 +53,9 @@ const SuperAdminBackup = () => {
       }
     } catch (err: any) {
       toast.error("Gagal memuat statistik: " + err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchStats(); }, []);

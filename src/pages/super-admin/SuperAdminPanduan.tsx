@@ -63,19 +63,21 @@ export default function SuperAdminPanduan() {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("panduan_content")
-      .select("*")
-      .order("sort_order", { ascending: true });
-    if (error) {
-      toast.error("Gagal memuat: " + error.message);
+    try {
+      const { data, error } = await supabase
+        .from("panduan_content")
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (error) {
+        toast.error("Gagal memuat: " + error.message);
+        return;
+      }
+      const list = (data as unknown as PanduanRow[]).map(rowToEditor);
+      setGuides(list);
+      if (!activeId && list.length) setActiveId(list[0].id);
+    } finally {
       setLoading(false);
-      return;
     }
-    const list = (data as unknown as PanduanRow[]).map(rowToEditor);
-    setGuides(list);
-    if (!activeId && list.length) setActiveId(list[0].id);
-    setLoading(false);
   }
 
   const active = guides.find((g) => g.id === activeId) || null;
