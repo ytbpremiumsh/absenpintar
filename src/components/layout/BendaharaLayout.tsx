@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Settings, LogOut, School, Landmark } from "lucide-react";
+import { Settings, LogOut, School, Landmark, Repeat } from "lucide-react";
+import { getAvailableDashboards } from "@/lib/dashboards";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -107,6 +108,14 @@ export function BendaharaLayout() {
                 <DropdownMenuItem onClick={() => navigate("/bendahara/pencairan?manage=bank")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <Landmark className="h-4 w-4 mr-2.5 text-muted-foreground" /> Rekening Pencairan
                 </DropdownMenuItem>
+                {getAvailableDashboards(roles).length > 1 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/select-role")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                      <Repeat className="h-4 w-4 mr-2.5 text-muted-foreground" /> Switch Dashboard
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <LogOut className="h-4 w-4 mr-2.5" /> Keluar

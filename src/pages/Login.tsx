@@ -65,6 +65,16 @@ const Login = () => {
       const isSuperAdmin = rolesList.includes("super_admin");
       const isBendahara = rolesList.includes("bendahara");
       const isTeacher = rolesList.includes("teacher");
+      const isAdmin = rolesList.includes("school_admin");
+      const isStaff = rolesList.includes("staff");
+      // Count how many "dashboard kinds" the user has — if >1, show role picker.
+      const dashboardKinds = [
+        isSuperAdmin,
+        isAdmin,
+        isStaff && !isAdmin,
+        isTeacher,
+        isBendahara,
+      ].filter(Boolean).length;
 
       // Fire-and-forget: lookup sekolah + insert login_logs (jangan block redirect)
       (async () => {
@@ -88,7 +98,9 @@ const Login = () => {
       })();
 
       setLoading(false);
-      if (isSuperAdmin) navigate("/super-admin");
+      sessionStorage.removeItem("dashboard_chosen");
+      if (dashboardKinds > 1) navigate("/select-role");
+      else if (isSuperAdmin) navigate("/super-admin");
       else if (isBendahara) navigate("/bendahara");
       else if (isTeacher) navigate("/teacher-dashboard");
       else navigate("/dashboard");

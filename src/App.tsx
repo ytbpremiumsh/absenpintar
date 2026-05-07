@@ -88,6 +88,7 @@ import SchoolAnnouncements from "./pages/SchoolAnnouncements";
 import ParentLogin from "./pages/parent/ParentLogin";
 import ParentDashboard from "./pages/parent/ParentDashboard";
 import ManageBendahara from "./pages/ManageBendahara";
+import SelectRole from "./pages/SelectRole";
 import { BendaharaLayout } from "./components/layout/BendaharaLayout";
 import {
   BendaharaDashboard, BendaharaSiswa, BendaharaTarif, BendaharaGenerate,
@@ -108,6 +109,7 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/select-role" element={<SelectRole />} />
       <Route path="/live/:schoolId" element={<PublicMonitoring />} />
       <Route path="/live/:schoolId/:className" element={<PublicClassMonitoring />} />
       <Route path="/attendance/:schoolId" element={<PublicAttendanceMonitoring />} />

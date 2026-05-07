@@ -2,7 +2,8 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { MobileFooterNav } from "./MobileFooterNav";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { Settings, LogOut, School, KeyRound, Gift, LayoutGrid, Activity, ScanLine, Users, CalendarDays, HelpCircle, Award } from "lucide-react";
+import { Settings, LogOut, School, KeyRound, Gift, LayoutGrid, Activity, ScanLine, Users, CalendarDays, HelpCircle, Award, Repeat } from "lucide-react";
+import { getAvailableDashboards } from "@/lib/dashboards";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -119,6 +120,15 @@ function AppContent() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {getAvailableDashboards(roles).length > 1 && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/select-role")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                      <Repeat className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                      Switch Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {roles.includes("school_admin") && (
                   <DropdownMenuItem onClick={() => navigate("/school-settings")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                     <School className="h-4 w-4 mr-2.5 text-muted-foreground" />

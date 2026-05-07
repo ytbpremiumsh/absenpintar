@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Wallet, Trash2, Loader2, Mail, Lock, Phone, Pencil, User } from "lucide-react";
+import { Plus, Wallet, Trash2, Loader2, Mail, Lock, Phone, Pencil, User, UserPlus, GraduationCap, Shield } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge as Badge2 } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-interface BendaharaUser { user_id: string; full_name: string; }
+interface BendaharaUser { user_id: string; full_name: string; extra_roles?: string[]; }
+interface AssignableUser { user_id: string; full_name: string; roles: string[]; }
 
 export default function ManageBendahara() {
   const { profile } = useAuth();
@@ -27,17 +30,49 @@ export default function ManageBendahara() {
   const [editForm, setEditForm] = useState({ full_name: "", email: "", password: "", phone: "" });
   const [savingEdit, setSavingEdit] = useState(false);
 
+  // Assign existing user as Bendahara
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignables, setAssignables] = useState<AssignableUser[]>([]);
+  const [assignTarget, setAssignTarget] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
+
   const load = async () => {
     if (!profile?.school_id) { setLoading(false); return; }
     const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").eq("school_id", profile.school_id);
-    if (!profiles) { setList([]); setLoading(false); return; }
+    if (!profiles) { setList([]); setAssignables([]); setLoading(false); return; }
     const ids = profiles.map(p => p.user_id);
-    const { data: roles } = await supabase.from("user_roles").select("user_id").in("user_id", ids).eq("role", "bendahara" as any);
-    const set = new Set((roles || []).map((r: any) => r.user_id));
-    setList(profiles.filter(p => set.has(p.user_id)));
+    const { data: allRoles } = await supabase.from("user_roles").select("user_id, role").in("user_id", ids);
+    const rolesByUser = new Map<string, string[]>();
+    (allRoles || []).forEach((r: any) => {
+      const arr = rolesByUser.get(r.user_id) || [];
+      arr.push(r.role);
+      rolesByUser.set(r.user_id, arr);
+    });
+    const bend: BendaharaUser[] = [];
+    const assn: AssignableUser[] = [];
+    profiles.forEach(p => {
+      const rs = rolesByUser.get(p.user_id) || [];
+      if (rs.includes("bendahara")) {
+        bend.push({ user_id: p.user_id, full_name: p.full_name, extra_roles: rs.filter(r => r !== "bendahara") });
+      } else if (rs.includes("teacher") || rs.includes("staff")) {
+        assn.push({ user_id: p.user_id, full_name: p.full_name, roles: rs });
+      }
+    });
+    setList(bend);
+    setAssignables(assn);
     setLoading(false);
   };
   useEffect(() => { load(); }, [profile?.school_id]);
+
+  const assignBendahara = async () => {
+    if (!assignTarget) { toast.error("Pilih guru/staff terlebih dahulu"); return; }
+    setAssigning(true);
+    const { error } = await supabase.from("user_roles").insert({ user_id: assignTarget, role: "bendahara" as any });
+    setAssigning(false);
+    if (error) { toast.error("Gagal: " + error.message); return; }
+    toast.success("Tanggung jawab Bendahara berhasil diberikan");
+    setAssignOpen(false); setAssignTarget(""); load();
+  };
 
   const create = async () => {
     if (!form.full_name || !form.email || !form.password) { toast.error("Lengkapi data"); return; }
@@ -82,10 +117,15 @@ export default function ManageBendahara() {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Wallet} title="Kelola Bendahara" subtitle="Tambah dan kelola akun Bendahara untuk fitur keuangan" variant="emerald" actions={
-        <Button onClick={() => setOpen(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
-          <Plus className="h-4 w-4 mr-2" /> Tambah Bendahara
-        </Button>
+      <PageHeader icon={Wallet} title="Kelola Bendahara" subtitle="Tambah Bendahara baru atau berikan tanggung jawab Bendahara ke guru/staff yang sudah ada" variant="emerald" actions={
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setAssignOpen(true)} variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-xl text-xs">
+            <UserPlus className="h-4 w-4 mr-2" /> Beri Tanggung Jawab
+          </Button>
+          <Button onClick={() => setOpen(true)} className="bg-white/20 hover:bg-white/30 text-white border border-white/20 rounded-xl text-xs">
+            <Plus className="h-4 w-4 mr-2" /> Tambah Bendahara Baru
+          </Button>
+        </div>
       } />
       {loading ? <div className="p-8 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></div> : list.length === 0 ? (
         <Card className="border-0 shadow-card"><CardContent className="p-10 text-center">
@@ -94,22 +134,72 @@ export default function ManageBendahara() {
         </CardContent></Card>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {list.map(u => (
+          {list.map(u => {
+            const hasExtra = (u.extra_roles && u.extra_roles.length > 0);
+            return (
             <Card key={u.user_id} className="border-0 shadow-card"><CardContent className="p-5 flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold">{u.full_name[0]}</div>
-              <div className="flex-1 min-w-0"><p className="font-bold text-sm truncate">{u.full_name}</p>
-                <Badge className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0 mt-1"><Wallet className="h-3 w-3 mr-1" /> Bendahara</Badge>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold shrink-0">{u.full_name[0]}</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm truncate">{u.full_name}</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  <Badge className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0"><Wallet className="h-3 w-3 mr-1" /> Bendahara</Badge>
+                  {u.extra_roles?.includes("teacher") && (
+                    <Badge2 variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400 border-0"><GraduationCap className="h-3 w-3 mr-1" /> Guru</Badge2>
+                  )}
+                  {u.extra_roles?.includes("staff") && (
+                    <Badge2 variant="secondary" className="text-[10px]"><Shield className="h-3 w-3 mr-1" /> Operator</Badge2>
+                  )}
+                  {u.extra_roles?.includes("school_admin") && (
+                    <Badge2 variant="secondary" className="text-[10px] bg-amber-100 text-amber-700 border-0"><Shield className="h-3 w-3 mr-1" /> Admin</Badge2>
+                  )}
+                </div>
               </div>
-              <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => openEdit(u)} title="Edit">
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => remove(u)} title="Hapus">
+              {!hasExtra && (
+                <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => openEdit(u)} title="Edit">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => remove(u)} title={hasExtra ? "Cabut tanggung jawab Bendahara" : "Hapus"}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </CardContent></Card>
-          ))}
+          );})}
         </div>
       )}
+
+      {/* Beri Tanggung Jawab ke guru/staff */}
+      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Beri Tanggung Jawab Bendahara</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">Pilih guru atau staff yang sudah terdaftar untuk diberi akses ke dashboard Bendahara. Saat login, mereka akan memilih dashboard mana yang ingin dibuka.</p>
+            {assignables.length === 0 ? (
+              <div className="p-6 text-center text-sm text-muted-foreground bg-muted/30 rounded-xl">
+                Tidak ada guru/staff yang tersedia. Tambahkan guru/staff dulu di menu "Guru & Staff".
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label>Pilih Guru / Staff</Label>
+                  <Select value={assignTarget} onValueChange={setAssignTarget}>
+                    <SelectTrigger><SelectValue placeholder="-- Pilih orang --" /></SelectTrigger>
+                    <SelectContent>
+                      {assignables.map(a => (
+                        <SelectItem key={a.user_id} value={a.user_id}>
+                          {a.full_name}{a.roles.includes("teacher") ? " (Guru)" : ""}{a.roles.includes("staff") ? " (Operator)" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={assignBendahara} disabled={assigning || !assignTarget} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                  {assigning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />} Berikan Akses Bendahara
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Tambah */}
       <Dialog open={open} onOpenChange={setOpen}>
