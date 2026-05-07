@@ -100,7 +100,28 @@ const ManageStaff = () => {
 
     const staffList: StaffMember[] = profiles
       .filter((p) => roleMap.has(p.user_id))
-      .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name, photo_url: p.photo_url, qr_code: p.qr_code || p.user_id, phone: p.phone || null, nip: p.nip || null, roles: roleMap.get(p.user_id) || [] }));
+      .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name, photo_url: p.photo_url, qr_code: p.qr_code || p.user_id, phone: p.phone || null, nip: p.nip || null, roles: roleMap.get(p.user_id) || [], presentToday: false, arrivalTime: null }));
+
+    // Fetch today's attendance (datang) to color cards green/red
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+    const { data: todayLogs } = await supabase
+      .from("teacher_attendance_logs" as any)
+      .select("user_id, time, attendance_type")
+      .eq("school_id", schoolId)
+      .eq("date", dateStr);
+    const presentMap = new Map<string, string>();
+    (todayLogs || []).forEach((l: any) => {
+      if ((l.attendance_type || "datang") === "datang" && !presentMap.has(l.user_id)) {
+        presentMap.set(l.user_id, l.time);
+      }
+    });
+    staffList.forEach((s) => {
+      if (presentMap.has(s.user_id)) {
+        s.presentToday = true;
+        s.arrivalTime = (presentMap.get(s.user_id) || "").slice(0,5);
+      }
+    });
 
     setStaff(staffList);
     setLoading(false);
