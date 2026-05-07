@@ -33,6 +33,8 @@ export default function PanduanDetail() {
 
   const guide = guides.find((g) => g.id === role);
   if (!guide) return <Navigate to="/panduan" replace />;
+  const mobileEnabled = guide.mobileMockupEnabled !== false;
+  const effectiveView: ViewMode = mobileEnabled ? viewMode : "desktop";
   const Icon = guide.icon;
 
   return (
