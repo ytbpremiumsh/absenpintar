@@ -19,12 +19,15 @@ import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
 import * as XLSX from "xlsx";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
+import StaffAttendanceDetailDialog from "@/components/staff/StaffAttendanceDetailDialog";
 
 interface StaffMember {
   user_id: string;
   full_name: string;
   photo_url: string | null;
   qr_code: string | null;
+  phone: string | null;
+  nip: string | null;
   roles: string[];
 }
 
