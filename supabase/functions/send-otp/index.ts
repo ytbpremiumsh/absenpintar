@@ -13,7 +13,7 @@ serve(async (req) => {
     const { email, phone, school_id } = await req.json();
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email wajib diisi' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -27,7 +27,7 @@ serve(async (req) => {
     const user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
     if (!user) {
       return new Response(JSON.stringify({ error: 'Email tidak ditemukan' }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -52,7 +52,7 @@ serve(async (req) => {
 
       if (normalizedStored && normalizedInput !== normalizedStored) {
         return new Response(JSON.stringify({ error: 'Nomor WhatsApp tidak sesuai dengan data yang terdaftar' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       targetPhone = phone;
@@ -60,7 +60,7 @@ serve(async (req) => {
 
     if (!targetPhone) {
       return new Response(JSON.stringify({ error: 'Nomor WhatsApp belum terdaftar di profil. Silakan hubungi admin.' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -164,7 +164,7 @@ serve(async (req) => {
 
     if (!sent) {
       return new Response(JSON.stringify({ error: 'Tidak ada gateway WhatsApp yang aktif untuk mengirim OTP' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -175,7 +175,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Send OTP error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

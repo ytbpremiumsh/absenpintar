@@ -66,19 +66,26 @@ const Login = () => {
       const isBendahara = rolesList.includes("bendahara");
       const isTeacher = rolesList.includes("teacher");
 
-      let schoolName: string | null = null;
-      if (profileData?.school_id) {
-        const { data: schoolData } = await supabase.from("schools").select("name").eq("id", profileData.school_id).maybeSingle();
-        schoolName = schoolData?.name || null;
-      }
-      await supabase.from("login_logs").insert({
-        user_id: user.id,
-        email: user.email || null,
-        full_name: profileData?.full_name || null,
-        role: rolesList.join(", ") || null,
-        school_name: schoolName,
-        user_agent: navigator.userAgent,
-      } as any);
+      // Fire-and-forget: lookup sekolah + insert login_logs (jangan block redirect)
+      (async () => {
+        try {
+          let schoolName: string | null = null;
+          if (profileData?.school_id) {
+            const { data: schoolData } = await supabase.from("schools").select("name").eq("id", profileData.school_id).maybeSingle();
+            schoolName = schoolData?.name || null;
+          }
+          await supabase.from("login_logs").insert({
+            user_id: user.id,
+            email: user.email || null,
+            full_name: profileData?.full_name || null,
+            role: rolesList.join(", ") || null,
+            school_name: schoolName,
+            user_agent: navigator.userAgent,
+          } as any);
+        } catch (e) {
+          console.warn("login_logs insert failed", e);
+        }
+      })();
 
       setLoading(false);
       if (isSuperAdmin) navigate("/super-admin");

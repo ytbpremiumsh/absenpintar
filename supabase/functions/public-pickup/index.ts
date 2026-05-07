@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
 
     if (!school_id || !student_id) {
       return new Response(JSON.stringify({ error: "school_id and student_id required" }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
     if (studentErr || !student) {
       return new Response(JSON.stringify({ error: "Student not found" }), {
-        status: 404,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
 
     if (existingLog) {
       return new Response(JSON.stringify({ error: "Siswa sudah dijemput hari ini" }), {
-        status: 409,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
 
     if (insertErr) {
       return new Response(JSON.stringify({ error: insertErr.message }), {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

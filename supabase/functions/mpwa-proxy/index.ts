@@ -30,7 +30,7 @@ serve(async (req) => {
 
     if (!action || !school_id) {
       return new Response(JSON.stringify({ error: 'action and school_id are required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -84,7 +84,7 @@ serve(async (req) => {
 
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'MPWA API Key belum dikonfigurasi.' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -118,7 +118,7 @@ serve(async (req) => {
       const cleanNumber = (deviceNumber || '').replace(/\D/g, '');
       if (!cleanNumber) {
         return new Response(JSON.stringify({ error: 'Nomor WhatsApp harus diisi' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
@@ -211,7 +211,7 @@ serve(async (req) => {
       const cleanNumber = (deviceNumber || integration?.mpwa_sender || '').replace(/\D/g, '');
       if (!cleanNumber) {
         return new Response(JSON.stringify({ error: 'Sender tidak ditemukan' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
@@ -246,12 +246,12 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ error: 'Unknown action. Use: generate-qr, check-status, disconnect' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('[mpwa-proxy] Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

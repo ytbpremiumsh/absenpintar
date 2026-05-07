@@ -183,7 +183,7 @@ serve(async (req) => {
 
     if ((!phone && !group_id) || !message) {
       return new Response(JSON.stringify({ error: 'phone or group_id, and message are required' }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -247,7 +247,7 @@ serve(async (req) => {
 
     if (!finalApiKey) {
       return new Response(JSON.stringify({ error: 'API Key is required' }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -296,7 +296,7 @@ serve(async (req) => {
       // ═══ OneSender Gateway ═══
       if (!finalApiUrl) {
         return new Response(JSON.stringify({ error: 'API URL is required for OneSender' }), {
-          status: 400,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -381,7 +381,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Send WhatsApp error:', error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

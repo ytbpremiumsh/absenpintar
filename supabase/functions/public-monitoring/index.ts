@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
 
     if (!schoolId) {
       return new Response(JSON.stringify({ error: "school_id required" }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

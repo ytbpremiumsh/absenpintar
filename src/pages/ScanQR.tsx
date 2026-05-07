@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScanLine, CheckCircle2, Camera, Search, ShieldCheck, X, Clock, UserCheck, Loader2, Lock, SwitchCamera } from "lucide-react";
+import { ScanLine, CheckCircle2, Camera, Search, ShieldCheck, X, Clock, UserCheck, Loader2, Lock, SwitchCamera, ArrowDownToLine, ArrowUpFromLine, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionFeatures } from "@/hooks/useSubscriptionFeatures";
@@ -67,8 +67,8 @@ const ConfirmationPopup = ({ open, scannedStudent, alreadyRecorded, processing, 
           <DialogDescription className="text-primary-foreground/70 text-xs mt-1">
             {scanMethod === "face" ? "Wajah dikenali — konfirmasi kehadiran" : "Konfirmasi kehadiran siswa berikut"}
           </DialogDescription>
-          <Badge className="mt-2 bg-white/20 text-white border-0">
-            Mode: {currentAttType === "datang" ? "📥 Datang" : "📤 Pulang"}
+          <Badge className="mt-2 bg-white/20 text-white border-0 inline-flex items-center gap-1">
+            Mode: {currentAttType === "datang" ? <><ArrowDownToLine className="h-3 w-3" /> Datang</> : <><ArrowUpFromLine className="h-3 w-3" /> Pulang</>}
           </Badge>
         </div>
         {scannedStudent && (
@@ -93,8 +93,8 @@ const ConfirmationPopup = ({ open, scannedStudent, alreadyRecorded, processing, 
             </div>
 
             {alreadyRecorded ? (
-              <div className="bg-warning/10 border border-warning/20 rounded-lg p-2 text-xs text-warning font-medium">
-                ⚠ Siswa ini sudah tercatat absensi {currentAttType === "datang" ? "Datang" : "Pulang"} hari ini
+              <div className="bg-warning/10 border border-warning/20 rounded-lg p-2 text-xs text-warning font-medium inline-flex items-center gap-1.5 justify-center">
+                <AlertTriangle className="h-3.5 w-3.5" /> Siswa ini sudah tercatat absensi {currentAttType === "datang" ? "Datang" : "Pulang"} hari ini
               </div>
             ) : (
               <div className="space-y-2">
@@ -110,7 +110,7 @@ const ConfirmationPopup = ({ open, scannedStudent, alreadyRecorded, processing, 
               <Button variant="outline" onClick={onCancel} className="flex-1 h-11">Batal</Button>
               <Button onClick={onConfirm} disabled={processing || alreadyRecorded}
                 className="flex-1 h-11 bg-success hover:bg-success/90 text-success-foreground font-semibold">
-                <CheckCircle2 className="h-4 w-4 mr-1" /> {currentAttType === "datang" ? "Hadir ✓" : "Pulang ✓"}
+                <CheckCircle2 className="h-4 w-4 mr-1" /> {currentAttType === "datang" ? "Hadir" : "Pulang"}
               </Button>
             </div>
           </div>
