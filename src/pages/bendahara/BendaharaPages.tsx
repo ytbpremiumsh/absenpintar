@@ -3546,7 +3546,7 @@ export function BendaharaPencairan() {
               <Button variant="outline" onClick={() => { setConfirmOpen(false); setBankManageOpen(true); }} disabled={submitting}>
                 Periksa / Ubah
               </Button>
-              <Button onClick={submit} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={requestOtp} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ya, Cairkan"}
               </Button>
             </div>
