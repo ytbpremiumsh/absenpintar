@@ -38,6 +38,17 @@ function getDayOfWeek(timezone: string, date: Date = new Date()): number {
   }
 }
 
+function getLocalHour(timezone: string, date: Date = new Date()): number {
+  try {
+    const str = new Intl.DateTimeFormat("en-GB", {
+      timeZone: timezone, hour: "2-digit", hour12: false,
+    }).format(date);
+    return parseInt(str, 10);
+  } catch {
+    return date.getUTCHours();
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -46,6 +57,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+
+    // Allow manual override for testing (?force=1) but default to safe time guard
+    const url = new URL(req.url);
+    const force = url.searchParams.get('force') === '1';
 
     // Ambil semua sekolah aktif beserta timezone
     const { data: schools, error: schErr } = await supabase
@@ -67,9 +82,16 @@ serve(async (req) => {
         const tz = school.timezone || 'Asia/Jakarta';
         const today = getLocalDate(tz);
         const dow = getDayOfWeek(tz);
+        const localHour = getLocalHour(tz);
         const holidayDays: number[] = Array.isArray((school as any).holiday_days) && (school as any).holiday_days.length > 0
           ? (school as any).holiday_days
           : [0, 6];
+
+        // Time guard: jangan tandai Alfa sebelum jam 22:00 lokal (kecuali force)
+        if (!force && localHour < 22) {
+          summary.push({ school: school.name, skipped: 'too_early', date: today, local_hour: localHour });
+          continue;
+        }
 
         // Skip hari libur mingguan sekolah
         if (holidayDays.includes(dow)) {
