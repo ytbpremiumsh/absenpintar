@@ -871,6 +871,17 @@ const WhatsAppSettings = () => {
                       </button>
                     ))}
                   </div>
+                  <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
+                    <Label className="text-xs font-semibold">Test Kirim Reminder</Label>
+                    <div className="flex gap-2">
+                      <Input value={testReminderPhone} onChange={(e) => setTestReminderPhone(e.target.value)} placeholder="08xxxxxxxxxx" className="h-9 text-xs" />
+                      <Button onClick={handleTestReminder} disabled={testingReminder} size="sm" className="h-9">
+                        {testingReminder ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 mr-1" />}
+                        Test
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Kirim contoh pesan reminder ke nomor di atas menggunakan template aktif.</p>
+                  </div>
                 </CardContent>
               )}
             </Card>
