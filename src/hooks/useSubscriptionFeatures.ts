@@ -56,7 +56,7 @@ const PLAN_FEATURES: Record<string, Omit<PlanFeatures, "planName" | "loading" | 
     canMultiBranch: false,
     canWhatsApp: true,
     canMultiStaff: true,
-    canFaceRecognition: false,
+    canFaceRecognition: true,
     maxClasses: 999,
     maxStudentsPerClass: 999,
     maxStudentsTotal: null,
