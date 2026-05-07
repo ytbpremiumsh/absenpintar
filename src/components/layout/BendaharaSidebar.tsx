@@ -61,9 +61,9 @@ export function BendaharaSidebar() {
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border/30 font-['Inter',sans-serif]">
       <SidebarHeader className="p-3 pb-2">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 p-3 shadow-lg shadow-emerald-600/20">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] p-3 shadow-lg shadow-[#5B6CF9]/20">
           <div className="absolute -top-4 -right-4 h-16 w-16 rounded-full bg-white/10 blur-xl" />
-          <div className="absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-teal-300/10 blur-2xl" />
+          <div className="absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-white/5 blur-2xl" />
           <div className="relative z-10 flex items-center gap-2.5">
             <div className="h-10 w-10 rounded-lg bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 overflow-hidden">
               <img src={school?.logo || atskollaLogo} alt="logo" className="h-8 w-8 object-contain" />
