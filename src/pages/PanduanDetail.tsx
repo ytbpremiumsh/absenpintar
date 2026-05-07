@@ -127,7 +127,7 @@ export default function PanduanDetail() {
 
               {step.image && (
                 <AnimatePresence mode="wait">
-                  {viewMode === "desktop" ? (
+                  {effectiveView === "desktop" ? (
                     <motion.div key="desktop" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                       <img src={step.image} alt={`${step.title} — Tampilan Desktop`} loading="lazy" decoding="async" className="w-full h-auto rounded-2xl" />
                     </motion.div>
