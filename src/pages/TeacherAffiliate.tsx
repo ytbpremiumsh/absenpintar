@@ -70,7 +70,7 @@ const TeacherAffiliate = () => {
   };
 
   const handleShareWA = () => {
-    const text = `🎓 ATSkolla — Sistem Absensi Digital Sekolah modern. Daftarkan sekolahmu via link ini & dapatkan free trial:\n${referralLink}`;
+    const text = `ATSkolla — Sistem Absensi Digital Sekolah modern. Daftarkan sekolahmu via link ini & dapatkan free trial:\n${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 

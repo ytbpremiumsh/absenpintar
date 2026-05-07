@@ -366,7 +366,7 @@ const WaliKelasDashboard = () => {
                           </div>
                           {mc.rank <= 3 && (
                             <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${RANK_STYLES[mc.rank - 1]?.badge || ""}`}>
-                              {mc.rank === 1 ? "🥇" : mc.rank === 2 ? "🥈" : "🥉"}
+                              #{mc.rank}
                             </div>
                           )}
                         </div>
@@ -442,11 +442,7 @@ const WaliKelasDashboard = () => {
                         <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm ${
                           style ? `${style.bg} ${style.color}` : "bg-muted text-muted-foreground"
                         }`}>
-                          {i < 3 ? (
-                            <span className="text-lg">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</span>
-                          ) : (
-                            <span>#{i + 1}</span>
-                          )}
+                          <span>#{i + 1}</span>
                         </div>
 
                         {/* Class Info */}
