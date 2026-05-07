@@ -621,7 +621,7 @@ const ManageStaff = () => {
           {qrTarget && (
             <div className="flex flex-col items-center gap-3 py-2">
               <div className="bg-white p-4 rounded-xl border border-border">
-                <QRCodeDisplay value={qrTarget.qr_code || qrTarget.user_id} size={200} />
+                <QRCodeDisplay data={qrTarget.qr_code || qrTarget.user_id} size={200} autoFrame={false} studentName={qrTarget.full_name} />
               </div>
               <div className="text-center">
                 <p className="font-bold text-base">{qrTarget.full_name}</p>
