@@ -110,7 +110,7 @@ const ConfirmationPopup = ({ open, scannedStudent, alreadyRecorded, processing, 
               <Button variant="outline" onClick={onCancel} className="flex-1 h-11">Batal</Button>
               <Button onClick={onConfirm} disabled={processing || alreadyRecorded}
                 className="flex-1 h-11 bg-success hover:bg-success/90 text-success-foreground font-semibold">
-                <CheckCircle2 className="h-4 w-4 mr-1" /> {currentAttType === "datang" ? "Hadir ✓" : "Pulang ✓"}
+                <CheckCircle2 className="h-4 w-4 mr-1" /> {currentAttType === "datang" ? "Hadir" : "Pulang"}
               </Button>
             </div>
           </div>
