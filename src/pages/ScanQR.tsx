@@ -67,8 +67,8 @@ const ConfirmationPopup = ({ open, scannedStudent, alreadyRecorded, processing, 
           <DialogDescription className="text-primary-foreground/70 text-xs mt-1">
             {scanMethod === "face" ? "Wajah dikenali — konfirmasi kehadiran" : "Konfirmasi kehadiran siswa berikut"}
           </DialogDescription>
-          <Badge className="mt-2 bg-white/20 text-white border-0">
-            Mode: {currentAttType === "datang" ? "📥 Datang" : "📤 Pulang"}
+          <Badge className="mt-2 bg-white/20 text-white border-0 inline-flex items-center gap-1">
+            Mode: {currentAttType === "datang" ? <><ArrowDownToLine className="h-3 w-3" /> Datang</> : <><ArrowUpFromLine className="h-3 w-3" /> Pulang</>}
           </Badge>
         </div>
         {scannedStudent && (
