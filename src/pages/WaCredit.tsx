@@ -25,6 +25,7 @@ const WaCredit = () => {
   const [loading, setLoading] = useState(true);
   const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
   const [paymentIframe, setPaymentIframe] = useState<string | null>(null);
+  const [paymentTxnId, setPaymentTxnId] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get("status") === "success") {
