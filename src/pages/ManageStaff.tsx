@@ -646,8 +646,12 @@ const ManageStaff = () => {
                     <Label className="text-xs">No. WhatsApp</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="Kosongkan jika tidak diubah" type="tel" className="pl-9" />
+                      <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="08xxxxxxxxxx" type="tel" className="pl-9" />
                     </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">NIP / NIK</Label>
+                    <Input value={editNip} onChange={(e) => setEditNip(e.target.value)} placeholder="Nomor Induk Pegawai" />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Password Baru</Label>
