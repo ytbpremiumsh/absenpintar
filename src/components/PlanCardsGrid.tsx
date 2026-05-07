@@ -98,18 +98,18 @@ export function PlanCardsGrid({
               }`}
             >
               {isCurrent && (
-                <div className="gradient-primary text-primary-foreground text-[11px] font-semibold text-center py-1.5">
-                  ✓ Paket Saat Ini
+                <div className="gradient-primary text-primary-foreground text-[11px] font-semibold text-center py-1.5 inline-flex items-center justify-center gap-1">
+                  <Check className="h-3 w-3" /> Paket Saat Ini
                 </div>
               )}
               {!isCurrent && highlighted && (
-                <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[11px] font-semibold text-center py-1.5">
-                  ⭐ Rekomendasi
+                <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[11px] font-semibold text-center py-1.5 inline-flex items-center justify-center gap-1">
+                  <Star className="h-3 w-3" /> Rekomendasi
                 </div>
               )}
               {!isCurrent && !highlighted && isPremium && !hidePremiumBadge && (
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-semibold text-center py-1.5">
-                  👑 Premium
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] font-semibold text-center py-1.5 inline-flex items-center justify-center gap-1">
+                  <Crown className="h-3 w-3" /> Premium
                 </div>
               )}
 
