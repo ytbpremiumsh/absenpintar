@@ -3152,6 +3152,18 @@ export function BendaharaPencairan() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const syncingRef = useRef(false);
+  // OTP state
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpPhoneMasked, setOtpPhoneMasked] = useState("");
+  const [otpResendIn, setOtpResendIn] = useState(0);
+
+  useEffect(() => {
+    if (otpResendIn <= 0) return;
+    const t = setTimeout(() => setOtpResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [otpResendIn]);
 
   // Auto-open bank manager via ?manage=bank
   useEffect(() => {
@@ -3261,8 +3273,34 @@ export function BendaharaPencairan() {
     setConfirmOpen(true);
   };
 
+  const sendOtp = async () => {
+    if (!user?.id || !profile?.school_id) return;
+    setOtpSending(true);
+    const { data, error } = await supabase.functions.invoke("send-bendahara-otp", {
+      body: { user_id: user.id, school_id: profile.school_id },
+    });
+    setOtpSending(false);
+    if (error || data?.error) { toast.error(data?.error || error?.message || "Gagal mengirim OTP"); return; }
+    setOtpPhoneMasked(data?.phone_masked || "");
+    setOtpStep(true);
+    setOtpCode("");
+    setOtpResendIn(60);
+    toast.success("Kode OTP dikirim via WhatsApp");
+  };
+
   const submit = async () => {
+    if (!user?.id) return;
+    if (otpCode.length !== 6) { toast.error("Masukkan 6 digit kode OTP"); return; }
     setSubmitting(true);
+    // 1) Verifikasi OTP
+    const { data: vData, error: vErr } = await supabase.functions.invoke("verify-bendahara-otp", {
+      body: { user_id: user.id, otp_code: otpCode },
+    });
+    if (vErr || vData?.error) {
+      toast.error(vData?.error || vErr?.message || "OTP tidak valid");
+      setSubmitting(false); return;
+    }
+    // 2) Eksekusi pencairan
     const code = `STL-${Date.now().toString().slice(-8)}`;
     const invoiceIds = availableItems.map((item) => item.id).filter(Boolean);
     if (invoiceIds.length === 0) { toast.error("Tidak ada saldo"); setSubmitting(false); return; }
@@ -3278,6 +3316,7 @@ export function BendaharaPencairan() {
       .eq("school_id", profile!.school_id).in("id", invoiceIds).is("settlement_id", null);
     toast.success("Pencairan diajukan, menunggu persetujuan Super Admin");
     setConfirmOpen(false); setSubmitting(false); setRefreshKey(k => k + 1);
+    setOtpStep(false); setOtpCode(""); setOtpPhoneMasked("");
   };
 
   const saveAccount = async () => {
@@ -3449,62 +3488,88 @@ export function BendaharaPencairan() {
       </Tabs>
 
       {/* Konfirmasi Pencairan */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <Dialog open={confirmOpen} onOpenChange={(o) => { setConfirmOpen(o); if (!o) { setOtpStep(false); setOtpCode(""); setOtpPhoneMasked(""); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Konfirmasi Pencairan</DialogTitle>
+            <DialogTitle>{otpStep ? "Verifikasi OTP WhatsApp" : "Konfirmasi Pencairan"}</DialogTitle>
             <DialogDescription>
-              Mohon cek kembali — pastikan nomor rekening sudah benar. Pencairan ke rekening salah tidak dapat dibatalkan.
+              {otpStep
+                ? "Untuk keamanan, masukkan 6 digit kode OTP yang dikirim ke WhatsApp Bendahara."
+                : "Mohon cek kembali — pastikan nomor rekening sudah benar. Pencairan ke rekening salah tidak dapat dibatalkan."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 pt-2 max-h-[70vh] overflow-y-auto">
-            {/* Rekening Tujuan */}
-            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-2">
-              <p className="text-[11px] uppercase tracking-wider font-semibold text-amber-700 dark:text-amber-400">Rekening Tujuan</p>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Bank</span><span className="font-bold">{bank.bank_name}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">No. Rekening</span><span className="font-mono font-bold tracking-wider">{bank.account_number}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Atas Nama</span><span className="font-bold">{bank.account_holder}</span></div>
-            </div>
 
-            {/* Rincian Perhitungan */}
-            <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 space-y-2">
-              <p className="text-[11px] uppercase tracking-wider font-semibold text-emerald-700 dark:text-emerald-400">Rincian Perhitungan</p>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Tagihan Lunas</span>
-                <span className="font-semibold">{available.count} transaksi</span>
+          {!otpStep ? (
+            <div className="space-y-3 pt-2 max-h-[70vh] overflow-y-auto">
+              {/* Rekening Tujuan */}
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-2">
+                <p className="text-[11px] uppercase tracking-wider font-semibold text-amber-700 dark:text-amber-400">Rekening Tujuan</p>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Bank</span><span className="font-bold">{bank.bank_name}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">No. Rekening</span><span className="font-mono font-bold tracking-wider">{bank.account_number}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Atas Nama</span><span className="font-bold">{bank.account_holder}</span></div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Bruto (dari siswa)</span>
-                <span className="font-bold">{fmtIDR(available.gross)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-rose-600 dark:text-rose-400">
-                <span>(−) Biaya Layanan Gateway</span>
-                <span className="font-semibold">−{fmtIDR(available.fee)}</span>
-              </div>
-              <div className="border-t border-emerald-300 dark:border-emerald-700 pt-2 flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal Bersih</span>
-                <span className="font-bold">{fmtIDR(available.net)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-rose-600 dark:text-rose-400">
-                <span>(−) Biaya Pencairan</span>
-                <span className="font-semibold">−{fmtIDR(3000)}</span>
-              </div>
-              <div className="border-t-2 border-emerald-400 dark:border-emerald-600 pt-2 flex justify-between items-center">
-                <span className="text-sm font-semibold">Diterima di Rekening</span>
-                <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{fmtIDR(finalPayout)}</span>
-              </div>
-            </div>
 
-            <p className="text-xs text-center text-muted-foreground">Pastikan nomor rekening &amp; rincian sudah benar. Pencairan tidak dapat dibatalkan.</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => { setConfirmOpen(false); setBankManageOpen(true); }} disabled={submitting}>
-                Periksa / Ubah
-              </Button>
-              <Button onClick={submit} disabled={submitting} className="bg-emerald-600 hover:bg-emerald-700">
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ya, Cairkan"}
+              {/* Rincian Perhitungan */}
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 space-y-2">
+                <p className="text-[11px] uppercase tracking-wider font-semibold text-emerald-700 dark:text-emerald-400">Rincian Perhitungan</p>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Tagihan Lunas</span><span className="font-semibold">{available.count} transaksi</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total Bruto (dari siswa)</span><span className="font-bold">{fmtIDR(available.gross)}</span></div>
+                <div className="flex justify-between text-sm text-rose-600 dark:text-rose-400"><span>(−) Biaya Layanan Gateway</span><span className="font-semibold">−{fmtIDR(available.fee)}</span></div>
+                <div className="border-t border-emerald-300 dark:border-emerald-700 pt-2 flex justify-between text-sm"><span className="text-muted-foreground">Subtotal Bersih</span><span className="font-bold">{fmtIDR(available.net)}</span></div>
+                <div className="flex justify-between text-sm text-rose-600 dark:text-rose-400"><span>(−) Biaya Pencairan</span><span className="font-semibold">−{fmtIDR(3000)}</span></div>
+                <div className="border-t-2 border-emerald-400 dark:border-emerald-600 pt-2 flex justify-between items-center"><span className="text-sm font-semibold">Diterima di Rekening</span><span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{fmtIDR(finalPayout)}</span></div>
+              </div>
+
+              <p className="text-xs text-center text-muted-foreground">Selanjutnya Anda akan diminta memasukkan kode OTP WhatsApp untuk konfirmasi pencairan.</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" onClick={() => { setConfirmOpen(false); setBankManageOpen(true); }} disabled={otpSending}>
+                  Periksa / Ubah
+                </Button>
+                <Button onClick={sendOtp} disabled={otpSending} className="bg-emerald-600 hover:bg-emerald-700">
+                  {otpSending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ya, Cairkan"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 pt-2">
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 text-center space-y-1">
+                <p className="text-xs text-muted-foreground">Kode OTP dikirim ke WhatsApp</p>
+                <p className="font-mono font-bold text-emerald-700 dark:text-emerald-300">{otpPhoneMasked || "—"}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Masukkan 6 digit OTP</Label>
+                <Input
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="••••••"
+                  className="text-center text-2xl font-mono tracking-[0.5em] h-14"
+                />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  className="text-emerald-700 dark:text-emerald-400 font-semibold disabled:opacity-50"
+                  disabled={otpResendIn > 0 || otpSending}
+                  onClick={sendOtp}
+                >
+                  {otpResendIn > 0 ? `Kirim ulang dalam ${otpResendIn}s` : "Kirim ulang OTP"}
+                </button>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:underline"
+                  onClick={() => { setOtpStep(false); setOtpCode(""); }}
+                  disabled={submitting}
+                >
+                  Kembali
+                </button>
+              </div>
+              <Button onClick={submit} disabled={submitting || otpCode.length !== 6} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Memproses…</> : "Verifikasi & Cairkan"}
               </Button>
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 

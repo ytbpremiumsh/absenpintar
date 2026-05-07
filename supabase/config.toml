@@ -95,3 +95,9 @@ verify_jwt = false
 
 [functions.teaching-reminder]
 verify_jwt = false
+
+[functions.send-bendahara-otp]
+verify_jwt = false
+
+[functions.verify-bendahara-otp]
+verify_jwt = false
