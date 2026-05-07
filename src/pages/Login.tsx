@@ -98,7 +98,9 @@ const Login = () => {
       })();
 
       setLoading(false);
-      if (isSuperAdmin) navigate("/super-admin");
+      sessionStorage.removeItem("dashboard_chosen");
+      if (dashboardKinds > 1) navigate("/select-role");
+      else if (isSuperAdmin) navigate("/super-admin");
       else if (isBendahara) navigate("/bendahara");
       else if (isTeacher) navigate("/teacher-dashboard");
       else navigate("/dashboard");
