@@ -187,10 +187,21 @@ export default function TeachingSchedule() {
     setScheduleDialog(true);
   };
 
-  const getTeacherName = (id: string) => teachers.find((t) => t.user_id === id)?.full_name || "—";
+  const getTeacher = (id: string) => teachers.find((t) => t.user_id === id);
+  const getTeacherName = (id: string) => getTeacher(id)?.full_name || "—";
   const getSubjectName = (id: string) => subjects.find((s) => s.id === id)?.name || "—";
-  const getSubjectColor = (id: string) => subjects.find((s) => s.id === id)?.color || "#3B82F6";
+  const getSubjectColor = (id: string) => subjects.find((s) => s.id === id)?.color || "#5B6CF9";
   const getClassName = (id: string) => classes.find((c) => c.id === id)?.name || "—";
+  const getInitials = (name: string) => name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+
+  // Tailwind-friendly readable text on colored bg: convert hex to rgba helpers
+  const hexToRgba = (hex: string, alpha: number) => {
+    const h = hex.replace("#", "");
+    const r = parseInt(h.substring(0, 2), 16);
+    const g = parseInt(h.substring(2, 4), 16);
+    const b = parseInt(h.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
 
   const filteredSchedules = useMemo(() => {
     let filtered = schedules;
