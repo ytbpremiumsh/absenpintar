@@ -17,9 +17,7 @@ export function announcePickup(studentName: string, className: string, type: "pi
   announceTimeout = setTimeout(() => {
     window.speechSynthesis.cancel();
 
-    const actionText = type === "dismissed"
-      ? "sudah pulang"
-      : "telah dijemput";
+    const actionText = "sudah pulang";
     const text = `Perhatian. ${studentName}, kelas ${className}, ${actionText}. Terima kasih.`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";

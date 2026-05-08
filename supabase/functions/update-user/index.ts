@@ -35,6 +35,17 @@ serve(async (req) => {
     const { user_id, full_name, email, password, phone, nip } = await req.json();
     if (!user_id) throw new Error('user_id is required');
 
+    // Cross-tenant guard: school_admin only allowed to update users within own school
+    if (callerRoles.includes('school_admin') && !callerRoles.includes('super_admin')) {
+      const [{ data: callerProfile }, { data: targetProfile }] = await Promise.all([
+        supabaseAdmin.from('profiles').select('school_id').eq('user_id', caller.id).maybeSingle(),
+        supabaseAdmin.from('profiles').select('school_id').eq('user_id', user_id).maybeSingle(),
+      ]);
+      if (!callerProfile?.school_id || callerProfile.school_id !== targetProfile?.school_id) {
+        throw new Error('Forbidden: cannot edit user from different school');
+      }
+    }
+
     // Update profile name, phone, nip if provided
     const profileUpdate: Record<string, string | null> = {};
     if (full_name) profileUpdate.full_name = full_name;
