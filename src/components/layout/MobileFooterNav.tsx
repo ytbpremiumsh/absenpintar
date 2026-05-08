@@ -31,14 +31,14 @@ export function MobileFooterNav({ items, accentColor }: MobileFooterNavProps) {
     <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-xl border-t border-border/30" />
 
-      <nav className="relative flex items-end justify-around px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
+      <nav className="relative flex items-end px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
         {items.map((item) => {
           const active = location.pathname === item.path;
 
           if (item.isCenter) {
             return (
+              <div key={item.label} className="flex-1 basis-0 flex justify-center">
               <button
-                key={item.label}
                 onClick={() => navigate(item.path)}
                 className="relative -mt-6 flex flex-col items-center gap-0.5 outline-none"
               >
