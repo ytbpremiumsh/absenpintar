@@ -107,6 +107,7 @@ export function MobileFooterNav({ items, accentColor }: MobileFooterNavProps) {
                 {item.label}
               </span>
             </button>
+            </div>
           );
         })}
       </nav>
