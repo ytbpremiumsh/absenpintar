@@ -49,14 +49,17 @@ const ExportHistory = () => {
   const features = useSubscriptionFeatures();
   const navigate = useNavigate();
 
-  const isAdminOrStaff = roles.includes("school_admin") || roles.includes("staff") || roles.includes("super_admin");
-  const isTeacherOnly = !isAdminOrStaff;
+  // Match sidebar logic: teacher dashboard context = Rekap Absensi MAPEL (subject_attendance).
+  // Admin/Staff context = Rekap Absensi SEKOLAH (scan barcode/face/manual via attendance_logs).
+  const activeDashboard = typeof window !== "undefined" ? sessionStorage.getItem("active_dashboard") : null;
+  const isTeacherContext =
+    activeDashboard === "teacher" ||
+    (roles.includes("teacher") && !roles.includes("school_admin") && !roles.includes("staff") && !roles.includes("super_admin"));
 
-  // Render scan-based recap for admin/staff, subject-based for teachers
-  if (isAdminOrStaff) {
-    return <ScanAttendanceRecap />;
+  if (isTeacherContext) {
+    return <SubjectAttendanceRecap />;
   }
-  return <SubjectAttendanceRecap />;
+  return <ScanAttendanceRecap />;
 };
 
 // =========================================================
