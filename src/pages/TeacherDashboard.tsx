@@ -251,8 +251,20 @@ const TeacherDashboard = () => {
         subtitle={`Selamat datang, ${profile?.full_name || "Guru"} — ${DAYS[todayDay]}, ${today.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}
       />
 
-      {/* HERO REMINDER: Absensi Kelas (Wali Kelas) */}
+      {/* HERO REMINDER: Absensi Kelas (Wali Kelas) — only 15 min before start or during active */}
       {homeroomAssignments.length > 0 && (() => {
+        const homeroomNames = new Set(homeroomAssignments.map(h => h.class_name));
+        const currentMin = now.getHours() * 60 + now.getMinutes();
+        // Find homeroom schedule that's active or starting within 15 minutes
+        const relevant = todaySchedules.find(s => {
+          if (!homeroomNames.has(s.class_name || "")) return false;
+          const start = timeToMinutes(s.start_time);
+          const end = timeToMinutes(s.end_time);
+          return (currentMin >= start && currentMin < end) || (start - currentMin > 0 && start - currentMin <= 15);
+        });
+        if (!relevant) return null;
+        const relevantStatus = getStatus(relevant.start_time, relevant.end_time, now);
+        const minutesToStart = timeToMinutes(relevant.start_time) - currentMin;
         const { done, total } = classAttendanceToday;
         const pct = total > 0 ? Math.round((done / total) * 100) : 0;
         const isComplete = total > 0 && done >= total;
@@ -276,10 +288,12 @@ const TeacherDashboard = () => {
                           </span>
                         </div>
                         <h3 className="text-lg sm:text-xl font-bold leading-tight">
-                          {isComplete ? "Absensi Kelas Selesai" : "Waktunya Absensi Kelas"}
+                          {isComplete ? "Absensi Kelas Selesai" : relevantStatus === "active" ? "Waktunya Absensi Kelas" : `Sebentar Lagi: ${relevant.subject_name}`}
                         </h3>
                         <p className="text-xs sm:text-sm text-white/80 mt-0.5">
-                          Kelas {homeroomAssignments.map(h => h.class_name).join(", ")} • {done}/{total} siswa tercatat
+                          {relevant.subject_name} • Kelas {relevant.class_name} • {relevant.start_time.slice(0,5)}–{relevant.end_time.slice(0,5)}
+                          {relevantStatus === "upcoming" && minutesToStart > 0 ? ` • mulai dalam ${minutesToStart} mnt` : ""}
+                          {" • "}{done}/{total} siswa tercatat
                         </p>
                         {total > 0 && (
                           <div className="mt-2.5 h-2 rounded-full bg-white/15 overflow-hidden max-w-xs">
