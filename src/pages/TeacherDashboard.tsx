@@ -96,27 +96,45 @@ const TeacherDashboard = () => {
   useEffect(() => {
     if (!schoolId || !user) return;
     const fetchData = async () => {
-      const [schedulesRes, classesRes, subjectsRes] = await Promise.all([
-        supabase.from("teaching_schedules").select("*").eq("school_id", schoolId).eq("teacher_id", user.id).eq("is_active", true),
-        supabase.from("classes").select("id, name").eq("school_id", schoolId),
-        supabase.from("subjects").select("id, name, color").eq("school_id", schoolId),
-      ]);
+      try {
+        const [schedulesRes, classesRes, subjectsRes, homeroomRes] = await Promise.all([
+          supabase.from("teaching_schedules").select("*").eq("school_id", schoolId).eq("teacher_id", user.id).eq("is_active", true),
+          supabase.from("classes").select("id, name").eq("school_id", schoolId),
+          supabase.from("subjects").select("id, name, color").eq("school_id", schoolId),
+          supabase.from("class_teachers").select("class_name").eq("user_id", user.id).eq("school_id", schoolId),
+        ]);
 
-      const classMap = Object.fromEntries((classesRes.data || []).map(c => [c.id, c]));
-      const subjectMap = Object.fromEntries((subjectsRes.data || []).map(s => [s.id, s]));
+        const classMap = Object.fromEntries((classesRes.data || []).map(c => [c.id, c]));
+        const subjectMap = Object.fromEntries((subjectsRes.data || []).map(s => [s.id, s]));
 
-      setClasses(classesRes.data || []);
-      setSubjects(subjectsRes.data || []);
+        setClasses(classesRes.data || []);
+        setSubjects(subjectsRes.data || []);
+        const homerooms = homeroomRes.data || [];
+        setHomeroomAssignments(homerooms);
 
-      const enriched = (schedulesRes.data || []).map(s => ({
-        ...s,
-        class_name: classMap[s.class_id]?.name || "-",
-        subject_name: subjectMap[s.subject_id]?.name || "-",
-        subject_color: subjectMap[s.subject_id]?.color || "#3B82F6",
-      }));
+        const enriched = (schedulesRes.data || []).map(s => ({
+          ...s,
+          class_name: classMap[s.class_id]?.name || "-",
+          subject_name: subjectMap[s.subject_id]?.name || "-",
+          subject_color: subjectMap[s.subject_id]?.color || "#3B82F6",
+        }));
 
-      setSchedules(enriched);
-      setLoading(false);
+        setSchedules(enriched);
+
+        // Fetch today's class attendance progress for homeroom
+        if (homerooms.length > 0) {
+          const classNames = homerooms.map(h => h.class_name);
+          const [studentsRes, attRes] = await Promise.all([
+            supabase.from("students").select("id", { count: "exact", head: false }).eq("school_id", schoolId).in("class", classNames),
+            supabase.from("attendance_logs").select("student_id").eq("school_id", schoolId).eq("date", todayStr),
+          ]);
+          const studentIds = new Set((studentsRes.data || []).map(s => s.id));
+          const doneIds = new Set((attRes.data || []).filter(a => studentIds.has(a.student_id)).map(a => a.student_id));
+          setClassAttendanceToday({ done: doneIds.size, total: studentIds.size });
+        }
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [schoolId, user]);
