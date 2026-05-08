@@ -107,7 +107,7 @@ const PublicClassMonitoring = () => {
     };
   }, [schoolId, decodedClass]);
 
-  const handlePublicPickup = async (student: StudentStatus) => {
+  const handlePublicDismissal = async (student: StudentStatus) => {
     if (!schoolId) return;
     setProcessing(true);
     try {
@@ -349,7 +349,7 @@ const PublicClassMonitoring = () => {
             <AlertDialogCancel disabled={processing}>Batal</AlertDialogCancel>
             <AlertDialogAction
               disabled={processing}
-              onClick={() => confirmStudent && handlePublicPickup(confirmStudent)}
+              onClick={() => confirmStudent && handlePublicDismissal(confirmStudent)}
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
               {processing ? "Memproses..." : "Ya, Konfirmasi Pulang"}
