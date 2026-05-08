@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -263,13 +262,52 @@ const TeacherDashboard = () => {
     );
   }
 
+  const initials = (profile?.full_name || "G").split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
+  const homeroomLabel = homeroomAssignments.length > 0
+    ? `Wali Kelas ${homeroomAssignments.map(h => h.class_name).join(", ")}`
+    : "Guru Mapel";
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        icon={GraduationCap}
-        title="Dashboard Guru"
-        subtitle={`Selamat datang, ${profile?.full_name || "Guru"} — ${DAYS[todayDay]}, ${today.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}
-      />
+    <div className="space-y-5">
+      {/* Profile Hero Card — mobile-first */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-[#4c5ded] p-5 sm:p-6 text-white shadow-elevated">
+          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
+          <svg className="absolute top-0 right-0 opacity-10" width="160" height="160" viewBox="0 0 160 160" fill="none">
+            <pattern id="th-dots" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.4" fill="white" />
+            </pattern>
+            <rect width="160" height="160" fill="url(#th-dots)" />
+          </svg>
+
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="h-16 w-16 sm:h-[72px] sm:w-[72px] rounded-2xl bg-white/15 backdrop-blur-sm border border-white/25 flex items-center justify-center text-2xl font-bold shrink-0 shadow-lg">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-white/70 font-medium">Selamat datang</p>
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight truncate">{profile?.full_name || "Guru"}</h1>
+              <p className="text-[11px] sm:text-xs text-white/80 mt-0.5 truncate">{homeroomLabel}</p>
+            </div>
+          </div>
+
+          {/* Stats trio inside hero */}
+          <div className="relative z-10 mt-5 grid grid-cols-3 gap-2">
+            {[
+              { label: "Jadwal", value: todaySchedules.length, sub: "Hari ini" },
+              { label: "Aktif", value: activeCount, sub: "Berlangsung" },
+              { label: "Mapel", value: totalSubjects, sub: "Diampu" },
+            ].map(s => (
+              <div key={s.label} className="rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-2.5 text-center">
+                <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">{s.label}</p>
+                <p className="text-xl sm:text-2xl font-bold leading-none mt-1">{s.value}</p>
+                <p className="text-[9px] text-white/70 mt-1">{s.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
 
       {/* HERO REMINDER: Absensi MAPEL — only 15 min before start or during active teaching schedule */}
       {(() => {
@@ -342,32 +380,6 @@ const TeacherDashboard = () => {
         );
       })()}
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: "Jadwal Hari Ini", value: todaySchedules.length, icon: Calendar, gradient: "from-primary/10 to-primary/5", iconColor: "text-primary" },
-          { label: "Sedang Berlangsung", value: activeCount, icon: PlayCircle, gradient: "from-emerald-500/10 to-emerald-500/5", iconColor: "text-emerald-600" },
-          { label: "Mata Pelajaran", value: totalSubjects, icon: BookOpen, gradient: "from-violet-500/10 to-violet-500/5", iconColor: "text-violet-600" },
-          { label: "Total Kelas", value: totalClasses, icon: Users, gradient: "from-amber-500/10 to-amber-500/5", iconColor: "text-amber-600" },
-        ].map((stat, i) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className="border-0 shadow-card overflow-hidden">
-              <CardContent className={cn("p-4 bg-gradient-to-br", stat.gradient)}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[11px] text-muted-foreground font-medium">{stat.label}</p>
-                    <p className="text-2xl font-bold mt-0.5">{stat.value}</p>
-                  </div>
-                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center bg-background/60 backdrop-blur-sm", stat.iconColor)}>
-                    <stat.icon className="h-5 w-5" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
       {/* School Announcements */}
       {profile?.school_id && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
@@ -375,26 +387,19 @@ const TeacherDashboard = () => {
         </motion.div>
       )}
 
-      {/* Today's Schedule - Functional Layout */}
+      {/* Today's Schedule */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Activity className="h-4 w-4 text-primary" />
-            </div>
-            Jadwal Hari Ini
-          </h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700 border-0 text-[10px]">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> {activeCount} Aktif
-            </Badge>
-            <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-700 border-0 text-[10px]">
-              <Timer className="h-2.5 w-2.5" /> {upcomingCount} Akan Datang
-            </Badge>
-            <Badge variant="secondary" className="gap-1 text-[10px]">
-              <CheckCircle className="h-2.5 w-2.5" /> {doneCount} Selesai
-            </Badge>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-lg font-bold leading-tight">Jadwal Hari Ini</h2>
+            <p className="text-xs text-muted-foreground">{DAYS[todayDay]}, {today.toLocaleDateString("id-ID", { day: "numeric", month: "long" })}</p>
           </div>
+          <button
+            onClick={() => navigate("/teaching-schedule")}
+            className="text-xs font-semibold text-primary hover:underline flex items-center gap-0.5"
+          >
+            Lihat Semua <ChevronRight className="h-3.5 w-3.5" />
+          </button>
         </div>
 
         {todaySchedules.length === 0 ? (
