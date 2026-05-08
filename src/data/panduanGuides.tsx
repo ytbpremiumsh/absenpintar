@@ -269,7 +269,7 @@ export const GUIDES: RoleGuide[] = [
     color: "from-violet-500 to-purple-600",
     accent: "bg-violet-50 text-violet-700 border-violet-200",
     cover: "/panduan/wali-kelas-dashboard-uswatun.jpg",
-    mobileMockup: "/panduan/mobile-wali-kelas.jpg",
+    mobileMockup: "/panduan/mobile-wali-kelas.png",
     intro:
       "Panduan untuk Wali Kelas (contoh: Ibu Uswatun Khasanah, S.Pd) dalam memantau siswa kelasnya, leaderboard antar kelas, absensi manual, dan pengajuan izin.",
     highlights: [
