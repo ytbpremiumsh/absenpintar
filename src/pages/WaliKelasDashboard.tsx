@@ -212,12 +212,11 @@ const WaliKelasDashboard = () => {
 
       {/* ============ DESKTOP / TABLET (md+) ============ */}
       <div className="hidden md:block space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard Wali Kelas</h1>
-        <p className="text-muted-foreground text-sm">
-          Kelas: {classNames.join(", ")} • {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-        </p>
-      </div>
+      <PageHeader
+        icon={GraduationCap}
+        title="Dashboard Wali Kelas"
+        subtitle={`Kelas: ${classNames.join(", ")} • ${new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`}
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full sm:w-auto">
