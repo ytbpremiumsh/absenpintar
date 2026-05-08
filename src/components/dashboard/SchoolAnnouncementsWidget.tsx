@@ -208,7 +208,6 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
                           <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border font-semibold", cfg.badge)}>
                             {cfg.label}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground ml-auto font-medium">{formatRelative(a.created_at)}</span>
                         </div>
                         <p className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                           {a.title}
@@ -217,14 +216,17 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
                           html={a.message}
                           className="mt-1 line-clamp-2 [&_img]:hidden [&_*]:!text-[12px] [&_*]:!text-muted-foreground [&_*]:!my-0 [&_*]:!leading-snug"
                         />
-                        <div className="mt-2.5 flex items-center justify-between gap-2">
-                          <span className={cn(
-                            "inline-flex items-center gap-1 h-7 px-3 rounded-full text-[11px] font-semibold text-white shadow-sm transition-all group-hover:shadow-md group-hover:translate-x-0.5",
-                            cfg.iconBg
-                          )}>
-                            Baca selengkapnya <ChevronRight className="h-3 w-3" />
-                          </span>
-                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0 self-stretch justify-between py-0.5">
+                        <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
+                          {formatRelative(a.created_at)}
+                        </span>
+                        <span className={cn(
+                          "inline-flex items-center gap-1 h-7 px-3 rounded-full text-[11px] font-semibold text-white shadow-sm transition-all group-hover:shadow-md group-hover:translate-x-0.5 whitespace-nowrap",
+                          cfg.iconBg
+                        )}>
+                          Baca selengkapnya <ChevronRight className="h-3 w-3" />
+                        </span>
                       </div>
                     </div>
                   </motion.button>
