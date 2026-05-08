@@ -584,26 +584,12 @@ function WaliKelasMobileDashboard({
           )}
         </div>
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-3 gap-2.5">
+        {/* Stats grid — ringkas 4 status inti */}
+        <div className="grid grid-cols-4 gap-2.5">
           <MiniStat icon={UserCheck} label="Hadir" value={stats.hadir} gradient="from-emerald-500 to-teal-600" />
           <MiniStat icon={FileText} label="Izin" value={stats.izin} gradient="from-amber-500 to-orange-600" />
           <MiniStat icon={Thermometer} label="Sakit" value={stats.sakit} gradient="from-sky-500 to-blue-600" />
           <MiniStat icon={AlertTriangle} label="Alfa" value={stats.alfa} gradient="from-rose-500 to-red-600" />
-          <MiniStat icon={Clock} label="Belum" value={stats.belum} gradient="from-slate-500 to-slate-700" />
-          <MiniStat icon={Users} label="Total" value={stats.total} gradient="from-indigo-500 to-violet-600" />
-        </div>
-
-        {/* Service grid */}
-        <div className="grid grid-cols-4 gap-3">
-          <ServiceTile icon={ClipboardCheck} label="Absensi" gradient="from-[#5B6CF9] to-[#4c5ded]" onClick={() => navigate("/wali-kelas-attendance")} />
-          <ServiceTile icon={Users} label="Siswa" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/wali-kelas-students")} />
-          <ServiceTile icon={BarChart3} label="Rekap" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/wali-kelas-export")} />
-          <ServiceTile icon={Activity} label="Analytic" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/wali-kelas-history")} />
-          <ServiceTile icon={Trophy} label="Peringkat" gradient="from-yellow-500 to-amber-600" onClick={() => window.scrollTo({ top: 9999, behavior: "smooth" })} />
-          <ServiceTile icon={HistoryIcon} label="Riwayat" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/wali-kelas-history")} />
-          <ServiceTile icon={GraduationCap} label="Kelas" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/wali-kelas-students")} />
-          <ServiceTile icon={FileText} label="Izin" gradient="from-slate-600 to-slate-800" onClick={() => navigate("/wali-kelas-attendance")} />
         </div>
 
         {/* Search */}
