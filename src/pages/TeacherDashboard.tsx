@@ -13,7 +13,7 @@ import {
 import {
   GraduationCap, Calendar, Clock, Users, BookOpen,
   CheckCircle, XCircle, AlertCircle, Loader2, ChevronRight,
-  PlayCircle, Timer, Activity,
+  PlayCircle, Timer, Activity, ClipboardCheck, Bell, MapPin,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
