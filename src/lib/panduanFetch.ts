@@ -6,6 +6,7 @@ export type PanduanStep = {
   title: string;
   description: string;
   image?: string;
+  mobileImage?: string;
   bullets?: string[];
   tips?: string[];
 };
