@@ -69,7 +69,8 @@ const TeacherDashboard = () => {
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [homeroomAssignments, setHomeroomAssignments] = useState<{ class_name: string }[]>([]);
-  const [classAttendanceToday, setClassAttendanceToday] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const [subjectAttendanceToday, setSubjectAttendanceToday] = useState<Record<string, number>>({});
+  const [classStudentCount, setClassStudentCount] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
 
@@ -121,16 +122,35 @@ const TeacherDashboard = () => {
 
         setSchedules(enriched);
 
-        // Fetch today's class attendance progress for homeroom
-        if (homerooms.length > 0) {
-          const classNames = homerooms.map(h => h.class_name);
-          const [studentsRes, attRes] = await Promise.all([
-            supabase.from("students").select("id", { count: "exact", head: false }).eq("school_id", schoolId).in("class", classNames),
-            supabase.from("attendance_logs").select("student_id").eq("school_id", schoolId).eq("date", todayStr),
-          ]);
-          const studentIds = new Set((studentsRes.data || []).map(s => s.id));
-          const doneIds = new Set((attRes.data || []).filter(a => studentIds.has(a.student_id)).map(a => a.student_id));
-          setClassAttendanceToday({ done: doneIds.size, total: studentIds.size });
+        // Fetch today's MAPEL attendance progress per teaching schedule (for hero reminder)
+        const todaySchedIds = (enriched || []).filter(s => s.day_of_week === todayDay).map(s => s.id);
+        if (todaySchedIds.length > 0) {
+          const { data: subjAtt } = await supabase
+            .from("subject_attendance")
+            .select("teaching_schedule_id, student_id")
+            .in("teaching_schedule_id", todaySchedIds)
+            .eq("date", todayStr);
+          const counts: Record<string, number> = {};
+          (subjAtt || []).forEach((r: any) => {
+            counts[r.teaching_schedule_id] = (counts[r.teaching_schedule_id] || 0) + 1;
+          });
+          setSubjectAttendanceToday(counts);
+        }
+
+        // Fetch student counts per class (for both homeroom & teaching schedules)
+        const allClassNames = Array.from(new Set([
+          ...homerooms.map(h => h.class_name),
+          ...(enriched || []).map(s => s.class_name).filter(Boolean),
+        ]));
+        if (allClassNames.length > 0) {
+          const { data: studs } = await supabase
+            .from("students")
+            .select("class")
+            .eq("school_id", schoolId)
+            .in("class", allClassNames);
+          const cc: Record<string, number> = {};
+          (studs || []).forEach((s: any) => { cc[s.class] = (cc[s.class] || 0) + 1; });
+          setClassStudentCount(cc);
         }
       } finally {
         setLoading(false);
@@ -251,13 +271,10 @@ const TeacherDashboard = () => {
         subtitle={`Selamat datang, ${profile?.full_name || "Guru"} — ${DAYS[todayDay]}, ${today.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}
       />
 
-      {/* HERO REMINDER: Absensi Kelas (Wali Kelas) — only 15 min before start or during active */}
-      {homeroomAssignments.length > 0 && (() => {
-        const homeroomNames = new Set(homeroomAssignments.map(h => h.class_name));
+      {/* HERO REMINDER: Absensi MAPEL — only 15 min before start or during active teaching schedule */}
+      {(() => {
         const currentMin = now.getHours() * 60 + now.getMinutes();
-        // Find homeroom schedule that's active or starting within 15 minutes
         const relevant = todaySchedules.find(s => {
-          if (!homeroomNames.has(s.class_name || "")) return false;
           const start = timeToMinutes(s.start_time);
           const end = timeToMinutes(s.end_time);
           return (currentMin >= start && currentMin < end) || (start - currentMin > 0 && start - currentMin <= 15);
@@ -265,7 +282,8 @@ const TeacherDashboard = () => {
         if (!relevant) return null;
         const relevantStatus = getStatus(relevant.start_time, relevant.end_time, now);
         const minutesToStart = timeToMinutes(relevant.start_time) - currentMin;
-        const { done, total } = classAttendanceToday;
+        const done = subjectAttendanceToday[relevant.id] || 0;
+        const total = classStudentCount[relevant.class_name || ""] || 0;
         const pct = total > 0 ? Math.round((done / total) * 100) : 0;
         const isComplete = total > 0 && done >= total;
         return (
@@ -284,16 +302,16 @@ const TeacherDashboard = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <Bell className="h-3.5 w-3.5 text-amber-300" />
                           <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
-                            Pengingat Wali Kelas
+                            Pengingat Absensi Mapel
                           </span>
                         </div>
                         <h3 className="text-lg sm:text-xl font-bold leading-tight">
-                          {isComplete ? "Absensi Kelas Selesai" : relevantStatus === "active" ? "Waktunya Absensi Kelas" : `Sebentar Lagi: ${relevant.subject_name}`}
+                          {isComplete ? `Absensi ${relevant.subject_name} Selesai` : relevantStatus === "active" ? `Waktunya Absensi: ${relevant.subject_name}` : `Sebentar Lagi: ${relevant.subject_name}`}
                         </h3>
                         <p className="text-xs sm:text-sm text-white/80 mt-0.5">
-                          {relevant.subject_name} • Kelas {relevant.class_name} • {relevant.start_time.slice(0,5)}–{relevant.end_time.slice(0,5)}
+                          Kelas {relevant.class_name} • {relevant.start_time.slice(0,5)}–{relevant.end_time.slice(0,5)}
                           {relevantStatus === "upcoming" && minutesToStart > 0 ? ` • mulai dalam ${minutesToStart} mnt` : ""}
-                          {" • "}{done}/{total} siswa tercatat
+                          {total > 0 ? ` • ${done}/${total} siswa tercatat` : ""}
                         </p>
                         {total > 0 && (
                           <div className="mt-2.5 h-2 rounded-full bg-white/15 overflow-hidden max-w-xs">
@@ -309,11 +327,11 @@ const TeacherDashboard = () => {
                     </div>
                     <Button
                       size="lg"
-                      onClick={() => navigate("/wali-kelas-attendance")}
+                      onClick={() => openAttendance(relevant)}
                       className="bg-white text-primary hover:bg-white/90 font-bold rounded-xl shadow-lg shrink-0 h-12 px-6"
                     >
                       <ClipboardCheck className="h-5 w-5 mr-2" />
-                      {isComplete ? "Lihat Absensi" : "Absensi Kelas"}
+                      {isComplete ? "Lihat / Ubah" : "Absensi Mapel"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
