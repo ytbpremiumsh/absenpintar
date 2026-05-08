@@ -122,16 +122,35 @@ const TeacherDashboard = () => {
 
         setSchedules(enriched);
 
-        // Fetch today's class attendance progress for homeroom
-        if (homerooms.length > 0) {
-          const classNames = homerooms.map(h => h.class_name);
-          const [studentsRes, attRes] = await Promise.all([
-            supabase.from("students").select("id", { count: "exact", head: false }).eq("school_id", schoolId).in("class", classNames),
-            supabase.from("attendance_logs").select("student_id").eq("school_id", schoolId).eq("date", todayStr),
-          ]);
-          const studentIds = new Set((studentsRes.data || []).map(s => s.id));
-          const doneIds = new Set((attRes.data || []).filter(a => studentIds.has(a.student_id)).map(a => a.student_id));
-          setClassAttendanceToday({ done: doneIds.size, total: studentIds.size });
+        // Fetch today's MAPEL attendance progress per teaching schedule (for hero reminder)
+        const todaySchedIds = (enriched || []).filter(s => s.day_of_week === todayDay).map(s => s.id);
+        if (todaySchedIds.length > 0) {
+          const { data: subjAtt } = await supabase
+            .from("subject_attendance")
+            .select("teaching_schedule_id, student_id")
+            .in("teaching_schedule_id", todaySchedIds)
+            .eq("date", todayStr);
+          const counts: Record<string, number> = {};
+          (subjAtt || []).forEach((r: any) => {
+            counts[r.teaching_schedule_id] = (counts[r.teaching_schedule_id] || 0) + 1;
+          });
+          setSubjectAttendanceToday(counts);
+        }
+
+        // Fetch student counts per class (for both homeroom & teaching schedules)
+        const allClassNames = Array.from(new Set([
+          ...homerooms.map(h => h.class_name),
+          ...(enriched || []).map(s => s.class_name).filter(Boolean),
+        ]));
+        if (allClassNames.length > 0) {
+          const { data: studs } = await supabase
+            .from("students")
+            .select("class")
+            .eq("school_id", schoolId)
+            .in("class", allClassNames);
+          const cc: Record<string, number> = {};
+          (studs || []).forEach((s: any) => { cc[s.class] = (cc[s.class] || 0) + 1; });
+          setClassStudentCount(cc);
         }
       } finally {
         setLoading(false);
