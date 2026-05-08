@@ -288,10 +288,12 @@ const TeacherDashboard = () => {
                           </span>
                         </div>
                         <h3 className="text-lg sm:text-xl font-bold leading-tight">
-                          {isComplete ? "Absensi Kelas Selesai" : "Waktunya Absensi Kelas"}
+                          {isComplete ? "Absensi Kelas Selesai" : relevantStatus === "active" ? "Waktunya Absensi Kelas" : `Sebentar Lagi: ${relevant.subject_name}`}
                         </h3>
                         <p className="text-xs sm:text-sm text-white/80 mt-0.5">
-                          Kelas {homeroomAssignments.map(h => h.class_name).join(", ")} • {done}/{total} siswa tercatat
+                          {relevant.subject_name} • Kelas {relevant.class_name} • {relevant.start_time.slice(0,5)}–{relevant.end_time.slice(0,5)}
+                          {relevantStatus === "upcoming" && minutesToStart > 0 ? ` • mulai dalam ${minutesToStart} mnt` : ""}
+                          {" • "}{done}/{total} siswa tercatat
                         </p>
                         {total > 0 && (
                           <div className="mt-2.5 h-2 rounded-full bg-white/15 overflow-hidden max-w-xs">
