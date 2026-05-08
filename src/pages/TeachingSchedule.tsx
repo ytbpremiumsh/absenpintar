@@ -90,7 +90,7 @@ export default function TeachingSchedule() {
         supabase.from("subjects").select("*").eq("school_id", schoolId).order("name"),
         supabase.from("teaching_schedules").select("*").eq("school_id", schoolId).eq("is_active", true).order("day_of_week").order("start_time"),
         supabase.from("classes").select("id, name").eq("school_id", schoolId).order("name"),
-        supabase.from("profiles").select("user_id, full_name").eq("school_id", schoolId),
+        supabase.from("profiles").select("user_id, full_name, avatar_url").eq("school_id", schoolId),
       ]);
       if (subjectsRes.data) setSubjects(subjectsRes.data);
       if (schedulesRes.data) setSchedules(schedulesRes.data);
