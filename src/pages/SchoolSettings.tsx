@@ -42,7 +42,7 @@ const SchoolSettings = () => {
     if (!profile?.school_id) { setLoading(false); return; }
     Promise.all([
       supabase.from("schools").select("name, address, logo, npsn, city, province, timezone, holiday_days").eq("id", profile.school_id).single(),
-      supabase.from("pickup_settings").select("school_start_time, school_end_time, attendance_start_time, attendance_end_time, departure_start_time, departure_end_time").eq("school_id", profile.school_id).maybeSingle(),
+      supabase.from("dismissal_settings").select("school_start_time, school_end_time, attendance_start_time, attendance_end_time, departure_start_time, departure_end_time").eq("school_id", profile.school_id).maybeSingle(),
       supabase.from("qr_instructions").select("id, instruction_text, sort_order").eq("school_id", profile.school_id).order("sort_order"),
     ]).then(([schoolRes, settingsRes, instrRes]) => {
       if (schoolRes.data) {
@@ -159,11 +159,11 @@ const SchoolSettings = () => {
       departure_end_time: depEndTime + ":00",
     };
 
-    const { data: existing } = await supabase.from("pickup_settings").select("id").eq("school_id", profile.school_id).maybeSingle();
+    const { data: existing } = await supabase.from("dismissal_settings").select("id").eq("school_id", profile.school_id).maybeSingle();
     if (existing) {
-      await supabase.from("pickup_settings").update(settingsPayload as any).eq("school_id", profile.school_id);
+      await supabase.from("dismissal_settings").update(settingsPayload as any).eq("school_id", profile.school_id);
     } else {
-      await supabase.from("pickup_settings").insert({
+      await supabase.from("dismissal_settings").insert({
         school_id: profile.school_id,
         is_active: false,
         ...settingsPayload,

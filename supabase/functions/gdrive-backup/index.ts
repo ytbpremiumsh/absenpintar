@@ -7,7 +7,7 @@ const corsHeaders = {
 
 const TABLES = [
   'schools', 'profiles', 'user_roles', 'students', 'classes', 'class_teachers',
-  'attendance_logs', 'pickup_logs', 'pickup_settings', 'school_integrations',
+  'attendance_logs', 'dismissal_logs', 'dismissal_settings', 'school_integrations',
   'school_subscriptions', 'subscription_plans', 'payment_transactions',
   'notifications', 'support_tickets', 'ticket_replies', 'wa_message_logs',
   'landing_content', 'landing_testimonials', 'landing_trusted_schools',

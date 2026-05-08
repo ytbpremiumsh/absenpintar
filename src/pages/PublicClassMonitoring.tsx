@@ -28,8 +28,8 @@ interface StudentStatus {
   student_id: string;
   photo_url: string | null;
   status: "waiting" | "picked_up";
-  pickup_time: string | null;
-  pickup_by: string | null;
+  dismissal_time: string | null;
+  dismissed_by: string | null;
 }
 
 const LiveDot = () => (
@@ -99,7 +99,7 @@ const PublicClassMonitoring = () => {
     const interval = setInterval(() => fetchData(), 10000);
     const channel = supabase
       .channel(`public-class-${decodedClass}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pickup_logs" }, () => fetchData(true))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dismissal_logs" }, () => fetchData(true))
       .subscribe();
     return () => {
       clearInterval(interval);
@@ -121,7 +121,7 @@ const PublicClassMonitoring = () => {
         body: JSON.stringify({
           school_id: schoolId,
           student_id: student.id,
-          pickup_by: `Wali Murid (Publik)`,
+          dismissed_by: `Wali Murid (Publik)`,
         }),
       });
       const json = await res.json();
@@ -301,11 +301,11 @@ const PublicClassMonitoring = () => {
                             <Badge className="bg-success/10 text-success border-success/20 text-[10px]">
                               <UserCheck className="h-3 w-3 mr-1" /> Pulang
                             </Badge>
-                            {s.pickup_time && (
+                            {s.dismissal_time && (
                               <div className="flex items-center gap-1 text-muted-foreground mt-1 justify-end">
                                 <Clock className="h-3 w-3" />
                                 <span className="text-[10px]">
-                                  {new Date(s.pickup_time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                                  {new Date(s.dismissal_time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                               </div>
                             )}

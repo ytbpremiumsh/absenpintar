@@ -64,7 +64,7 @@ serve(async (req) => {
 
     // Get attendance time settings
     const { data: settings } = await supabase
-      .from('pickup_settings')
+      .from('dismissal_settings')
       .select('attendance_start_time, attendance_end_time, departure_start_time, departure_end_time')
       .eq('school_id', school_id)
       .maybeSingle();

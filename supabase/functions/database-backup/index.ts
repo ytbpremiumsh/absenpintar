@@ -28,7 +28,7 @@ async function listPublicTables(supabase: any): Promise<string[]> {
     'landing_content', 'landing_testimonials', 'landing_trusted_schools',
     'login_logs', 'notifications',
     'parent_leave_requests', 'parent_messages',
-    'payment_transactions', 'pickup_logs', 'pickup_settings',
+    'payment_transactions', 'dismissal_logs', 'dismissal_settings',
     'platform_settings', 'point_transactions', 'profiles',
     'promo_content', 'qr_instructions', 'referrals',
     'reward_claims', 'rewards',

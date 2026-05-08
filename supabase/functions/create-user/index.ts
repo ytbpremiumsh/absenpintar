@@ -162,17 +162,17 @@ serve(async (req) => {
         .insert({ user_id: userId, role });
     }
 
-    // Create pickup_settings, auto-assign Trial subscription, and WA gateway for new school
+    // Create dismissal_settings, auto-assign Trial subscription, and WA gateway for new school
     if (resolvedSchoolId) {
       const { data: existingSettings } = await supabaseAdmin
-        .from('pickup_settings')
+        .from('dismissal_settings')
         .select('id')
         .eq('school_id', resolvedSchoolId)
         .maybeSingle();
 
       if (!existingSettings) {
         await supabaseAdmin
-          .from('pickup_settings')
+          .from('dismissal_settings')
           .insert({ school_id: resolvedSchoolId, is_active: false });
       }
 

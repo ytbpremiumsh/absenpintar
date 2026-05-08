@@ -440,14 +440,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pickup_logs_school_id_fkey"
+            foreignKeyName: "dismissal_logs_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "pickup_logs_student_id_fkey"
+            foreignKeyName: "dismissal_logs_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
@@ -494,7 +494,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pickup_settings_school_id_fkey"
+            foreignKeyName: "dismissal_settings_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: true
             referencedRelation: "schools"

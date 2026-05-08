@@ -27,8 +27,8 @@ interface StudentStatus {
   student_id: string;
   photo_url: string | null;
   status: "waiting" | "picked_up";
-  pickup_time: string | null;
-  pickup_by: string | null;
+  dismissal_time: string | null;
+  dismissed_by: string | null;
 }
 
 interface MonitoringData {
@@ -74,10 +74,10 @@ const StudentCard = ({ student, index }: { student: StudentStatus; index: number
               <Badge className="bg-success/10 text-success border-success/20 text-[10px] font-semibold">
                 <UserCheck className="h-3 w-3 mr-1" /> Pulang
               </Badge>
-              {student.pickup_time && (
+              {student.dismissal_time && (
                 <div className="flex items-center gap-1 text-muted-foreground mt-1 justify-end">
                   <Clock className="h-3 w-3" />
-                  <span className="text-[10px]">{new Date(student.pickup_time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="text-[10px]">{new Date(student.dismissal_time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
               )}
             </>
@@ -252,8 +252,8 @@ const PublicMonitoring = () => {
     const interval = setInterval(() => fetchData(), 3000);
     // Also listen to realtime changes for instant updates
     const channel = supabase.channel("public-monitoring-rt")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pickup_logs" }, () => fetchData(true))
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "pickup_logs" }, () => fetchData(true))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dismissal_logs" }, () => fetchData(true))
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "dismissal_logs" }, () => fetchData(true))
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "attendance_logs" }, () => fetchData(true))
       .subscribe();
     return () => { clearInterval(interval); supabase.removeChannel(channel); };

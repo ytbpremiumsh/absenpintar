@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { school_id, student_id, pickup_by } = await req.json();
+    const { school_id, student_id, dismissed_by } = await req.json();
 
     if (!school_id || !student_id) {
       return new Response(JSON.stringify({ error: "school_id and student_id required" }), {
@@ -45,11 +45,11 @@ Deno.serve(async (req) => {
     today.setHours(0, 0, 0, 0);
 
     const { data: existingLog } = await supabase
-      .from("pickup_logs")
+      .from("dismissal_logs")
       .select("id")
       .eq("student_id", student_id)
       .eq("school_id", school_id)
-      .gte("pickup_time", today.toISOString())
+      .gte("dismissal_time", today.toISOString())
       .maybeSingle();
 
     if (existingLog) {
@@ -59,10 +59,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error: insertErr } = await supabase.from("pickup_logs").insert({
+    const { error: insertErr } = await supabase.from("dismissal_logs").insert({
       school_id,
       student_id,
-      pickup_by: pickup_by || "Wali Murid (Publik)",
+      dismissed_by: dismissed_by || "Wali Murid (Publik)",
       status: "picked_up",
     });
 
