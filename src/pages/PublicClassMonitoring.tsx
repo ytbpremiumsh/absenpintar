@@ -11,7 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { announcePickup } from "@/lib/announcePickup";
+import { announceDismissal } from "@/lib/announceDismissal";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -75,7 +75,7 @@ const PublicClassMonitoring = () => {
           (s) => s.status === "picked_up" && !prevPickedIds.current.has(s.id)
         );
         newPicked.forEach((s) => {
-          announcePickup(s.name, s.class);
+          announceDismissal(s.name, s.class);
           setSuccessPopup(s);
           setTimeout(() => setSuccessPopup(null), 5000);
         });
@@ -111,7 +111,7 @@ const PublicClassMonitoring = () => {
     if (!schoolId) return;
     setProcessing(true);
     try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-pickup`;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-dismissal`;
       const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -129,7 +129,7 @@ const PublicClassMonitoring = () => {
         toast.error(json.error || "Gagal memproses kepulangan");
       } else {
         toast.success(`${student.name} berhasil ditandai pulang!`);
-        announcePickup(student.name, student.class, "dismissed");
+        announceDismissal(student.name, student.class);
         setSuccessPopup(student);
         setTimeout(() => setSuccessPopup(null), 5000);
         fetchData(true);

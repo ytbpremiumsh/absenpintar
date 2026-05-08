@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { announcePickup } from "@/lib/announcePickup";
+import { announceDismissal } from "@/lib/announceDismissal";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -216,7 +216,7 @@ const PublicMonitoring = () => {
           setTimeout(() => setSuccessPopup(null), 5000);
           newPicked.forEach((s, i) => {
             setTimeout(() => {
-              announcePickup(s.name, s.class);
+              announceDismissal(s.name, s.class);
             }, 600 + i * 3000);
           });
 
