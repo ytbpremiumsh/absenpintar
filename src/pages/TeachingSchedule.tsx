@@ -383,44 +383,39 @@ export default function TeachingSchedule() {
                             </p>
                           </div>
 
-                          {/* Schedule pill */}
+                          {/* Schedule pill — neutral surface, color only as accent */}
                           <div
                             className={cn(
-                              "relative flex-1 min-w-0 rounded-2xl px-3 sm:px-3.5 py-2.5 sm:py-3 transition-all hover:shadow-md",
-                              isMe && "ring-2 ring-primary/40 ring-offset-1 ring-offset-background"
+                              "relative flex-1 min-w-0 rounded-2xl px-3 sm:px-3.5 py-2.5 sm:py-3 bg-card border border-border/60 transition-all hover:shadow-md hover:border-border",
+                              isMe && "ring-2 ring-primary/30 border-primary/40 bg-primary/[0.03]"
                             )}
-                            style={{
-                              backgroundColor: hexToRgba(subjColor, 0.92),
-                            }}
                           >
-                            {/* Left accent bar */}
+                            {/* Left accent bar (subject color) */}
                             <span
-                              className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-white/70"
+                              className="absolute left-0 top-2 bottom-2 w-1 rounded-r"
+                              style={{ backgroundColor: subjColor }}
                               aria-hidden
                             />
 
                             <div className="flex items-center gap-2.5 min-w-0">
-                              {/* Time chip */}
-                              <div className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/25 backdrop-blur-sm shrink-0">
-                                <Clock className="h-3 w-3 text-white" />
-                                <span className="font-mono text-[10.5px] font-semibold text-white whitespace-nowrap">
-                                  {s.start_time.slice(0, 5)}
-                                </span>
-                              </div>
-
                               {/* Title + meta — single line */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <p className="text-[13px] sm:text-sm font-bold text-white truncate">
+                                  <span
+                                    className="h-2 w-2 rounded-full shrink-0"
+                                    style={{ backgroundColor: subjColor }}
+                                    aria-hidden
+                                  />
+                                  <p className="text-[13px] sm:text-sm font-semibold text-foreground truncate">
                                     {getSubjectName(s.subject_id)}
                                   </p>
                                   {isMe && (
-                                    <Badge className="bg-white/25 text-white border-white/30 text-[9px] h-4 px-1.5 shrink-0 hover:bg-white/30">
+                                    <Badge className="bg-primary/15 text-primary border-primary/30 text-[9px] h-4 px-1.5 shrink-0 hover:bg-primary/20">
                                       Anda
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-[10.5px] sm:text-[11px] text-white/85 truncate mt-0.5">
+                                <p className="text-[10.5px] sm:text-[11px] text-muted-foreground truncate mt-0.5">
                                   {getClassName(s.class_id)}
                                   {s.room && <> · {s.room}</>}
                                   <> · {teacherName}</>
@@ -428,23 +423,21 @@ export default function TeachingSchedule() {
                               </div>
 
                               {/* Teacher avatar */}
-                              <div className="flex items-center -space-x-1.5 shrink-0">
-                                <div
-                                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full ring-2 ring-white/80 overflow-hidden bg-white/30 flex items-center justify-center"
-                                  title={teacherName}
-                                >
-                                  {teacher?.avatar_url ? (
-                                    <img
-                                      src={teacher.avatar_url}
-                                      alt={teacherName}
-                                      className="h-full w-full object-cover"
-                                    />
-                                  ) : (
-                                    <span className="text-[10px] sm:text-[11px] font-bold text-white">
-                                      {getInitials(teacherName)}
-                                    </span>
-                                  )}
-                                </div>
+                              <div
+                                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full ring-2 ring-background overflow-hidden bg-muted flex items-center justify-center shrink-0"
+                                title={teacherName}
+                              >
+                                {teacher?.avatar_url ? (
+                                  <img
+                                    src={teacher.avatar_url}
+                                    alt={teacherName}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">
+                                    {getInitials(teacherName)}
+                                  </span>
+                                )}
                               </div>
 
                               {/* Admin actions */}
@@ -453,7 +446,7 @@ export default function TeachingSchedule() {
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-7 w-7 rounded-lg text-white hover:bg-white/20 hover:text-white"
+                                    className="h-7 w-7 rounded-lg"
                                     onClick={() => openEditSchedule(s)}
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
@@ -461,7 +454,7 @@ export default function TeachingSchedule() {
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="h-7 w-7 rounded-lg text-white hover:bg-white/20 hover:text-white"
+                                    className="h-7 w-7 rounded-lg text-destructive hover:text-destructive"
                                     onClick={() => deleteSchedule(s.id)}
                                   >
                                     <Trash2 className="h-3.5 w-3.5" />
