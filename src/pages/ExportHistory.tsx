@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import "jspdf-autotable";
 import { motion } from "framer-motion";
 import { PremiumGate } from "@/components/PremiumGate";
+import { PageHeader } from "@/components/PageHeader";
 
 const STATUS_CODES: Record<string, string> = { hadir: "H", sakit: "S", izin: "I", alfa: "A" };
 const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -238,17 +239,11 @@ const ScanAttendanceRecap = () => {
   return (
     <PremiumGate featureLabel="Rekap Absensi" featureKey="canExportReport" requiredPlan="Basic">
       <div className="space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-xl bg-[#5B6CF9] flex items-center justify-center shadow-md">
-              <ClipboardList className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Rekap Absensi</h1>
-              <p className="text-muted-foreground text-xs sm:text-sm">Rekap absensi scan barcode/face recognition (Datang/Pulang)</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          icon={ClipboardList}
+          title="Rekap Absensi"
+          subtitle="Rekap absensi scan barcode/face recognition (Datang/Pulang)"
+        />
 
         {isPremiumFeature && !features.loading && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -623,17 +618,11 @@ const SubjectAttendanceRecap = () => {
   return (
     <PremiumGate featureLabel="Rekap Absensi Mapel" featureKey="canExportReport" requiredPlan="Basic">
       <div className="space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-xl bg-[#5B6CF9] flex items-center justify-center shadow-md">
-              <BookOpen className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Rekap Absensi Mapel</h1>
-              <p className="text-muted-foreground text-xs sm:text-sm">Rekap kehadiran per mata pelajaran yang Anda ampu</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          icon={BookOpen}
+          title="Rekap Absensi Mapel"
+          subtitle="Rekap kehadiran per mata pelajaran yang Anda ampu"
+        />
 
         {isPremiumFeature && !features.loading && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
