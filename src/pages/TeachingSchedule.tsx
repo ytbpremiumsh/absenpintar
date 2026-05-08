@@ -41,6 +41,7 @@ interface Schedule {
 interface TeacherProfile {
   user_id: string;
   full_name: string;
+  avatar_url?: string | null;
 }
 
 interface ClassData {
