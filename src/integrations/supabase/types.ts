@@ -410,6 +410,98 @@ export type Database = {
           },
         ]
       }
+      dismissal_logs: {
+        Row: {
+          created_at: string
+          dismissal_time: string
+          dismissed_by: string
+          id: string
+          school_id: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          dismissal_time?: string
+          dismissed_by: string
+          id?: string
+          school_id: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          dismissal_time?: string
+          dismissed_by?: string
+          id?: string
+          school_id?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pickup_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pickup_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dismissal_settings: {
+        Row: {
+          attendance_end_time: string | null
+          attendance_start_time: string | null
+          created_at: string
+          departure_end_time: string | null
+          departure_start_time: string | null
+          id: string
+          is_active: boolean
+          school_end_time: string | null
+          school_id: string
+          school_start_time: string | null
+        }
+        Insert: {
+          attendance_end_time?: string | null
+          attendance_start_time?: string | null
+          created_at?: string
+          departure_end_time?: string | null
+          departure_start_time?: string | null
+          id?: string
+          is_active?: boolean
+          school_end_time?: string | null
+          school_id: string
+          school_start_time?: string | null
+        }
+        Update: {
+          attendance_end_time?: string | null
+          attendance_start_time?: string | null
+          created_at?: string
+          departure_end_time?: string | null
+          departure_start_time?: string | null
+          id?: string
+          is_active?: boolean
+          school_end_time?: string | null
+          school_id?: string
+          school_start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pickup_settings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           created_at: string
@@ -1074,98 +1166,6 @@ export type Database = {
             foreignKeyName: "payment_transactions_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pickup_logs: {
-        Row: {
-          created_at: string
-          id: string
-          pickup_by: string
-          pickup_time: string
-          school_id: string
-          status: string
-          student_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          pickup_by: string
-          pickup_time?: string
-          school_id: string
-          status?: string
-          student_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          pickup_by?: string
-          pickup_time?: string
-          school_id?: string
-          status?: string
-          student_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pickup_logs_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pickup_logs_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pickup_settings: {
-        Row: {
-          attendance_end_time: string | null
-          attendance_start_time: string | null
-          created_at: string
-          departure_end_time: string | null
-          departure_start_time: string | null
-          id: string
-          is_active: boolean
-          school_end_time: string | null
-          school_id: string
-          school_start_time: string | null
-        }
-        Insert: {
-          attendance_end_time?: string | null
-          attendance_start_time?: string | null
-          created_at?: string
-          departure_end_time?: string | null
-          departure_start_time?: string | null
-          id?: string
-          is_active?: boolean
-          school_end_time?: string | null
-          school_id: string
-          school_start_time?: string | null
-        }
-        Update: {
-          attendance_end_time?: string | null
-          attendance_start_time?: string | null
-          created_at?: string
-          departure_end_time?: string | null
-          departure_start_time?: string | null
-          id?: string
-          is_active?: boolean
-          school_end_time?: string | null
-          school_id?: string
-          school_start_time?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pickup_settings_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: true
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
