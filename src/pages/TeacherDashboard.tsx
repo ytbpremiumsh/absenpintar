@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { WeekScheduleCard } from "@/components/dashboard/WeekScheduleCard";
 import { SchoolAnnouncementsWidget } from "@/components/dashboard/SchoolAnnouncementsWidget";
