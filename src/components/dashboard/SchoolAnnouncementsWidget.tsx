@@ -191,15 +191,15 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
                       )}
                     />
 
-                    <div className="relative flex items-start gap-3 p-3 pl-4">
+                    <div className="relative flex items-start gap-3 p-3.5 pl-4">
                       <div className={cn(
-                        "h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 shadow-md ring-2 ring-white dark:ring-card transition-transform group-hover:scale-110 group-hover:rotate-[-6deg]",
+                        "h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 shadow-md ring-2 ring-white dark:ring-card transition-transform group-hover:scale-110 group-hover:rotate-[-6deg]",
                         cfg.iconBg
                       )}>
-                        <Icon className="h-4 w-4 text-white" />
+                        <Icon className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                        <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                           {a.is_pinned && (
                             <Badge className="bg-amber-500 text-white border-0 text-[9px] h-4 px-1.5 gap-0.5 shadow-sm">
                               <Pin className="h-2.5 w-2.5" /> Disematkan
@@ -215,13 +215,17 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
                         </p>
                         <RichContent
                           html={a.message}
-                          className="mt-0.5 line-clamp-2 [&_img]:hidden [&_*]:!text-[11px] [&_*]:!text-muted-foreground [&_*]:!my-0 [&_*]:!leading-snug"
+                          className="mt-1 line-clamp-2 [&_img]:hidden [&_*]:!text-[12px] [&_*]:!text-muted-foreground [&_*]:!my-0 [&_*]:!leading-snug"
                         />
-                        <div className="flex items-center gap-1 mt-1.5 text-[10px] font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                          Baca selengkapnya <ChevronRight className="h-3 w-3" />
+                        <div className="mt-2.5 flex items-center justify-between gap-2">
+                          <span className={cn(
+                            "inline-flex items-center gap-1 h-7 px-3 rounded-full text-[11px] font-semibold text-white shadow-sm transition-all group-hover:shadow-md group-hover:translate-x-0.5",
+                            cfg.iconBg
+                          )}>
+                            Baca selengkapnya <ChevronRight className="h-3 w-3" />
+                          </span>
                         </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-2" />
                     </div>
                   </motion.button>
                 );
