@@ -418,7 +418,7 @@ const ScanQR = () => {
         setAlreadyRecorded(false);
         scanPaused.current = false;
         setScanMethod("barcode");
-      }, 2000);
+      }, 1000);
       return;
     }
 
@@ -535,7 +535,16 @@ const ScanQR = () => {
       setAlreadyRecorded(false);
       scanPaused.current = false;
       setScanMethod("barcode");
-    }, 2000);
+    }, 1000);
+  };
+
+  const handleCloseSuccess = () => {
+    setScannedStudent(null);
+    setConfirmed(false);
+    setManualCode("");
+    setAlreadyRecorded(false);
+    scanPaused.current = false;
+    setScanMethod("barcode");
   };
 
   const handleCancel = () => {
@@ -736,7 +745,7 @@ const ScanQR = () => {
       />
 
       {/* Success Dialog */}
-      <Dialog open={confirmed && !!scannedStudent} onOpenChange={() => {}}>
+      <Dialog open={confirmed && !!scannedStudent} onOpenChange={(o) => { if (!o) handleCloseSuccess(); }}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm border-0 bg-success p-0">
           <div className="p-6 sm:p-8 text-center space-y-3">
             <CheckCircle2 className="h-14 w-14 sm:h-16 sm:w-16 text-success-foreground mx-auto" />
