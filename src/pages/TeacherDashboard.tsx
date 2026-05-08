@@ -380,32 +380,6 @@ const TeacherDashboard = () => {
         );
       })()}
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: "Jadwal Hari Ini", value: todaySchedules.length, icon: Calendar, gradient: "from-primary/10 to-primary/5", iconColor: "text-primary" },
-          { label: "Sedang Berlangsung", value: activeCount, icon: PlayCircle, gradient: "from-emerald-500/10 to-emerald-500/5", iconColor: "text-emerald-600" },
-          { label: "Mata Pelajaran", value: totalSubjects, icon: BookOpen, gradient: "from-violet-500/10 to-violet-500/5", iconColor: "text-violet-600" },
-          { label: "Total Kelas", value: totalClasses, icon: Users, gradient: "from-amber-500/10 to-amber-500/5", iconColor: "text-amber-600" },
-        ].map((stat, i) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className="border-0 shadow-card overflow-hidden">
-              <CardContent className={cn("p-4 bg-gradient-to-br", stat.gradient)}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[11px] text-muted-foreground font-medium">{stat.label}</p>
-                    <p className="text-2xl font-bold mt-0.5">{stat.value}</p>
-                  </div>
-                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center bg-background/60 backdrop-blur-sm", stat.iconColor)}>
-                    <stat.icon className="h-5 w-5" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
       {/* School Announcements */}
       {profile?.school_id && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
@@ -413,26 +387,19 @@ const TeacherDashboard = () => {
         </motion.div>
       )}
 
-      {/* Today's Schedule - Functional Layout */}
+      {/* Today's Schedule */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Activity className="h-4 w-4 text-primary" />
-            </div>
-            Jadwal Hari Ini
-          </h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700 border-0 text-[10px]">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> {activeCount} Aktif
-            </Badge>
-            <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-700 border-0 text-[10px]">
-              <Timer className="h-2.5 w-2.5" /> {upcomingCount} Akan Datang
-            </Badge>
-            <Badge variant="secondary" className="gap-1 text-[10px]">
-              <CheckCircle className="h-2.5 w-2.5" /> {doneCount} Selesai
-            </Badge>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-lg font-bold leading-tight">Jadwal Hari Ini</h2>
+            <p className="text-xs text-muted-foreground">{DAYS[todayDay]}, {today.toLocaleDateString("id-ID", { day: "numeric", month: "long" })}</p>
           </div>
+          <button
+            onClick={() => navigate("/teaching-schedule")}
+            className="text-xs font-semibold text-primary hover:underline flex items-center gap-0.5"
+          >
+            Lihat Semua <ChevronRight className="h-3.5 w-3.5" />
+          </button>
         </div>
 
         {todaySchedules.length === 0 ? (
