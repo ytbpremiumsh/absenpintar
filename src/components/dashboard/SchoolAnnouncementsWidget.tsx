@@ -96,38 +96,65 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
 
   return (
     <>
-      <Card className="rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shadow-sm">
-                <Megaphone className="h-3.5 w-3.5 text-white" />
+      <div className="relative rounded-3xl overflow-hidden shadow-elevated bg-card border border-border/40">
+        {/* Gradient hero header */}
+        <div className="relative bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] px-5 pt-5 pb-14 overflow-hidden">
+          <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute bottom-0 left-1/4 h-20 w-20 rounded-full bg-white/5 blur-2xl" />
+          <svg className="absolute top-0 right-0 opacity-10" width="140" height="140" viewBox="0 0 140 140" fill="none">
+            <pattern id="ann-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.2" fill="white" />
+            </pattern>
+            <rect width="140" height="140" fill="url(#ann-dots)" />
+          </svg>
+
+          <div className="relative z-10 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <motion.div
+                animate={{ rotate: [0, -8, 8, -4, 0] }}
+                transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 }}
+                className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/25 flex items-center justify-center shadow-lg"
+              >
+                <Megaphone className="h-5 w-5 text-white" />
+              </motion.div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/70">Update Terbaru</p>
+                <h2 className="text-base sm:text-lg font-bold text-white leading-tight">Pengumuman Sekolah</h2>
               </div>
-              Pengumuman Sekolah
+            </div>
+            <div className="flex items-center gap-1.5">
               {items.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] h-5 px-1.5 ml-1">{items.length}</Badge>
+                <span className="bg-white text-primary text-[11px] font-bold rounded-full h-6 min-w-6 px-2 flex items-center justify-center shadow-md">
+                  {items.length}
+                </span>
               )}
-            </CardTitle>
-            {isAdmin && (
-              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs rounded-lg" onClick={() => navigate("/announcements")}>
-                Kelola <ChevronRight className="h-3 w-3 ml-0.5" />
-              </Button>
-            )}
+              {isAdmin && (
+                <button
+                  onClick={() => navigate("/announcements")}
+                  className="h-7 px-2.5 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20 text-white text-[11px] font-semibold flex items-center gap-0.5 transition-all"
+                >
+                  Kelola <ChevronRight className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
+        </div>
+
+        {/* Floating content overlap */}
+        <div className="relative -mt-8 mx-3 mb-3 bg-card rounded-2xl shadow-card border border-border/30 p-2.5 min-h-[100px]">
           {loading ? (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-8">
-              <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-2">
-                <Megaphone className="h-5 w-5 text-muted-foreground/50" />
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mx-auto mb-2">
+                <Megaphone className="h-6 w-6 text-primary/60" />
               </div>
-              <p className="text-sm text-muted-foreground">Belum ada pengumuman</p>
+              <p className="text-sm font-semibold text-foreground">Belum ada pengumuman</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Pengumuman akan muncul di sini</p>
               {isAdmin && (
-                <Button size="sm" variant="outline" className="mt-3 text-xs h-8 rounded-lg" onClick={() => navigate("/announcements")}>
+                <Button size="sm" variant="outline" className="mt-3 text-xs h-8 rounded-xl" onClick={() => navigate("/announcements")}>
                   Buat Pengumuman
                 </Button>
               )}
@@ -140,44 +167,69 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
                 return (
                   <motion.button
                     key={a.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.06, type: "spring", stiffness: 260 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelected(a)}
                     className={cn(
-                      "w-full text-left relative overflow-hidden rounded-xl border border-border/50 bg-card hover:border-primary/40 hover:shadow-md transition-all group",
-                      a.is_pinned && "ring-1 ring-amber-400/40 bg-gradient-to-br from-amber-50/40 to-transparent dark:from-amber-950/20"
+                      "w-full text-left relative overflow-hidden rounded-2xl border bg-background hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all group",
+                      a.is_pinned
+                        ? "border-amber-300/60 bg-gradient-to-br from-amber-50 via-card to-card dark:from-amber-950/30"
+                        : "border-border/50 hover:border-primary/40"
                     )}
                   >
-                    <div className={cn("absolute left-0 top-0 bottom-0 w-1", cfg.bar)} />
-                    <div className="flex items-start gap-3 p-3 pl-4">
-                      <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm", cfg.iconBg)}>
+                    {/* Animated colored bar */}
+                    <div className={cn("absolute left-0 top-0 bottom-0 w-1.5 rounded-r", cfg.bar)} />
+                    {/* Glow on hover */}
+                    <div
+                      className={cn(
+                        "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none",
+                        cfg.bar.includes("sky") && "bg-gradient-to-r from-sky-500/5 to-transparent",
+                        cfg.bar.includes("violet") && "bg-gradient-to-r from-violet-500/5 to-transparent",
+                        cfg.bar.includes("red") && "bg-gradient-to-r from-red-500/5 to-transparent",
+                      )}
+                    />
+
+                    <div className="relative flex items-start gap-3 p-3 pl-4">
+                      <div className={cn(
+                        "h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 shadow-md ring-2 ring-white dark:ring-card transition-transform group-hover:scale-110 group-hover:rotate-[-6deg]",
+                        cfg.iconBg
+                      )}>
                         <Icon className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                           {a.is_pinned && (
-                            <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[9px] h-4 px-1.5 gap-0.5">
+                            <Badge className="bg-amber-500 text-white border-0 text-[9px] h-4 px-1.5 gap-0.5 shadow-sm">
                               <Pin className="h-2.5 w-2.5" /> Disematkan
                             </Badge>
                           )}
-                          <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border", cfg.badge)}>
+                          <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border font-semibold", cfg.badge)}>
                             {cfg.label}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground ml-auto">{formatRelative(a.created_at)}</span>
+                          <span className="text-[10px] text-muted-foreground ml-auto font-medium">{formatRelative(a.created_at)}</span>
                         </div>
-                        <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">{a.title}</p>
-                        <RichContent html={a.message} className="mt-0.5 line-clamp-2 [&_img]:hidden [&_*]:!text-xs [&_*]:!text-muted-foreground [&_*]:!my-0" />
+                        <p className="text-sm font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                          {a.title}
+                        </p>
+                        <RichContent
+                          html={a.message}
+                          className="mt-0.5 line-clamp-2 [&_img]:hidden [&_*]:!text-[11px] [&_*]:!text-muted-foreground [&_*]:!my-0 [&_*]:!leading-snug"
+                        />
+                        <div className="flex items-center gap-1 mt-1.5 text-[10px] font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                          Baca selengkapnya <ChevronRight className="h-3 w-3" />
+                        </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-2" />
                     </div>
                   </motion.button>
                 );
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-[95vw] sm:max-w-lg p-0 overflow-hidden rounded-2xl">
