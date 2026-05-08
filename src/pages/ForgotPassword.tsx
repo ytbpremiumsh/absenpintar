@@ -47,15 +47,13 @@ const ForgotPassword = () => {
         body: { email },
       });
       if (error) throw error;
-      if (data.error) { toast.error(data.error); setLoading(false); return; }
+      if (data.error) { toast.error(data.error); return; }
       if (!data.has_wa_integration) {
         toast.error("Belum ada integrasi WhatsApp yang aktif. Hubungi admin.");
-        setLoading(false);
         return;
       }
       if (!data.has_phone) {
         toast.error("Nomor WhatsApp belum terdaftar di profil Anda. Hubungi admin untuk menambahkan nomor.");
-        setLoading(false);
         return;
       }
 
@@ -67,7 +65,7 @@ const ForgotPassword = () => {
         body: { email, school_id: data.school_id },
       });
       if (otpError) throw otpError;
-      if (otpData.error) { toast.error(otpData.error); setLoading(false); return; }
+      if (otpData.error) { toast.error(otpData.error); return; }
 
       toast.success("Kode OTP berhasil dikirim ke WhatsApp!");
       setStep("otp");
@@ -80,8 +78,9 @@ const ForgotPassword = () => {
       }, 1000);
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleResendOtp = async () => {
@@ -93,7 +92,7 @@ const ForgotPassword = () => {
         body: { email, school_id: schoolId },
       });
       if (otpError) throw otpError;
-      if (otpData.error) { toast.error(otpData.error); setLoading(false); return; }
+      if (otpData.error) { toast.error(otpData.error); return; }
       toast.success("Kode OTP baru berhasil dikirim!");
       setOtp("");
       setOtpCooldown(60);
@@ -105,8 +104,9 @@ const ForgotPassword = () => {
       }, 1000);
     } catch (err: any) {
       toast.error(err.message || "Gagal mengirim ulang OTP");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -119,14 +119,15 @@ const ForgotPassword = () => {
         body: { email, otp_code: otp, verify_only: true },
       });
       if (error) throw error;
-      if (data.error) { setOtpError(data.error); toast.error(data.error); setLoading(false); return; }
+      if (data.error) { setOtpError(data.error); toast.error(data.error); return; }
       toast.success("OTP terverifikasi!");
       setStep("new-password");
     } catch (err: any) {
       setOtpError(err.message || "OTP tidak valid");
       toast.error(err.message || "OTP tidak valid");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -139,15 +140,15 @@ const ForgotPassword = () => {
         body: { email, otp_code: otp, new_password: newPassword },
       });
       if (error) throw error;
-      if (data.error) { toast.error(data.error); setLoading(false); return; }
+      if (data.error) { toast.error(data.error); return; }
       toast.success("Password berhasil diubah!");
       setStep("done");
     } catch (err: any) {
       toast.error(err.message || "Gagal reset password");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
-
   const stepConfig: Record<Step, { title: string; subtitle: string; icon: typeof KeyRound }> = {
     email: {
       title: "Lupa Password?",
