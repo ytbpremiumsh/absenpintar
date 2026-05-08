@@ -64,10 +64,10 @@ export function MobileFooterNav({ items, accentColor }: MobileFooterNavProps) {
           }
 
           return (
+            <div key={item.label} className="flex-1 basis-0 flex justify-center">
             <button
-              key={item.label}
               onClick={() => navigate(item.path)}
-              className="relative flex flex-col items-center gap-0.5 py-1.5 px-2 outline-none min-w-[52px]"
+              className="relative flex flex-col items-center gap-0.5 py-1.5 px-2 outline-none"
             >
               {active && (
                 <motion.div
