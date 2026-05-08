@@ -292,15 +292,7 @@ const WaliKelasExportHistory = () => {
   return (
     <PremiumGate featureLabel="Rekap Absensi Kelas" featureKey="canExportReport" requiredPlan="Basic">
       <div className="space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-[#5B6CF9] flex items-center justify-center shadow-md">
-            <ClipboardList className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Rekap Absensi Kelas</h1>
-            <p className="text-muted-foreground text-xs sm:text-sm">Rekap absensi umum (Datang/Pulang) untuk kelas wali Anda</p>
-          </div>
-        </div>
+        <PageHeader icon={ClipboardList} title="Rekap Absensi Kelas" subtitle="Rekap absensi umum (Datang/Pulang) untuk kelas wali Anda" />
 
         {/* Filter Bar */}
         <div className="flex flex-wrap items-end gap-4">
