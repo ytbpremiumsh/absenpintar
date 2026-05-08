@@ -262,13 +262,52 @@ const TeacherDashboard = () => {
     );
   }
 
+  const initials = (profile?.full_name || "G").split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
+  const homeroomLabel = homeroomAssignments.length > 0
+    ? `Wali Kelas ${homeroomAssignments.map(h => h.class_name).join(", ")}`
+    : "Guru Mapel";
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        icon={GraduationCap}
-        title="Dashboard Guru"
-        subtitle={`Selamat datang, ${profile?.full_name || "Guru"} — ${DAYS[todayDay]}, ${today.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}
-      />
+    <div className="space-y-5">
+      {/* Profile Hero Card — mobile-first */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-[#4c5ded] p-5 sm:p-6 text-white shadow-elevated">
+          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
+          <svg className="absolute top-0 right-0 opacity-10" width="160" height="160" viewBox="0 0 160 160" fill="none">
+            <pattern id="th-dots" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.4" fill="white" />
+            </pattern>
+            <rect width="160" height="160" fill="url(#th-dots)" />
+          </svg>
+
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="h-16 w-16 sm:h-[72px] sm:w-[72px] rounded-2xl bg-white/15 backdrop-blur-sm border border-white/25 flex items-center justify-center text-2xl font-bold shrink-0 shadow-lg">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-white/70 font-medium">Selamat datang</p>
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight truncate">{profile?.full_name || "Guru"}</h1>
+              <p className="text-[11px] sm:text-xs text-white/80 mt-0.5 truncate">{homeroomLabel}</p>
+            </div>
+          </div>
+
+          {/* Stats trio inside hero */}
+          <div className="relative z-10 mt-5 grid grid-cols-3 gap-2">
+            {[
+              { label: "Jadwal", value: todaySchedules.length, sub: "Hari ini" },
+              { label: "Aktif", value: activeCount, sub: "Berlangsung" },
+              { label: "Mapel", value: totalSubjects, sub: "Diampu" },
+            ].map(s => (
+              <div key={s.label} className="rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-2.5 text-center">
+                <p className="text-[10px] uppercase tracking-wider text-white/70 font-semibold">{s.label}</p>
+                <p className="text-xl sm:text-2xl font-bold leading-none mt-1">{s.value}</p>
+                <p className="text-[9px] text-white/70 mt-1">{s.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
 
       {/* HERO REMINDER: Absensi MAPEL — only 15 min before start or during active teaching schedule */}
       {(() => {
