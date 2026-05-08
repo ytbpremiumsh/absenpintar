@@ -236,33 +236,82 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
           {selected && (() => {
             const cfg = TYPE_STYLES[selected.type] || TYPE_STYLES.info;
             const Icon = cfg.icon;
+            const heroGradient =
+              selected.type === "urgent"
+                ? "from-red-500 via-orange-500 to-amber-500"
+                : selected.type === "penting"
+                ? "from-violet-600 via-violet-500 to-fuchsia-500"
+                : "from-sky-500 via-[#5B6CF9] to-[#4c5ded]";
+            const fullDate = new Date(selected.created_at).toLocaleDateString("id-ID", {
+              weekday: "long", day: "numeric", month: "long", year: "numeric",
+            });
+            const fullTime = new Date(selected.created_at).toLocaleTimeString("id-ID", {
+              hour: "2-digit", minute: "2-digit",
+            });
             return (
               <>
-                <div className={cn("p-5 border-b border-border", cfg.bar.replace("bg-gradient-to-b", "bg-gradient-to-r"), "bg-opacity-10")}
-                     style={{ background: `linear-gradient(135deg, ${cfg.iconBg.includes("sky") ? "rgba(14,165,233,0.1)" : cfg.iconBg.includes("violet") ? "rgba(139,92,246,0.1)" : "rgba(239,68,68,0.1)"}, transparent)` }}>
-                  <div className="flex items-start gap-3">
-                    <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 shadow-md", cfg.iconBg)}>
-                      <Icon className="h-5 w-5 text-white" />
+                <div className={cn("relative overflow-hidden bg-gradient-to-br text-white px-5 pt-5 pb-6", heroGradient)}>
+                  <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/15 blur-3xl" />
+                  <div className="absolute -bottom-10 left-1/3 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
+                  <svg className="absolute top-0 right-0 opacity-15" width="160" height="160" viewBox="0 0 160 160" fill="none">
+                    <pattern id="ann-hero-dots" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+                      <circle cx="2" cy="2" r="1.4" fill="white" />
+                    </pattern>
+                    <rect width="160" height="160" fill="url(#ann-hero-dots)" />
+                  </svg>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                      {selected.is_pinned && (
+                        <Badge className="bg-amber-400 text-amber-950 border-0 text-[10px] h-5 px-2 gap-0.5 font-bold shadow">
+                          <Pin className="h-2.5 w-2.5" /> Disematkan
+                        </Badge>
+                      )}
+                      <Badge className="bg-white/25 backdrop-blur-sm text-white border border-white/30 text-[10px] h-5 px-2 font-semibold">
+                        {cfg.label}
+                      </Badge>
+                      <span className="text-[10px] text-white/80 font-medium ml-auto">{formatRelative(selected.created_at)}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                        {selected.is_pinned && (
-                          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[9px] h-4 px-1.5 gap-0.5">
-                            <Pin className="h-2.5 w-2.5" /> Disematkan
-                          </Badge>
-                        )}
-                        <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5", cfg.badge)}>{cfg.label}</Badge>
+                    <div className="flex items-start gap-3">
+                      <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shrink-0 shadow-lg">
+                        <Icon className="h-7 w-7 text-white" />
                       </div>
-                      <DialogTitle className="text-base font-bold leading-snug">{selected.title}</DialogTitle>
-                      <DialogDescription className="text-[11px] mt-1">{formatRelative(selected.created_at)}</DialogDescription>
+                      <div className="flex-1 min-w-0 pt-0.5">
+                        <DialogTitle className="text-lg sm:text-xl font-bold leading-tight text-white">
+                          {selected.title}
+                        </DialogTitle>
+                        <DialogDescription className="text-[11px] sm:text-xs text-white/85 mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center gap-1"><Megaphone className="h-3 w-3" /> Pengumuman Sekolah</span>
+                          <span className="text-white/50">•</span>
+                          <span>{fullDate}</span>
+                          <span className="text-white/50">•</span>
+                          <span>{fullTime} WIB</span>
+                        </DialogDescription>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <ScrollArea className="max-h-[55vh]">
-                  <div className="p-5">
-                    <RichContent html={selected.message} />
+                <div className="bg-card">
+                  <ScrollArea className="max-h-[60vh]">
+                    <div className="px-5 sm:px-6 py-5">
+                      <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-muted/30 to-transparent p-4 sm:p-5">
+                        <RichContent
+                          html={selected.message}
+                          className="prose prose-sm dark:prose-invert max-w-none [&_p]:leading-relaxed [&_p]:text-[14px] [&_strong]:text-foreground [&_li]:my-1"
+                        />
+                      </div>
+                      <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground bg-muted/40 rounded-xl px-3 py-2 border border-border/40">
+                        <Info className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span>Mohon dibaca dengan saksama. Hubungi admin sekolah untuk informasi lebih lanjut.</span>
+                      </div>
+                    </div>
+                  </ScrollArea>
+                  <div className="px-5 sm:px-6 py-3 border-t border-border/50 bg-muted/20 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-muted-foreground">Diterbitkan {formatRelative(selected.created_at)}</span>
+                    <Button size="sm" onClick={() => setSelected(null)} className="h-8 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90">
+                      Saya Mengerti
+                    </Button>
                   </div>
-                </ScrollArea>
+                </div>
               </>
             );
           })()}
