@@ -69,7 +69,8 @@ const TeacherDashboard = () => {
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [homeroomAssignments, setHomeroomAssignments] = useState<{ class_name: string }[]>([]);
-  const [classAttendanceToday, setClassAttendanceToday] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const [subjectAttendanceToday, setSubjectAttendanceToday] = useState<Record<string, number>>({});
+  const [classStudentCount, setClassStudentCount] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
 
