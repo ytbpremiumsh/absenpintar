@@ -1,83 +1,73 @@
-## Audit Bug & Kekurangan ATSkolla
+## Masalah yang Ditemukan
 
-Berikut hasil scan menyeluruh terhadap codebase (58 halaman, 36 edge functions). Saya kelompokkan berdasarkan **severity** dan **kategori**. Setelah Anda approve, saya akan switch ke build mode dan eksekusi fix-nya.
+Dari screenshot Anda terlihat 5 reminder terkirim **setiap menit berturut-turut** (16:13, 16:14, 16:15, 16:16, 16:17) padahal tidak ada jadwal di jam tersebut. Setelah investigasi `supabase/functions/teaching-reminder/index.ts`, ada **3 bug** yang menyebabkan ini:
 
----
+### Bug 1 — Timezone salah (penyebab utama "tidak ada jadwal")
+Edge function pakai `now.getHours()` yang mengembalikan **jam UTC** server. Tapi `teaching_schedules.start_time` di database disimpan dalam **WIB**. Akibatnya:
+- Saat jam **23:13 WIB** (= 16:13 UTC), function mencari jadwal dengan `start_time = 16:28` (UTC + 15 menit)
+- Function menemukan jadwal yang sebenarnya **16:30 WIB** dan mengira itu cocok → kirim reminder
+- Padahal jadwal itu masih 7+ jam lagi, bukan dalam 15 menit
 
-### 1. CRITICAL — Pelanggaran Core Memory
+### Bug 2 — Reminder dikirim berulang setiap menit
+Cron berjalan tiap menit dengan window pencarian ±2 menit. Tidak ada de-dupe → jadwal yang sama tertangkap 4–5 kali berturut-turut → guru di-spam reminder.
 
-| # | Lokasi | Masalah |
-|---|--------|---------|
-| C1 | `supabase/functions/public-pickup/` & `src/lib/announcePickup.ts` | Masih ada terminologi **"pickup"** — melanggar Core Memory ("NEVER use pickup"). Edge function `public-pickup` masih ter-deploy. |
-| C2 | 6 Edge Functions return status 4xx/5xx | `lookup-npsn`, `manage-mayar-key`, `gdrive-backup`, `referral`, `public-scan-attendance`, `seed-demo` — bisa crash frontend (Core Memory: harus selalu 200 OK). |
-| C3 | 3 halaman `setLoading(true)` tanpa `try/finally` | `Login.tsx`, `ForgotPassword.tsx`, `parent/ParentLogin.tsx` — risiko **infinite loading** kalau request gagal. |
+### Bug 3 — `day_of_week` salah di sekitar tengah malam WIB
+`now.getDay()` juga pakai UTC. Pukul 00:00–06:59 WIB sebenarnya masih hari sebelumnya di UTC → cron bisa baca jadwal hari yang salah.
 
----
+## Rencana Perbaikan
 
-### 2. HIGH — Redundansi / Double Fitur
+### 1. Fix timezone — pakai waktu WIB (UTC+7) konsisten
 
-| # | Duplikasi | Detail |
-|---|-----------|--------|
-| H1 | **History vs ExportHistory** | `History.tsx` + `ExportHistory.tsx` dan versi wali kelas `WaliKelasHistory.tsx` + `WaliKelasExportHistory.tsx`. 4 halaman dengan logic mirip — bisa dikonsolidasi jadi 2 (admin & wali kelas) dengan tab "Lihat" dan "Export". |
-| H2 | **Public Monitoring 3 versi** | `PublicMonitoring.tsx`, `PublicClassMonitoring.tsx`, `PublicAttendanceMonitoring.tsx` — overlap besar. Perlu review apakah bisa unified dengan param mode. |
-| H3 | **WhatsApp Settings vs Templates** | `WhatsAppSettings.tsx` (1080 baris) sudah berisi semua template + target pengiriman. `WhatsAppTemplates.tsx` jadi redundan setelah merge "Pengingat Jadwal Mengajar" kemarin. |
-| H4 | **announcePickup.ts** | Duplikat dengan `announceAttendance.ts` — fungsi serupa tapi pakai term lama. |
-| H5 | **seed-demo vs seed-demo-garuda** | Dua edge function seed yang mirip — perlu konsolidasi atau hapus salah satu. |
+Di `supabase/functions/teaching-reminder/index.ts`, ganti perhitungan `now`, `dayIdx`, dan `targetTime` agar selalu memakai WIB:
 
----
+```ts
+// Geser UTC ke WIB (UTC+7)
+const wib = new Date(Date.now() + 7 * 60 * 60 * 1000);
+const jsDay = wib.getUTCDay();              // pakai UTC* setelah digeser
+const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
+const currentMinutes = wib.getUTCHours() * 60 + wib.getUTCMinutes();
+const targetMinutes = currentMinutes + 15;
+```
 
-### 3. MEDIUM — Bug Fungsional
+Dengan ini, perbandingan `start_time` (yang memang WIB) menjadi benar.
 
-| # | Lokasi | Masalah |
-|---|--------|---------|
-| M1 | `src/pages/Login.tsx` | Tidak ada `try/finally` di submit handler → kalau Supabase error, tombol stuck loading. |
-| M2 | `mpwa-proxy/index.ts` | Tidak punya action `send` (hanya `generate-qr`, `check-status`, `disconnect`). Pengiriman WA dilakukan via `send-whatsapp` — pastikan tidak ada call lama yang masih `action: "send"` ke `mpwa-proxy`. |
-| M3 | `update-user/index.ts` | Tidak verifikasi bahwa `school_admin` hanya boleh edit user di sekolahnya sendiri — potensi privilege escalation antar sekolah. |
-| M4 | `verify-bendahara-otp/index.ts` | Tidak ada CORS header untuk `x-supabase-client-platform-*` (header standar lain). Bisa CORS error di sebagian environment. |
-| M5 | `face-recognition` edge fn | Belum cek subscription tier di sisi server (gating hanya di frontend → bisa dibypass). |
+### 2. Tambah de-dupe — 1 reminder per jadwal per hari
 
----
+Sebelum kirim, cek tabel `whatsapp_messages` apakah pesan dengan `message_type = 'teaching_reminder'` untuk `phone` + tanggal hari ini sudah ada untuk jadwal tersebut. Karena message log tidak menyimpan `schedule_id`, pakai kombinasi: `phone + start_time + DATE(created_at WIB) = today`.
 
-### 4. MEDIUM — UX / Konsistensi
+Implementasi: lakukan 1x query batch di awal:
+```ts
+// Ambil semua reminder yang sudah terkirim hari ini (WIB)
+const todayWibStart = new Date(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate());
+const startISO = new Date(todayWibStart.getTime() - 7 * 3600 * 1000).toISOString();
+const { data: sentToday } = await supabase
+  .from("whatsapp_messages")
+  .select("phone, message")
+  .eq("message_type", "teaching_reminder")
+  .gte("created_at", startISO);
+```
+Lalu sebelum loop kirim, skip jika `phone + start_time` sudah pernah muncul di `sentToday` (cocokkan dengan substring `start_time` pada `message` karena template berisi `{start_time}`).
 
-- 23 halaman `setLoading(true)` perlu audit `try/finally` (sebagian sudah aman karena pakai `await` lurus, tapi yang berisiko: `LiveSchedule`, `EditAttendance`, `TeachingSchedule`, `WaliKelasAttendance`, `WaliKelasStudents`, `WaliKelasHistory`, `WaliKelasExportHistory`, `TeacherAttendanceRecap`, `ExportHistory`, `History`, `bendahara/BendaharaPages`, `WhatsAppSettings`, beberapa SuperAdmin).
-- Sebagian halaman SuperAdmin (`SuperAdminBackup`, `SuperAdminAffiliate`, `SuperAdminBendahara`, `SuperAdminPanduan`, `SuperAdminAutoCaption`, `SuperAdminLoginLogs`, `SuperAdminReferral`, `SuperAdminServerInfo`) — perlu cek loading state pattern.
+### 3. Perketat window pencarian (opsional, defensif)
 
----
+Ubah window dari ±2 menit menjadi **tepat 15 menit dengan toleransi +0/+1 menit** — lebih kecil kemungkinannya overlap antar tick cron:
 
-### 5. LOW — Kebersihan
+```ts
+.gte("start_time", `${HH}:${MM}`)
+.lte("start_time", `${HH}:${MM+1}`)
+```
 
-- File `src/data/mockData.ts` masih ada (sisa dev) — kemungkinan tidak terpakai di production.
-- Banyak hint di komentar lama yang menyebut "pickup" perlu disisir.
-- `.lovable/plan.md` sudah ada plan audit lama yang belum dijalankan.
+Kombinasi #2 + #3 membuat 1 jadwal pasti hanya menghasilkan 1 reminder per hari.
 
----
+## Bagian Teknis
 
-## Usulan Eksekusi
+**File diubah:** `supabase/functions/teaching-reminder/index.ts` (1 file, ~25 baris)
+**Tidak ada perubahan database** — tidak perlu migrasi, tidak perlu kolom baru.
+**Cron tetap jalan tiap menit** — logika de-dupe yang menjaga agar tidak spam.
 
-Saya rekomendasikan **3 batch perbaikan** (bisa per batch approval):
+## Verifikasi setelah implementasi
 
-**Batch A — Critical & Core Memory (cepat, low risk):**
-1. Hapus edge function `public-pickup` & file `announcePickup.ts` (atau redirect ke `announceAttendance`).
-2. Ubah 6 edge function ke selalu return 200 OK.
-3. Tambahkan `try/finally` pada `Login`, `ForgotPassword`, `ParentLogin`.
+1. Cek `supabase--edge_function_logs` untuk `teaching-reminder` — pastikan log menampilkan WIB time yang benar.
+2. Buat 1 jadwal dummy 15 menit ke depan, tunggu, pastikan hanya **1 reminder** terkirim (bukan 4–5).
+3. Cek tabel `whatsapp_messages` untuk konfirmasi tidak ada duplikat dengan `message_type = 'teaching_reminder'` di hari yang sama.
 
-**Batch B — Redundansi (perlu keputusan Anda):**
-4. Konsolidasi History + ExportHistory (admin & wali kelas) → 2 halaman dengan tab.
-5. Hapus `WhatsAppTemplates.tsx` route jika sudah tidak dipakai (atau redirect ke WhatsAppSettings).
-6. Review 3 PublicMonitoring → unify atau dokumentasi alasan dipisah.
-7. Konsolidasi `seed-demo` & `seed-demo-garuda`.
-
-**Batch C — Security & UX:**
-8. Tambah cek `school_id` di `update-user` (cegah cross-tenant edit).
-9. Tambah subscription gating server-side di `face-recognition`.
-10. Audit `try/finally` di 23 halaman loading.
-11. Lengkapi CORS header `verify-bendahara-otp`.
-
----
-
-### Pertanyaan untuk Anda
-
-1. **Batch A** boleh saya jalankan langsung tanpa konfirmasi item-per-item? (semuanya jelas pelanggaran Core Memory)
-2. **Batch B** — untuk konsolidasi History + Public Monitoring + WhatsAppTemplates, apakah Anda mau saya rapikan, atau biarkan terpisah karena alasan UX tertentu?
-3. **Batch C** mau dijalankan sekarang atau setelah Batch A & B selesai?
