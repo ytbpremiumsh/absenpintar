@@ -251,8 +251,20 @@ const TeacherDashboard = () => {
         subtitle={`Selamat datang, ${profile?.full_name || "Guru"} — ${DAYS[todayDay]}, ${today.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}
       />
 
-      {/* HERO REMINDER: Absensi Kelas (Wali Kelas) */}
+      {/* HERO REMINDER: Absensi Kelas (Wali Kelas) — only 15 min before start or during active */}
       {homeroomAssignments.length > 0 && (() => {
+        const homeroomNames = new Set(homeroomAssignments.map(h => h.class_name));
+        const currentMin = now.getHours() * 60 + now.getMinutes();
+        // Find homeroom schedule that's active or starting within 15 minutes
+        const relevant = todaySchedules.find(s => {
+          if (!homeroomNames.has(s.class_name || "")) return false;
+          const start = timeToMinutes(s.start_time);
+          const end = timeToMinutes(s.end_time);
+          return (currentMin >= start && currentMin < end) || (start - currentMin > 0 && start - currentMin <= 15);
+        });
+        if (!relevant) return null;
+        const relevantStatus = getStatus(relevant.start_time, relevant.end_time, now);
+        const minutesToStart = timeToMinutes(relevant.start_time) - currentMin;
         const { done, total } = classAttendanceToday;
         const pct = total > 0 ? Math.round((done / total) * 100) : 0;
         const isComplete = total > 0 && done >= total;
