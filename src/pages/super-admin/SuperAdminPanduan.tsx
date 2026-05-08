@@ -357,14 +357,24 @@ export default function SuperAdminPanduan() {
                             }
                           />
                         </div>
-                        <ImagePicker
-                          label="Gambar Screenshot Desktop (untuk langkah ini)"
-                          hint="Tampil di mode Desktop. Kosongkan jika tidak ada."
-                          url={step.image || ""}
-                          folder={`step/${active.id}`}
-                          onChange={(url) => patchStep(idx, { image: url })}
-                          allowClear
-                        />
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <ImagePicker
+                            label="Screenshot Desktop (langkah ini)"
+                            hint="Tampil di mode Desktop. Kosongkan jika tidak ada."
+                            url={step.image || ""}
+                            folder={`step/${active.id}`}
+                            onChange={(url) => patchStep(idx, { image: url })}
+                            allowClear
+                          />
+                          <ImagePicker
+                            label="Mockup Mobile (langkah ini)"
+                            hint="Khusus langkah ini. Jika kosong, akan pakai mockup mobile default peran."
+                            url={step.mobileImage || ""}
+                            folder={`step-mobile/${active.id}`}
+                            onChange={(url) => patchStep(idx, { mobileImage: url })}
+                            allowClear
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
