@@ -64,9 +64,12 @@ interface Student {
 
 const TeacherDashboard = () => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
+  const [homeroomAssignments, setHomeroomAssignments] = useState<{ class_name: string }[]>([]);
+  const [classAttendanceToday, setClassAttendanceToday] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(new Date());
 
@@ -82,6 +85,7 @@ const TeacherDashboard = () => {
   const schoolId = profile?.school_id;
   const today = new Date();
   const todayDay = today.getDay();
+  const todayStr = today.toISOString().split("T")[0];
 
   // Live clock
   useEffect(() => {
