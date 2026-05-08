@@ -59,6 +59,7 @@ export function MobileFooterNav({ items, accentColor }: MobileFooterNavProps) {
                   accentColor ? "text-red-500" : "text-primary"
                 )}>{item.label}</span>
               </button>
+              </div>
             );
           }
 
