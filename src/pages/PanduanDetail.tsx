@@ -137,8 +137,8 @@ export default function PanduanDetail() {
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-bold text-slate-700 mb-4 shadow-sm">
                         <Smartphone className="h-3 w-3 text-[#5B6CF9]" /> Tampilan Mobile (Android / iOS)
                       </div>
-                      {guide.mobileMockup ? (
-                        <img src={guide.mobileMockup} alt={`${step.title} — Tampilan Mobile`} loading="lazy" decoding="async"
+                      {(step.mobileImage || guide.mobileMockup) ? (
+                        <img src={step.mobileImage || guide.mobileMockup} alt={`${step.title} — Tampilan Mobile`} loading="lazy" decoding="async"
                           className="w-auto max-w-[280px] md:max-w-[320px] h-auto drop-shadow-2xl" />
                       ) : (
                         <p className="text-sm text-slate-400 py-12">Mockup mobile belum diatur.</p>
