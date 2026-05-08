@@ -11,7 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { announcePickup } from "@/lib/announcePickup";
+import { announceDismissal } from "@/lib/announceDismissal";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -28,8 +28,8 @@ interface StudentStatus {
   student_id: string;
   photo_url: string | null;
   status: "waiting" | "picked_up";
-  pickup_time: string | null;
-  pickup_by: string | null;
+  dismissal_time: string | null;
+  dismissed_by: string | null;
 }
 
 const LiveDot = () => (
@@ -75,7 +75,7 @@ const PublicClassMonitoring = () => {
           (s) => s.status === "picked_up" && !prevPickedIds.current.has(s.id)
         );
         newPicked.forEach((s) => {
-          announcePickup(s.name, s.class);
+          announceDismissal(s.name, s.class);
           setSuccessPopup(s);
           setTimeout(() => setSuccessPopup(null), 5000);
         });
@@ -99,7 +99,7 @@ const PublicClassMonitoring = () => {
     const interval = setInterval(() => fetchData(), 10000);
     const channel = supabase
       .channel(`public-class-${decodedClass}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "pickup_logs" }, () => fetchData(true))
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "dismissal_logs" }, () => fetchData(true))
       .subscribe();
     return () => {
       clearInterval(interval);
@@ -107,11 +107,11 @@ const PublicClassMonitoring = () => {
     };
   }, [schoolId, decodedClass]);
 
-  const handlePublicPickup = async (student: StudentStatus) => {
+  const handlePublicDismissal = async (student: StudentStatus) => {
     if (!schoolId) return;
     setProcessing(true);
     try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-pickup`;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-dismissal`;
       const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -121,7 +121,7 @@ const PublicClassMonitoring = () => {
         body: JSON.stringify({
           school_id: schoolId,
           student_id: student.id,
-          pickup_by: `Wali Murid (Publik)`,
+          dismissed_by: `Wali Murid (Publik)`,
         }),
       });
       const json = await res.json();
@@ -129,7 +129,7 @@ const PublicClassMonitoring = () => {
         toast.error(json.error || "Gagal memproses kepulangan");
       } else {
         toast.success(`${student.name} berhasil ditandai pulang!`);
-        announcePickup(student.name, student.class, "dismissed");
+        announceDismissal(student.name, student.class);
         setSuccessPopup(student);
         setTimeout(() => setSuccessPopup(null), 5000);
         fetchData(true);
@@ -301,11 +301,11 @@ const PublicClassMonitoring = () => {
                             <Badge className="bg-success/10 text-success border-success/20 text-[10px]">
                               <UserCheck className="h-3 w-3 mr-1" /> Pulang
                             </Badge>
-                            {s.pickup_time && (
+                            {s.dismissal_time && (
                               <div className="flex items-center gap-1 text-muted-foreground mt-1 justify-end">
                                 <Clock className="h-3 w-3" />
                                 <span className="text-[10px]">
-                                  {new Date(s.pickup_time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                                  {new Date(s.dismissal_time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                               </div>
                             )}
@@ -349,7 +349,7 @@ const PublicClassMonitoring = () => {
             <AlertDialogCancel disabled={processing}>Batal</AlertDialogCancel>
             <AlertDialogAction
               disabled={processing}
-              onClick={() => confirmStudent && handlePublicPickup(confirmStudent)}
+              onClick={() => confirmStudent && handlePublicDismissal(confirmStudent)}
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
               {processing ? "Memproses..." : "Ya, Konfirmasi Pulang"}

@@ -43,9 +43,9 @@ Deno.serve(async (req) => {
 
     const [studentsRes, logsRes, schoolRes, settingsRes] = await Promise.all([
       studentsQuery,
-      supabase.from("pickup_logs").select("student_id, pickup_time, pickup_by").eq("school_id", schoolId).gte("pickup_time", today.toISOString()),
+      supabase.from("dismissal_logs").select("student_id, dismissal_time, dismissed_by").eq("school_id", schoolId).gte("dismissal_time", today.toISOString()),
       supabase.from("schools").select("name, logo").eq("id", schoolId).single(),
-      supabase.from("pickup_settings").select("is_active, auto_activate_time, auto_deactivate_time").eq("school_id", schoolId).maybeSingle(),
+      supabase.from("dismissal_settings").select("is_active, auto_activate_time, auto_deactivate_time").eq("school_id", schoolId).maybeSingle(),
     ]);
 
     const students = studentsRes.data || [];
@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
       return {
         ...s,
         status: log ? "picked_up" : "waiting",
-        pickup_time: log?.pickup_time || null,
-        pickup_by: log?.pickup_by || null,
+        dismissal_time: log?.dismissal_time || null,
+        dismissed_by: log?.dismissed_by || null,
       };
     });
 

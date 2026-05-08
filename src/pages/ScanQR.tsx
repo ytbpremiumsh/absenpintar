@@ -149,7 +149,7 @@ const ScanQR = () => {
   // Determine attendance type based on time
   const getAttendanceType = useCallback(async (): Promise<"datang" | "pulang"> => {
     if (!profile?.school_id) return "datang";
-    const { data: settings } = await supabase.from("pickup_settings")
+    const { data: settings } = await supabase.from("dismissal_settings")
       .select("attendance_start_time, attendance_end_time, departure_start_time, departure_end_time")
       .eq("school_id", profile.school_id).maybeSingle();
 

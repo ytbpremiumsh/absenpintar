@@ -96,7 +96,7 @@ const Monitoring = () => {
     const [studentsRes, logsRes, settingsRes] = await Promise.all([
       supabase.from("students").select("id, name, class, parent_name, student_id, photo_url").eq("school_id", schoolId),
       supabase.from("attendance_logs").select("id, student_id, time, status, method, created_at, attendance_type").eq("school_id", schoolId).eq("date", today).neq("method", "auto").order("created_at", { ascending: false }),
-      supabase.from("pickup_settings").select("attendance_end_time, departure_end_time").eq("school_id", schoolId).maybeSingle(),
+      supabase.from("dismissal_settings").select("attendance_end_time, departure_end_time").eq("school_id", schoolId).maybeSingle(),
     ]);
 
     const allStudents = studentsRes.data || [];

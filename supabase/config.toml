@@ -81,7 +81,7 @@ verify_jwt = false
 [functions.public-monitoring]
 verify_jwt = false
 
-[functions.public-pickup]
+[functions.public-dismissal]
 verify_jwt = false
 
 [functions.seed-demo]
