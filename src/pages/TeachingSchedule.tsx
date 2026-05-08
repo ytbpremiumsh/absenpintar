@@ -364,109 +364,113 @@ export default function TeachingSchedule() {
                     <Badge variant="secondary" className="ml-auto text-[10px] sm:text-xs shrink-0">{items.length} jadwal</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0 px-3 sm:px-6 pb-3 sm:pb-6">
-                  <div className="hidden md:block">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-32">Jam</TableHead>
-                          <TableHead>Mata Pelajaran</TableHead>
-                          <TableHead>Guru</TableHead>
-                          <TableHead>Kelas</TableHead>
-                          <TableHead>Ruangan</TableHead>
-                          {isAdmin && <TableHead className="w-20">Aksi</TableHead>}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                      {items.map((s) => {
-                          const isMe = s.teacher_id === user?.id;
-                          return (
-                          <TableRow key={s.id} className={cn(isMe && "bg-primary/5 font-medium")}>
-                            <TableCell className="font-mono text-sm">{s.start_time.slice(0, 5)} – {s.end_time.slice(0, 5)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: getSubjectColor(s.subject_id) }} />
-                                <span className="font-medium">{getSubjectName(s.subject_id)}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className={cn(isMe && "text-primary font-bold")}>{getTeacherName(s.teacher_id)}</span>
-                              {isMe && <Badge className="ml-1.5 bg-primary/15 text-primary border-primary/30 text-[9px] h-4 px-1">Anda</Badge>}
-                            </TableCell>
-                            <TableCell><Badge variant="outline">{getClassName(s.class_id)}</Badge></TableCell>
-                            <TableCell className="text-muted-foreground">{s.room || "—"}</TableCell>
-                            {isAdmin && (
-                              <TableCell>
-                                <div className="flex gap-1">
-                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditSchedule(s)}><Pencil className="h-3.5 w-3.5" /></Button>
-                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteSchedule(s.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                                </div>
-                              </TableCell>
-                            )}
-                          </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {/* Mobile cards */}
-                  <div className="md:hidden space-y-2">
+                <CardContent className="pt-0 px-3 sm:px-5 pb-3 sm:pb-5">
+                  <div className="space-y-2.5">
                     {items.map((s) => {
                       const isMe = s.teacher_id === user?.id;
                       const subjColor = getSubjectColor(s.subject_id);
+                      const teacher = getTeacher(s.teacher_id);
+                      const teacherName = getTeacherName(s.teacher_id);
                       return (
-                      <div key={s.id} className={cn(
-                        "relative overflow-hidden rounded-2xl bg-card border border-border/50 shadow-sm transition-all active:scale-[0.99]",
-                        isMe && "border-primary/40 ring-1 ring-primary/20 bg-primary/[0.03]"
-                      )}>
-                        {/* Colored subject rail */}
-                        <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: subjColor }} aria-hidden />
-                        <div className="pl-3 pr-2.5 py-2.5 space-y-2">
-                          {/* Top row: time pill + actions */}
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/60 ring-1 ring-border/50">
-                              <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
-                              <span className="font-mono text-[11px] font-semibold tracking-tight">
-                                {s.start_time.slice(0, 5)}<span className="mx-1 text-muted-foreground/60">–</span>{s.end_time.slice(0, 5)}
-                              </span>
-                            </div>
-                            {isAdmin && (
-                              <div className="flex gap-0.5 shrink-0">
-                                <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg" onClick={() => openEditSchedule(s)}><Pencil className="h-3.5 w-3.5" /></Button>
-                                <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-destructive" onClick={() => deleteSchedule(s.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <div key={s.id} className="flex items-stretch gap-2.5 sm:gap-3">
+                          {/* Time column */}
+                          <div className="w-12 sm:w-14 shrink-0 pt-2 text-right">
+                            <p className="font-mono text-[11px] sm:text-xs font-semibold text-foreground leading-none">
+                              {s.start_time.slice(0, 5)}
+                            </p>
+                            <p className="font-mono text-[10px] text-muted-foreground mt-1 leading-none">
+                              {s.end_time.slice(0, 5)}
+                            </p>
+                          </div>
+
+                          {/* Schedule pill */}
+                          <div
+                            className={cn(
+                              "relative flex-1 min-w-0 rounded-2xl px-3 sm:px-3.5 py-2.5 sm:py-3 transition-all hover:shadow-md",
+                              isMe && "ring-2 ring-primary/40 ring-offset-1 ring-offset-background"
+                            )}
+                            style={{
+                              backgroundColor: hexToRgba(subjColor, 0.92),
+                            }}
+                          >
+                            {/* Left accent bar */}
+                            <span
+                              className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-white/70"
+                              aria-hidden
+                            />
+
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              {/* Time chip */}
+                              <div className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/25 backdrop-blur-sm shrink-0">
+                                <Clock className="h-3 w-3 text-white" />
+                                <span className="font-mono text-[10.5px] font-semibold text-white whitespace-nowrap">
+                                  {s.start_time.slice(0, 5)}
+                                </span>
                               </div>
-                            )}
-                          </div>
 
-                          {/* Subject title */}
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: subjColor }} />
-                            <p className="text-sm font-bold truncate flex-1">{getSubjectName(s.subject_id)}</p>
-                            {isMe && <Badge className="bg-primary/15 text-primary border-primary/30 text-[9px] h-4 px-1.5 shrink-0">Anda</Badge>}
-                          </div>
+                              {/* Title + meta — single line */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <p className="text-[13px] sm:text-sm font-bold text-white truncate">
+                                    {getSubjectName(s.subject_id)}
+                                  </p>
+                                  {isMe && (
+                                    <Badge className="bg-white/25 text-white border-white/30 text-[9px] h-4 px-1.5 shrink-0 hover:bg-white/30">
+                                      Anda
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-[10.5px] sm:text-[11px] text-white/85 truncate mt-0.5">
+                                  {getClassName(s.class_id)}
+                                  {s.room && <> · {s.room}</>}
+                                  <> · {teacherName}</>
+                                </p>
+                              </div>
 
-                          {/* Info chips — wrap nicely on small screens */}
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className={cn(
-                              "inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground max-w-full",
-                              isMe && "bg-primary/10 text-primary"
-                            )}>
-                              <UsersIcon className="h-2.5 w-2.5 shrink-0" />
-                              <span className="truncate">{getTeacherName(s.teacher_id)}</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                              <GraduationCap className="h-2.5 w-2.5 shrink-0" />
-                              <span className="truncate max-w-[100px]">{getClassName(s.class_id)}</span>
-                            </span>
-                            {s.room && (
-                              <span className="inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                                <BookOpen className="h-2.5 w-2.5 shrink-0" />
-                                <span className="truncate max-w-[100px]">{s.room}</span>
-                              </span>
-                            )}
+                              {/* Teacher avatar */}
+                              <div className="flex items-center -space-x-1.5 shrink-0">
+                                <div
+                                  className="h-8 w-8 sm:h-9 sm:w-9 rounded-full ring-2 ring-white/80 overflow-hidden bg-white/30 flex items-center justify-center"
+                                  title={teacherName}
+                                >
+                                  {teacher?.avatar_url ? (
+                                    <img
+                                      src={teacher.avatar_url}
+                                      alt={teacherName}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-[10px] sm:text-[11px] font-bold text-white">
+                                      {getInitials(teacherName)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Admin actions */}
+                              {isAdmin && (
+                                <div className="flex gap-0.5 shrink-0">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 rounded-lg text-white hover:bg-white/20 hover:text-white"
+                                    onClick={() => openEditSchedule(s)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 rounded-lg text-white hover:bg-white/20 hover:text-white"
+                                    onClick={() => deleteSchedule(s.id)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
                       );
                     })}
                   </div>
