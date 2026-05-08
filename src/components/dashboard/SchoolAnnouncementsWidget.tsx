@@ -232,7 +232,7 @@ export function SchoolAnnouncementsWidget({ schoolId, isAdmin = false }: Props) 
       </div>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-[95vw] sm:max-w-lg p-0 overflow-hidden rounded-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-xl p-0 overflow-hidden rounded-3xl border-0 shadow-2xl">
           {selected && (() => {
             const cfg = TYPE_STYLES[selected.type] || TYPE_STYLES.info;
             const Icon = cfg.icon;
