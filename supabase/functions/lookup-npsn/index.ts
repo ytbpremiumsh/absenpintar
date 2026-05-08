@@ -14,7 +14,7 @@ serve(async (req) => {
 
     if (!npsn || npsn.length !== 8 || !/^\d{8}$/.test(npsn)) {
       return new Response(JSON.stringify({ error: 'NPSN harus 8 digit angka' }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -69,7 +69,7 @@ serve(async (req) => {
 
     if (!schoolData) {
       return new Response(JSON.stringify({ error: 'Sekolah dengan NPSN tersebut tidak ditemukan' }), {
-        status: 404,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -79,7 +79,7 @@ serve(async (req) => {
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

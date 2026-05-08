@@ -40,28 +40,38 @@ export default function ParentLogin() {
   const requestOtp = async () => {
     if (!phone || phone.length < 9) return toast.error("Nomor WA tidak valid");
     setLoading(true);
-    const { data } = await supabase.functions.invoke("parent-portal", {
-      body: { action: "request_otp", phone },
-    });
-    setLoading(false);
-    if (data?.error) return toast.error(data.error);
-    toast.success("Kode OTP dikirim via WhatsApp");
-    setStep("otp");
-    setCooldown(60);
+    try {
+      const { data } = await supabase.functions.invoke("parent-portal", {
+        body: { action: "request_otp", phone },
+      });
+      if (data?.error) return toast.error(data.error);
+      toast.success("Kode OTP dikirim via WhatsApp");
+      setStep("otp");
+      setCooldown(60);
+    } catch (e: any) {
+      toast.error("Gagal mengirim OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const verifyOtp = async () => {
     if (otp.length !== 6) return toast.error("Kode harus 6 digit");
     setLoading(true);
-    const { data } = await supabase.functions.invoke("parent-portal", {
-      body: { action: "verify_otp", phone, otp },
-    });
-    setLoading(false);
-    if (data?.error) return toast.error(data.error);
-    localStorage.setItem("parent_token", data.token);
-    localStorage.setItem("parent_phone", data.phone);
-    toast.success("Login berhasil");
-    navigate("/parent");
+    try {
+      const { data } = await supabase.functions.invoke("parent-portal", {
+        body: { action: "verify_otp", phone, otp },
+      });
+      if (data?.error) return toast.error(data.error);
+      localStorage.setItem("parent_token", data.token);
+      localStorage.setItem("parent_phone", data.phone);
+      toast.success("Login berhasil");
+      navigate("/parent");
+    } catch (e: any) {
+      toast.error("Gagal verifikasi OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const scanBars = Array.from({ length: 24 }, (_, i) => i);

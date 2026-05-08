@@ -103,18 +103,18 @@ Deno.serve(async (req) => {
     // Verify caller is super_admin
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'super_admin').maybeSingle()
     if (!roleData) {
-      return new Response(JSON.stringify({ error: 'Forbidden: super_admin only' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Forbidden: super_admin only' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const body = await req.json()
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
 
     if (action === 'backup-to-gdrive') {
       if (!google_access_token) {
-        return new Response(JSON.stringify({ error: 'Google access token required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({ error: 'Google access token required' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
       // Export all tables
@@ -199,13 +199,13 @@ Deno.serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), {
-      status: 400,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
     console.error('gdrive-backup error:', err)
     return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }

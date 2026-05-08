@@ -38,75 +38,78 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setNetworkIssue(false);
-    const { error } = await signIn(email, password);
-    if (error) {
-      setLoading(false);
-      if (isBackendNetworkError(error)) {
-        setNetworkIssue(true);
-        setRecheckKey((k) => k + 1);
-        toast.error("Server backend sedang gangguan/timeout. Silakan coba lagi sebentar.");
-      } else if (error.includes("Invalid login credentials")) {
-        toast.error("Email atau password salah. Pastikan email sudah terverifikasi.");
-      } else if (error.includes("Email not confirmed")) {
-        toast.error("Email belum diverifikasi. Silakan cek inbox email Anda.");
-      } else {
-        toast.error("Login gagal: " + error);
-      }
-      return;
-    }
-    toast.success("Login berhasil!");
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const [{ data: roles }, { data: profileData }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", user.id),
-        supabase.from("profiles").select("full_name, school_id").eq("user_id", user.id).maybeSingle(),
-      ]);
-      const rolesList = (roles || []).map((r: any) => r.role);
-      const isSuperAdmin = rolesList.includes("super_admin");
-      const isBendahara = rolesList.includes("bendahara");
-      const isTeacher = rolesList.includes("teacher");
-      const isAdmin = rolesList.includes("school_admin");
-      const isStaff = rolesList.includes("staff");
-      // Count how many "dashboard kinds" the user has — if >1, show role picker.
-      const dashboardKinds = [
-        isSuperAdmin,
-        isAdmin,
-        isStaff && !isAdmin,
-        isTeacher,
-        isBendahara,
-      ].filter(Boolean).length;
-
-      // Fire-and-forget: lookup sekolah + insert login_logs (jangan block redirect)
-      (async () => {
-        try {
-          let schoolName: string | null = null;
-          if (profileData?.school_id) {
-            const { data: schoolData } = await supabase.from("schools").select("name").eq("id", profileData.school_id).maybeSingle();
-            schoolName = schoolData?.name || null;
-          }
-          await supabase.from("login_logs").insert({
-            user_id: user.id,
-            email: user.email || null,
-            full_name: profileData?.full_name || null,
-            role: rolesList.join(", ") || null,
-            school_name: schoolName,
-            user_agent: navigator.userAgent,
-          } as any);
-        } catch (e) {
-          console.warn("login_logs insert failed", e);
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        if (isBackendNetworkError(error)) {
+          setNetworkIssue(true);
+          setRecheckKey((k) => k + 1);
+          toast.error("Server backend sedang gangguan/timeout. Silakan coba lagi sebentar.");
+        } else if (error.includes("Invalid login credentials")) {
+          toast.error("Email atau password salah. Pastikan email sudah terverifikasi.");
+        } else if (error.includes("Email not confirmed")) {
+          toast.error("Email belum diverifikasi. Silakan cek inbox email Anda.");
+        } else {
+          toast.error("Login gagal: " + error);
         }
-      })();
+        return;
+      }
+      toast.success("Login berhasil!");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const [{ data: roles }, { data: profileData }] = await Promise.all([
+          supabase.from("user_roles").select("role").eq("user_id", user.id),
+          supabase.from("profiles").select("full_name, school_id").eq("user_id", user.id).maybeSingle(),
+        ]);
+        const rolesList = (roles || []).map((r: any) => r.role);
+        const isSuperAdmin = rolesList.includes("super_admin");
+        const isBendahara = rolesList.includes("bendahara");
+        const isTeacher = rolesList.includes("teacher");
+        const isAdmin = rolesList.includes("school_admin");
+        const isStaff = rolesList.includes("staff");
+        const dashboardKinds = [
+          isSuperAdmin,
+          isAdmin,
+          isStaff && !isAdmin,
+          isTeacher,
+          isBendahara,
+        ].filter(Boolean).length;
 
+        // Fire-and-forget: lookup sekolah + insert login_logs
+        (async () => {
+          try {
+            let schoolName: string | null = null;
+            if (profileData?.school_id) {
+              const { data: schoolData } = await supabase.from("schools").select("name").eq("id", profileData.school_id).maybeSingle();
+              schoolName = schoolData?.name || null;
+            }
+            await supabase.from("login_logs").insert({
+              user_id: user.id,
+              email: user.email || null,
+              full_name: profileData?.full_name || null,
+              role: rolesList.join(", ") || null,
+              school_name: schoolName,
+              user_agent: navigator.userAgent,
+            } as any);
+          } catch (e) {
+            console.warn("login_logs insert failed", e);
+          }
+        })();
+
+        sessionStorage.removeItem("dashboard_chosen");
+        if (dashboardKinds > 1) navigate("/select-role");
+        else if (isSuperAdmin) navigate("/super-admin");
+        else if (isBendahara) navigate("/bendahara");
+        else if (isTeacher) navigate("/teacher-dashboard");
+        else navigate("/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      toast.error("Terjadi kesalahan saat login");
+    } finally {
       setLoading(false);
-      sessionStorage.removeItem("dashboard_chosen");
-      if (dashboardKinds > 1) navigate("/select-role");
-      else if (isSuperAdmin) navigate("/super-admin");
-      else if (isBendahara) navigate("/bendahara");
-      else if (isTeacher) navigate("/teacher-dashboard");
-      else navigate("/dashboard");
-    } else {
-      setLoading(false);
-      navigate("/dashboard");
     }
   };
 

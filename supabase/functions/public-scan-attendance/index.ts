@@ -33,7 +33,7 @@ serve(async (req) => {
 
     if (!school_id || (!student_code && !student_id)) {
       return new Response(JSON.stringify({ error: "school_id dan student_code/student_id diperlukan" }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -58,7 +58,7 @@ serve(async (req) => {
 
     if (!student) {
       return new Response(JSON.stringify({ error: "Siswa tidak ditemukan" }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -102,7 +102,7 @@ serve(async (req) => {
         student: { id: student.id, name: student.name, class: student.class, student_id: student.student_id, photo_url: student.photo_url },
         attendance_type,
       }), {
-        status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -121,7 +121,7 @@ serve(async (req) => {
 
     if (insertError) {
       return new Response(JSON.stringify({ error: insertError.message }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -239,7 +239,7 @@ serve(async (req) => {
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
