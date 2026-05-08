@@ -251,6 +251,65 @@ const TeacherDashboard = () => {
         subtitle={`Selamat datang, ${profile?.full_name || "Guru"} — ${DAYS[todayDay]}, ${today.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}
       />
 
+      {/* HERO REMINDER: Absensi Kelas (Wali Kelas) */}
+      {homeroomAssignments.length > 0 && (() => {
+        const { done, total } = classAttendanceToday;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        const isComplete = total > 0 && done >= total;
+        return (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <Card className="border-0 shadow-elevated overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative bg-gradient-to-br from-primary via-primary to-[#4c5ded] p-5 sm:p-6 text-white overflow-hidden">
+                  <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+                  <div className="absolute bottom-0 left-1/3 h-24 w-24 rounded-full bg-white/5 blur-2xl" />
+                  <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                        <ClipboardCheck className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Bell className="h-3.5 w-3.5 text-amber-300" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+                            Pengingat Wali Kelas
+                          </span>
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-bold leading-tight">
+                          {isComplete ? "Absensi Kelas Selesai" : "Waktunya Absensi Kelas"}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-white/80 mt-0.5">
+                          Kelas {homeroomAssignments.map(h => h.class_name).join(", ")} • {done}/{total} siswa tercatat
+                        </p>
+                        {total > 0 && (
+                          <div className="mt-2.5 h-2 rounded-full bg-white/15 overflow-hidden max-w-xs">
+                            <motion.div
+                              className={cn("h-full rounded-full", isComplete ? "bg-emerald-300" : "bg-amber-300")}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pct}%` }}
+                              transition={{ duration: 0.8 }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      size="lg"
+                      onClick={() => navigate("/wali-kelas-attendance")}
+                      className="bg-white text-primary hover:bg-white/90 font-bold rounded-xl shadow-lg shrink-0 h-12 px-6"
+                    >
+                      <ClipboardCheck className="h-5 w-5 mr-2" />
+                      {isComplete ? "Lihat Absensi" : "Absensi Kelas"}
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      })()}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
