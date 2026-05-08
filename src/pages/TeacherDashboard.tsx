@@ -343,19 +343,25 @@ const TeacherDashboard = () => {
         </motion.div>
       )}
 
-      {/* Today's Schedule - Timeline Style */}
+      {/* Today's Schedule - Functional Layout */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Activity className="h-4 w-4 text-primary" />
             </div>
             Jadwal Hari Ini
           </h2>
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> {activeCount} aktif</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500" /> {upcomingCount} akan datang</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/40" /> {doneCount} selesai</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="secondary" className="gap-1 bg-emerald-500/10 text-emerald-700 border-0 text-[10px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> {activeCount} Aktif
+            </Badge>
+            <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-700 border-0 text-[10px]">
+              <Timer className="h-2.5 w-2.5" /> {upcomingCount} Akan Datang
+            </Badge>
+            <Badge variant="secondary" className="gap-1 text-[10px]">
+              <CheckCircle className="h-2.5 w-2.5" /> {doneCount} Selesai
+            </Badge>
           </div>
         </div>
 
@@ -366,135 +372,133 @@ const TeacherDashboard = () => {
               <p className="text-muted-foreground text-sm">Tidak ada jadwal mengajar hari ini</p>
             </CardContent>
           </Card>
-        ) : (
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-[19px] top-3 bottom-3 w-px bg-border hidden sm:block" />
+        ) : (() => {
+          const featured = todaySchedules.find(s => getStatus(s.start_time, s.end_time, now) === "active")
+            || todaySchedules.find(s => getStatus(s.start_time, s.end_time, now) === "upcoming");
+          const others = todaySchedules.filter(s => s.id !== featured?.id);
+          const featuredStatus = featured ? getStatus(featured.start_time, featured.end_time, now) : null;
+          const currentMin = now.getHours() * 60 + now.getMinutes();
 
-            <div className="space-y-3">
-              <AnimatePresence>
-                {todaySchedules.map((s, i) => {
-                  const status = getStatus(s.start_time, s.end_time, now);
-                  const currentMin = now.getHours() * 60 + now.getMinutes();
-                  const start = timeToMinutes(s.start_time);
-                  const end = timeToMinutes(s.end_time);
-                  const progress = status === "active" ? Math.min(100, Math.max(0, ((currentMin - start) / (end - start)) * 100)) : status === "done" ? 100 : 0;
-
-                  return (
-                    <motion.div
-                      key={s.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.06 }}
-                      className="flex gap-3 sm:gap-4"
-                    >
-                      {/* Timeline dot */}
-                      <div className="hidden sm:flex flex-col items-center pt-5 shrink-0">
-                        <div className={cn(
-                          "h-[10px] w-[10px] rounded-full border-2 z-10",
-                          status === "active" && "border-emerald-500 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]",
-                          status === "done" && "border-muted-foreground/40 bg-muted-foreground/40",
-                          status === "upcoming" && "border-amber-500 bg-background",
-                        )} />
-                      </div>
-
-                      {/* Card */}
-                      <Card
-                        className={cn(
-                          "flex-1 border shadow-card transition-all cursor-pointer group hover:shadow-elevated",
-                          status === "active" && "border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-transparent ring-1 ring-emerald-500/20",
-                          status === "done" && "opacity-60 border-border",
-                          status === "upcoming" && "border-amber-500/20 hover:border-amber-500/40",
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              {/* FEATURED: Now / Next Up */}
+              {featured && (
+                <Card
+                  onClick={() => openAttendance(featured)}
+                  className="lg:col-span-1 border-0 shadow-elevated cursor-pointer overflow-hidden group hover:scale-[1.01] transition-transform"
+                >
+                  <div
+                    className="relative p-5 text-white overflow-hidden h-full"
+                    style={{
+                      background: featuredStatus === "active"
+                        ? "linear-gradient(135deg, #10b981, #059669)"
+                        : `linear-gradient(135deg, ${featured.subject_color}, ${featured.subject_color}dd)`,
+                    }}
+                  >
+                    <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-3">
+                        {featuredStatus === "active" ? (
+                          <Badge className="bg-white/25 backdrop-blur-sm text-white border-white/30 text-[10px] gap-1 animate-pulse">
+                            <PlayCircle className="h-3 w-3" /> SEDANG BERLANGSUNG
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-white/25 backdrop-blur-sm text-white border-white/30 text-[10px] gap-1">
+                            <Timer className="h-3 w-3" /> JADWAL BERIKUTNYA
+                          </Badge>
                         )}
-                        onClick={() => openAttendance(s)}
-                      >
-                        <CardContent className="p-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center">
-                            {/* Time block */}
-                            <div className={cn(
-                              "px-4 py-3 sm:py-4 sm:w-[130px] shrink-0 flex sm:flex-col items-center sm:items-start gap-2 sm:gap-0.5 border-b sm:border-b-0 sm:border-r",
-                              status === "active" ? "border-emerald-500/20" : "border-border/50"
-                            )}>
-                              <span className={cn(
-                                "text-lg sm:text-xl font-bold font-mono",
-                                status === "active" && "text-emerald-600 dark:text-emerald-400",
-                                status === "done" && "text-muted-foreground",
-                              )}>
-                                {s.start_time.slice(0, 5)}
-                              </span>
-                              <span className="text-[11px] text-muted-foreground font-mono">
-                                s/d {s.end_time.slice(0, 5)}
-                              </span>
+                      </div>
+                      <h3 className="text-2xl font-bold leading-tight mb-1">{featured.subject_name}</h3>
+                      <div className="flex items-center gap-3 text-sm text-white/90 mb-3 flex-wrap">
+                        <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> Kelas {featured.class_name}</span>
+                        {featured.room && (
+                          <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {featured.room}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-white/80 font-mono mb-4 flex-wrap">
+                        <Clock className="h-3.5 w-3.5" />
+                        {featured.start_time.slice(0, 5)} — {featured.end_time.slice(0, 5)}
+                        {featuredStatus === "upcoming" && (() => {
+                          const mins = timeToMinutes(featured.start_time) - currentMin;
+                          if (mins > 0 && mins <= 180) {
+                            return <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20">{mins} menit lagi</span>;
+                          }
+                          return null;
+                        })()}
+                      </div>
+                      {featuredStatus === "active" && (() => {
+                        const start = timeToMinutes(featured.start_time);
+                        const end = timeToMinutes(featured.end_time);
+                        const progress = Math.min(100, Math.max(0, ((currentMin - start) / (end - start)) * 100));
+                        return (
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between text-[10px] mb-1 text-white/80">
+                              <span>Progress</span><span>{Math.round(progress)}%</span>
                             </div>
-
-                            {/* Main content */}
-                            <div className="flex-1 px-4 py-3 sm:py-4">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <div className="flex items-center gap-2">
-                                  <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: s.subject_color }} />
-                                  <span className="font-bold text-sm">{s.subject_name}</span>
-                                  {status === "active" && (
-                                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px] h-5 px-1.5 gap-0.5 animate-pulse">
-                                      <PlayCircle className="h-2.5 w-2.5" /> Berlangsung
-                                    </Badge>
-                                  )}
-                                  {status === "upcoming" && (
-                                    <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[9px] h-5 px-1.5">
-                                      <Timer className="h-2.5 w-2.5 mr-0.5" /> Akan Datang
-                                    </Badge>
-                                  )}
-                                </div>
-                                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-                              </div>
-
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> Kelas {s.class_name}</span>
-                                {s.room && <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /> Ruang {s.room}</span>}
-                              </div>
-
-                              {/* Progress bar for active */}
-                              {status === "active" && (
-                                <div className="mt-2.5">
-                                  <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
-                                    <span>Progress</span>
-                                    <span>{Math.round(progress)}%</span>
-                                  </div>
-                                  <div className="h-1.5 rounded-full bg-emerald-500/15 overflow-hidden">
-                                    <motion.div
-                                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400"
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${progress}%` }}
-                                      transition={{ duration: 1 }}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Action button */}
-                            <div className="px-4 pb-3 sm:pb-0 sm:pr-4 shrink-0">
-                              <Button
-                                size="sm"
-                                className={cn(
-                                  "text-xs rounded-xl w-full sm:w-auto",
-                                  status === "active"
-                                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                    : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
-                                )}
-                              >
-                                {status === "done" ? "Lihat Absensi" : "Absensi Mapel"}
-                              </Button>
+                            <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
+                              <div className="h-full bg-white rounded-full" style={{ width: `${progress}%` }} />
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                        );
+                      })()}
+                      <Button className="w-full bg-white text-foreground hover:bg-white/90 font-bold rounded-xl">
+                        <ClipboardCheck className="h-4 w-4 mr-2" />
+                        Absensi Mapel
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* COMPACT LIST: other sessions */}
+              <div className={cn(featured ? "lg:col-span-2" : "lg:col-span-3")}>
+                <Card className="border-0 shadow-card h-full">
+                  <CardContent className="p-3 space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2 py-1">
+                      Sesi Lainnya Hari Ini
+                    </p>
+                    {others.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        Tidak ada sesi lain
+                      </div>
+                    ) : others.map((s) => {
+                      const status = getStatus(s.start_time, s.end_time, now);
+                      return (
+                        <button
+                          key={s.id}
+                          onClick={() => openAttendance(s)}
+                          className={cn(
+                            "w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all hover:bg-muted/50 group",
+                            status === "done" && "opacity-60",
+                          )}
+                        >
+                          <div className="flex flex-col items-center justify-center w-14 shrink-0 py-1 rounded-lg bg-muted/50 font-mono">
+                            <span className="text-sm font-bold leading-tight">{s.start_time.slice(0, 5)}</span>
+                            <span className="text-[9px] text-muted-foreground leading-tight">{s.end_time.slice(0, 5)}</span>
+                          </div>
+                          <div className="h-8 w-1 rounded-full shrink-0" style={{ backgroundColor: s.subject_color }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm truncate">{s.subject_name}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              Kelas {s.class_name}{s.room ? ` • ${s.room}` : ""}
+                            </p>
+                          </div>
+                          {status === "done" ? (
+                            <Badge variant="secondary" className="text-[9px] shrink-0">Selesai</Badge>
+                          ) : (
+                            <Button size="sm" variant="ghost" className="h-8 px-2 text-[11px] gap-1 shrink-0 group-hover:bg-primary group-hover:text-primary-foreground">
+                              Absen <ChevronRight className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </motion.div>
 
       {/* Full Week Schedule — Mobile App Style */}
