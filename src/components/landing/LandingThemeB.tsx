@@ -481,19 +481,15 @@ const LandingThemeB = () => {
           </motion.div>
           <div className="grid sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[
-              { Icon: BarChart3, title: "Dashboard Sekolah", desc: "Statistik global kehadiran, monitoring real-time, manajemen kelas & siswa, hingga laporan rekap lengkap." },
-              { Icon: GraduationCap, title: "Dashboard Wali Kelas & Guru", desc: "Akses cepat ke kelas binaan, jadwal mengajar, rekap absensi mapel, dan leaderboard kelas." },
-              { Icon: Wallet, title: "Dashboard Bendahara", desc: "Kelola tagihan SPP, transaksi, saldo sekolah, pencairan, dan laporan keuangan dalam satu sistem." },
-              { Icon: Users, title: "Dashboard Wali Murid", desc: "Pantau kehadiran anak secara real-time, notifikasi WhatsApp instan, dan riwayat absensi lengkap." },
+              { img: illustSchool, title: "Dashboard Sekolah", desc: "Statistik global kehadiran, monitoring real-time, manajemen kelas & siswa, hingga laporan rekap lengkap." },
+              { img: illustTeacher, title: "Dashboard Wali Kelas & Guru", desc: "Akses cepat ke kelas binaan, jadwal mengajar, rekap absensi mapel, dan leaderboard kelas." },
+              { img: illustBendahara, title: "Dashboard Bendahara", desc: "Kelola tagihan SPP, transaksi, saldo sekolah, pencairan, dan laporan keuangan dalam satu sistem." },
+              { img: illustParent, title: "Dashboard Wali Murid", desc: "Pantau kehadiran anak secara real-time, notifikasi WhatsApp instan, dan riwayat absensi lengkap." },
             ].map((d, i) => (
               <motion.div key={d.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
                 className="relative group bg-white dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div className="relative aspect-[4/3] overflow-hidden bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-center">
-                  {/* Subtle dotted grid background */}
-                  <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'radial-gradient(circle, rgba(91,108,249,0.12) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                  <div className="relative h-28 w-28 rounded-3xl bg-[#5B6CF9]/5 border border-[#5B6CF9]/15 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
-                    <d.Icon className="h-14 w-14 text-[#5B6CF9]" strokeWidth={1.5} />
-                  </div>
+                  <img src={d.img} alt={d.title} loading="lazy" width={768} height={576} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-slate-900 dark:text-white text-base mb-2">{d.title}</h3>
