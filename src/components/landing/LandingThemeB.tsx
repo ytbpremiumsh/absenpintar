@@ -481,21 +481,20 @@ const LandingThemeB = () => {
           </motion.div>
           <div className="grid sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[
-              { image: dashboardSchoolImg, title: "Dashboard Sekolah", desc: "Statistik global kehadiran, monitoring real-time, manajemen kelas & siswa, hingga laporan rekap lengkap.", color: "from-indigo-500 to-blue-600", badge: null as string | null },
-              { image: dashboardTeacherImg, title: "Dashboard Wali Kelas & Guru", desc: "Akses cepat ke kelas binaan, jadwal mengajar, rekap absensi mapel, dan leaderboard kelas.", color: "from-emerald-500 to-teal-600", badge: null as string | null },
-              { image: dashboardBendaharaImg, title: "Dashboard Bendahara", desc: "Kelola tagihan SPP, transaksi, saldo sekolah, pencairan, dan laporan keuangan dalam satu sistem.", color: "from-emerald-500 to-cyan-600", badge: null as string | null },
-              { image: dashboardParentImg, title: "Dashboard Wali Murid", desc: "Pantau kehadiran anak secara real-time, notifikasi WhatsApp instan, dan riwayat absensi lengkap.", color: "from-amber-500 to-orange-500", badge: null as string | null },
+              { image: dashboardSchoolImg, title: "Dashboard Sekolah", desc: "Statistik global kehadiran, monitoring real-time, manajemen kelas & siswa, hingga laporan rekap lengkap.", badge: null as string | null },
+              { image: dashboardTeacherImg, title: "Dashboard Wali Kelas & Guru", desc: "Akses cepat ke kelas binaan, jadwal mengajar, rekap absensi mapel, dan leaderboard kelas.", badge: null as string | null },
+              { image: dashboardBendaharaImg, title: "Dashboard Bendahara", desc: "Kelola tagihan SPP, transaksi, saldo sekolah, pencairan, dan laporan keuangan dalam satu sistem.", badge: null as string | null },
+              { image: dashboardParentImg, title: "Dashboard Wali Murid", desc: "Pantau kehadiran anak secara real-time, notifikasi WhatsApp instan, dan riwayat absensi lengkap.", badge: null as string | null },
             ].map((d, i) => (
               <motion.div key={d.title} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-                className="relative group bg-white dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl overflow-hidden hover:border-indigo-200 dark:hover:border-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 hover:-translate-y-1">
+                className="relative group bg-white dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl overflow-hidden hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 {d.badge && (
-                  <span className="absolute top-4 right-4 z-10 inline-flex items-center gap-1 bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                  <span className="absolute top-4 right-4 z-10 inline-flex items-center gap-1 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
                     <Clock className="h-3 w-3" /> {d.badge}
                   </span>
                 )}
-                <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${d.color}`}>
-                  <img src={d.image} alt={d.title} loading="lazy" width={768} height={576} className="w-full h-full object-cover mix-blend-luminosity opacity-90 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500" />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${d.color} opacity-30 group-hover:opacity-10 transition-opacity`} />
+                <div className="relative aspect-[4/3] overflow-hidden bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700/50">
+                  <img src={d.image} alt={d.title} loading="lazy" width={768} height={576} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="p-6">
                   <h3 className="font-bold text-slate-900 dark:text-white text-base mb-2">{d.title}</h3>
