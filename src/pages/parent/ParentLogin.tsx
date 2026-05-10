@@ -62,7 +62,16 @@ export default function ParentLogin() {
       const { data } = await supabase.functions.invoke("parent-portal", {
         body: { action: "verify_otp", phone, otp },
       });
-      if (data?.error) return toast.error(data.error);
+      if (data?.error) {
+        toast.error(data.error);
+        // If OTP expired, drop back to phone step so user can request a new code
+        if (/kedaluwarsa|expired/i.test(String(data.error))) {
+          setOtp("");
+          setStep("phone");
+          setCooldown(0);
+        }
+        return;
+      }
       localStorage.setItem("parent_token", data.token);
       localStorage.setItem("parent_phone", data.phone);
       toast.success("Login berhasil");

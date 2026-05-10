@@ -2,6 +2,7 @@
 // verify_jwt = false because parents do not have Supabase auth users; we use custom session tokens.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { brandPaymentUrl } from "../_shared/brandUrl.ts";
+import { sendOtpMessage } from "../_shared/sendOtp.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -215,15 +216,23 @@ Deno.serve(async (req) => {
       const otp = genOtp();
       await supabase.from("parent_otps").insert({ phone, otp_code: otp });
 
-      // Send via send-whatsapp using first student's school
       const schoolId = students[0].school_id;
       const message = `Kode login Wali Murid ATSkolla Anda: *${otp}*\n\nBerlaku 5 menit. Jangan bagikan kode ini kepada siapapun.`;
+      const result = await sendOtpMessage(supabase, phone, message, schoolId);
+
       try {
-        await supabase.functions.invoke("send-whatsapp", {
-          body: { school_id: schoolId, phone, message, message_type: "parent_otp" },
+        await supabase.from("wa_message_logs").insert({
+          school_id: schoolId,
+          phone,
+          message: `[${result.gateway}] OTP Login Wali Murid`,
+          message_type: "parent_otp",
+          status: result.ok ? "sent" : "failed",
         });
-      } catch (e) {
-        console.error("send wa otp failed", e);
+      } catch { /* ignore */ }
+
+      if (!result.ok) {
+        console.error("[parent-portal] OTP send failed:", JSON.stringify(result.raw).substring(0, 500));
+        return json({ error: "Gateway WhatsApp belum aktif. Hubungi admin sekolah." });
       }
       return json({ ok: true, phone, students_count: students.length });
     }
