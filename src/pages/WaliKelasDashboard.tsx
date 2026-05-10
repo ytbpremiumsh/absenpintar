@@ -507,18 +507,9 @@ function WaliKelasMobileDashboard({
   return (
     <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-[#5B6CF9]/10 via-background to-background">
       {/* Top bar */}
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Kelas</p>
-          <p className="text-sm font-bold truncate max-w-[220px]">{classNames.join(", ") || "Kelas Saya"}</p>
-        </div>
-        <button
-          onClick={() => navigate("/wali-kelas-history")}
-          className="h-9 w-9 rounded-full bg-white shadow-sm ring-1 ring-border/60 flex items-center justify-center active:scale-95 transition"
-          aria-label="History"
-        >
-          <Activity className="h-4 w-4 text-[#5B6CF9]" />
-        </button>
+      <div className="px-4 pt-4 pb-3">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Kelas</p>
+        <p className="text-sm font-bold truncate max-w-[260px]">{classNames.join(", ") || "Kelas Saya"}</p>
       </div>
 
       <div className="px-4 space-y-4">
