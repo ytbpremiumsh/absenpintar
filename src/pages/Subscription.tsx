@@ -35,6 +35,7 @@ const planLimits: Record<string, { maxClasses: number; maxStudentsPerClass: numb
 
 const Subscription = () => {
   const { profile } = useAuth();
+  const { enabled: waCreditEnabled } = useWaCreditEnabled();
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
