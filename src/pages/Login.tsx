@@ -23,8 +23,9 @@ const Login = () => {
 
   // school
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => localStorage.getItem("remembered_email") || "");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remembered_email"));
   const [loading, setLoading] = useState(false);
   const [loginLogo, setLoginLogo] = useState("/images/logo-atskolla.png");
   const [networkIssue, setNetworkIssue] = useState(false);
@@ -75,6 +76,15 @@ const Login = () => {
           toast.error("Login gagal: " + error);
         }
         return;
+      }
+      // Persist remember-me preference
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", email);
+        localStorage.removeItem("was_ephemeral");
+      } else {
+        localStorage.removeItem("remembered_email");
+        localStorage.setItem("was_ephemeral", "1");
+        sessionStorage.setItem("tab_alive", "1");
       }
       toast.success("Login berhasil!");
       const { data: { user } } = await supabase.auth.getUser();
@@ -321,13 +331,26 @@ const Login = () => {
                           </button>
                         </div>
                       </div>
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="h-4 w-4 rounded border-border accent-[#5B6CF9] cursor-pointer"
+                          />
+                          <span className="text-xs font-medium text-muted-foreground">Ingat Saya</span>
+                        </label>
+                        <Link to="/forgot-password" className="text-xs text-primary hover:underline font-medium">
+                          Lupa Password?
+                        </Link>
+                      </div>
                       <Button type="submit" disabled={loading}
                         className="w-full h-12 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white font-semibold text-sm uppercase tracking-wide shadow-lg shadow-indigo-500/20 rounded-xl">
                         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="h-4 w-4 ml-2" /></>}
                       </Button>
 
-                      <div className="text-center space-y-2 pt-1">
-                        <Link to="/forgot-password" className="text-sm text-primary hover:underline">Lupa Password?</Link>
+                      <div className="text-center pt-1">
                         <p className="text-sm text-muted-foreground">
                           Belum punya akun?{" "}
                           <Link to="/register" className="text-primary font-semibold hover:underline">Daftar Sekolah</Link>
