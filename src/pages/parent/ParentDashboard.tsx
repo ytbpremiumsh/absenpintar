@@ -24,6 +24,7 @@ import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { formatPaymentMethodLabel } from "@/lib/paymentMethod";
+import { isWorkingDay } from "@/lib/holidays";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "#10b981",
