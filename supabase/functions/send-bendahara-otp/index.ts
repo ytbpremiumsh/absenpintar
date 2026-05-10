@@ -76,25 +76,3 @@ function json(body: any) {
   });
 }
 
-async function sendMPWA(apiKey: string, sender: string, phone: string, message: string) {
-  try {
-    const res = await fetch('https://app.ayopintar.com/send-message', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ api_key: apiKey, sender, number: phone, message }),
-    });
-    const text = await res.text();
-    let data: any; try { data = JSON.parse(text); } catch { data = { status: false }; }
-    return data?.status !== false;
-  } catch { return false; }
-}
-
-async function sendOneSender(apiUrl: string, apiKey: string, phone: string, message: string) {
-  try {
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipient_type: 'individual', to: phone, type: 'text', text: { body: message } }),
-    });
-    return res.ok;
-  } catch { return false; }
-}
