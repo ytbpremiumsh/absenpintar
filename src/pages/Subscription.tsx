@@ -86,7 +86,8 @@ const Subscription = () => {
           setCurrentSub(sub);
           const plan = (sub as any).subscription_plans;
           if (plan) {
-            const p = { ...plan, features: Array.isArray(plan.features) ? plan.features : [] };
+            const baseFeatures = Array.isArray(plan.features) ? plan.features : [];
+            const p = { ...plan, features: transformFeatureList(baseFeatures, waCreditEnabled, plan.name) };
             setCurrentPlan(p);
             const limits = planLimits[p.name] || planLimits.Free;
             setUsage({
