@@ -38,12 +38,20 @@ function AppContent() {
 
   const [headerLogo, setHeaderLogo] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState<string | null>(null);
+  const [isWaliKelas, setIsWaliKelas] = useState(false);
 
   useEffect(() => {
     supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
       if (data?.value) setHeaderLogo(data.value);
     });
   }, []);
+
+  useEffect(() => {
+    if (!user || !profile?.school_id) return;
+    supabase.from("class_teachers").select("id").eq("user_id", user.id).eq("school_id", profile.school_id).limit(1).then(({ data }) => {
+      setIsWaliKelas((data || []).length > 0);
+    });
+  }, [user, profile?.school_id]);
 
   useEffect(() => {
     if (!profile?.school_id) return;
