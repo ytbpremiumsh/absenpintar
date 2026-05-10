@@ -342,7 +342,7 @@ export const GUIDES: RoleGuide[] = [
         ],
       },
       {
-        title: "6. Analytic Kelas Wali",
+        title: "6. Analytic Wali Kelas",
         description:
           "Analisa mendalam kehadiran kelas wali Anda dalam bentuk donut chart, tren harian, dan ringkasan per siswa.",
         image: "/panduan/wali-kelas-analytic.jpg",

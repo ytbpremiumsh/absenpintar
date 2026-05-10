@@ -303,7 +303,7 @@ const WALIKELAS_FEATURES = [
     badge: "Rekap",
   },
   {
-    title: "Analytic Kelas Wali Kelas",
+    title: "Analytic Wali Kelas",
     subtitle: "Analitik Kehadiran Mendalam",
     desc: "Dashboard analitik per kelas yang menampilkan statistik lengkap: jumlah siswa, total record, persentase kehadiran, dan total alfa. Dilengkapi donut chart distribusi status serta persentase kehadiran per siswa dalam satu tampilan.",
     points: [
