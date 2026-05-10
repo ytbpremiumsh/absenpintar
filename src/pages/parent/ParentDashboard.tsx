@@ -273,7 +273,7 @@ export default function ParentDashboard() {
     <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
       {/* Top Bar — sticky responsive */}
       <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border/40 shadow-sm">
-        <div className="max-w-md md:max-w-6xl mx-auto px-5 md:px-8 pt-3 md:pt-4 pb-3">
+        <div className="max-w-md md:max-w-xl mx-auto px-5 md:px-6 pt-3 md:pt-4 pb-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
@@ -347,13 +347,10 @@ export default function ParentDashboard() {
       </div>
 
       {/* Content */}
-      <div className={cn(
-        "max-w-md md:max-w-6xl mx-auto px-4 md:px-8 space-y-3 md:mt-4",
-        tab === "home" && "md:space-y-0 md:grid md:grid-cols-12 md:gap-6 md:items-start"
-      )}>
+      <div className="max-w-md md:max-w-xl mx-auto px-4 md:px-6 space-y-3 md:mt-4">
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
-          <div className="relative md:col-span-7 md:space-y-4">
+          <div className="relative md:space-y-4">
             {/* Main blue hero card */}
             <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#5B6CF9] via-[#5B6CF9] to-[#4c5ded] text-white p-4 md:p-7 shadow-[0_20px_50px_-15px_rgba(91,108,249,0.55)]">
               {/* Decorative blobs */}
@@ -558,7 +555,7 @@ export default function ParentDashboard() {
 
         {/* HOME — kolom kanan di desktop (statistik & jadwal) */}
         {tab === "home" && (
-          <div className="md:col-span-5 space-y-3">
+          <div className="space-y-3">
             {/* Period Filter */}
             <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl w-fit">
               {(["day", "week", "month"] as const).map((p) => (
