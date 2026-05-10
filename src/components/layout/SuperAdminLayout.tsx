@@ -20,16 +20,12 @@ const navItems = [
   { title: "Dashboard", url: "/super-admin", icon: LayoutGrid, group: "overview" },
 
   // SEKOLAH & PENGGUNA
-  { title: "Kelola Sekolah", url: "/super-admin/schools", icon: School, group: "schools" },
-  { title: "Multi Cabang", url: "/super-admin/branches", icon: Building2, group: "schools" },
-  { title: "Log Login", url: "/super-admin/login-logs", icon: Clock, group: "schools" },
+  { title: "Sekolah", url: "/super-admin/sekolah", icon: School, group: "schools" },
 
   // KEUANGAN
   { title: "Konfirmasi Bayar", url: "/super-admin/payments", icon: CreditCard, group: "finance" },
   { title: "Manajemen Bendahara", url: "/super-admin/bendahara", icon: Banknote, group: "finance" },
-  { title: "Paket Langganan", url: "/super-admin/plans", icon: Wallet, group: "finance" },
-  { title: "Langganan Sekolah", url: "/super-admin/subscriptions", icon: CalendarCheck, group: "finance" },
-  { title: "Kelola Add-on", url: "/super-admin/addons", icon: Package, group: "finance" },
+  { title: "Langganan & Add-on", url: "/super-admin/langganan", icon: Wallet, group: "finance" },
 
   // PROGRAM PARTNER
   { title: "Referral & Poin", url: "/super-admin/referral", icon: Gift, group: "partner" },
@@ -38,18 +34,11 @@ const navItems = [
   // KOMUNIKASI
   { title: "Pengumuman", url: "/super-admin/announcements", icon: Megaphone, group: "comms" },
   { title: "Tiket Bantuan", url: "/super-admin/tickets", icon: UsersRound, group: "comms" },
-  { title: "Aktivasi WA Sekolah", url: "/super-admin/whatsapp", icon: Eye, group: "comms" },
-  { title: "Konfigurasi API WA", url: "/super-admin/registration-wa", icon: MessageCircle, group: "comms" },
+  { title: "WhatsApp", url: "/super-admin/wa", icon: MessageCircle, group: "comms" },
   { title: "Email Server (SMTP)", url: "/super-admin/email", icon: Mail, group: "comms" },
 
   // KONTEN PUBLIK
-  { title: "Auto Caption AI", url: "/super-admin/auto-caption", icon: Wand2, group: "content" },
-  { title: "Branding & Landing", url: "/super-admin/landing", icon: Palette, group: "content" },
-  { title: "Testimoni & Sekolah", url: "/super-admin/testimonials", icon: School, group: "content" },
-  { title: "Halaman Fitur", url: "/super-admin/fitur", icon: Presentation, group: "content" },
-  { title: "Editor Panduan", url: "/super-admin/panduan", icon: BookOpen, group: "content" },
-  { title: "Halaman Penawaran", url: "/super-admin/penawaran", icon: Globe, group: "content" },
-  
+  { title: "CMS Konten", url: "/super-admin/cms", icon: Palette, group: "content" },
 
   // SISTEM
   { title: "Backup & Migrasi", url: "/super-admin/backup", icon: Database, group: "system" },
@@ -68,10 +57,10 @@ const groups = [
 
 const superAdminFooterItems = [
   { label: "Dashboard", icon: LayoutGrid, path: "/super-admin" },
-  { label: "Sekolah", icon: School, path: "/super-admin/schools" },
+  { label: "Sekolah", icon: School, path: "/super-admin/sekolah" },
   { label: "Bayar", icon: CreditCard, path: "/super-admin/payments", isCenter: true },
   { label: "Tiket", icon: UsersRound, path: "/super-admin/tickets" },
-  { label: "Setting", icon: Settings, path: "/super-admin/landing" },
+  { label: "CMS", icon: Palette, path: "/super-admin/cms" },
 ];
 
 function SuperAdminSidebar() {

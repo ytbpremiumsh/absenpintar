@@ -17,15 +17,18 @@ import atskollaLogo from "@/assets/Logo_atskolla.png";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 
-const buildFooterItems = (isTeacherOnly: boolean) => [
+const buildFooterItems = (isTeacherOnly: boolean, isWaliKelas: boolean) => [
   { label: "Dashboard", icon: LayoutGrid, path: isTeacherOnly ? "/teacher-dashboard" : "/dashboard" },
   { label: "Monitoring", icon: Activity, path: "/monitoring" },
   { label: "Scan", icon: ScanLine, path: "/scan", isCenter: true },
-  // Teachers/Wali Kelas → siswa kelas mereka. Admin/Staff sekolah → semua siswa sekolah
-  { label: "Siswa", icon: Users, path: isTeacherOnly ? "/wali-kelas-students" : "/students" },
-  { label: "Jadwal", icon: CalendarDays, path: isTeacherOnly ? "/teaching-schedule" : "/live-schedule" },
+  // Guru murni (bukan wali kelas) → Riwayat laporan. Wali kelas / admin → Siswa
+  isTeacherOnly && !isWaliKelas
+    ? { label: "Riwayat", icon: BookOpen, path: "/mapel/laporan" }
+    : { label: "Siswa", icon: Users, path: isTeacherOnly ? "/wali-kelas-students" : "/students" },
+  { label: "Jadwal", icon: CalendarDays, path: "/jadwal" },
 ];
 
 function AppContent() {
@@ -36,12 +39,20 @@ function AppContent() {
 
   const [headerLogo, setHeaderLogo] = useState<string | null>(null);
   const [schoolName, setSchoolName] = useState<string | null>(null);
+  const [isWaliKelas, setIsWaliKelas] = useState(false);
 
   useEffect(() => {
     supabase.from("platform_settings").select("key, value").eq("key", "login_logo_url").maybeSingle().then(({ data }) => {
       if (data?.value) setHeaderLogo(data.value);
     });
   }, []);
+
+  useEffect(() => {
+    if (!user || !profile?.school_id) return;
+    supabase.from("class_teachers").select("id").eq("user_id", user.id).eq("school_id", profile.school_id).limit(1).then(({ data }) => {
+      setIsWaliKelas((data || []).length > 0);
+    });
+  }, [user, profile?.school_id]);
 
   useEffect(() => {
     if (!profile?.school_id) return;
@@ -167,14 +178,24 @@ function AppContent() {
                     Affiliate & Komisi
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => navigate("/panduan")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
-                  <BookOpen className="h-4 w-4 mr-2.5 text-muted-foreground" />
-                  Panduan
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
-                  <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
-                  Bantuan
-                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                    <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                    Pusat Bantuan
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="rounded-2xl shadow-elevated border-border/50">
+                      <DropdownMenuItem onClick={() => navigate("/panduan")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                        <BookOpen className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                        Panduan Penggunaan
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                        <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                        Hubungi Support
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <LogOut className="h-4 w-4 mr-2.5" />
@@ -187,7 +208,7 @@ function AppContent() {
         <main className={cn("flex-1 overflow-auto p-3 sm:p-5 md:p-6", isMobileDevice && "pb-24")}>
           <Outlet />
         </main>
-        {isMobileDevice && <MobileFooterNav items={buildFooterItems(isTeacherOnly)} />}
+        {isMobileDevice && <MobileFooterNav items={buildFooterItems(isTeacherOnly, isWaliKelas)} />}
       </div>
     </>
   );

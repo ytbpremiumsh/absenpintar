@@ -96,6 +96,17 @@ import {
   BendaharaTransaksi, BendaharaSPPDetail, BendaharaImportExport,
   BendaharaSaldo, BendaharaPencairan, BendaharaSettlement, BendaharaLaporan,
 } from "./pages/bendahara/BendaharaPages";
+import BendaharaKeuangan from "./pages/bendahara/BendaharaKeuangan";
+import LaporanAbsensi from "./pages/LaporanAbsensi";
+import JadwalCombined from "./pages/JadwalCombined";
+import LanggananCombined from "./pages/LanggananCombined";
+import WaliKelasLaporan from "./pages/WaliKelasLaporan";
+import MapelLaporan from "./pages/MapelLaporan";
+import TeacherWaliDashboard from "./pages/TeacherWaliDashboard";
+import SuperAdminSubscriptionsHub from "./pages/super-admin/SuperAdminSubscriptionsHub";
+import SuperAdminWhatsAppHub from "./pages/super-admin/SuperAdminWhatsAppHub";
+import SuperAdminCMS from "./pages/super-admin/SuperAdminCMS";
+import SuperAdminSekolahHub from "./pages/super-admin/SuperAdminSekolahHub";
 
 const queryClient = new QueryClient();
 
@@ -133,38 +144,46 @@ function AppRoutes() {
         <Route path="/bendahara/transaksi" element={<BendaharaTransaksi />} />
         <Route path="/bendahara/transaksi/:studentId" element={<BendaharaSPPDetail />} />
         <Route path="/bendahara/import-export" element={<BendaharaImportExport />} />
-        <Route path="/bendahara/saldo" element={<BendaharaSaldo />} />
-        <Route path="/bendahara/pencairan" element={<BendaharaPencairan />} />
+        <Route path="/bendahara/keuangan" element={<BendaharaKeuangan />} />
+        <Route path="/bendahara/saldo" element={<Navigate to="/bendahara/keuangan?tab=saldo" replace />} />
+        <Route path="/bendahara/pencairan" element={<Navigate to="/bendahara/keuangan?tab=pencairan" replace />} />
+        <Route path="/bendahara/laporan" element={<Navigate to="/bendahara/keuangan?tab=laporan" replace />} />
         <Route path="/bendahara/settlement" element={<BendaharaSettlement />} />
-        <Route path="/bendahara/laporan" element={<BendaharaLaporan />} />
         <Route path="/bendahara/gateway" element={<Navigate to="/bendahara" replace />} />
       </Route>
       <Route element={<SuperAdminLayout />}>
         <Route path="/super-admin" element={<SuperAdminDashboard />} />
-        <Route path="/super-admin/schools" element={<SuperAdminSchools />} />
-        <Route path="/super-admin/plans" element={<SuperAdminPlans />} />
-        <Route path="/super-admin/subscriptions" element={<SuperAdminSubscriptions />} />
+        {/* Sekolah Hub */}
+        <Route path="/super-admin/sekolah" element={<SuperAdminSekolahHub />} />
+        <Route path="/super-admin/schools" element={<Navigate to="/super-admin/sekolah?tab=schools" replace />} />
+        <Route path="/super-admin/branches" element={<Navigate to="/super-admin/sekolah?tab=branches" replace />} />
+        <Route path="/super-admin/login-logs" element={<Navigate to="/super-admin/sekolah?tab=logs" replace />} />
+        {/* Subscriptions Hub */}
+        <Route path="/super-admin/langganan" element={<SuperAdminSubscriptionsHub />} />
+        <Route path="/super-admin/plans" element={<Navigate to="/super-admin/langganan?tab=plans" replace />} />
+        <Route path="/super-admin/subscriptions" element={<Navigate to="/super-admin/langganan?tab=schools" replace />} />
+        <Route path="/super-admin/addons" element={<Navigate to="/super-admin/langganan?tab=addons" replace />} />
         <Route path="/super-admin/payments" element={<SuperAdminPayments />} />
-        <Route path="/super-admin/whatsapp" element={<SuperAdminWhatsApp />} />
-        <Route path="/super-admin/branches" element={<SuperAdminBranches />} />
+        {/* WhatsApp Hub */}
+        <Route path="/super-admin/wa" element={<SuperAdminWhatsAppHub />} />
+        <Route path="/super-admin/whatsapp" element={<Navigate to="/super-admin/wa?tab=api" replace />} />
+        <Route path="/super-admin/registration-wa" element={<Navigate to="/super-admin/wa?tab=aktivasi" replace />} />
         <Route path="/super-admin/announcements" element={<SuperAdminAnnouncements />} />
         <Route path="/super-admin/tickets" element={<SuperAdminTickets />} />
-        <Route path="/super-admin/landing" element={<SuperAdminLanding />} />
-        <Route path="/super-admin/registration-wa" element={<SuperAdminRegistrationWA />} />
         <Route path="/super-admin/email" element={<SuperAdminEmail />} />
-        <Route path="/super-admin/auto-caption" element={<SuperAdminAutoCaption />} />
-        <Route path="/super-admin/fitur" element={<SuperAdminPresentation />} />
-        
-        <Route path="/super-admin/testimonials" element={<SuperAdminTestimonials />} />
-        <Route path="/super-admin/login-logs" element={<SuperAdminLoginLogs />} />
+        {/* CMS Hub */}
+        <Route path="/super-admin/cms" element={<SuperAdminCMS />} />
+        <Route path="/super-admin/landing" element={<Navigate to="/super-admin/cms?tab=landing" replace />} />
+        <Route path="/super-admin/fitur" element={<Navigate to="/super-admin/cms?tab=fitur" replace />} />
+        <Route path="/super-admin/penawaran" element={<Navigate to="/super-admin/cms?tab=penawaran" replace />} />
+        <Route path="/super-admin/panduan" element={<Navigate to="/super-admin/cms?tab=panduan" replace />} />
+        <Route path="/super-admin/testimonials" element={<Navigate to="/super-admin/cms?tab=testimoni" replace />} />
+        <Route path="/super-admin/auto-caption" element={<Navigate to="/super-admin/cms?tab=caption" replace />} />
         <Route path="/super-admin/referral" element={<SuperAdminReferral />} />
-        <Route path="/super-admin/penawaran" element={<SuperAdminPenawaran />} />
         <Route path="/super-admin/affiliate" element={<SuperAdminAffiliate />} />
         <Route path="/super-admin/backup" element={<SuperAdminBackup />} />
-        <Route path="/super-admin/addons" element={<SuperAdminAddons />} />
         <Route path="/super-admin/server-info" element={<SuperAdminServerInfo />} />
         <Route path="/super-admin/bendahara" element={<SuperAdminBendahara />} />
-        <Route path="/super-admin/panduan" element={<SuperAdminPanduan />} />
       </Route>
       {/* School Admin / Staff */}
       <Route element={<AppLayout />}>
@@ -178,30 +197,41 @@ function AppRoutes() {
         <Route path="/wali-kelas" element={<ManageWaliKelas />} />
         <Route path="/staff" element={<ManageStaff />} />
         <Route path="/bendahara-manage" element={<ManageBendahara />} />
-        <Route path="/wali-kelas-dashboard" element={<WaliKelasDashboard />} />
+        {/* Teacher + Wali Kelas dashboard tabbed */}
+        <Route path="/teacher-dashboard" element={<TeacherWaliDashboard />} />
+        <Route path="/wali-kelas-dashboard" element={<Navigate to="/teacher-dashboard?tab=wali" replace />} />
         <Route path="/wali-kelas-attendance" element={<WaliKelasAttendance />} />
         <Route path="/wali-kelas-students" element={<WaliKelasStudents />} />
-        <Route path="/wali-kelas-export" element={<WaliKelasExportHistory />} />
-        <Route path="/wali-kelas-history" element={<WaliKelasHistoryPage />} />
+        {/* Wali Kelas Laporan tabbed */}
+        <Route path="/wali-kelas/laporan" element={<WaliKelasLaporan />} />
+        <Route path="/wali-kelas-export" element={<Navigate to="/wali-kelas/laporan?tab=rekap" replace />} />
+        <Route path="/wali-kelas-history" element={<Navigate to="/wali-kelas/laporan?tab=analitik" replace />} />
         <Route path="/leave-requests" element={<LeaveRequests />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/export-history" element={<ExportHistory />} />
-        <Route path="/edit-attendance" element={<EditAttendance />} />
+        {/* Laporan Absensi tabbed (admin/operator) */}
+        <Route path="/laporan-absensi" element={<LaporanAbsensi />} />
+        <Route path="/history" element={<Navigate to="/laporan-absensi?tab=analitik" replace />} />
+        <Route path="/export-history" element={<Navigate to="/laporan-absensi?tab=rekap" replace />} />
+        <Route path="/edit-attendance" element={<Navigate to="/laporan-absensi?tab=riwayat" replace />} />
+        {/* Mapel Laporan tabbed (guru) */}
+        <Route path="/mapel/laporan" element={<MapelLaporan />} />
         <Route path="/teacher-attendance" element={<TeacherAttendanceRecap />} />
-        <Route path="/subscription" element={<Subscription />} />
+        {/* Langganan tabbed */}
+        <Route path="/langganan" element={<LanggananCombined />} />
+        <Route path="/subscription" element={<Navigate to="/langganan?tab=paket" replace />} />
+        <Route path="/addons" element={<Navigate to="/langganan?tab=addon" replace />} />
         <Route path="/school-settings" element={<SchoolSettings />} />
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/support" element={<SupportTickets />} />
         <Route path="/referral" element={<ReferralDashboard />} />
         <Route path="/affiliate-teacher" element={<TeacherAffiliate />} />
         <Route path="/whatsapp" element={<WhatsAppSettings />} />
-        <Route path="/addons" element={<Addons />} />
         <Route path="/custom-domain" element={<CustomDomain />} />
         <Route path="/order-idcard" element={<OrderIdCard />} />
         <Route path="/wa-credit" element={<WaCredit />} />
-        <Route path="/teaching-schedule" element={<TeachingSchedule />} />
-        <Route path="/live-schedule" element={<LiveSchedule />} />
-        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+        {/* Jadwal tabbed */}
+        <Route path="/jadwal" element={<JadwalCombined />} />
+        <Route path="/teaching-schedule" element={<Navigate to="/jadwal?tab=mengajar" replace />} />
+        <Route path="/live-schedule" element={<Navigate to="/jadwal?tab=live" replace />} />
         <Route path="/announcements" element={<SchoolAnnouncements />} />
         <Route path="/wa-templates" element={<Navigate to="/whatsapp" replace />} />
         <Route path="/wa-broadcast" element={<Navigate to="/whatsapp" replace />} />

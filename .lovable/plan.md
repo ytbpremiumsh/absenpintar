@@ -1,105 +1,119 @@
-## Analisa Duplikasi Fitur per Role
+## Tujuan
+Rapikan menu di semua role tanpa menghilangkan fitur. Setiap fitur lama tetap dapat diakses, hanya dikelompokkan ulang ke halaman bertab supaya UI lebih bersih dan tidak membingungkan.
 
-Saya audit seluruh menu sidebar, mobile footer, dan dropdown header untuk 5 role aktif. Berikut temuannya — banyak entri yang **mengarah ke halaman sama** atau **fitur sangat mirip** sehingga UI terlihat ramai.
-
----
-
-### 1. Role: Admin Sekolah / Operator (AppSidebar)
-
-**Duplikasi & overlap yang ditemukan:**
-
-| # | Item | Lokasi | Masalah |
-|---|------|--------|---------|
-| 1 | "Rekap Absensi" (`/export-history`) vs "Analytic Kelas" (`/history`) | Grup Laporan | Dua menu dengan data dasar sama, hanya beda tampilan tabel/chart. Bisa jadi 1 halaman dengan tab. |
-| 2 | "Riwayat Absensi" (`/edit-attendance`) | Grup Laporan | Sebenarnya halaman edit, bukan laporan. Salah grup → user bingung dengan "Rekap Absensi". |
-| 3 | "Jadwal Mengajar" + "Jadwal Live" | Grup Jadwal | Dua menu mirip — Jadwal Live hanya tampilan realtime dari Jadwal Mengajar. Bisa digabung jadi 1 halaman dengan toggle "Live". |
-| 4 | "Wali Murid" (`/teachers`) — label menyesatkan | Grup Data Sekolah | URL `/teachers` tetapi label "Wali Murid". Membingungkan vs "Wali Kelas" + "Guru & Staff". |
-| 5 | "Wali Kelas" + "Guru & Staff" | Grup Data Sekolah | Wali Kelas adalah subset Guru. 2 menu untuk objek yg sama → bisa jadi 1 halaman dengan filter role. |
-| 6 | "Langganan" + "Add-on" | Grup Pengaturan | Add-on adalah bagian dari ekosistem langganan. Bisa jadi 1 halaman dengan tab "Paket" & "Add-on". |
-| 7 | Mobile footer "Siswa" + sidebar "Siswa" + sidebar "Wali Murid" | Footer & sidebar | Tiga entry tentang siswa/wali. |
-| 8 | Dropdown "Panduan" + "Bantuan" | Header | Dua menu support side-by-side. OK tapi bisa digabung jadi satu menu "Pusat Bantuan". |
-
-**Total menu sidebar admin sekolah saat ini: ±20 item** (tidak termasuk Logout). Ideal: 12–14.
+## Prinsip
+- Tidak menghapus halaman/route lama → route lama di-redirect ke halaman gabungan + tab yang sesuai (kompatibilitas bookmark, link WA, dsb).
+- Penggabungan dilakukan di level halaman (Tabs), bukan menghapus komponen. Komponen halaman existing dipakai ulang sebagai konten tab.
+- Sidebar & footer mobile dirapikan; dropdown profil tetap menjadi tempat aksi personal.
 
 ---
 
-### 2. Role: Guru Mata Pelajaran (isTeacherOnly)
+## 1. Admin Sekolah / Operator (sidebar dari ±20 → ±13 item)
 
-| # | Item | Masalah |
-|---|------|---------|
-| 1 | "Rekap Absensi Mapel" (`/export-history`) vs "Analytic Mapel" (`/history`) | Sama persis polanya seperti admin — 2 halaman dasar data sama. |
-| 2 | Footer "Siswa" → `/wali-kelas-students` muncul **walaupun guru bukan wali kelas** | Mobile footer salah konteks — guru biasa tidak punya kelas wali. |
+### Penggabungan halaman
+| Halaman baru | Tab | Sumber lama |
+|---|---|---|
+| `/laporan-absensi` | Rekap • Analitik • Riwayat Edit | `/export-history`, `/history`, `/edit-attendance` |
+| `/jadwal` | Jadwal Mengajar • Live | `/teaching-schedule`, `/live-schedule` |
+| `/langganan` | Paket • Add-on | `/subscription`, `/addons` |
+| `/data-sekolah/orang-tua` (rename) | — | `/teachers` (label "Wali Murid") → "Orang Tua" |
 
----
+Route lama → redirect ke tab yang benar (mis. `/export-history` → `/laporan-absensi?tab=rekap`).
 
-### 3. Role: Wali Kelas (muncul tambahan jika `isWaliKelas`)
-
-Sangat ramai — 6 menu eksklusif wali kelas:
-- Dashboard Kelas
+### Sidebar admin sesudah konsolidasi
+- Dashboard
+- Monitoring
+- Scan QR
+- Siswa
+- **Data Sekolah** (group): Kelas, Wali Kelas, Guru & Staff, Orang Tua
 - Absensi Manual
-- Siswa Kelas Saya
-- Rekap Absensi Kelas
-- **Analytic Kelas Wali**
+- **Laporan Absensi** (1 menu, 3 tab)
+- **Jadwal** (1 menu, toggle Live)
+- Pengumuman Sekolah
 - Pengajuan Izin/Sakit
+- WhatsApp (Broadcast & History tetap)
+- **Pengaturan** (group): Identitas Sekolah, Langganan & Add-on, Pengaturan WA, Backup
 
-| # | Duplikasi |
-|---|-----------|
-| 1 | "Rekap Absensi Kelas" (`/wali-kelas-export`) vs "Analytic Kelas Wali" (`/wali-kelas-history`) — pola sama, gabung jadi 1. |
-| 2 | Wali kelas yang juga guru mapel akan melihat **2 grup** ("Guru Mata Pelajaran" + "Wali Kelas") = total 9–10 menu, dengan 2 dashboard berbeda + 2 pasang Rekap/Analytic. **UI sangat ramai.** |
-| 3 | "Dashboard Guru" + "Dashboard Kelas" — keduanya dashboard, hanya scope berbeda. Bisa jadi 1 dashboard dengan tab. |
+### Mobile footer admin: tetap (Dashboard, Monitoring, Scan, Siswa, Jadwal).
 
 ---
 
-### 4. Role: Bendahara (BendaharaSidebar)
-
-Terstruktur baik (10 item, 4 grup). Hanya ada 1 catatan:
-
-| # | Catatan |
-|---|---------|
-| 1 | "Saldo & Riwayat" + "Pencairan & Settlement" + "Laporan & Export" — 3 menu keuangan saling tumpang tindih konteksnya (riwayat ada di mana-mana). Konsolidasi → "Keuangan" 1 halaman dengan tab. |
+## 2. Guru Mata Pelajaran
+- Halaman gabungan `/mapel/laporan` dengan tab Rekap • Analitik (sumber: `/export-history`, `/history` versi guru).
+- Mobile footer guru (bukan wali kelas): item ke-4 berubah dari "Siswa" → **"Riwayat"** (`/mapel/laporan`). Bila user juga wali kelas, tetap "Siswa" → `/wali-kelas-students`.
 
 ---
 
-### 5. Role: Super Admin (SuperAdminLayout)
+## 3. Wali Kelas (juga sering merangkap Guru Mapel)
 
-**Sangat ramai** — 26 item menu di 7 grup. Beberapa overlap:
+### Dashboard tabbed
+- Halaman `/dashboard` jadi 1 dengan tab **Mengajar** dan **Kelas Wali** (muncul bila user wali kelas). Menggantikan dua dashboard terpisah.
+- `/teacher-dashboard` & `/wali-kelas-dashboard` redirect ke `/dashboard?tab=mengajar|wali`.
 
-| # | Duplikasi |
-|---|-----------|
-| 1 | "Aktivasi WA Sekolah" + "Konfigurasi API WA" | Dua halaman pengaturan WhatsApp — sebaiknya 1 halaman dengan tab. |
-| 2 | "Paket Langganan" + "Langganan Sekolah" + "Kelola Add-on" | Tiga menu tentang plan/subscription — bisa jadi 1 halaman tab. |
-| 3 | "Branding & Landing" + "Halaman Fitur" + "Halaman Penawaran" + "Editor Panduan" + "Testimoni & Sekolah" + "Auto Caption AI" | 6 menu konten publik — bisa konsolidasi jadi "CMS Konten" dengan sub-tab. |
-| 4 | "Kelola Sekolah" + "Multi Cabang" + "Log Login" | Bisa jadi 1 halaman "Sekolah" dengan tab. |
-| 5 | Footer mobile super-admin "Setting" mengarah ke `/super-admin/landing` — tidak intuitif (label tidak match destinasi). |
+### Laporan Wali Kelas tabbed
+- Halaman `/wali-kelas/laporan` dengan tab Rekap • Analitik (sumber: `/wali-kelas-export`, `/wali-kelas-history`).
 
----
-
-### Ringkasan Rekomendasi (Skala Dampak)
-
-**Quick wins (dampak besar, effort kecil):**
-1. Gabung **Rekap Absensi + Analytic** jadi 1 halaman dengan tab (berlaku di 3 role: admin, guru, wali kelas).
-2. Gabung **Langganan + Add-on** jadi 1 halaman.
-3. Pindahkan **"Riwayat Absensi"** (edit) dari grup Laporan → grup khusus atau dropdown profil.
-4. Gabung **Jadwal Mengajar + Jadwal Live** jadi 1 halaman dengan toggle.
-5. Rename "Wali Murid" → "Orang Tua" agar tidak rancu dengan "Wali Kelas".
-
-**Konsolidasi struktural (dampak besar, effort sedang):**
-6. Super Admin: gabung 3 menu Subscription, 2 menu WA, 6 menu Konten → ±15 menu (dari 26).
-7. Wali kelas + guru mapel: bikin **1 dashboard tabbed** ("Mengajar" / "Kelas Wali") menggantikan 2 dashboard terpisah.
-8. Bendahara: gabung "Saldo / Pencairan / Laporan" → "Keuangan" tabbed.
-
-**Perbaikan ringan:**
-9. Mobile footer guru: ganti "Siswa" → "Riwayat" jika bukan wali kelas.
-10. Dropdown header: gabung "Panduan" + "Bantuan" jadi satu submenu "Pusat Bantuan".
+### Sidebar wali kelas (dari ~10 → 6 item)
+- Dashboard (tabbed)
+- Absensi Manual Kelas
+- Siswa Kelas Saya
+- Laporan Kelas (tabbed)
+- Pengajuan Izin/Sakit
+- (menu Guru Mapel tetap muncul jika user juga guru mapel, tanpa duplikasi dashboard)
 
 ---
 
-### Pertanyaan untuk User
+## 4. Bendahara
+Halaman gabungan `/bendahara/keuangan` dengan tab **Saldo & Riwayat • Pencairan • Laporan & Export**.
+Sidebar bendahara grup "Keuangan" jadi 1 item (Keuangan), grup lainnya tetap. Total 8 item (dari 10).
 
-Sebelum saya implementasi, mohon konfirmasi prioritas:
+---
 
-- **Opsi A** — Quick wins saja (#1–#5). Cepat, low risk, langsung terasa rapi.
-- **Opsi B** — Quick wins + konsolidasi Super Admin (#1–#6). Effort sedang.
-- **Opsi C** — Full restructure (#1–#10). Effort besar, hasil paling bersih, butuh adaptasi user lama.
+## 5. Super Admin (sidebar dari 26 → ±15 item)
 
-Setelah Anda pilih, saya susun plan implementasi detail per file.
+### Penggabungan
+| Halaman baru | Tab | Sumber lama |
+|---|---|---|
+| `/super-admin/subscriptions` | Paket Langganan • Langganan Sekolah • Add-on | `super-admin/plans`, `super-admin/subscriptions`, `super-admin/addons` |
+| `/super-admin/whatsapp` | Konfigurasi API • Aktivasi Sekolah | `super-admin/whatsapp`, `super-admin/registration-wa` |
+| `/super-admin/cms` | Branding • Landing • Halaman Fitur • Penawaran • Panduan • Testimoni • Auto Caption | 6 menu konten terpisah |
+| `/super-admin/sekolah` | Daftar Sekolah • Multi Cabang • Log Login | `super-admin/schools`, `super-admin/branches`, `super-admin/login-logs` |
+
+Footer mobile super admin: ganti label "Setting" → "CMS" agar match destinasi `/super-admin/cms`.
+
+---
+
+## 6. Header Dropdown Profil (semua role)
+- Gabung **Panduan + Bantuan** menjadi 1 submenu **"Pusat Bantuan"** (membuka popover dengan dua opsi: Panduan Penggunaan, Hubungi Support / Tiket).
+- Tambahkan **"Riwayat Edit Absensi"** ke dropdown admin (akses cepat) — selain tab di Laporan Absensi.
+
+---
+
+## Catatan Teknis (untuk eksekusi)
+
+```
+Halaman bertab baru → file baru di src/pages/ yang me-render <Tabs> dan
+me-mount komponen halaman lama tanpa modifikasi besar:
+
+  /laporan-absensi  → ExportHistory + History + EditAttendance
+  /jadwal           → TeachingSchedule + LiveSchedule
+  /langganan        → Subscription + Addons
+  /wali-kelas/laporan → WaliKelasExportHistory + WaliKelasHistory
+  /mapel/laporan    → ExportHistory + History (mode guru)
+  /bendahara/keuangan → Saldo + Pencairan + Laporan komponen existing
+  /super-admin/subscriptions, /whatsapp, /cms, /sekolah → analog
+  /dashboard tabbed  → Dashboard + WaliKelasDashboard
+```
+
+- Route lama tetap terdaftar di `App.tsx` tetapi me-render `<Navigate to="/halaman-baru?tab=…" replace />` agar tidak ada link mati.
+- Sidebar (`AppSidebar`, `BendaharaSidebar`, `SuperAdminLayout`) di-edit untuk merefleksikan menu baru. Item yang digabung dihapus dari array menu.
+- Dropdown profil di `AppLayout.tsx` ganti dua item (Panduan + Bantuan) jadi satu submenu "Pusat Bantuan".
+- Tab aktif dibaca dari query param `?tab=...` dengan default ke tab pertama.
+- Tidak ada perubahan database, edge function, atau RLS.
+
+## Hasil yang diharapkan
+- Admin Sekolah: 20 → 13 menu sidebar.
+- Wali Kelas merangkap guru: 10 → 6 menu, 1 dashboard tabbed (dari 2).
+- Bendahara: 10 → 8 menu.
+- Super Admin: 26 → ~15 menu.
+- Semua fitur tetap dapat diakses; bookmark/URL lama tetap berfungsi via redirect.
