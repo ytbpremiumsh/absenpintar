@@ -80,10 +80,11 @@ const Login = () => {
       // Persist remember-me preference
       if (rememberMe) {
         localStorage.setItem("remembered_email", email);
-        sessionStorage.removeItem("ephemeral_session");
+        localStorage.removeItem("was_ephemeral");
       } else {
         localStorage.removeItem("remembered_email");
-        sessionStorage.setItem("ephemeral_session", "1");
+        localStorage.setItem("was_ephemeral", "1");
+        sessionStorage.setItem("tab_alive", "1");
       }
       toast.success("Login berhasil!");
       const { data: { user } } = await supabase.auth.getUser();
