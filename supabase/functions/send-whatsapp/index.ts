@@ -252,8 +252,16 @@ serve(async (req) => {
       });
     }
 
-    // ═══ Check WA credits ═══
-    if (school_id) {
+    // ═══ Check WA credits (only when add-on enabled) ═══
+    let waCreditAddonEnabled = true;
+    {
+      const { data: addonFlag } = await supabaseAdmin
+        .from('platform_settings').select('value')
+        .eq('key', 'addon_wa_credit_enabled').maybeSingle();
+      if (addonFlag?.value === 'false' || addonFlag?.value === false) waCreditAddonEnabled = false;
+    }
+
+    if (school_id && waCreditAddonEnabled) {
       const messageCount = (phone ? 1 : 0) + (group_id ? 1 : 0);
       const { data: credit } = await supabaseAdmin
         .from('wa_credits')
