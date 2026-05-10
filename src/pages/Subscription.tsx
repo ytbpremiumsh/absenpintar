@@ -61,7 +61,7 @@ const Subscription = () => {
         ...p,
         features: Array.isArray(p.features) ? p.features : [],
       }));
-      setPlans(parsed);
+      setPlans(transformPlanFeatures(parsed, waCreditEnabled));
 
       if (profile?.school_id) {
         const [subRes, classesRes, studentRes, historyRes, creditRes] = await Promise.all([
