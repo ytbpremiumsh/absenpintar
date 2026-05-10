@@ -201,9 +201,8 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-1">
                    {renderNavItems([
-                    { title: "Dashboard Guru", url: "/teacher-dashboard", icon: BookOpen, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-                    { title: "Rekap Absensi Mapel", url: "/export-history", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-                    { title: "Analytic Mapel", url: "/history", icon: Activity, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Dashboard", url: "/teacher-dashboard", icon: BookOpen, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Laporan Mapel", url: "/mapel/laporan", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                   ])}
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -214,11 +213,9 @@ export function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu className="space-y-1">
                      {renderNavItems([
-                      { title: "Dashboard Kelas", url: "/wali-kelas-dashboard", icon: LayoutDashboard, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                       { title: "Absensi Manual", url: "/wali-kelas-attendance", icon: ClipboardCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                       { title: "Siswa Kelas Saya", url: "/wali-kelas-students", icon: Users, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-                      { title: "Rekap Absensi Kelas", url: "/wali-kelas-export", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-                      { title: "Analytic Kelas Wali", url: "/wali-kelas-history", icon: Activity, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                      { title: "Laporan Kelas", url: "/wali-kelas/laporan", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                       { title: "Pengajuan Izin/Sakit", url: "/leave-requests", icon: FileText, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                     ])}
                   </SidebarMenu>
@@ -262,10 +259,9 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-1">
                   {renderNavItems([
-                    { title: "Rekap Absensi", url: "/export-history", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Laporan Absensi", url: "/laporan-absensi", icon: BarChart3, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                     { title: "Rekap Absensi Guru", url: "/teacher-attendance", icon: UsersRound, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-                    { title: "Analytic Kelas", url: "/history", icon: Activity, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-                    { title: "Riwayat Absensi", url: "/edit-attendance", icon: PenLine, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+                    { title: "Pengajuan Izin/Sakit", url: "/leave-requests", icon: FileText, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
                   ])}
                 </SidebarMenu>
               </SidebarGroupContent>
