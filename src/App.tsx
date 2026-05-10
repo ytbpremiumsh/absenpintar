@@ -96,6 +96,17 @@ import {
   BendaharaTransaksi, BendaharaSPPDetail, BendaharaImportExport,
   BendaharaSaldo, BendaharaPencairan, BendaharaSettlement, BendaharaLaporan,
 } from "./pages/bendahara/BendaharaPages";
+import BendaharaKeuangan from "./pages/bendahara/BendaharaKeuangan";
+import LaporanAbsensi from "./pages/LaporanAbsensi";
+import JadwalCombined from "./pages/JadwalCombined";
+import LanggananCombined from "./pages/LanggananCombined";
+import WaliKelasLaporan from "./pages/WaliKelasLaporan";
+import MapelLaporan from "./pages/MapelLaporan";
+import TeacherWaliDashboard from "./pages/TeacherWaliDashboard";
+import SuperAdminSubscriptionsHub from "./pages/super-admin/SuperAdminSubscriptionsHub";
+import SuperAdminWhatsAppHub from "./pages/super-admin/SuperAdminWhatsAppHub";
+import SuperAdminCMS from "./pages/super-admin/SuperAdminCMS";
+import SuperAdminSekolahHub from "./pages/super-admin/SuperAdminSekolahHub";
 
 const queryClient = new QueryClient();
 
