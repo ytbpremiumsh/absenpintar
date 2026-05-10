@@ -313,7 +313,7 @@ export default function ParentDashboard() {
         </div>
       </div>
 
-      <div className="md:flex md:gap-6 md:max-w-6xl md:mx-auto md:px-6 md:pt-5">
+      <div className="md:flex md:gap-6 md:max-w-6xl md:mx-auto md:px-6 pt-5 md:pt-5">
 
       {/* DESKTOP/TABLET LEFT SIDEBAR */}
       <aside className="hidden md:flex flex-col w-[230px] shrink-0 sticky top-[68px] self-start max-h-[calc(100vh-5rem)] bg-card rounded-3xl shadow-card border border-border/40 p-3.5">
