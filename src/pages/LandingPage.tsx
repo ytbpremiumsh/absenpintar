@@ -734,7 +734,7 @@ const LandingPage = () => {
           </motion.div>
 
           <PlanCardsGrid
-            plans={plans as any}
+            plans={transformPlanFeatures(plans as any, waCreditEnabled)}
             ctaLabel="Mulai Sekarang"
             hidePremiumBadge
             onSelect={() => navigate("/register")}
