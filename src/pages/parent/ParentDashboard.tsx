@@ -273,7 +273,7 @@ export default function ParentDashboard() {
     <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
       {/* Top Bar — sticky responsive */}
       <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border/40 shadow-sm">
-        <div className="max-w-md md:max-w-xl mx-auto px-5 md:px-6 pt-3 md:pt-4 pb-3">
+        <div className="max-w-md md:max-w-5xl mx-auto px-5 md:px-8 pt-3 md:pt-4 pb-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
