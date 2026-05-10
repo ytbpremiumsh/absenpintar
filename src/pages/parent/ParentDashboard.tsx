@@ -1115,7 +1115,11 @@ export default function ParentDashboard() {
         )}
 
       </div>
+      {/* end MAIN COLUMN */}
+      </div>
 
+      </div>
+      {/* end md:flex wrapper */}
 
 
       <nav className="md:hidden fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
