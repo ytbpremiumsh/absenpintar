@@ -37,6 +37,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
+    // "Ingat Saya" enforcement: if user logged in with Remember Me OFF
+    // (ephemeral session), sign them out when the browser/tab is reopened
+    // in a fresh tab (no sessionStorage tab marker).
+    try {
+      const wasEphemeral = localStorage.getItem("was_ephemeral") === "1";
+      const tabAlive = sessionStorage.getItem("tab_alive") === "1";
+      if (wasEphemeral && !tabAlive) {
+        supabase.auth.signOut().catch(() => {});
+        localStorage.removeItem("was_ephemeral");
+      }
+      sessionStorage.setItem("tab_alive", "1");
+    } catch {}
+
     // Safety timeout: never let the app stay in "loading" forever.
     const safety = setTimeout(() => {
       if (mounted) setLoading(false);
