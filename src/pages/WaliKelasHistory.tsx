@@ -131,7 +131,7 @@ const WaliKelasHistory = () => {
   if (assignments.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader icon={Activity} title="Analytic Kelas Wali" subtitle="Analisa kehadiran umum kelas wali Anda" />
+        <PageHeader icon={Activity} title="Analytic Wali Kelas" subtitle="Analisa kehadiran umum wali kelas Anda" />
         <Card className="border-0 shadow-card">
           <CardContent className="p-10 text-center text-muted-foreground">Anda belum ditugaskan sebagai wali kelas.</CardContent>
         </Card>
@@ -141,7 +141,7 @@ const WaliKelasHistory = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Activity} title="Analytic Kelas Wali" subtitle="Analisa kehadiran umum (Datang) untuk kelas wali Anda" />
+      <PageHeader icon={Activity} title="Analytic Wali Kelas" subtitle="Analisa kehadiran umum (Datang) untuk wali kelas Anda" />
 
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">

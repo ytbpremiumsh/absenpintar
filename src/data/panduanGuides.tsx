@@ -273,7 +273,7 @@ export const GUIDES: RoleGuide[] = [
     intro:
       "Panduan untuk Wali Kelas (contoh: Ibu Uswatun Khasanah, S.Pd) dalam memantau siswa kelasnya, leaderboard antar kelas, absensi manual, dan pengajuan izin.",
     highlights: [
-      "Dashboard kelas wali",
+      "Dashboard wali kelas",
       "Leaderboard antar kelas",
       "Absensi manual H/S/I/A",
       "Approve izin & sakit",
@@ -342,9 +342,9 @@ export const GUIDES: RoleGuide[] = [
         ],
       },
       {
-        title: "6. Analytic Kelas Wali",
+        title: "6. Analytic Wali Kelas",
         description:
-          "Analisa mendalam kehadiran kelas wali Anda dalam bentuk donut chart, tren harian, dan ringkasan per siswa.",
+          "Analisa mendalam kehadiran wali kelas Anda dalam bentuk donut chart, tren harian, dan ringkasan per siswa.",
         image: "/panduan/wali-kelas-analytic.jpg",
         bullets: [
           "Filter rentang: 7 hari / 14 hari / 30 hari / custom.",

@@ -180,7 +180,7 @@ const WaliKelasDashboard = () => {
   if (assignments.length === 0) {
     return (
       <div className="space-y-6">
-        <PageHeader icon={GraduationCap} title="Dashboard Wali Kelas" subtitle="Belum ada kelas wali yang ditugaskan" />
+        <PageHeader icon={GraduationCap} title="Dashboard Wali Kelas" subtitle="Belum ada wali kelas yang ditugaskan" />
         <Card className="border-0 shadow-card">
           <CardContent className="p-10 text-center">
             <GraduationCap className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />

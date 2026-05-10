@@ -278,7 +278,7 @@ const WaliKelasExportHistory = () => {
     return (
       <PremiumGate featureLabel="Rekap Absensi Kelas" featureKey="canExportReport" requiredPlan="Basic">
         <div className="space-y-6">
-          <PageHeader icon={ClipboardList} title="Rekap Absensi Kelas" subtitle="Rekap absensi umum kelas wali" />
+          <PageHeader icon={ClipboardList} title="Rekap Absensi Kelas" subtitle="Rekap absensi umum wali kelas" />
           <Card className="border-0 shadow-card">
             <CardContent className="p-10 text-center text-muted-foreground">
               Anda belum ditugaskan sebagai wali kelas.
@@ -292,7 +292,7 @@ const WaliKelasExportHistory = () => {
   return (
     <PremiumGate featureLabel="Rekap Absensi Kelas" featureKey="canExportReport" requiredPlan="Basic">
       <div className="space-y-5">
-        <PageHeader icon={ClipboardList} title="Rekap Absensi Kelas" subtitle="Rekap absensi umum (Datang/Pulang) untuk kelas wali Anda" />
+        <PageHeader icon={ClipboardList} title="Rekap Absensi Kelas" subtitle="Rekap absensi umum (Datang/Pulang) untuk wali kelas Anda" />
 
         {/* Filter Bar */}
         <div className="flex flex-wrap items-end gap-4">
