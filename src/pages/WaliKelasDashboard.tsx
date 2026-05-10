@@ -507,18 +507,9 @@ function WaliKelasMobileDashboard({
   return (
     <div className="md:hidden -mx-4 -mt-4 pb-32 min-h-screen bg-gradient-to-b from-[#5B6CF9]/10 via-background to-background">
       {/* Top bar */}
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Kelas</p>
-          <p className="text-sm font-bold truncate max-w-[220px]">{classNames.join(", ") || "Kelas Saya"}</p>
-        </div>
-        <button
-          onClick={() => navigate("/wali-kelas-history")}
-          className="h-9 w-9 rounded-full bg-white shadow-sm ring-1 ring-border/60 flex items-center justify-center active:scale-95 transition"
-          aria-label="History"
-        >
-          <Activity className="h-4 w-4 text-[#5B6CF9]" />
-        </button>
+      <div className="px-4 pt-4 pb-3">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali Kelas</p>
+        <p className="text-sm font-bold truncate max-w-[260px]">{classNames.join(", ") || "Kelas Saya"}</p>
       </div>
 
       <div className="px-4 space-y-4">
@@ -553,27 +544,7 @@ function WaliKelasMobileDashboard({
             </div>
           </div>
 
-          {/* 3 quick actions */}
-          <div className="relative mt-5 flex items-center justify-around">
-            <button onClick={() => navigate("/wali-kelas-attendance")} className="flex flex-col items-center gap-1.5 group">
-              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
-                <CalendarCheck2 className="h-4 w-4" />
-              </div>
-              <span className="text-[10px] font-medium text-white/90">Absensi</span>
-            </button>
-            <button onClick={() => navigate("/wali-kelas-students")} className="flex flex-col items-center gap-1.5 group">
-              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
-                <Users className="h-4 w-4" />
-              </div>
-              <span className="text-[10px] font-medium text-white/90">Siswa</span>
-            </button>
-            <button onClick={() => navigate("/wali-kelas-export")} className="flex flex-col items-center gap-1.5 group">
-              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
-                <BarChart3 className="h-4 w-4" />
-              </div>
-              <span className="text-[10px] font-medium text-white/90">Rekap</span>
-            </button>
-          </div>
+          {/* Ranking pill moved here directly — quick actions removed (duplicate dengan bottom nav) */}
 
           {/* Ranking pill */}
           {myBest && (
@@ -654,10 +625,7 @@ function WaliKelasMobileDashboard({
                 <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
               </SheetHeader>
               <div className="grid grid-cols-3 gap-3">
-                <SheetTile icon={Users} label="Siswa Kelas" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/wali-kelas-students")} />
-                <SheetTile icon={BarChart3} label="Rekap" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/wali-kelas-export")} />
-                <SheetTile icon={Activity} label="Analytic" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/wali-kelas-history")} />
-                <SheetTile icon={HistoryIcon} label="History" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/wali-kelas-history")} />
+                <SheetTile icon={HistoryIcon} label="Riwayat" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/wali-kelas-history")} />
                 <SheetTile icon={Download} label="Export" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/wali-kelas-export")} />
                 <SheetTile icon={Trophy} label="Peringkat" gradient="from-yellow-500 to-amber-600" onClick={() => window.scrollTo({ top: 9999, behavior: "smooth" })} />
               </div>
