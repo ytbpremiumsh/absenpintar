@@ -271,12 +271,76 @@ export default function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
+
+      {/* TOP BAR — full width, sticky, spans across sidebar + content */}
+      <div className="sticky top-0 z-40 bg-background/85 backdrop-blur-md border-b border-border/40 shadow-sm">
+        <div className="max-w-md md:max-w-6xl mx-auto px-5 md:px-6 py-2.5 md:py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-9 w-9 md:h-10 md:w-10 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
+                <img src={headerLogo || atskollaLogo} alt="Logo Sekolah" className="h-5 w-5 md:h-6 md:w-6 object-contain" />
+              </div>
+              <div className="min-w-0 leading-tight">
+                <h1 className="text-xs sm:text-sm md:text-base font-bold truncate text-foreground">
+                  {current?.schools?.name || "Sekolah"}
+                </h1>
+                <p className="text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-semibold -mt-0.5">
+                  Wali Murid<span className="hidden sm:inline"> · Portal Orang Tua</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
+                <Bell className="h-4 w-4 text-foreground" />
+                {announcements.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
+                )}
+              </button>
+              <button onClick={logout} className="h-9 w-9 rounded-full bg-white border border-border/60 hover:border-red-300 flex items-center justify-center transition-colors shadow-sm" aria-label="Keluar">
+                <LogOut className="h-4 w-4 text-foreground" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="md:flex md:gap-6 md:max-w-6xl md:mx-auto md:px-6 md:pt-5">
 
       {/* DESKTOP/TABLET LEFT SIDEBAR */}
-      <aside className="hidden md:flex flex-col w-[230px] shrink-0 sticky top-5 self-start max-h-[calc(100vh-2.5rem)] bg-card rounded-3xl shadow-card border border-border/40 p-4">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-2 mb-2">Menu</p>
-        <nav className="flex-1 flex flex-col gap-1 overflow-y-auto">
+      <aside className="hidden md:flex flex-col w-[230px] shrink-0 sticky top-[68px] self-start max-h-[calc(100vh-5rem)] bg-card rounded-3xl shadow-card border border-border/40 p-3.5">
+        {/* Student selector */}
+        <div className="mb-3">
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold px-1 mb-1.5">Siswa Aktif</p>
+          {students.length > 1 ? (
+            <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+              <SelectTrigger className="w-full h-11 rounded-xl bg-muted/40 border-border/60 text-xs font-semibold">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {students.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}{s.class ? ` · ${s.class}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-muted/40">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
+                {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold truncate">{current?.name || "—"}</p>
+                {current?.class && <p className="text-[9px] text-muted-foreground truncate">Kelas {current.class}</p>}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="h-px bg-border/60 -mx-3.5 mb-2" />
+
+        <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold px-1 mb-1.5">Menu</p>
+        <nav className="flex-1 flex flex-col gap-0.5 overflow-y-auto">
           {[
             { id: "home", label: "Beranda", icon: Home },
             { id: "attendance", label: "Absensi", icon: ClipboardList },
@@ -304,51 +368,10 @@ export default function ParentDashboard() {
             );
           })}
         </nav>
-
-        <button
-          onClick={logout}
-          className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all"
-        >
-          <LogOut className="h-4 w-4" />
-          Keluar
-        </button>
       </aside>
 
       {/* MAIN COLUMN */}
-      <div className="flex-1 min-w-0">
-
-      {/* Top Bar — sticky on all viewports */}
-      <div className="sticky top-0 md:top-3 z-30 md:rounded-2xl bg-background/85 md:bg-card/95 backdrop-blur-md border-b md:border border-border/40 shadow-sm md:shadow-card md:mb-4">
-        <div className="max-w-md md:max-w-none mx-auto md:mx-0 px-5 md:px-7 pt-3 md:pt-4 pb-3 md:pb-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 md:gap-4 min-w-0">
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
-                <img src={headerLogo || atskollaLogo} alt="Logo Sekolah" className="h-6 w-6 md:h-7 md:w-7 object-contain" />
-              </div>
-              <div className="min-w-0 leading-tight">
-                <h1 className="text-xs sm:text-sm md:text-lg font-bold truncate text-foreground max-w-[170px] sm:max-w-[260px] md:max-w-none">
-                  {current?.schools?.name || "Sekolah"}
-                </h1>
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-wider text-muted-foreground font-semibold -mt-0.5">
-                  Wali Murid<span className="hidden md:inline"> · Portal Orang Tua</span>
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <button onClick={() => setTab("info")} className="relative h-9 w-9 md:h-10 md:w-10 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
-                <Bell className="h-4 w-4 text-foreground" />
-                {announcements.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
-                )}
-              </button>
-              <button onClick={logout} className="md:hidden h-9 w-9 rounded-full bg-white border border-border/60 hover:border-red-300 flex items-center justify-center transition-colors shadow-sm" aria-label="Keluar">
-                <LogOut className="h-4 w-4 text-foreground" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <div className="flex-1 min-w-0 md:pt-0">
 
 
       {/* Content */}
