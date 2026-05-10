@@ -360,7 +360,7 @@ const Subscription = () => {
             )}
 
             {/* WA Credits Progress */}
-            {waCredits && (
+            {waCreditEnabled && waCredits && (
               <div className="mb-4 p-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
