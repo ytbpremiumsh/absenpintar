@@ -389,6 +389,7 @@ const Login = () => {
                   )}
                 </AnimatePresence>
               </div>
+            </motion.div>
           </motion.div>
         </div>
         <p className="text-center text-white/40 text-xs mt-8 w-full max-w-6xl">© 2026 ATSkolla — Platform Digital Sekolah</p>
