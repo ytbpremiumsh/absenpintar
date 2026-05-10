@@ -113,7 +113,7 @@ const Subscription = () => {
       setLoading(false);
     };
     fetchData();
-  }, [profile?.school_id]);
+  }, [profile?.school_id, waCreditEnabled]);
 
   // Poll for payment confirmation when returning from Mayar
   useEffect(() => {
