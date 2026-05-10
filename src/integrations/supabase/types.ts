@@ -1769,6 +1769,83 @@ export type Database = {
           },
         ]
       }
+      short_link_clicks: {
+        Row: {
+          clicked_at: string
+          country: string | null
+          id: string
+          ip: string | null
+          link_id: string
+          referer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          country?: string | null
+          id?: string
+          ip?: string | null
+          link_id: string
+          referer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          country?: string | null
+          id?: string
+          ip?: string | null
+          link_id?: string
+          referer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "short_link_clicks_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "short_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      short_links: {
+        Row: {
+          click_count: number
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          target_url: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          click_count?: number
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          target_url: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          click_count?: number
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          target_url?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       spp_invoices: {
         Row: {
           amount: number
@@ -2562,6 +2639,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_shortlink_click: { Args: { _code: string }; Returns: undefined }
       notify_admin_wa: {
         Args: { _event_type: string; _payload: Json }
         Returns: undefined

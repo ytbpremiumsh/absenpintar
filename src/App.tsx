@@ -75,6 +75,9 @@ import SuperAdminBackup from "./pages/super-admin/SuperAdminBackup";
 import SuperAdminAddons from "./pages/super-admin/SuperAdminAddons";
 import SuperAdminServerInfo from "./pages/super-admin/SuperAdminServerInfo";
 import SuperAdminBendahara from "./pages/super-admin/SuperAdminBendahara";
+import SuperAdminShortlinks from "./pages/super-admin/SuperAdminShortlinks";
+import ShortlinkRedirect from "./pages/ShortlinkRedirect";
+import { GoogleAnalytics } from "./components/GoogleAnalytics";
 import SuperAdminPanduan from "./pages/super-admin/SuperAdminPanduan";
 import CustomDomain from "./pages/CustomDomain";
 import Addons from "./pages/Addons";
@@ -184,7 +187,9 @@ function AppRoutes() {
         <Route path="/super-admin/backup" element={<SuperAdminBackup />} />
         <Route path="/super-admin/server-info" element={<SuperAdminServerInfo />} />
         <Route path="/super-admin/bendahara" element={<SuperAdminBendahara />} />
+        <Route path="/super-admin/shortlinks" element={<SuperAdminShortlinks />} />
       </Route>
+      <Route path="/s/:code" element={<ShortlinkRedirect />} />
       {/* School Admin / Staff */}
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
@@ -252,6 +257,7 @@ const App = () => (
       <DynamicFavicon />
       <BrowserRouter>
         <AuthProvider>
+          <GoogleAnalytics />
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
