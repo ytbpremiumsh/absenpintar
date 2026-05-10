@@ -1,18 +1,27 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Loader2, ArrowRight, Lock, Mail, Shield, QrCode, Scan, ArrowLeft } from "lucide-react";
+import {
+  Eye, EyeOff, Loader2, ArrowRight, Lock, Mail, Shield, QrCode, Scan, ArrowLeft,
+  Phone, MessageSquare, Sparkles, Users, Calendar, ScanFace,
+} from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import BackendStatusBanner, { isBackendNetworkError } from "@/components/BackendStatusBanner";
+
+type Mode = "school" | "parent";
 
 const Login = () => {
   const navigate = useNavigate();
   const { signIn } = useAuth();
+  const [params] = useSearchParams();
+  const [mode, setMode] = useState<Mode>(params.get("as") === "parent" ? "parent" : "school");
+
+  // school
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +29,12 @@ const Login = () => {
   const [loginLogo, setLoginLogo] = useState("/images/logo-atskolla.png");
   const [networkIssue, setNetworkIssue] = useState(false);
   const [recheckKey, setRecheckKey] = useState(0);
+
+  // parent
+  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     supabase
@@ -32,7 +47,14 @@ const Login = () => {
           if (map.login_logo_url) setLoginLogo(map.login_logo_url);
         }
       });
+    if (localStorage.getItem("parent_token") && mode === "parent") navigate("/parent");
   }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,15 +89,8 @@ const Login = () => {
         const isTeacher = rolesList.includes("teacher");
         const isAdmin = rolesList.includes("school_admin");
         const isStaff = rolesList.includes("staff");
-        const dashboardKinds = [
-          isSuperAdmin,
-          isAdmin,
-          isStaff && !isAdmin,
-          isTeacher,
-          isBendahara,
-        ].filter(Boolean).length;
+        const dashboardKinds = [isSuperAdmin, isAdmin, isStaff && !isAdmin, isTeacher, isBendahara].filter(Boolean).length;
 
-        // Fire-and-forget: lookup sekolah + insert login_logs
         (async () => {
           try {
             let schoolName: string | null = null;
@@ -91,9 +106,7 @@ const Login = () => {
               school_name: schoolName,
               user_agent: navigator.userAgent,
             } as any);
-          } catch (e) {
-            console.warn("login_logs insert failed", e);
-          }
+          } catch (e) { console.warn("login_logs insert failed", e); }
         })();
 
         sessionStorage.removeItem("dashboard_chosen");
@@ -113,265 +126,275 @@ const Login = () => {
     }
   };
 
-  // Scan line bars for animation
+  const requestOtp = async () => {
+    if (!phone || phone.length < 9) return toast.error("Nomor WA tidak valid");
+    setLoading(true);
+    try {
+      const { data } = await supabase.functions.invoke("parent-portal", { body: { action: "request_otp", phone } });
+      if (data?.error) return toast.error(data.error);
+      toast.success("Kode OTP dikirim via WhatsApp");
+      setStep("otp");
+      setCooldown(60);
+    } catch { toast.error("Gagal mengirim OTP"); } finally { setLoading(false); }
+  };
+
+  const verifyOtp = async () => {
+    if (otp.length !== 6) return toast.error("Kode harus 6 digit");
+    setLoading(true);
+    try {
+      const { data } = await supabase.functions.invoke("parent-portal", { body: { action: "verify_otp", phone, otp } });
+      if (data?.error) {
+        toast.error(data.error);
+        if (/kedaluwarsa|expired/i.test(String(data.error))) {
+          setOtp(""); setStep("phone"); setCooldown(0);
+        }
+        return;
+      }
+      localStorage.setItem("parent_token", data.token);
+      localStorage.setItem("parent_phone", data.phone);
+      toast.success("Login berhasil");
+      navigate("/parent");
+    } catch { toast.error("Gagal verifikasi OTP"); } finally { setLoading(false); }
+  };
+
   const scanBars = Array.from({ length: 24 }, (_, i) => i);
+
+  const features = [
+    { icon: Users, title: "Multi Role", desc: "Admin Sekolah, Guru, Wali Kelas, Bendahara & Wali Murid" },
+    { icon: ScanFace, title: "Absensi Barcode & Face Recognition", desc: "Scan QR/Barcode dan pengenalan wajah otomatis" },
+    { icon: Calendar, title: "Absensi & Jadwal", desc: "Otomatis dan real-time" },
+    { icon: Sparkles, title: "Analitik Lengkap", desc: "Dashboard & laporan keuangan SPP" },
+  ];
 
   return (
     <div className="min-h-screen flex relative overflow-hidden bg-[#5B6CF9]">
-      {/* Back to home button */}
       <button
         onClick={() => navigate("/")}
         className="absolute top-4 left-4 z-50 flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all backdrop-blur-sm"
       >
-        <ArrowLeft className="h-4 w-4" />
-        Kembali
+        <ArrowLeft className="h-4 w-4" /> Kembali
       </button>
-      {/* Animated background */}
+
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
 
-      {/* Floating scan animation elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Animated dots */}
         {[
-          { top: '10%', left: '5%', delay: 0 },
-          { top: '20%', left: '90%', delay: 1 },
-          { top: '70%', left: '8%', delay: 0.5 },
-          { top: '80%', left: '85%', delay: 1.5 },
-          { top: '40%', left: '3%', delay: 2 },
-          { top: '55%', left: '95%', delay: 0.8 },
+          { top: '10%', left: '5%', delay: 0 }, { top: '20%', left: '90%', delay: 1 },
+          { top: '70%', left: '8%', delay: 0.5 }, { top: '80%', left: '85%', delay: 1.5 },
+          { top: '40%', left: '3%', delay: 2 }, { top: '55%', left: '95%', delay: 0.8 },
         ].map((dot, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 rounded-full bg-white"
-            style={{ top: dot.top, left: dot.left }}
-            animate={{ opacity: [0.1, 0.4, 0.1], scale: [1, 1.5, 1] }}
-            transition={{ duration: 3, repeat: Infinity, delay: dot.delay }}
-          />
+          <motion.div key={i} className="absolute w-2 h-2 rounded-full bg-white" style={{ top: dot.top, left: dot.left }}
+            animate={{ opacity: [0.1, 0.4, 0.1], scale: [1, 1.5, 1] }} transition={{ duration: 3, repeat: Infinity, delay: dot.delay }} />
         ))}
-
-        {/* Scan line */}
-        <motion.div
-          className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
-          animate={{ top: ['0%', '100%'] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-        />
-
-        {/* Barcode scan visualization - left side */}
-        <div className="hidden lg:flex absolute left-[8%] top-1/2 -translate-y-1/2 flex-col items-center gap-1 opacity-20">
-          {scanBars.map((i) => (
-            <motion.div
-              key={i}
-              className="bg-white rounded-full"
-              style={{ width: Math.random() * 40 + 20, height: 2 }}
-              animate={{ opacity: [0.3, 0.8, 0.3], scaleX: [0.8, 1, 0.8] }}
-              transition={{ duration: 2, repeat: Infinity, delay: i * 0.08 }}
-            />
-          ))}
-        </div>
-
-        {/* QR code outline - left side */}
-        <motion.div
-          className="hidden lg:block absolute left-[15%] top-[20%] w-28 h-28 border-2 border-white/10 rounded-2xl"
-          animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.03, 1] }}
-          transition={{ duration: 6, repeat: Infinity }}
-        >
+        <motion.div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
+          animate={{ top: ['0%', '100%'] }} transition={{ duration: 6, repeat: Infinity, ease: 'linear' }} />
+        <motion.div className="hidden lg:block absolute right-[8%] top-[15%] w-28 h-28 border-2 border-white/10 rounded-2xl"
+          animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.03, 1] }} transition={{ duration: 6, repeat: Infinity }}>
           <div className="absolute top-2 left-2 w-5 h-5 border-l-2 border-t-2 border-white/20 rounded-tl-md" />
           <div className="absolute top-2 right-2 w-5 h-5 border-r-2 border-t-2 border-white/20 rounded-tr-md" />
           <div className="absolute bottom-2 left-2 w-5 h-5 border-l-2 border-b-2 border-white/20 rounded-bl-md" />
           <div className="absolute bottom-2 right-2 w-5 h-5 border-r-2 border-b-2 border-white/20 rounded-br-md" />
         </motion.div>
-
-        {/* Floating icons */}
-        <motion.div
-          className="hidden lg:flex absolute left-[20%] bottom-[25%] h-16 w-16 rounded-2xl bg-white/5 border border-white/10 items-center justify-center"
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        >
-          <QrCode className="h-7 w-7 text-white/30" />
-        </motion.div>
-        <motion.div
-          className="hidden lg:flex absolute left-[8%] bottom-[15%] h-12 w-12 rounded-xl bg-white/5 border border-white/10 items-center justify-center"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-        >
-          <Scan className="h-5 w-5 text-white/25" />
-        </motion.div>
-
-        {/* Data stream lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
-          <line x1="10%" y1="0" x2="30%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="6 12" />
-          <line x1="45%" y1="0" x2="25%" y2="100%" stroke="white" strokeWidth="1" strokeDasharray="4 16" />
-        </svg>
       </div>
 
-      {/* Radial glows */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-white/[0.03] rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-300/[0.05] rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main content area */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full max-w-md"
-        >
-          {/* Logo */}
+        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+          {/* Left: Features */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center justify-center gap-3 mb-6"
+            initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}
+            className="hidden lg:block text-white"
           >
-            <img src={loginLogo} alt="ATSkolla" className="h-11 w-11 rounded-xl shadow-lg" />
-            <span className="font-bold text-xl text-white tracking-tight">ATSkolla</span>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="text-center mb-6"
-          >
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">Selamat Datang</h2>
-            <p className="text-white/60 text-sm mt-1">Masuk ke akun Anda untuk melanjutkan</p>
-          </motion.div>
-
-          {/* Login Card with rounded design */}
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.25, duration: 0.6 }}
-            className="relative"
-          >
-            <div className="absolute -inset-1 bg-white/10 rounded-[2rem] blur-xl" />
-
-            <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] p-7 sm:p-8 shadow-2xl shadow-black/20">
-              {/* Secure badge */}
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="flex items-center gap-2 mb-6"
-              >
-                <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1">
-                  <Shield className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Koneksi Aman</span>
-                </div>
-              </motion.div>
-
-              <div className="mb-4">
-                <BackendStatusBanner forceShow={networkIssue} recheckKey={recheckKey} />
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-5">
+            <div className="flex items-center gap-3 mb-6">
+              <img src={loginLogo} alt="ATSkolla" className="h-12 w-12 rounded-xl shadow-lg" />
+              <span className="font-bold text-2xl tracking-tight">ATSkolla</span>
+            </div>
+            <h2 className="text-3xl xl:text-4xl font-bold mb-3 leading-tight">Platform Digital Sekolah Modern</h2>
+            <p className="text-white/70 mb-8">Solusi lengkap absensi, keuangan, dan komunikasi sekolah dalam satu sistem.</p>
+            <div className="space-y-3">
+              {features.map((f, i) => (
                 <motion.div
-                  initial={{ opacity: 0, x: -15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.35 }}
-                  className="space-y-2"
+                  key={f.title}
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.08 }}
+                  className="flex items-start gap-3 bg-white/[0.06] border border-white/10 rounded-2xl p-4 backdrop-blur-sm"
                 >
-                  <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Email
-                  </Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="email@sekolah.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-12 pl-10 bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 transition-all duration-300 rounded-xl"
-                      required
-                    />
+                  <div className="h-10 w-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                    <f.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm">{f.title}</p>
+                    <p className="text-xs text-white/65 mt-0.5">{f.desc}</p>
                   </div>
                 </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.42 }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Password
-                  </Label>
-                  <div className="relative group">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 pl-10 pr-10 bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 transition-all duration-300 rounded-xl"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-12 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white font-semibold text-sm uppercase tracking-wide shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all rounded-xl"
-                  >
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        Masuk Sekarang
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                </motion.div>
-              </form>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="mt-5 text-center space-y-2"
-              >
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                  Lupa Password?
-                </Link>
-                <p className="text-sm text-muted-foreground">
-                  Belum punya akun?{" "}
-                  <Link to="/register" className="text-primary font-semibold hover:underline">
-                    Daftar Sekolah
-                  </Link>
-                </p>
-              </motion.div>
+              ))}
             </div>
           </motion.div>
 
-          {/* Footer */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="text-center text-white/30 text-xs mt-6"
+          {/* Right: Login card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }}
+            className="w-full max-w-md mx-auto lg:mx-0"
           >
-            © 2026 ATSkolla — Platform Digital Sekolah
-          </motion.p>
-        </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
+              className="flex lg:hidden items-center justify-center gap-3 mb-6">
+              <img src={loginLogo} alt="ATSkolla" className="h-11 w-11 rounded-xl shadow-lg" />
+              <span className="font-bold text-xl text-white tracking-tight">ATSkolla</span>
+            </motion.div>
+
+            <div className="text-center mb-5">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white">
+                {mode === "school" ? "Selamat Datang" : "Portal Wali Murid"}
+              </h2>
+              <p className="text-white/60 text-sm mt-1">
+                {mode === "school" ? "Masuk ke akun Anda untuk melanjutkan" : "Pantau aktivitas ananda dengan mudah"}
+              </p>
+            </div>
+
+            <motion.div initial={{ opacity: 0, y: 20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.25, duration: 0.6 }} className="relative">
+              <div className="absolute -inset-1 bg-white/10 rounded-[2rem] blur-xl" />
+              <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] p-6 sm:p-7 shadow-2xl shadow-black/20">
+                {/* Tabs */}
+                <div className="flex p-1 bg-secondary/60 rounded-xl mb-5">
+                  <button
+                    type="button"
+                    onClick={() => setMode("school")}
+                    className={`flex-1 h-9 text-xs font-semibold rounded-lg transition-all ${
+                      mode === "school" ? "bg-white dark:bg-slate-800 shadow-sm text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    Sekolah / Guru
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("parent")}
+                    className={`flex-1 h-9 text-xs font-semibold rounded-lg transition-all ${
+                      mode === "parent" ? "bg-white dark:bg-slate-800 shadow-sm text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    Wali Murid
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1">
+                    <Shield className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                      {mode === "school" ? "Koneksi Aman" : "Login via WhatsApp"}
+                    </span>
+                  </div>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {mode === "school" ? (
+                    <motion.form
+                      key="school"
+                      initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 15 }}
+                      transition={{ duration: 0.2 }}
+                      onSubmit={handleLogin} className="space-y-4"
+                    >
+                      <div className="mb-2">
+                        <BackendStatusBanner forceShow={networkIssue} recheckKey={recheckKey} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
+                        <div className="relative group">
+                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                          <Input id="email" type="email" placeholder="email@sekolah.com" value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="h-12 pl-10 bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 rounded-xl" required />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</Label>
+                        <div className="relative group">
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                          <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="h-12 pl-10 pr-10 bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 rounded-xl" required />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <Button type="submit" disabled={loading}
+                        className="w-full h-12 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white font-semibold text-sm uppercase tracking-wide shadow-lg shadow-indigo-500/20 rounded-xl">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="h-4 w-4 ml-2" /></>}
+                      </Button>
+
+                      <div className="text-center space-y-2 pt-1">
+                        <Link to="/forgot-password" className="text-sm text-primary hover:underline">Lupa Password?</Link>
+                        <p className="text-sm text-muted-foreground">
+                          Belum punya akun?{" "}
+                          <Link to="/register" className="text-primary font-semibold hover:underline">Daftar Sekolah</Link>
+                        </p>
+                      </div>
+                    </motion.form>
+                  ) : (
+                    <motion.div
+                      key="parent"
+                      initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -15 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <AnimatePresence mode="wait">
+                        {step === "phone" ? (
+                          <motion.div key="phone" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+                            transition={{ duration: 0.25 }} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nomor WhatsApp</Label>
+                              <div className="relative group">
+                                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary" />
+                                <Input id="phone" type="tel" inputMode="numeric" placeholder="08xxxxxxxxxx" value={phone}
+                                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                                  className="h-12 pl-10 bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 rounded-xl" />
+                              </div>
+                              <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <Sparkles className="h-3 w-3" /> Gunakan nomor yang terdaftar di sekolah ananda.
+                              </p>
+                            </div>
+                            <Button onClick={requestOtp} disabled={loading}
+                              className="w-full h-12 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white font-semibold text-sm uppercase tracking-wide shadow-lg shadow-indigo-500/20 rounded-xl">
+                              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><MessageSquare className="h-4 w-4 mr-2" /> Kirim Kode OTP <ArrowRight className="h-4 w-4 ml-2" /></>}
+                            </Button>
+                          </motion.div>
+                        ) : (
+                          <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.25 }} className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="otp" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kode OTP (6 digit)</Label>
+                              <Input id="otp" type="text" inputMode="numeric" maxLength={6} placeholder="------" value={otp}
+                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                                className="h-14 text-center text-2xl tracking-[0.5em] font-bold bg-secondary/50 border-border focus:bg-background focus:border-primary focus:ring-primary/20 rounded-xl" />
+                              <p className="text-[11px] text-muted-foreground">Kode dikirim ke <strong>{phone}</strong> via WhatsApp.</p>
+                            </div>
+                            <Button onClick={verifyOtp} disabled={loading}
+                              className="w-full h-12 bg-[#5B6CF9] hover:bg-[#4c5ded] text-white font-semibold text-sm uppercase tracking-wide shadow-lg shadow-indigo-500/20 rounded-xl">
+                              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Masuk Sekarang <ArrowRight className="h-4 w-4 ml-2" /></>}
+                            </Button>
+                            <div className="flex items-center justify-between text-xs">
+                              <button onClick={() => setStep("phone")} className="text-muted-foreground hover:text-foreground">← Ganti nomor</button>
+                              <button onClick={requestOtp} disabled={cooldown > 0 || loading}
+                                className="text-[#5B6CF9] disabled:text-muted-foreground font-medium">
+                                {cooldown > 0 ? `Kirim ulang (${cooldown}s)` : "Kirim ulang OTP"}
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            <p className="text-center text-white/30 text-xs mt-5">© 2026 ATSkolla — Platform Digital Sekolah</p>
+          </motion.div>
+        </div>
       </div>
 
-      {/* Rounded bottom accent */}
       <div className="absolute bottom-0 left-0 right-0 h-8 bg-white dark:bg-slate-950 rounded-t-[2rem] z-[5]" />
     </div>
   );
