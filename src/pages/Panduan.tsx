@@ -67,22 +67,21 @@ export default function Panduan() {
                   viewport={{ once: true }} transition={{ delay: idx * 0.06, duration: 0.4 }}>
                   <Link to={`/panduan/${g.id}`}
                     className="group block relative h-full rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                    <div className="relative h-44 overflow-hidden bg-slate-100">
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-indigo-50/60 border-b border-indigo-100">
                       {g.cover && (
                         <img src={g.cover} alt={g.label} loading="lazy" decoding="async"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-500" />
                       )}
-                      <div className={`absolute inset-0 bg-gradient-to-tr ${g.color} opacity-80 mix-blend-multiply`} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                      <motion.div className="absolute top-4 left-4 h-12 w-12 rounded-2xl bg-white/95 backdrop-blur flex items-center justify-center shadow-lg"
+                      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/0 to-transparent pointer-events-none" />
+                      <motion.div className="absolute top-4 left-4 h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-md ring-1 ring-[#5B6CF9]/20"
                         whileHover={{ rotate: -8, scale: 1.1 }}>
-                        <Icon className="h-6 w-6 text-slate-800" />
+                        <Icon className="h-6 w-6 text-[#5B6CF9]" />
                       </motion.div>
-                      <div className="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur text-[11px] font-bold text-slate-800">
+                      <div className="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[11px] font-bold text-[#5B6CF9] ring-1 ring-[#5B6CF9]/20 shadow-sm">
                         <BookOpen className="h-3 w-3" /> {g.steps.length} Langkah
                       </div>
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-xl font-bold text-white drop-shadow">{g.label}</h3>
+                      <div className="absolute bottom-3 left-4 right-4">
+                        <h3 className="text-lg font-bold text-slate-900">{g.label}</h3>
                       </div>
                     </div>
                     <div className="p-5">
