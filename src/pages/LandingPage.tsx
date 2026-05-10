@@ -207,6 +207,7 @@ const TestimonialSlider = ({ testimonials }: { testimonials: Testimonial[] }) =>
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { enabled: waCreditEnabled } = useWaCreditEnabled();
   const [content, setContent] = useState<Record<string, string>>({});
   const [plans, setPlans] = useState<PlanRow[]>([]);
   const [loading, setLoading] = useState(true);
