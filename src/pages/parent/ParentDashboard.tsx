@@ -268,7 +268,15 @@ export default function ParentDashboard() {
     return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
   });
   const monthHadir = monthAttendance.filter((a) => a.status === "hadir").length;
-  const monthRate = monthAttendance.length ? Math.round((monthHadir / monthAttendance.length) * 100) : 0;
+  // Denominator: jumlah hari kerja (skip weekend & libur nasional) yang sudah berjalan bulan ini.
+  // Sama untuk semua siswa, jadi persentasenya adil.
+  const _now = new Date();
+  let workingDaysElapsed = 0;
+  for (let day = 1; day <= _now.getDate(); day++) {
+    const d = new Date(_now.getFullYear(), _now.getMonth(), day);
+    if (isWorkingDay(d)) workingDaysElapsed++;
+  }
+  const monthRate = workingDaysElapsed ? Math.round((monthHadir / workingDaysElapsed) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
