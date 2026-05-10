@@ -54,15 +54,13 @@ const mainNav = [
 const dataNav = [
   { title: "Kelas", url: "/classes", icon: GraduationCap, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Siswa", url: "/students", icon: Users, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  { title: "Wali Murid", url: "/teachers", icon: UserCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Orang Tua", url: "/teachers", icon: UserCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Wali Kelas", url: "/wali-kelas", icon: ClipboardCheck, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
   { title: "Guru & Staff", url: "/staff", icon: UsersRound, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  
 ];
 
 const scheduleNav = [
-  { title: "Jadwal Mengajar", url: "/teaching-schedule", icon: CalendarDays, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  { title: "Jadwal Live", url: "/live-schedule", icon: Radio, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Jadwal", url: "/jadwal", icon: CalendarDays, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
 
 const whatsappNav = [
@@ -70,8 +68,7 @@ const whatsappNav = [
 ];
 
 const settingsNav = [
-  { title: "Langganan", url: "/subscription", icon: Sparkles, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
-  { title: "Add-on", url: "/addons", icon: Package, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
+  { title: "Langganan & Add-on", url: "/langganan", icon: Sparkles, accent: "from-[#5B6CF9]/85 to-[#4c5ded]" },
 ];
 
 export function AppSidebar() {
