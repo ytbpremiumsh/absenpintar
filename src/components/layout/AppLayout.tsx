@@ -17,6 +17,7 @@ import atskollaLogo from "@/assets/Logo_atskolla.png";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 
 const buildFooterItems = (isTeacherOnly: boolean, isWaliKelas: boolean) => [
