@@ -270,9 +270,76 @@ export default function ParentDashboard() {
   const monthRate = monthAttendance.length ? Math.round((monthHadir / monthAttendance.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
-      {/* Top Bar — sticky responsive */}
-      <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border/40 shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10 lg:pb-6">
+      <div className="lg:flex lg:gap-5 lg:max-w-[1400px] lg:mx-auto lg:px-5 lg:pt-5">
+
+      {/* DESKTOP LEFT SIDEBAR (lg+) */}
+      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 sticky top-5 self-start max-h-[calc(100vh-2.5rem)] bg-card rounded-3xl shadow-card border border-border/40 p-5">
+        <div className="flex items-center gap-2.5 px-1">
+          <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
+            <img src={headerLogo || atskollaLogo} alt="Logo" className="h-6 w-6 object-contain" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold truncate text-foreground">{current?.schools?.name || "Sekolah"}</h1>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold -mt-0.5">Portal Wali Murid</p>
+          </div>
+        </div>
+
+        {students.length > 0 && (
+          <div className="mt-5">
+            <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+              <SelectTrigger className="w-full h-10 rounded-xl bg-muted/40 border-border/50 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <nav className="mt-5 flex-1 flex flex-col gap-1 overflow-y-auto">
+          {[
+            { id: "home", label: "Beranda", icon: Home },
+            { id: "attendance", label: "Absensi", icon: ClipboardList },
+            { id: "schedule", label: "Jadwal", icon: CalendarDays },
+            { id: "spp", label: "SPP", icon: Wallet },
+            { id: "info", label: "Pengumuman", icon: Megaphone },
+            { id: "leave", label: "Pengajuan Izin", icon: FileText },
+            { id: "contact", label: "Wali Kelas", icon: Phone },
+          ].map((t) => {
+            const Active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all relative",
+                  Active
+                    ? "bg-gradient-to-r from-[#5B6CF9] to-[#4c5ded] text-white shadow-[0_8px_20px_-8px_rgba(91,108,249,0.6)]"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                )}
+              >
+                <t.icon className="h-4 w-4 shrink-0" strokeWidth={Active ? 2.5 : 2} />
+                <span className="truncate">{t.label}</span>
+                {Active && <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-white" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        <button
+          onClick={logout}
+          className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all"
+        >
+          <LogOut className="h-4 w-4" />
+          Keluar
+        </button>
+      </aside>
+
+      {/* MAIN COLUMN */}
+      <div className="flex-1 min-w-0">
+
+      {/* Top Bar — sticky responsive (mobile/tablet only) */}
+      <div className="lg:hidden sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border/40 shadow-sm">
         <div className="max-w-md md:max-w-5xl mx-auto px-5 md:px-8 pt-3 md:pt-4 pb-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -347,7 +414,7 @@ export default function ParentDashboard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-md md:max-w-xl mx-auto px-4 md:px-6 space-y-3 md:mt-4">
+      <div className="max-w-md md:max-w-xl lg:max-w-none mx-auto lg:mx-0 px-4 md:px-6 lg:px-0 space-y-3 md:mt-4 lg:mt-0">
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
           <div className="relative md:space-y-4">
@@ -1093,8 +1160,106 @@ export default function ParentDashboard() {
         )}
 
       </div>
+      {/* end MAIN COLUMN */}
+      </div>
 
-      {/* Bottom Floating Nav — Payou-style with center FAB */}
+      {/* DESKTOP RIGHT SIDEBAR (lg+) */}
+      <aside className="hidden lg:flex flex-col w-[320px] shrink-0 sticky top-5 self-start max-h-[calc(100vh-2.5rem)] gap-4 overflow-y-auto pr-1">
+        {/* Profile chip */}
+        <div className="bg-card rounded-3xl shadow-card border border-border/40 p-5 flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white flex items-center justify-center font-bold text-lg overflow-hidden shrink-0">
+            {current?.photo_url ? <img src={current.photo_url} alt="" className="h-full w-full object-cover" /> : current?.name?.[0]}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Wali dari</p>
+            <p className="text-sm font-bold truncate">{current?.name}</p>
+            {current?.class && <p className="text-xs text-muted-foreground truncate">Kelas {current.class}</p>}
+          </div>
+          <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-full bg-muted/40 hover:bg-muted flex items-center justify-center transition-colors shrink-0" aria-label="Notifikasi">
+            <Bell className="h-4 w-4 text-foreground" />
+            {announcements.length > 0 && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-card animate-pulse" />}
+          </button>
+        </div>
+
+        {/* Mini date strip — pekan ini */}
+        <div className="bg-card rounded-3xl shadow-card border border-border/40 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold">Pekan Ini</h3>
+            <span className="text-[10px] font-semibold text-muted-foreground">
+              {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
+            </span>
+          </div>
+          <div className="grid grid-cols-7 gap-1.5">
+            {Array.from({ length: 7 }).map((_, i) => {
+              const today = new Date();
+              const day = new Date(today);
+              day.setDate(today.getDate() - today.getDay() + 1 + i); // Senin..Minggu
+              const key = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit" }).format(day);
+              const log = attendance.find((a) => a.date === key);
+              const isToday = key === todayKey;
+              const dotColor = log ? STATUS_COLORS[log.status] : "transparent";
+              return (
+                <div key={i} className={cn(
+                  "flex flex-col items-center gap-1 py-2 rounded-xl text-[10px] font-semibold",
+                  isToday ? "bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] text-white shadow-[0_6px_14px_-6px_rgba(91,108,249,0.5)]" : "bg-muted/30 text-muted-foreground"
+                )}>
+                  <span className="text-[9px] opacity-80">{day.toLocaleDateString("id-ID", { weekday: "short" }).slice(0, 3)}</span>
+                  <span className="text-sm font-bold">{day.getDate()}</span>
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: dotColor }} />
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/40">
+            <div className="text-center flex-1">
+              <p className="text-lg font-extrabold text-emerald-600">{monthHadir}</p>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Hadir</p>
+            </div>
+            <div className="text-center flex-1">
+              <p className="text-lg font-extrabold text-[#5B6CF9]">{monthRate}%</p>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Rate</p>
+            </div>
+            <div className="text-center flex-1">
+              <p className="text-lg font-extrabold text-amber-600">{monthAttendance.length}</p>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Hari</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Pengumuman terbaru */}
+        <div className="bg-card rounded-3xl shadow-card border border-border/40 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold">Pengumuman</h3>
+            <button onClick={() => setTab("info")} className="text-[10px] font-semibold text-[#5B6CF9] hover:underline">Semua</button>
+          </div>
+          {announcements.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">Belum ada pengumuman</p>
+          ) : (
+            <div className="space-y-2.5">
+              {announcements.slice(0, 3).map((a: any) => (
+                <button
+                  key={a.id}
+                  onClick={() => setTab("info")}
+                  className="w-full flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-muted/40 transition-colors text-left"
+                >
+                  <div className="h-8 w-8 rounded-xl bg-[#5B6CF9]/10 text-[#5B6CF9] flex items-center justify-center shrink-0">
+                    <Megaphone className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold truncate">{a.title}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{new Date(a.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </aside>
+
+      </div>
+      {/* end lg:flex wrapper */}
+
+
       <nav className="md:hidden fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 pointer-events-none">
         <div className="pointer-events-auto relative flex items-center gap-1 bg-white dark:bg-card rounded-full px-2 py-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)] ring-1 ring-border/60 max-w-md w-full">
           {/* Left 2 tabs */}
