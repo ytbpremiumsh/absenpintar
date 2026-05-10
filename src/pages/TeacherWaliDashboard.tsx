@@ -26,7 +26,7 @@ export default function TeacherWaliDashboard() {
     <Tabs value={tab} onValueChange={setTab}>
       <TabsList className="rounded-xl">
         <TabsTrigger value="mengajar" className="rounded-lg">Mengajar</TabsTrigger>
-        <TabsTrigger value="wali" className="rounded-lg">Kelas Wali</TabsTrigger>
+        <TabsTrigger value="wali" className="rounded-lg">Wali Kelas</TabsTrigger>
       </TabsList>
       <TabsContent value="mengajar" className="mt-4"><TeacherDashboard /></TabsContent>
       <TabsContent value="wali" className="mt-4"><WaliKelasDashboard /></TabsContent>
