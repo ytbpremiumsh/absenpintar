@@ -24,6 +24,7 @@ import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import atskollaLogo from "@/assets/Logo_atskolla.png";
 import { formatPaymentMethodLabel } from "@/lib/paymentMethod";
+import { isWorkingDay } from "@/lib/holidays";
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: "#10b981",
@@ -267,7 +268,15 @@ export default function ParentDashboard() {
     return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
   });
   const monthHadir = monthAttendance.filter((a) => a.status === "hadir").length;
-  const monthRate = monthAttendance.length ? Math.round((monthHadir / monthAttendance.length) * 100) : 0;
+  // Denominator: jumlah hari kerja (skip weekend & libur nasional) yang sudah berjalan bulan ini.
+  // Sama untuk semua siswa, jadi persentasenya adil.
+  const _now = new Date();
+  let workingDaysElapsed = 0;
+  for (let day = 1; day <= _now.getDate(); day++) {
+    const d = new Date(_now.getFullYear(), _now.getMonth(), day);
+    if (isWorkingDay(d)) workingDaysElapsed++;
+  }
+  const monthRate = workingDaysElapsed ? Math.round((monthHadir / workingDaysElapsed) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F4F5FB] via-background to-background pb-32 md:pb-10">
@@ -414,7 +423,7 @@ export default function ParentDashboard() {
               <div className="relative mt-4 md:mt-6 flex items-end justify-between gap-3">
                 <div>
                   <p className="text-4xl md:text-6xl font-extrabold tracking-tight leading-none">{monthRate}<span className="text-2xl md:text-3xl">%</span></p>
-                  <p className="text-[11px] md:text-sm text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{monthAttendance.length} hari</p>
+                  <p className="text-[11px] md:text-sm text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{workingDaysElapsed} hari sekolah</p>
                 </div>
                 <div className="flex flex-col items-end">
                   <Badge className="bg-white/20 text-white border-0 text-[10px] md:text-xs backdrop-blur">
