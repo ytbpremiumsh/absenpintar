@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
+import { useWaCreditEnabled } from "@/hooks/useWaCreditEnabled";
 
 const WaCredit = () => {
   const { profile } = useAuth();
