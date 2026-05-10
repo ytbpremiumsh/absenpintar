@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlanCardsGrid } from "@/components/PlanCardsGrid";
+import { useWaCreditEnabled } from "@/hooks/useWaCreditEnabled";
+import { transformPlanFeatures } from "@/lib/planFeatures";
 import heroMockup from "@/assets/hero-mockup-theme2.png";
 import dashboardPreviewStack from "@/assets/dashboard-preview-stack.png";
 import illustSchool from "@/assets/illust-dashboard-school.png";
