@@ -206,27 +206,27 @@ const Login = () => {
           {/* Left: Features */}
           <motion.div
             initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}
-            className="hidden lg:block text-white w-full max-w-md"
+            className="hidden lg:block text-white w-full max-w-lg"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <img src={loginLogo} alt="ATSkolla" className="h-12 w-12 rounded-xl shadow-lg" />
-              <span className="font-bold text-2xl tracking-tight">ATSkolla</span>
+            <div className="flex items-center gap-3 mb-4">
+              <img src={loginLogo} alt="ATSkolla" className="h-10 w-10 rounded-xl shadow-lg" />
+              <span className="font-bold text-xl tracking-tight">ATSkolla</span>
             </div>
-            <h2 className="text-3xl xl:text-4xl font-bold mb-3 leading-tight">Platform Digital Sekolah Modern</h2>
-            <p className="text-white/70 mb-8">Solusi lengkap absensi, keuangan, dan komunikasi sekolah dalam satu sistem.</p>
-            <div className="space-y-3">
+            <h2 className="text-2xl xl:text-3xl font-bold mb-2 leading-tight">Platform Digital Sekolah Modern</h2>
+            <p className="text-white/70 text-sm mb-4">Solusi lengkap absensi, keuangan, dan komunikasi sekolah dalam satu sistem.</p>
+            <div className="space-y-2">
               {features.map((f, i) => (
                 <motion.div
                   key={f.title}
                   initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.08 }}
-                  className="flex items-start gap-3 bg-white/[0.06] border border-white/10 rounded-2xl p-4 backdrop-blur-sm"
+                  className="flex items-start gap-3 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-2.5 backdrop-blur-sm"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-                    <f.icon className="h-5 w-5 text-white" />
+                  <div className="h-8 w-8 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                    <f.icon className="h-4 w-4 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-sm">{f.title}</p>
-                    <p className="text-xs text-white/65 mt-0.5">{f.desc}</p>
+                    <p className="font-semibold text-[13px] leading-tight">{f.title}</p>
+                    <p className="text-[11px] text-white/65 mt-0.5 leading-snug">{f.desc}</p>
                   </div>
                 </motion.div>
               ))}
