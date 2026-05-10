@@ -341,6 +341,26 @@ serve(async (req) => {
 
     const hasError = results.some(r => !r.ok);
 
+    // Detect MPWA session disconnected (sender logged out)
+    const isSessionLost = gatewayType === 'mpwa' && results.some(r => {
+      const msg = String(r?.data?.msg || r?.data?.raw || '').toLowerCase();
+      return msg.includes('periksa koneksi') || msg.includes('not connected') || msg.includes('disconnect');
+    });
+
+    if (isSessionLost && school_id) {
+      try {
+        await supabaseAdmin
+          .from('school_integrations')
+          .update({ mpwa_connected: false })
+          .eq('school_id', school_id)
+          .eq('integration_type', 'onesender');
+      } catch { /* ignore */ }
+    }
+
+    const friendlyError = isSessionLost
+      ? 'Sesi WhatsApp terputus. Silakan scan ulang QR di menu Pengaturan WhatsApp → Gateway.'
+      : (hasError ? `${gatewayType} error` : null);
+
     // Log message to wa_message_logs
     if (school_id) {
       try {
@@ -348,15 +368,15 @@ serve(async (req) => {
           school_id,
           phone: phone || null,
           group_id: group_id || null,
-          message: message.substring(0, 500),
+          message: (friendlyError ? `[${friendlyError}] ` : '') + message.substring(0, 500),
           message_type: message_type || 'attendance',
           status: hasError ? 'failed' : 'sent',
           student_name: student_name || null,
         });
       } catch { /* ignore logging errors */ }
 
-      // Deduct WA credits on successful send
-      if (!hasError) {
+      // Deduct WA credits on successful send (only if add-on enabled)
+      if (!hasError && waCreditAddonEnabled) {
         const messageCount = (phone ? 1 : 0) + (group_id ? 1 : 0);
         try {
           const { data: credit } = await supabaseAdmin
@@ -378,7 +398,12 @@ serve(async (req) => {
 
     if (hasError) {
       console.error(`${gatewayType} error:`, JSON.stringify(results));
-      return new Response(JSON.stringify({ success: false, error: `${gatewayType} error`, details: results }), {
+      return new Response(JSON.stringify({
+        success: false,
+        error: friendlyError || `${gatewayType} error`,
+        session_lost: isSessionLost,
+        details: results,
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
