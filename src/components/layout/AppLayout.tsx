@@ -167,6 +167,10 @@ function AppContent() {
                     Affiliate & Komisi
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={() => navigate("/panduan")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                  <BookOpen className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                  Panduan
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
                   Bantuan
