@@ -10,6 +10,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SuperAdminLayout } from "@/components/layout/SuperAdminLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import Login from "./pages/Login";
+import PromoTrial from "./pages/PromoTrial";
+import PromoPremium from "./pages/PromoPremium";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Monitoring from "./pages/Monitoring";
