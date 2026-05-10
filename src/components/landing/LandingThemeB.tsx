@@ -607,7 +607,7 @@ const LandingThemeB = () => {
               <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Harga transparan, tanpa biaya tersembunyi.</p>
             </motion.div>
             <PlanCardsGrid
-              plans={plans as any}
+              plans={transformPlanFeatures(plans as any, waCreditEnabled)}
               ctaLabel="Mulai Sekarang"
               hidePremiumBadge
               onSelect={() => navigate("/register")}
