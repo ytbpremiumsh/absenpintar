@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Eye, EyeOff, Loader2, ArrowRight, Lock, Mail, Shield, QrCode, Scan, ArrowLeft,
-  Phone, MessageSquare, Sparkles, Users, Calendar, ScanFace,
+  Phone, MessageSquare, Sparkles, Users, Calendar, ScanFace, Wallet, BarChart3, MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -160,10 +160,11 @@ const Login = () => {
   const scanBars = Array.from({ length: 24 }, (_, i) => i);
 
   const features = [
-    { icon: Users, title: "Multi Role", desc: "Admin Sekolah, Guru, Wali Kelas, Bendahara & Wali Murid" },
-    { icon: ScanFace, title: "Absensi Barcode & Face Recognition", desc: "Scan QR/Barcode dan pengenalan wajah otomatis" },
-    { icon: Calendar, title: "Absensi & Jadwal", desc: "Otomatis dan real-time" },
-    { icon: Sparkles, title: "Analitik Lengkap", desc: "Dashboard & laporan keuangan SPP" },
+    { icon: Users, title: "Sistem Multi Role", desc: "Satu platform untuk Admin Sekolah, Guru, Wali Kelas, Bendahara, hingga Wali Murid" },
+    { icon: ScanFace, title: "Absensi Barcode & Face Recognition", desc: "Pencatatan kehadiran cepat dengan QR/Barcode dan pengenalan wajah otomatis" },
+    { icon: Calendar, title: "Jadwal Pelajaran Real-time", desc: "Sinkronisasi jadwal mengajar dan kehadiran secara langsung" },
+    { icon: Wallet, title: "Manajemen Keuangan SPP", desc: "Tagihan, pembayaran, dan rekap SPP otomatis dalam satu dashboard" },
+    { icon: MessageCircle, title: "Notifikasi WhatsApp Otomatis", desc: "Info kehadiran dan tagihan langsung terkirim ke wali murid via WA" },
   ];
 
   return (
