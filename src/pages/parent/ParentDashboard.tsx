@@ -290,27 +290,6 @@ export default function ParentDashboard() {
             </div>
           </div>
 
-          {/* Desktop tab bar */}
-          <div className="hidden lg:flex items-center gap-1 bg-white dark:bg-card rounded-full px-1.5 py-1.5 ring-1 ring-border/60 shadow-sm">
-            {[
-              { id: "home", label: "Beranda", icon: Home },
-              { id: "attendance", label: "Absensi", icon: ClipboardList },
-              { id: "schedule", label: "Jadwal", icon: CalendarDays },
-              { id: "spp", label: "SPP", icon: Wallet },
-              { id: "info", label: "Info", icon: Megaphone },
-              { id: "leave", label: "Izin", icon: FileText },
-              { id: "contact", label: "Wali Kelas", icon: Phone },
-            ].map((t) => {
-              const Active = tab === t.id;
-              return (
-                <button key={t.id} onClick={() => setTab(t.id)} className={cn("flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all", Active ? "bg-[#5B6CF9] text-white shadow" : "text-muted-foreground hover:text-foreground hover:bg-muted/40")}>
-                  <t.icon className="h-3.5 w-3.5" strokeWidth={Active ? 2.5 : 2} />
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-
           <div className="flex items-center gap-1.5">
             <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
               <Bell className="h-4 w-4 text-foreground" />
@@ -324,8 +303,8 @@ export default function ParentDashboard() {
           </div>
         </div>
 
-        {/* Tablet tab bar (md only, scrollable) */}
-        <div className="hidden md:flex lg:hidden items-center gap-1 mt-3 bg-white dark:bg-card rounded-full px-1.5 py-1.5 ring-1 ring-border/60 shadow-sm overflow-x-auto">
+        {/* Tablet/Desktop tab bar (md+, scrollable) */}
+        <div className="hidden md:flex items-center gap-1 mt-3 bg-white dark:bg-card rounded-full px-1.5 py-1.5 ring-1 ring-border/60 shadow-sm overflow-x-auto">
           {[
             { id: "home", label: "Beranda", icon: Home },
             { id: "attendance", label: "Absensi", icon: ClipboardList },
@@ -348,7 +327,7 @@ export default function ParentDashboard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-md md:max-w-xl lg:max-w-none mx-auto lg:mx-0 px-4 md:px-6 lg:px-0 space-y-3 md:mt-4 lg:mt-0">
+      <div className="max-w-md md:max-w-xl mx-auto px-4 md:px-6 space-y-3 md:mt-4">
         {/* HERO CARD — Payou style */}
         {tab === "home" && (
           <div className="relative md:space-y-4">
