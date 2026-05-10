@@ -62,15 +62,21 @@ serve(async (req) => {
       });
     }
 
-    // Get attendance time settings
-    const { data: settings } = await supabase
-      .from('dismissal_settings')
-      .select('attendance_start_time, attendance_end_time, departure_start_time, departure_end_time')
-      .eq('school_id', school_id)
-      .maybeSingle();
+    // Get attendance time settings + school timezone
+    const [{ data: settings }, { data: schoolTz }] = await Promise.all([
+      supabase
+        .from('dismissal_settings')
+        .select('attendance_start_time, attendance_end_time, departure_start_time, departure_end_time')
+        .eq('school_id', school_id)
+        .maybeSingle(),
+      supabase.from('schools').select('timezone').eq('id', school_id).maybeSingle(),
+    ]);
+
+    const tzMap: Record<string, string> = { WIB: 'Asia/Jakarta', WITA: 'Asia/Makassar', WIT: 'Asia/Jayapura' };
+    const tz = tzMap[(schoolTz?.timezone || 'WIB').toUpperCase()] || 'Asia/Jakarta';
 
     const now = new Date();
-    const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const jakartaTime = new Date(now.toLocaleString('en-US', { timeZone: tz }));
     const currentTime = jakartaTime.toTimeString().slice(0, 8);
     const today = jakartaTime.getFullYear() + '-' + String(jakartaTime.getMonth() + 1).padStart(2, '0') + '-' + String(jakartaTime.getDate()).padStart(2, '0');
 
