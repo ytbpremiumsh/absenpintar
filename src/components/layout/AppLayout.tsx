@@ -197,7 +197,7 @@ function AppContent() {
         <main className={cn("flex-1 overflow-auto p-3 sm:p-5 md:p-6", isMobileDevice && "pb-24")}>
           <Outlet />
         </main>
-        {isMobileDevice && <MobileFooterNav items={buildFooterItems(isTeacherOnly)} />}
+        {isMobileDevice && <MobileFooterNav items={buildFooterItems(isTeacherOnly, isWaliKelas)} />}
       </div>
     </>
   );
