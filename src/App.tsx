@@ -144,10 +144,11 @@ function AppRoutes() {
         <Route path="/bendahara/transaksi" element={<BendaharaTransaksi />} />
         <Route path="/bendahara/transaksi/:studentId" element={<BendaharaSPPDetail />} />
         <Route path="/bendahara/import-export" element={<BendaharaImportExport />} />
-        <Route path="/bendahara/saldo" element={<BendaharaSaldo />} />
-        <Route path="/bendahara/pencairan" element={<BendaharaPencairan />} />
+        <Route path="/bendahara/keuangan" element={<BendaharaKeuangan />} />
+        <Route path="/bendahara/saldo" element={<Navigate to="/bendahara/keuangan?tab=saldo" replace />} />
+        <Route path="/bendahara/pencairan" element={<Navigate to="/bendahara/keuangan?tab=pencairan" replace />} />
+        <Route path="/bendahara/laporan" element={<Navigate to="/bendahara/keuangan?tab=laporan" replace />} />
         <Route path="/bendahara/settlement" element={<BendaharaSettlement />} />
-        <Route path="/bendahara/laporan" element={<BendaharaLaporan />} />
         <Route path="/bendahara/gateway" element={<Navigate to="/bendahara" replace />} />
       </Route>
       <Route element={<SuperAdminLayout />}>
