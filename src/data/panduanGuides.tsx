@@ -273,7 +273,7 @@ export const GUIDES: RoleGuide[] = [
     intro:
       "Panduan untuk Wali Kelas (contoh: Ibu Uswatun Khasanah, S.Pd) dalam memantau siswa kelasnya, leaderboard antar kelas, absensi manual, dan pengajuan izin.",
     highlights: [
-      "Dashboard kelas wali",
+      "Dashboard wali kelas",
       "Leaderboard antar kelas",
       "Absensi manual H/S/I/A",
       "Approve izin & sakit",
