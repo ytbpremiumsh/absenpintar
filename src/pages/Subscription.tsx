@@ -13,6 +13,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
+import { useWaCreditEnabled } from "@/hooks/useWaCreditEnabled";
+import { transformPlanFeatures, transformFeatureList } from "@/lib/planFeatures";
 
 const iconMap: Record<string, any> = { Free: Zap, Basic: Star, School: Crown, Premium: Crown };
 
