@@ -19,13 +19,15 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const buildFooterItems = (isTeacherOnly: boolean) => [
+const buildFooterItems = (isTeacherOnly: boolean, isWaliKelas: boolean) => [
   { label: "Dashboard", icon: LayoutGrid, path: isTeacherOnly ? "/teacher-dashboard" : "/dashboard" },
   { label: "Monitoring", icon: Activity, path: "/monitoring" },
   { label: "Scan", icon: ScanLine, path: "/scan", isCenter: true },
-  // Teachers/Wali Kelas → siswa kelas mereka. Admin/Staff sekolah → semua siswa sekolah
-  { label: "Siswa", icon: Users, path: isTeacherOnly ? "/wali-kelas-students" : "/students" },
-  { label: "Jadwal", icon: CalendarDays, path: isTeacherOnly ? "/teaching-schedule" : "/live-schedule" },
+  // Guru murni (bukan wali kelas) → Riwayat laporan. Wali kelas / admin → Siswa
+  isTeacherOnly && !isWaliKelas
+    ? { label: "Riwayat", icon: BookOpen, path: "/mapel/laporan" }
+    : { label: "Siswa", icon: Users, path: isTeacherOnly ? "/wali-kelas-students" : "/students" },
+  { label: "Jadwal", icon: CalendarDays, path: "/jadwal" },
 ];
 
 function AppContent() {
