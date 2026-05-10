@@ -423,7 +423,7 @@ export default function ParentDashboard() {
               <div className="relative mt-4 md:mt-6 flex items-end justify-between gap-3">
                 <div>
                   <p className="text-4xl md:text-6xl font-extrabold tracking-tight leading-none">{monthRate}<span className="text-2xl md:text-3xl">%</span></p>
-                  <p className="text-[11px] md:text-sm text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{monthAttendance.length} hari</p>
+                  <p className="text-[11px] md:text-sm text-white/80 mt-1.5">Tingkat Kehadiran • {monthHadir}/{workingDaysElapsed} hari sekolah</p>
                 </div>
                 <div className="flex flex-col items-end">
                   <Badge className="bg-white/20 text-white border-0 text-[10px] md:text-xs backdrop-blur">
