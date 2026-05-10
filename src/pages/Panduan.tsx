@@ -93,9 +93,9 @@ export default function Panduan() {
                           </li>
                         ))}
                       </ul>
-                      <div className={`inline-flex items-center gap-2 text-sm font-bold bg-gradient-to-r ${g.color} bg-clip-text text-transparent group-hover:gap-3 transition-all`}>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5B6CF9] text-white text-sm font-semibold shadow-sm group-hover:bg-[#4c5ded] group-hover:shadow-md transition-colors duration-150">
                         Buka Panduan
-                        <ArrowRight className="h-4 w-4 text-slate-700 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform duration-150" />
                       </div>
                     </div>
                   </Link>
