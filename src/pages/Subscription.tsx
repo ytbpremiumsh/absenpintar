@@ -13,6 +13,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
+import { useWaCreditEnabled } from "@/hooks/useWaCreditEnabled";
+import { transformPlanFeatures, transformFeatureList } from "@/lib/planFeatures";
 
 const iconMap: Record<string, any> = { Free: Zap, Basic: Star, School: Crown, Premium: Crown };
 
@@ -33,6 +35,7 @@ const planLimits: Record<string, { maxClasses: number; maxStudentsPerClass: numb
 
 const Subscription = () => {
   const { profile } = useAuth();
+  const { enabled: waCreditEnabled } = useWaCreditEnabled();
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +61,7 @@ const Subscription = () => {
         ...p,
         features: Array.isArray(p.features) ? p.features : [],
       }));
-      setPlans(parsed);
+      setPlans(transformPlanFeatures(parsed, waCreditEnabled));
 
       if (profile?.school_id) {
         const [subRes, classesRes, studentRes, historyRes, creditRes] = await Promise.all([
@@ -83,7 +86,8 @@ const Subscription = () => {
           setCurrentSub(sub);
           const plan = (sub as any).subscription_plans;
           if (plan) {
-            const p = { ...plan, features: Array.isArray(plan.features) ? plan.features : [] };
+            const baseFeatures = Array.isArray(plan.features) ? plan.features : [];
+            const p = { ...plan, features: transformFeatureList(baseFeatures, waCreditEnabled, plan.name) };
             setCurrentPlan(p);
             const limits = planLimits[p.name] || planLimits.Free;
             setUsage({
@@ -109,7 +113,7 @@ const Subscription = () => {
       setLoading(false);
     };
     fetchData();
-  }, [profile?.school_id]);
+  }, [profile?.school_id, waCreditEnabled]);
 
   // Poll for payment confirmation when returning from Mayar
   useEffect(() => {
@@ -356,7 +360,7 @@ const Subscription = () => {
             )}
 
             {/* WA Credits Progress */}
-            {waCredits && (
+            {waCreditEnabled && waCredits && (
               <div className="mb-4 p-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-foreground flex items-center gap-1.5">

@@ -12,11 +12,19 @@ import { motion } from "framer-motion";
 import { PaymentIframeDialog } from "@/components/PaymentIframeDialog";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
+import { useWaCreditEnabled } from "@/hooks/useWaCreditEnabled";
 
 const WaCredit = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { enabled: waCreditEnabled, loading: waCreditLoading } = useWaCreditEnabled();
   const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (!waCreditLoading && !waCreditEnabled) {
+      navigate("/addons", { replace: true });
+    }
+  }, [waCreditLoading, waCreditEnabled, navigate]);
   const [waCredits, setWaCredits] = useState<any>(null);
   const [waCreditPrice, setWaCreditPrice] = useState(50000);
   const [waCreditPerPack, setWaCreditPerPack] = useState(1000);

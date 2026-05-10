@@ -17,6 +17,8 @@ import {
 import heroDashboard from "@/assets/hero-dashboard.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlanCardsGrid } from "@/components/PlanCardsGrid";
+import { useWaCreditEnabled } from "@/hooks/useWaCreditEnabled";
+import { transformPlanFeatures } from "@/lib/planFeatures";
 import { cn } from "@/lib/utils";
 
 const fadeUp = {
@@ -205,6 +207,7 @@ const TestimonialSlider = ({ testimonials }: { testimonials: Testimonial[] }) =>
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { enabled: waCreditEnabled } = useWaCreditEnabled();
   const [content, setContent] = useState<Record<string, string>>({});
   const [plans, setPlans] = useState<PlanRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -731,7 +734,7 @@ const LandingPage = () => {
           </motion.div>
 
           <PlanCardsGrid
-            plans={plans as any}
+            plans={transformPlanFeatures(plans as any, waCreditEnabled)}
             ctaLabel="Mulai Sekarang"
             hidePremiumBadge
             onSelect={() => navigate("/register")}

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlanCardsGrid } from "@/components/PlanCardsGrid";
+import { useWaCreditEnabled } from "@/hooks/useWaCreditEnabled";
+import { transformPlanFeatures } from "@/lib/planFeatures";
 import heroMockup from "@/assets/hero-mockup-theme2.png";
 import dashboardPreviewStack from "@/assets/dashboard-preview-stack.png";
 import illustSchool from "@/assets/illust-dashboard-school.png";
@@ -147,6 +149,7 @@ const TestimonialSlider = ({ testimonials }: { testimonials: Testimonial[] }) =>
 /* ─── Main Theme B Component ─── */
 const LandingThemeB = () => {
   const navigate = useNavigate();
+  const { enabled: waCreditEnabled } = useWaCreditEnabled();
   const [content, setContent] = useState<Record<string, string>>({});
   const [plans, setPlans] = useState<PlanRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -604,7 +607,7 @@ const LandingThemeB = () => {
               <p className="mt-3 text-slate-500 dark:text-slate-400 max-w-lg mx-auto">Harga transparan, tanpa biaya tersembunyi.</p>
             </motion.div>
             <PlanCardsGrid
-              plans={plans as any}
+              plans={transformPlanFeatures(plans as any, waCreditEnabled)}
               ctaLabel="Mulai Sekarang"
               hidePremiumBadge
               onSelect={() => navigate("/register")}
