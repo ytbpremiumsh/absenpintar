@@ -544,27 +544,7 @@ function WaliKelasMobileDashboard({
             </div>
           </div>
 
-          {/* 3 quick actions */}
-          <div className="relative mt-5 flex items-center justify-around">
-            <button onClick={() => navigate("/wali-kelas-attendance")} className="flex flex-col items-center gap-1.5 group">
-              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
-                <CalendarCheck2 className="h-4 w-4" />
-              </div>
-              <span className="text-[10px] font-medium text-white/90">Absensi</span>
-            </button>
-            <button onClick={() => navigate("/wali-kelas-students")} className="flex flex-col items-center gap-1.5 group">
-              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
-                <Users className="h-4 w-4" />
-              </div>
-              <span className="text-[10px] font-medium text-white/90">Siswa</span>
-            </button>
-            <button onClick={() => navigate("/wali-kelas-export")} className="flex flex-col items-center gap-1.5 group">
-              <div className="h-11 w-11 rounded-full bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center group-active:scale-95 transition">
-                <BarChart3 className="h-4 w-4" />
-              </div>
-              <span className="text-[10px] font-medium text-white/90">Rekap</span>
-            </button>
-          </div>
+          {/* Ranking pill moved here directly — quick actions removed (duplicate dengan bottom nav) */}
 
           {/* Ranking pill */}
           {myBest && (
