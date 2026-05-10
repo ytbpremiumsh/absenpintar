@@ -85,11 +85,25 @@ serve(async (req) => {
     const depStart = settings?.departure_start_time || '12:00:00';
     const depEnd = settings?.departure_end_time || '17:00:00';
 
+    // Check today's existing records first to enable smart switching
+    const { data: todayLogs } = await supabase.from('attendance_logs')
+      .select('id, attendance_type').eq('student_id', student.id).eq('date', today);
+    const hasDatang = (todayLogs || []).some((l: any) => l.attendance_type === 'datang');
+    const hasPulang = (todayLogs || []).some((l: any) => l.attendance_type === 'pulang');
+
+    const inAtt = currentTime >= attStart && currentTime < attEnd;
+    const inDep = currentTime >= depStart && currentTime <= depEnd;
+
     let attendance_type: string;
-    if (currentTime >= attStart && currentTime < attEnd) {
-      attendance_type = 'datang';
-    } else if (currentTime >= depStart && currentTime <= depEnd) {
+    if (hasDatang && !hasPulang && currentTime >= depStart) {
+      // Already arrived — switch to pulang once departure window opens (handles overlapping windows)
       attendance_type = 'pulang';
+    } else if (inAtt && !hasDatang) {
+      attendance_type = 'datang';
+    } else if (inDep) {
+      attendance_type = 'pulang';
+    } else if (inAtt) {
+      attendance_type = 'datang';
     } else if (currentTime < attStart) {
       attendance_type = 'datang';
     } else {
