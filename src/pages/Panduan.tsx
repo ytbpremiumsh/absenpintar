@@ -67,10 +67,10 @@ export default function Panduan() {
                   viewport={{ once: true }} transition={{ delay: idx * 0.06, duration: 0.4 }}>
                   <Link to={`/panduan/${g.id}`}
                     className="group block relative h-full rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-indigo-50/60 border-b border-indigo-100">
+                    <div className="relative h-56 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-indigo-50/60 border-b border-indigo-100">
                       {g.cover && (
                         <img src={g.cover} alt={g.label} loading="lazy" decoding="async"
-                          className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-500" />
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-white via-white/0 to-transparent pointer-events-none" />
                       <motion.div className="absolute top-4 left-4 h-12 w-12 rounded-2xl bg-white flex items-center justify-center shadow-md ring-1 ring-[#5B6CF9]/20"
