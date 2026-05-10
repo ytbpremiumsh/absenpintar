@@ -989,15 +989,7 @@ export default function ParentDashboard() {
         {/* SPP */}
         {tab === "spp" && (
           <>
-            {/* Header section di-center agar saat data kosong tidak mendominasi & seimbang dengan konten lain */}
-            <div className="flex justify-center mt-1">
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#5B6CF9]/8 ring-1 ring-[#5B6CF9]/20">
-                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shadow-[0_4px_12px_-4px_rgba(91,108,249,0.55)]">
-                  <Wallet className="h-3.5 w-3.5 text-white" />
-                </div>
-                <h3 className="text-[13px] font-bold tracking-tight">Pembayaran SPP</h3>
-              </div>
-            </div>
+            <SectionTitle icon={Wallet} title="Pembayaran SPP" />
 
             {/* Ringkasan Tunggakan */}
             {sppData.total_tunggakan > 0 && (
