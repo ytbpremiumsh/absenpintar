@@ -317,25 +317,25 @@ export default function ParentDashboard() {
       {/* MAIN COLUMN */}
       <div className="flex-1 min-w-0">
 
-      {/* Top Bar — visible on all viewports */}
-      <div className="sticky top-0 md:static md:rounded-2xl z-30 bg-background/85 md:bg-card backdrop-blur-md border-b md:border border-border/40 shadow-sm md:mb-4">
-        <div className="max-w-md md:max-w-none mx-auto md:mx-0 px-5 md:px-5 pt-3 md:pt-3 pb-3">
+      {/* Top Bar — sticky on all viewports */}
+      <div className="sticky top-0 md:top-3 z-30 md:rounded-2xl bg-background/85 md:bg-card/95 backdrop-blur-md border-b md:border border-border/40 shadow-sm md:shadow-card md:mb-4">
+        <div className="max-w-md md:max-w-none mx-auto md:mx-0 px-5 md:px-7 pt-3 md:pt-4 pb-3 md:pb-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
-                <img src={headerLogo || atskollaLogo} alt="Logo Sekolah" className="h-6 w-6 object-contain" />
+            <div className="flex items-center gap-2.5 md:gap-4 min-w-0">
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-gradient-to-br from-[#5B6CF9] to-[#4c5ded] flex items-center justify-center shrink-0 shadow-[0_8px_20px_-6px_rgba(91,108,249,0.55)]">
+                <img src={headerLogo || atskollaLogo} alt="Logo Sekolah" className="h-6 w-6 md:h-7 md:w-7 object-contain" />
               </div>
               <div className="min-w-0 leading-tight">
-                <h1 className="text-xs sm:text-sm md:text-base font-bold truncate text-foreground max-w-[170px] sm:max-w-[260px] md:max-w-none">
+                <h1 className="text-xs sm:text-sm md:text-lg font-bold truncate text-foreground max-w-[170px] sm:max-w-[260px] md:max-w-none">
                   {current?.schools?.name || "Sekolah"}
                 </h1>
-                <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-muted-foreground font-semibold -mt-0.5">
+                <p className="text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-wider text-muted-foreground font-semibold -mt-0.5">
                   Wali Murid<span className="hidden md:inline"> · Portal Orang Tua</span>
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <button onClick={() => setTab("info")} className="relative h-9 w-9 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <button onClick={() => setTab("info")} className="relative h-9 w-9 md:h-10 md:w-10 rounded-full bg-white border border-border/60 hover:border-[#5B6CF9]/40 flex items-center justify-center transition-colors shadow-sm" aria-label="Notifikasi">
                 <Bell className="h-4 w-4 text-foreground" />
                 {announcements.length > 0 && (
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
