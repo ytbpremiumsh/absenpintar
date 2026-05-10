@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { MobileFooterNav } from "./MobileFooterNav";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { Settings, LogOut, School, KeyRound, Gift, LayoutGrid, Activity, ScanLine, Users, CalendarDays, HelpCircle, Award, Repeat } from "lucide-react";
+import { Settings, LogOut, School, KeyRound, Gift, LayoutGrid, Activity, ScanLine, Users, CalendarDays, HelpCircle, Award, Repeat, BookOpen } from "lucide-react";
 import { getAvailableDashboards } from "@/lib/dashboards";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -167,6 +167,10 @@ function AppContent() {
                     Affiliate & Komisi
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={() => navigate("/panduan")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                  <BookOpen className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                  Panduan
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
                   Bantuan
