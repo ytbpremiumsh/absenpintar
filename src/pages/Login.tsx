@@ -23,8 +23,9 @@ const Login = () => {
 
   // school
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => localStorage.getItem("remembered_email") || "");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remembered_email"));
   const [loading, setLoading] = useState(false);
   const [loginLogo, setLoginLogo] = useState("/images/logo-atskolla.png");
   const [networkIssue, setNetworkIssue] = useState(false);
@@ -75,6 +76,14 @@ const Login = () => {
           toast.error("Login gagal: " + error);
         }
         return;
+      }
+      // Persist remember-me preference
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", email);
+        sessionStorage.removeItem("ephemeral_session");
+      } else {
+        localStorage.removeItem("remembered_email");
+        sessionStorage.setItem("ephemeral_session", "1");
       }
       toast.success("Login berhasil!");
       const { data: { user } } = await supabase.auth.getUser();
