@@ -201,12 +201,12 @@ const Login = () => {
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-white/[0.03] rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-300/[0.05] rounded-full blur-3xl pointer-events-none" />
 
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
-        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
+        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center justify-items-center">
           {/* Left: Features */}
           <motion.div
             initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}
-            className="hidden lg:block text-white"
+            className="hidden lg:block text-white w-full max-w-md"
           >
             <div className="flex items-center gap-3 mb-6">
               <img src={loginLogo} alt="ATSkolla" className="h-12 w-12 rounded-xl shadow-lg" />
@@ -236,7 +236,7 @@ const Login = () => {
           {/* Right: Login card */}
           <motion.div
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }}
-            className="w-full max-w-md mx-auto lg:mx-0"
+            className="w-full max-w-md"
           >
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
               className="flex lg:hidden items-center justify-center gap-3 mb-6">
@@ -390,10 +390,9 @@ const Login = () => {
                 </AnimatePresence>
               </div>
             </motion.div>
-
-            <p className="text-center text-white/30 text-xs mt-5">© 2026 ATSkolla — Platform Digital Sekolah</p>
           </motion.div>
         </div>
+        <p className="text-center text-white/40 text-xs mt-8 w-full max-w-6xl">© 2026 ATSkolla — Platform Digital Sekolah</p>
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-8 bg-white dark:bg-slate-950 rounded-t-[2rem] z-[5]" />
