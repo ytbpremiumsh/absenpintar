@@ -625,10 +625,7 @@ function WaliKelasMobileDashboard({
                 <SheetTitle className="text-left">Menu Lainnya</SheetTitle>
               </SheetHeader>
               <div className="grid grid-cols-3 gap-3">
-                <SheetTile icon={Users} label="Siswa Kelas" gradient="from-emerald-500 to-teal-600" onClick={() => navigate("/wali-kelas-students")} />
-                <SheetTile icon={BarChart3} label="Rekap" gradient="from-amber-500 to-orange-600" onClick={() => navigate("/wali-kelas-export")} />
-                <SheetTile icon={Activity} label="Analytic" gradient="from-pink-500 to-rose-600" onClick={() => navigate("/wali-kelas-history")} />
-                <SheetTile icon={HistoryIcon} label="History" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/wali-kelas-history")} />
+                <SheetTile icon={HistoryIcon} label="Riwayat" gradient="from-sky-500 to-blue-600" onClick={() => navigate("/wali-kelas-history")} />
                 <SheetTile icon={Download} label="Export" gradient="from-violet-500 to-purple-600" onClick={() => navigate("/wali-kelas-export")} />
                 <SheetTile icon={Trophy} label="Peringkat" gradient="from-yellow-500 to-amber-600" onClick={() => window.scrollTo({ top: 9999, behavior: "smooth" })} />
               </div>
