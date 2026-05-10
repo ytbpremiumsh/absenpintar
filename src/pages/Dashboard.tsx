@@ -480,27 +480,6 @@ const Dashboard = () => {
         <LiveScheduleWidget schoolId={profile.school_id} />
       )}
 
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-base font-bold text-foreground mb-3">Aksi Cepat</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {quickActions.map((action, i) => (
-            <motion.div key={action.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.05 }}>
-              <Card
-                className={`rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${action.bg}`}
-                onClick={() => navigate(action.path)}
-              >
-                <CardContent className="p-4 sm:p-5">
-                  <action.icon className={`h-6 w-6 ${action.iconColor} mb-3`} />
-                  <p className={`text-sm font-semibold ${action.iconColor}`}>{action.label}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{action.desc}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
       {/* Student List Dialog */}
       <Dialog open={!!selectedStatus} onOpenChange={(open) => { if (!open) setSelectedStatus(null); }}>
         <DialogContent className="max-w-[95vw] sm:max-w-md p-0 overflow-hidden rounded-2xl">
@@ -534,37 +513,6 @@ const Dashboard = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
-
-      {/* Daftar Wali Kelas */}
-      <Card className="rounded-2xl border border-border/60 shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            Daftar Wali Kelas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {waliKelasList.length === 0 && !loading ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Belum ada wali kelas yang ditugaskan</p>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {waliKelasList.map((wk, idx) => (
-                <motion.div key={`${wk.class_name}-${idx}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
-                    {wk.name.charAt(0)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate">{wk.name}</p>
-                    <p className="text-[11px] text-muted-foreground">Kelas {wk.class_name}</p>
-                  </div>
-                  <Badge variant="secondary" className="text-[10px] shrink-0">{wk.class_name}</Badge>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Recent Attendance */}
       <Card className="rounded-2xl border border-border/60 shadow-sm">
