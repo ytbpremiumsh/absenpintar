@@ -178,14 +178,24 @@ function AppContent() {
                     Affiliate & Komisi
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => navigate("/panduan")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
-                  <BookOpen className="h-4 w-4 mr-2.5 text-muted-foreground" />
-                  Panduan
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
-                  <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
-                  Bantuan
-                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                    <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                    Pusat Bantuan
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="rounded-2xl shadow-elevated border-border/50">
+                      <DropdownMenuItem onClick={() => navigate("/panduan")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                        <BookOpen className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                        Panduan Penggunaan
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/support")} className="rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
+                        <HelpCircle className="h-4 w-4 mr-2.5 text-muted-foreground" />
+                        Hubungi Support
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive rounded-xl mx-1 px-3 py-2.5 cursor-pointer">
                   <LogOut className="h-4 w-4 mr-2.5" />
