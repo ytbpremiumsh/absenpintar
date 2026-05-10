@@ -116,13 +116,21 @@ export default function LeaveRequests() {
         .eq("id", reviewItem.id);
       if (error) throw error;
 
-      // Auto-create attendance log if approved
+      // Auto-sync attendance log if approved (replace any existing record for that date)
       if (reviewAction === "approved") {
+        const newStatus = reviewItem.type === "sakit" ? "sakit" : "izin";
+        // Remove existing logs for the student on that date so the approved status takes precedence
+        await supabase
+          .from("attendance_logs")
+          .delete()
+          .eq("school_id", schoolId)
+          .eq("student_id", reviewItem.student_id)
+          .eq("date", reviewItem.date);
         await supabase.from("attendance_logs").insert({
           school_id: schoolId,
           student_id: reviewItem.student_id,
           date: reviewItem.date,
-          status: reviewItem.type === "sakit" ? "sakit" : "izin",
+          status: newStatus,
           method: "manual",
           attendance_type: "datang",
           notes: `Disetujui dari pengajuan wali murid: ${reviewItem.reason}`,
