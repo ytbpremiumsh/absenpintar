@@ -16,7 +16,16 @@ function injectPixel(pixelId: string) {
   if (initialized && currentPixelId === pixelId) return;
   if (typeof window === "undefined") return;
 
-  // Standard Meta Pixel base snippet
+  // If Pixel already initialized via index.html <head> snippet, skip re-init
+  // to avoid duplicate PageView events. Just mark as initialized so SPA route
+  // changes still fire PageView.
+  if (window.fbq) {
+    initialized = true;
+    currentPixelId = pixelId;
+    return;
+  }
+
+  // Standard Meta Pixel base snippet (fallback if not in index.html)
   /* eslint-disable */
   (function (f: any, b: Document, e: string, v: string) {
     if (f.fbq) return;
