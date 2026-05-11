@@ -78,6 +78,8 @@ import SuperAdminBendahara from "./pages/super-admin/SuperAdminBendahara";
 import SuperAdminShortlinks from "./pages/super-admin/SuperAdminShortlinks";
 import ShortlinkRedirect from "./pages/ShortlinkRedirect";
 import { GoogleAnalytics } from "./components/GoogleAnalytics";
+import MetaPixel from "./components/MetaPixel";
+import SuperAdminMetaPixel from "./pages/super-admin/SuperAdminMetaPixel";
 import SuperAdminPanduan from "./pages/super-admin/SuperAdminPanduan";
 import CustomDomain from "./pages/CustomDomain";
 import Addons from "./pages/Addons";
@@ -188,6 +190,7 @@ function AppRoutes() {
         <Route path="/super-admin/server-info" element={<SuperAdminServerInfo />} />
         <Route path="/super-admin/bendahara" element={<SuperAdminBendahara />} />
         <Route path="/super-admin/shortlinks" element={<SuperAdminShortlinks />} />
+        <Route path="/super-admin/meta-pixel" element={<SuperAdminMetaPixel />} />
       </Route>
       <Route path="/s/:code" element={<ShortlinkRedirect />} />
       {/* School Admin / Staff */}
@@ -258,6 +261,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <GoogleAnalytics />
+          <MetaPixel />
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>

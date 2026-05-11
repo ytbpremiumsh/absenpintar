@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Outlet, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server, Banknote, Mail, Wand2, BookOpen, Link2 } from "lucide-react";
+import { LayoutGrid, School, Wallet, Receipt, LogOut, Shield, CalendarCheck, Building2, Megaphone, Globe, Presentation, Clock, Gift, Crown, UsersRound, MessageCircle, Eye, Palette, ChevronRight, Handshake, CreditCard, Settings, Database, Package, Server, Banknote, Mail, Wand2, BookOpen, Link2, Activity } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -40,6 +40,7 @@ const navItems = [
   // KONTEN PUBLIK
   { title: "CMS Konten", url: "/super-admin/cms", icon: Palette, group: "content" },
   { title: "Shortlink & Analytics", url: "/super-admin/shortlinks", icon: Link2, group: "content" },
+  { title: "Meta Pixel & CAPI", url: "/super-admin/meta-pixel", icon: Activity, group: "content" },
 
   // SISTEM
   { title: "Backup & Migrasi", url: "/super-admin/backup", icon: Database, group: "system" },
