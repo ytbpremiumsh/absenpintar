@@ -25,12 +25,12 @@ const WHY_CHOOSE = [
 ];
 
 const SHOWCASE_IMAGES = [
-  { src: "/images/presentation/ss-dashboard.png", title: "Dashboard Analitik", desc: "Statistik kehadiran lengkap real-time" },
-  { src: "/images/presentation/ss-monitoring.png", title: "Live Monitoring", desc: "Pantau kehadiran secara langsung" },
-  { src: "/images/presentation/ss-scan.png", title: "Scan Multi-Metode", desc: "QR Code, Face Recognition, NIS Manual" },
-  { src: "/images/presentation/ss-students.png", title: "Database Siswa", desc: "Kelola data siswa lengkap" },
-  { src: "/images/presentation/ss-whatsapp.png", title: "WhatsApp Otomatis", desc: "Notifikasi kehadiran ke orang tua" },
-  { src: "/images/presentation/ss-rekap.png", title: "Rekap & Export", desc: "Format absensi nasional" },
+  { src: "/images/presentation/ss-dashboard.webp", title: "Dashboard Analitik", desc: "Statistik kehadiran lengkap real-time" },
+  { src: "/images/presentation/ss-monitoring.webp", title: "Live Monitoring", desc: "Pantau kehadiran secara langsung" },
+  { src: "/images/presentation/ss-scan.webp", title: "Scan Multi-Metode", desc: "QR Code, Face Recognition, NIS Manual" },
+  { src: "/images/presentation/ss-students.webp", title: "Database Siswa", desc: "Kelola data siswa lengkap" },
+  { src: "/images/presentation/ss-whatsapp.webp", title: "WhatsApp Otomatis", desc: "Notifikasi kehadiran ke orang tua" },
+  { src: "/images/presentation/ss-rekap.webp", title: "Rekap & Export", desc: "Format absensi nasional" },
 ];
 
 const PRICING = [
@@ -151,7 +151,7 @@ const Penawaran = () => {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-3xl blur-xl" />
                 <img
-                  src="/images/presentation/ss-dashboard.png"
+                  src="/images/presentation/ss-dashboard.webp"
                   alt="ATSkolla Dashboard"
                   className="relative rounded-2xl shadow-2xl border border-white/10"
                 />

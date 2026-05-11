@@ -29,7 +29,7 @@ const PITCH_SECTIONS = [
       "Model bisnis B2B dengan langganan bulanan mulai Rp 99.000",
       "Sudah terintegrasi dengan WhatsApp API untuk notifikasi real-time",
     ],
-    image: "/images/presentation/ss-dashboard.png",
+    image: "/images/presentation/ss-dashboard.webp",
   },
   {
     number: 2,
@@ -59,7 +59,7 @@ const PITCH_SECTIONS = [
       "Dashboard real-time dengan statistik lengkap",
       "Rekap & export otomatis ke Excel dan PDF",
     ],
-    image: "/images/presentation/ss-monitoring.png",
+    image: "/images/presentation/ss-monitoring.webp",
   },
   {
     number: 4,
@@ -104,7 +104,7 @@ const PITCH_SECTIONS = [
       "UI/UX modern dan mudah digunakan oleh non-teknis",
       "Dukungan teknis 24/7 via live chat, tiket, dan WhatsApp",
     ],
-    image: "/images/presentation/ss-scan.png",
+    image: "/images/presentation/ss-scan.webp",
   },
   {
     number: 7,
@@ -119,7 +119,7 @@ const PITCH_SECTIONS = [
       "Dashboard real-time — statistik kehadiran komprehensif",
       "Export rekap format absensi nasional ke Excel/PDF",
     ],
-    image: "/images/presentation/ss-classes.png",
+    image: "/images/presentation/ss-classes.webp",
   },
   {
     number: 8,
@@ -134,7 +134,7 @@ const PITCH_SECTIONS = [
       "Uptime 99.9% dengan backup ganda",
       "Waktu respons <500ms — tidak ada antrian saat jam masuk",
     ],
-    image: "/images/presentation/ss-rekap.png",
+    image: "/images/presentation/ss-rekap.webp",
   },
   {
     number: 9,
