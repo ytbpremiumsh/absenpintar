@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.verify-bendahara-otp]
 verify_jwt = false
+
+[functions.meta-capi]
+verify_jwt = false
